@@ -6,6 +6,8 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── BOOKS ───────────────────────────────────────────────────────────────────
+
 model Book {
   id         String     @id @default(cuid())
   title      String
@@ -28,6 +30,244 @@ enum BookStatus {
   WANT_TO_READ
   DNF
 }
+
+// ─── ANIME ───────────────────────────────────────────────────────────────────
+
+model Anime {
+  id              String       @id @default(cuid())
+  title           String
+  studio          String?
+  status          AnimeStatus  @default(PLAN_TO_WATCH)
+  episodes        Int?
+  episodesWatched Int          @default(0)
+  episodeDuration Int          @default(24)
+  season          AnimeSeason?
+  year            Int?
+  language        Language     @default(JAPANESE)
+  coverImage      String?
+  rating          Float?
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+enum AnimeStatus {
+  WATCHING
+  COMPLETED
+  PLAN_TO_WATCH
+  DROPPED
+  ON_HOLD
+}
+
+enum AnimeSeason {
+  WINTER
+  SPRING
+  SUMMER
+  FALL
+}
+
+// ─── MOVIES ──────────────────────────────────────────────────────────────────
+
+model Movie {
+  id         String      @id @default(cuid())
+  title      String
+  director   String?
+  studio     String?
+  status     MovieStatus @default(WANT_TO_WATCH)
+  runtime    Int
+  year       Int?
+  language   Language    @default(ENGLISH)
+  coverImage String?
+  rating     Float?
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+enum MovieStatus {
+  WATCHED
+  WANT_TO_WATCH
+  DROPPED
+}
+
+// ─── TV SHOWS ────────────────────────────────────────────────────────────────
+
+model TvShow {
+  id              String   @id @default(cuid())
+  title           String
+  creator         String?
+  network         String?
+  status          TvStatus @default(PLAN_TO_WATCH)
+  totalEpisodes   Int?
+  episodesWatched Int      @default(0)
+  episodeRuntime  Int      @default(45)
+  year            Int?
+  language        Language @default(ENGLISH)
+  coverImage      String?
+  rating          Float?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum TvStatus {
+  WATCHING
+  COMPLETED
+  PLAN_TO_WATCH
+  DROPPED
+  ON_HOLD
+}
+
+// ─── GAMES ───────────────────────────────────────────────────────────────────
+
+model Game {
+  id                   String       @id @default(cuid())
+  title                String
+  developer            String?
+  publisher            String?
+  status               GameStatus   @default(PLAN_TO_PLAY)
+  platform             GamePlatform @default(PC)
+  emulated             Boolean      @default(false)
+  hoursPlayed          Float        @default(0)
+  achievementsUnlocked Int          @default(0)
+  achievementsTotal    Int?
+  coverImage           String?
+  rating               Float?
+  notes                String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+}
+
+enum GameStatus {
+  PLAYING
+  COMPLETED
+  PLAN_TO_PLAY
+  DROPPED
+  PLATINUM
+}
+
+enum GamePlatform {
+  PC
+  MAC
+  STEAM_DECK
+  PS5
+  PS4
+  PS3
+  PS2
+  PS1
+  PSP
+  PS_VITA
+  XBOX_SERIES_X
+  XBOX_SERIES_S
+  XBOX_ONE_X
+  XBOX_ONE_S
+  XBOX_ONE
+  XBOX_360
+  XBOX
+  SWITCH_2
+  SWITCH
+  SWITCH_OLED
+  SWITCH_LITE
+  WII_U
+  WII
+  GAMECUBE
+  N64
+  SNES
+  NES
+  NINTENDO_3DS
+  DS
+  GBA
+  GBC
+  GAMEBOY
+  SEGA_DREAMCAST
+  SEGA_SATURN
+  SEGA_GENESIS
+  GAME_GEAR
+  IOS
+  ANDROID
+  OTHER
+}
+
+// ─── MANGA ───────────────────────────────────────────────────────────────────
+
+model Manga {
+  id            String      @id @default(cuid())
+  title         String
+  author        String
+  artist        String?
+  publisher     String?
+  status        MangaStatus @default(PLAN_TO_READ)
+  totalVolumes  Int?
+  volumesRead   Int         @default(0)
+  totalChapters Int?
+  chaptersRead  Int         @default(0)
+  language      Language    @default(JAPANESE)
+  coverImage    String?
+  rating        Float?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum MangaStatus {
+  READING
+  COMPLETED
+  PLAN_TO_READ
+  DROPPED
+  ON_HOLD
+}
+
+// ─── COMICS ──────────────────────────────────────────────────────────────────
+
+model Comic {
+  id          String      @id @default(cuid())
+  title       String
+  author      String?
+  artist      String?
+  publisher   String?
+  universe    String?
+  status      ComicStatus @default(PLAN_TO_READ)
+  totalIssues Int?
+  issuesRead  Int         @default(0)
+  language    Language    @default(ENGLISH)
+  coverImage  String?
+  rating      Float?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum ComicStatus {
+  READING
+  COMPLETED
+  PLAN_TO_READ
+  DROPPED
+}
+
+// ─── ARTICLES ────────────────────────────────────────────────────────────────
+
+model Article {
+  id          String        @id @default(cuid())
+  title       String
+  author      String?
+  publication String?
+  url         String?
+  status      ArticleStatus @default(WANT_TO_READ)
+  wordCount   Int
+  language    Language      @default(ENGLISH)
+  coverImage  String?
+  rating      Float?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum ArticleStatus {
+  READ
+  WANT_TO_READ
+}
+
+// ─── SHARED ENUMS ────────────────────────────────────────────────────────────
 
 enum Language {
   ENGLISH

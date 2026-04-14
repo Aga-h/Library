@@ -20,48 +20,13 @@ const NAV_ITEMS = [
     icon: BookOpen,
     active: true,
   },
-  {
-    href: "/anime",
-    label: "Anime",
-    icon: Layers,
-    active: false,
-  },
-  {
-    href: "/movies",
-    label: "Movies",
-    icon: Film,
-    active: false,
-  },
-  {
-    href: "/tv",
-    label: "TV Shows",
-    icon: Tv2,
-    active: false,
-  },
-  {
-    href: "/games",
-    label: "Games",
-    icon: Gamepad2,
-    active: false,
-  },
-  {
-    href: "/manga",
-    label: "Manga",
-    icon: BookMarked,
-    active: false,
-  },
-  {
-    href: "/comics",
-    label: "Comics",
-    icon: BookMarked,
-    active: false,
-  },
-  {
-    href: "/articles",
-    label: "Articles",
-    icon: Newspaper,
-    active: false,
-  },
+  { href: "/anime",    label: "Anime",    icon: Layers,    active: true },
+  { href: "/movies",   label: "Movies",   icon: Film,      active: true },
+  { href: "/tv",       label: "TV Shows", icon: Tv2,       active: true },
+  { href: "/games",    label: "Games",    icon: Gamepad2,  active: true },
+  { href: "/manga",    label: "Manga",    icon: BookMarked,active: true },
+  { href: "/comics",   label: "Comics",   icon: BookMarked,active: true },
+  { href: "/articles", label: "Articles", icon: Newspaper, active: true },
 ];
 
 export default function Sidebar() {

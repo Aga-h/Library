@@ -1,0 +1,76 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { db } from "@/lib/db";
+
+const updateAnimeSchema = z.object({
+  title: z.string().min(1).optional(),
+  studio: z.string().optional().nullable(),
+  status: z
+    .enum(["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"])
+    .optional(),
+  episodes: z.number().int().optional().nullable(),
+  episodesWatched: z.number().int().optional(),
+  episodeDuration: z.number().int().optional(),
+  season: z.enum(["WINTER", "SPRING", "SUMMER", "FALL"]).optional().nullable(),
+  year: z.number().int().optional().nullable(),
+  language: z
+    .enum([
+      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
+      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
+      "JAPANESE", "CHINESE", "KOREAN",
+    ])
+    .optional(),
+  coverImage: z.string().url().optional().nullable().or(z.literal("")),
+  rating: z.number().min(1).max(10).optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function GET(_request: NextRequest, { params }: RouteContext) {
+  const { id } = await params;
+
+  const anime = await db.anime.findUnique({ where: { id } });
+  if (!anime) {
+    return NextResponse.json({ error: "Anime not found" }, { status: 404 });
+  }
+  return NextResponse.json(anime);
+}
+
+export async function PATCH(request: NextRequest, { params }: RouteContext) {
+  const { id } = await params;
+
+  const anime = await db.anime.findUnique({ where: { id } });
+  if (!anime) {
+    return NextResponse.json({ error: "Anime not found" }, { status: 404 });
+  }
+
+  const body = await request.json();
+  const result = updateAnimeSchema.safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { error: "Validation failed", issues: result.error.issues },
+      { status: 400 }
+    );
+  }
+
+  const updated = await db.anime.update({
+    where: { id },
+    data: result.data,
+  });
+
+  return NextResponse.json(updated);
+}
+
+export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+  const { id } = await params;
+
+  const anime = await db.anime.findUnique({ where: { id } });
+  if (!anime) {
+    return NextResponse.json({ error: "Anime not found" }, { status: 404 });
+  }
+
+  await db.anime.delete({ where: { id } });
+  return new NextResponse(null, { status: 204 });
+}
