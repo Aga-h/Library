@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { Book } from "@prisma/client";
 import { db } from "@/lib/db";
 import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
@@ -66,7 +67,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredBooks.map((book) => (
+          {filteredBooks.map((book: Book) => (
             <BookCard key={book.id} book={book} />
           ))}
         </div>
