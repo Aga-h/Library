@@ -3,8 +3,9 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import type { Book } from "@prisma/client";
 import { db } from "@/lib/db";
+
+type Book = Awaited<ReturnType<typeof db.book.findMany>>[number];
 import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
 import BookFilters from "@/components/books/BookFilters";
