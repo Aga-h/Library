@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Book {
+  id         String     @id @default(cuid())
+  title      String
+  author     String
+  status     BookStatus @default(WANT_TO_READ)
+  owned      Boolean    @default(false)
+  language   Language   @default(ENGLISH)
+  publisher  String?
+  pages      Int
+  coverImage String?
+  rating     Float?
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+enum BookStatus {
+  READ
+  READING
+  WANT_TO_READ
+  DNF
+}
+
+enum Language {
+  ENGLISH
+  SPANISH
+  FRENCH
+  GERMAN
+  ITALIAN
+  PORTUGUESE
+  TURKISH
+  ARABIC
+  RUSSIAN
+  JAPANESE
+  CHINESE
+  KOREAN
+}
