@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookOpen, Film, Tv2, Gamepad2, BookMarked, Layers, Newspaper, Library, LayoutDashboard,
+  BookOpen, Film, Tv2, Gamepad2, BookMarked, Layers, Newspaper, Library, LayoutDashboard, ArrowLeft,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -44,8 +44,11 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      <div className="px-5 py-4 border-t border-gray-100">
-        <p className="text-xs text-gray-400">Personal Media Library</p>
+      <div className="px-3 py-4 border-t border-gray-100">
+        <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+          <ArrowLeft className="w-4 h-4 flex-shrink-0" />
+          Back to Portal
+        </Link>
       </div>
     </aside>
   );
