@@ -13,8 +13,8 @@ export default function DeleteTvButton({ showId }: { showId: string }) {
     setLoading(true);
     const res = await fetch(`/api/tv/${showId}`, { method: "DELETE" });
     if (res.ok) {
-      router.push("/tv");
-      router.refresh();
+      router.push("/library/tv");
+      
     } else {
       setLoading(false);
       setConfirming(false);

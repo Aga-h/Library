@@ -21,7 +21,7 @@ export default function ArticleCard({ article }: { article: Article }) {
   const time = calculateArticleTime(article.wordCount, article.language as LanguageKey);
 
   return (
-    <Link href={`/articles/${article.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
+    <Link href={`/library/articles/${article.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
       <div className="relative bg-gray-100 h-32 flex items-center justify-center overflow-hidden">
         <FileText className="w-12 h-12 text-gray-300" />
         <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>

@@ -45,7 +45,7 @@ export default function ArticleForm({ initialData, mode }: Props) {
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
-    router.push(`/articles/${item.id}`); router.refresh();
+    router.push(`/library/articles/${item.id}`); 
   }
 
   return (

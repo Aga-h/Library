@@ -12,7 +12,7 @@ export default function DeleteAnimeButton({ animeId }: { animeId: string }) {
   async function handleDelete() {
     setLoading(true);
     const res = await fetch(`/api/anime/${animeId}`, { method: "DELETE" });
-    if (res.ok) { router.push("/anime"); router.refresh(); }
+    if (res.ok) { router.push("/library/anime");  }
     else { setLoading(false); setConfirming(false); }
   }
 

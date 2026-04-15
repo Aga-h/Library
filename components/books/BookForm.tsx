@@ -95,8 +95,8 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
     }
 
     const book = await res.json();
-    router.push(`/books/${book.id}`);
-    router.refresh();
+    router.push(`/library/books/${book.id}`);
+    
   }
 
   return (

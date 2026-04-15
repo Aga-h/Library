@@ -13,8 +13,8 @@ export default function DeleteMovieButton({ movieId }: { movieId: string }) {
     setLoading(true);
     const res = await fetch(`/api/movies/${movieId}`, { method: "DELETE" });
     if (res.ok) {
-      router.push("/movies");
-      router.refresh();
+      router.push("/library/movies");
+      
     } else {
       setLoading(false);
       setConfirming(false);

@@ -110,8 +110,8 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
     }
 
     const show = await res.json();
-    router.push(`/tv/${show.id}`);
-    router.refresh();
+    router.push(`/library/tv/${show.id}`);
+    
   }
 
   return (

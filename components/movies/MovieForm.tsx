@@ -105,8 +105,8 @@ export default function MovieForm({ initialData, mode }: MovieFormProps) {
     }
 
     const movie = await res.json();
-    router.push(`/movies/${movie.id}`);
-    router.refresh();
+    router.push(`/library/movies/${movie.id}`);
+    
   }
 
   return (

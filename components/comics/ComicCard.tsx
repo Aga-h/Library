@@ -24,7 +24,7 @@ export default function ComicCard({ comic }: { comic: Comic }) {
   const time = calculateComicTime(comic.issuesRead, comic.language as LanguageKey);
 
   return (
-    <Link href={`/comics/${comic.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
+    <Link href={`/library/comics/${comic.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
       <div className="relative bg-gray-100 h-44 flex items-center justify-center overflow-hidden">
         {comic.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element

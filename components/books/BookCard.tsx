@@ -32,7 +32,7 @@ export default function BookCard({ book }: { book: Book }) {
 
   return (
     <Link
-      href={`/books/${book.id}`}
+      href={`/library/books/${book.id}`}
       className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all"
     >
       {/* Cover */}

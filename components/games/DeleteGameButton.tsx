@@ -12,7 +12,7 @@ export default function DeleteGameButton({ gameId }: { gameId: string }) {
   async function handleDelete() {
     setLoading(true);
     const res = await fetch(`/api/games/${gameId}`, { method: "DELETE" });
-    if (res.ok) { router.push("/games"); router.refresh(); }
+    if (res.ok) { router.push("/library/games");  }
     else { setLoading(false); setConfirming(false); }
   }
 

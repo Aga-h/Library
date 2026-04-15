@@ -1,25 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/layout/Sidebar";
 
 export const metadata: Metadata = {
-  title: "MyLibrary — Personal Media Tracker",
-  description: "Track your books, anime, movies, games, and more in one place.",
+  title: "MyPortal",
+  description: "Personal hub for all your apps and trackers.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-screen flex bg-gray-50">
-        <Sidebar />
-        <main className="flex-1 p-8 overflow-auto">
-          {children}
-        </main>
-      </body>
+      <body className="min-h-screen bg-gray-50">{children}</body>
     </html>
   );
 }

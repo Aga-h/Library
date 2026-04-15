@@ -12,7 +12,7 @@ export default function DeleteComicButton({ comicId }: { comicId: string }) {
   async function handleDelete() {
     setLoading(true);
     const res = await fetch(`/api/comics/${comicId}`, { method: "DELETE" });
-    if (res.ok) { router.push("/comics"); router.refresh(); }
+    if (res.ok) { router.push("/library/comics");  }
     else { setLoading(false); setConfirming(false); }
   }
 

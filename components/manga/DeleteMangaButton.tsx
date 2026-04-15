@@ -12,7 +12,7 @@ export default function DeleteMangaButton({ mangaId }: { mangaId: string }) {
   async function handleDelete() {
     setLoading(true);
     const res = await fetch(`/api/manga/${mangaId}`, { method: "DELETE" });
-    if (res.ok) { router.push("/manga"); router.refresh(); }
+    if (res.ok) { router.push("/library/manga");  }
     else { setLoading(false); setConfirming(false); }
   }
 

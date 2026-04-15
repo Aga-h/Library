@@ -13,8 +13,8 @@ export default function DeleteBookButton({ bookId }: { bookId: string }) {
     setLoading(true);
     const res = await fetch(`/api/books/${bookId}`, { method: "DELETE" });
     if (res.ok) {
-      router.push("/books");
-      router.refresh();
+      router.push("/library/books");
+      
     } else {
       setLoading(false);
       setConfirming(false);

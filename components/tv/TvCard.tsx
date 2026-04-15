@@ -35,7 +35,7 @@ export default function TvCard({ show }: { show: TvShow }) {
 
   return (
     <Link
-      href={`/tv/${show.id}`}
+      href={`/library/tv/${show.id}`}
       className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all"
     >
       {/* Cover */}

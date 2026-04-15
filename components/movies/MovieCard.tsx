@@ -33,7 +33,7 @@ export default function MovieCard({ movie }: { movie: Movie }) {
 
   return (
     <Link
-      href={`/movies/${movie.id}`}
+      href={`/library/movies/${movie.id}`}
       className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all"
     >
       {/* Cover */}
