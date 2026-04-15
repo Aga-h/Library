@@ -1,15 +1,27 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { BookOpen, Film, Tv2, Gamepad2, BookMarked, Layers, Newspaper, ArrowRight } from "lucide-react";
+import { BookOpen, Film, Tv2, Gamepad2, BookMarked, Layers, Newspaper, ArrowRight, Clock } from "lucide-react";
 import { db } from "@/lib/db";
+import {
+  calculateReadingTime, calculateMangaTime, calculateComicTime,
+  calculateArticleTime, formatReadingTime,
+} from "@/lib/reading-time";
+import type { LanguageKey } from "@/lib/constants/languages";
 
 function c(groups: { status: string; _count: { _all: number } }[], status: string) {
   return groups.find((g) => g.status === status)?._count._all ?? 0;
 }
 
+function total(groups: { status: string; _count: { _all: number } }[]) {
+  return groups.reduce((s, g) => s + g._count._all, 0);
+}
+
 export default async function HomePage() {
-  const [books, anime, movies, tvShows, games, manga, comics, articles] = await Promise.all([
+  const [
+    books, anime, movies, tvShows, games, manga, comics, articles,
+    booksTime, animeTime, watchedRuntime, tvTime, gamesAgg, mangaTime, comicsTime, articlesTime,
+  ] = await Promise.all([
     db.book.groupBy({ by: ["status"], _count: { _all: true } }),
     db.anime.groupBy({ by: ["status"], _count: { _all: true } }),
     db.movie.groupBy({ by: ["status"], _count: { _all: true } }),
@@ -18,10 +30,25 @@ export default async function HomePage() {
     db.manga.groupBy({ by: ["status"], _count: { _all: true } }),
     db.comic.groupBy({ by: ["status"], _count: { _all: true } }),
     db.article.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.book.findMany({ where: { status: { in: ["READ", "READING"] } }, select: { pages: true, language: true } }),
+    db.anime.findMany({ select: { episodesWatched: true, episodeDuration: true } }),
+    db.movie.aggregate({ _sum: { runtime: true }, where: { status: "WATCHED" } }),
+    db.tvShow.findMany({ select: { episodesWatched: true, episodeRuntime: true } }),
+    db.game.aggregate({ _sum: { hoursPlayed: true } }),
+    db.manga.findMany({ select: { chaptersRead: true, language: true } }),
+    db.comic.findMany({ select: { issuesRead: true, language: true } }),
+    db.article.findMany({ where: { status: "READ" }, select: { wordCount: true, language: true } }),
   ]);
 
-  const total = (groups: { status: string; _count: { _all: number } }[]) =>
-    groups.reduce((s, g) => s + g._count._all, 0);
+  const totalMinutes =
+    booksTime.reduce((s, b) => s + calculateReadingTime(b.pages, b.language as LanguageKey).minutes, 0) +
+    animeTime.reduce((s, a) => s + a.episodesWatched * a.episodeDuration, 0) +
+    (watchedRuntime._sum.runtime ?? 0) +
+    tvTime.reduce((s, t) => s + t.episodesWatched * t.episodeRuntime, 0) +
+    Math.round((gamesAgg._sum.hoursPlayed ?? 0) * 60) +
+    mangaTime.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes, 0) +
+    comicsTime.reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes, 0) +
+    articlesTime.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes, 0);
 
   const SECTIONS = [
     {
@@ -68,9 +95,20 @@ export default async function HomePage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Your personal media library</p>
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Your personal media library</p>
+        </div>
+        {totalMinutes > 0 && (
+          <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <div>
+              <p className="text-xs text-gray-400 leading-none mb-0.5">Total time consumed</p>
+              <p className="text-sm font-bold leading-none">{formatReadingTime(totalMinutes)}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

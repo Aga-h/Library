@@ -11,9 +11,11 @@ import {
   Layers,
   Newspaper,
   Library,
+  LayoutDashboard,
 } from "lucide-react";
 
 const NAV_ITEMS = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, active: true },
   {
     href: "/books",
     label: "Books",
@@ -43,7 +45,7 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           const Icon = item.icon;
           const isAvailable = item.active;
 
