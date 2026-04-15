@@ -290,13 +290,62 @@ model Garment {
   updatedAt  DateTime    @updatedAt
 }
 
-enum GarmentType { TOPS BOTTOMS OUTERWEAR UNDERWEAR SOCKS ACTIVEWEAR FORMALWEAR ACCESSORIES OTHER }
-enum ColorGroup  { WHITE LIGHT DARK VIVID MIXED }
-enum WashMethod  { MACHINE HAND DRY_CLEAN DO_NOT_WASH }
-enum WashTemp    { COLD W30 W40 W60 W90 }
-enum WashCycle   { NORMAL GENTLE }
-enum SpinLevel   { NORMAL REDUCED NONE }
-enum DryMethod   { TUMBLE_HIGH TUMBLE_MEDIUM TUMBLE_LOW AIR_LINE AIR_FLAT AIR_DRIP DRY_CLEAN DO_NOT_DRY }
+enum GarmentType {
+  TOPS
+  BOTTOMS
+  OUTERWEAR
+  UNDERWEAR
+  SOCKS
+  ACTIVEWEAR
+  FORMALWEAR
+  ACCESSORIES
+  OTHER
+}
+
+enum ColorGroup {
+  WHITE
+  LIGHT
+  DARK
+  VIVID
+  MIXED
+}
+
+enum WashMethod {
+  MACHINE
+  HAND
+  DRY_CLEAN
+  DO_NOT_WASH
+}
+
+enum WashTemp {
+  COLD
+  W30
+  W40
+  W60
+  W90
+}
+
+enum WashCycle {
+  NORMAL
+  GENTLE
+}
+
+enum SpinLevel {
+  NORMAL
+  REDUCED
+  NONE
+}
+
+enum DryMethod {
+  TUMBLE_HIGH
+  TUMBLE_MEDIUM
+  TUMBLE_LOW
+  AIR_LINE
+  AIR_FLAT
+  AIR_DRIP
+  DRY_CLEAN
+  DO_NOT_DRY
+}
 
 // ─── SHARED ENUMS ────────────────────────────────────────────────────────────
 
