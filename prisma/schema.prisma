@@ -267,6 +267,37 @@ enum ArticleStatus {
   WANT_TO_READ
 }
 
+// ─── WARDROBE ────────────────────────────────────────────────────────────────
+
+model Garment {
+  id         String      @id @default(cuid())
+  name       String
+  type       GarmentType @default(OTHER)
+  brand      String?
+  color      String?
+  colorGroup ColorGroup  @default(MIXED)
+  materials  String      // e.g. "80% cotton, 20% polyester"
+  washMethod WashMethod  @default(MACHINE)
+  maxTemp    WashTemp    @default(W40)
+  washCycle  WashCycle   @default(NORMAL)
+  spinLevel  SpinLevel   @default(NORMAL)
+  dryMethod  DryMethod   @default(TUMBLE_LOW)
+  wornCount  Int         @default(0)
+  lastWashed DateTime?
+  image      String?
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+enum GarmentType { TOPS BOTTOMS OUTERWEAR UNDERWEAR SOCKS ACTIVEWEAR FORMALWEAR ACCESSORIES OTHER }
+enum ColorGroup  { WHITE LIGHT DARK VIVID MIXED }
+enum WashMethod  { MACHINE HAND DRY_CLEAN DO_NOT_WASH }
+enum WashTemp    { COLD W30 W40 W60 W90 }
+enum WashCycle   { NORMAL GENTLE }
+enum SpinLevel   { NORMAL REDUCED NONE }
+enum DryMethod   { TUMBLE_HIGH TUMBLE_MEDIUM TUMBLE_LOW AIR_LINE AIR_FLAT AIR_DRIP DRY_CLEAN DO_NOT_DRY }
+
 // ─── SHARED ENUMS ────────────────────────────────────────────────────────────
 
 enum Language {
