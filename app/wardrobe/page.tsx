@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Plus, Shirt } from "lucide-react";
 import { db } from "@/lib/db";
 import GarmentCard from "@/components/wardrobe/GarmentCard";
+import WashGroupsView from "@/components/wardrobe/WashGroupsView";
 
 type GarmentType =
   | "TOPS" | "BOTTOMS" | "OUTERWEAR" | "UNDERWEAR" | "SOCKS"
@@ -14,16 +15,16 @@ const TYPE_LABELS: Record<GarmentType, string> = {
   UNDERWEAR: "Underwear", SOCKS: "Socks", ACTIVEWEAR: "Activewear",
   FORMALWEAR: "Formalwear", ACCESSORIES: "Accessories", OTHER: "Other",
 };
-
 const TYPES = Object.keys(TYPE_LABELS) as GarmentType[];
 
 export default async function WardrobePage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; view?: string }>;
 }) {
-  const { type } = await searchParams;
-  const activeType = TYPES.includes(type as GarmentType) ? (type as GarmentType) : undefined;
+  const { type, view } = await searchParams;
+  const isGroupView = view === "groups";
+  const activeType = !isGroupView && TYPES.includes(type as GarmentType) ? (type as GarmentType) : undefined;
 
   const garments = await db.garment.findMany({
     where: activeType ? { type: activeType } : undefined,
@@ -42,22 +43,43 @@ export default async function WardrobePage({
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">My Wardrobe</h2>
           <p className="text-sm text-gray-500 mt-0.5">{garments.length} item{garments.length !== 1 ? "s" : ""}</p>
         </div>
-        <Link
-          href="/wardrobe/new"
-          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Add Garment
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* View toggle */}
+          <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+            <Link
+              href="/wardrobe"
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                !isGroupView ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Items
+            </Link>
+            <Link
+              href="/wardrobe?view=groups"
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                isGroupView ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Wash Loads
+            </Link>
+          </div>
+          <Link
+            href="/wardrobe/new"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Garment
+          </Link>
+        </div>
       </div>
 
       {/* Urgency summary */}
       {garments.length > 0 && (washNow > 0 || washSoon > 0) && (
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           {washNow > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 text-sm font-medium text-red-700">
               {washNow} item{washNow > 1 ? "s" : ""} need washing now
@@ -71,30 +93,37 @@ export default async function WardrobePage({
         </div>
       )}
 
-      {/* Type filter tabs */}
-      <div className="flex flex-wrap gap-2">
-        <FilterTab href="/wardrobe" active={!activeType} label="All" />
-        {TYPES.map((t) => (
-          <FilterTab key={t} href={`/wardrobe?type=${t}`} active={activeType === t} label={TYPE_LABELS[t]} />
-        ))}
-      </div>
-
-      {/* Grid */}
-      {garments.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
-          <Shirt className="w-12 h-12 mx-auto mb-4 opacity-30" />
-          <p className="font-medium">No garments yet</p>
-          <p className="text-sm mt-1">Add your first item to get washing recommendations</p>
-          <Link href="/wardrobe/new" className="inline-block mt-4 text-sm font-semibold text-gray-900 underline underline-offset-2">
-            Add a garment
-          </Link>
-        </div>
+      {isGroupView ? (
+        /* Wash loads view */
+        <WashGroupsView garments={garments} />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {garments.map((g) => (
-            <GarmentCard key={g.id} garment={g} />
-          ))}
-        </div>
+        <>
+          {/* Type filter tabs */}
+          <div className="flex flex-wrap gap-2">
+            <FilterTab href="/wardrobe" active={!activeType} label="All" />
+            {TYPES.map((t) => (
+              <FilterTab key={t} href={`/wardrobe?type=${t}`} active={activeType === t} label={TYPE_LABELS[t]} />
+            ))}
+          </div>
+
+          {/* Grid */}
+          {garments.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">
+              <Shirt className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p className="font-medium">No garments yet</p>
+              <p className="text-sm mt-1">Add your first item to get washing recommendations</p>
+              <Link href="/wardrobe/new" className="inline-block mt-4 text-sm font-semibold text-gray-900 underline underline-offset-2">
+                Add a garment
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {garments.map((g) => (
+                <GarmentCard key={g.id} garment={g} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
