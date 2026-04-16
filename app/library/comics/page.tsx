@@ -14,14 +14,8 @@ interface PageProps { searchParams: Promise<{ status?: string; language?: string
 
 export default async function ComicsPage({ searchParams }: PageProps) {
   const { status, language } = await searchParams;
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-  if (language) where.language = language;
-
-  const [all, filtered] = await Promise.all([
-    db.comic.findMany({ orderBy: { createdAt: "desc" } }),
-    db.comic.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const all = await db.comic.findMany({ orderBy: { createdAt: "desc" } });
+  const filtered = all.filter(c => (!status || c.status === status) && (!language || c.language === language));
 
   return (
     <div>

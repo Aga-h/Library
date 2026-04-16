@@ -21,7 +21,7 @@ export default function MovieFilters() {
     } else {
       params.delete(key);
     }
-    router.push(`/movies?${params.toString()}`);
+    router.push(`/library/movies?${params.toString()}`);
   }
 
   return (

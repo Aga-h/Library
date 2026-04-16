@@ -17,13 +17,8 @@ interface PageProps {
 export default async function AnimePage({ searchParams }: PageProps) {
   const { status } = await searchParams;
 
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-
-  const [allAnime, filteredAnime] = await Promise.all([
-    db.anime.findMany({ orderBy: { createdAt: "desc" } }),
-    db.anime.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const allAnime = await db.anime.findMany({ orderBy: { createdAt: "desc" } });
+  const filteredAnime = allAnime.filter(a => !status || a.status === status);
 
   return (
     <div>

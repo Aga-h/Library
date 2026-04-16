@@ -19,7 +19,7 @@ export default function AnimeFilters() {
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
-    router.push(`/anime?${params.toString()}`);
+    router.push(`/library/anime?${params.toString()}`);
   }
 
   return (

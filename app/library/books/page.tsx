@@ -17,14 +17,8 @@ interface PageProps {
 export default async function BooksPage({ searchParams }: PageProps) {
   const { status, language } = await searchParams;
 
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-  if (language) where.language = language;
-
-  const [allBooks, filteredBooks] = await Promise.all([
-    db.book.findMany({ orderBy: { createdAt: "desc" } }),
-    db.book.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const allBooks = await db.book.findMany({ orderBy: { createdAt: "desc" } });
+  const filteredBooks = allBooks.filter(b => (!status || b.status === status) && (!language || b.language === language));
 
   return (
     <div>

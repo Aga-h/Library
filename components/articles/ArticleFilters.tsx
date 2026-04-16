@@ -18,7 +18,7 @@ export default function ArticleFilters() {
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
-    router.push(`/articles?${params.toString()}`);
+    router.push(`/library/articles?${params.toString()}`);
   }
 
   return (

@@ -14,14 +14,8 @@ interface PageProps { searchParams: Promise<{ status?: string; language?: string
 
 export default async function MangaPage({ searchParams }: PageProps) {
   const { status, language } = await searchParams;
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-  if (language) where.language = language;
-
-  const [all, filtered] = await Promise.all([
-    db.manga.findMany({ orderBy: { createdAt: "desc" } }),
-    db.manga.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const all = await db.manga.findMany({ orderBy: { createdAt: "desc" } });
+  const filtered = all.filter(m => (!status || m.status === status) && (!language || m.language === language));
 
   return (
     <div>

@@ -23,7 +23,7 @@ export default function TvFilters() {
     } else {
       params.delete(key);
     }
-    router.push(`/tv?${params.toString()}`);
+    router.push(`/library/tv?${params.toString()}`);
   }
 
   return (

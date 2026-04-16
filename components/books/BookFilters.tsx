@@ -24,7 +24,7 @@ export default function BookFilters() {
     } else {
       params.delete(key);
     }
-    router.push(`/books?${params.toString()}`);
+    router.push(`/library/books?${params.toString()}`);
   }
 
   return (

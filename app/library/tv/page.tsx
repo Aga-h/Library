@@ -14,13 +14,8 @@ interface PageProps { searchParams: Promise<{ status?: string }> }
 
 export default async function TvPage({ searchParams }: PageProps) {
   const { status } = await searchParams;
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-
-  const [all, filtered] = await Promise.all([
-    db.tvShow.findMany({ orderBy: { createdAt: "desc" } }),
-    db.tvShow.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const all = await db.tvShow.findMany({ orderBy: { createdAt: "desc" } });
+  const filtered = all.filter(s => !status || s.status === status);
 
   return (
     <div>

@@ -14,14 +14,8 @@ interface PageProps { searchParams: Promise<{ status?: string; platform?: string
 
 export default async function GamesPage({ searchParams }: PageProps) {
   const { status, platform } = await searchParams;
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-  if (platform) where.platform = platform;
-
-  const [all, filtered] = await Promise.all([
-    db.game.findMany({ orderBy: { createdAt: "desc" } }),
-    db.game.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const all = await db.game.findMany({ orderBy: { createdAt: "desc" } });
+  const filtered = all.filter(g => (!status || g.status === status) && (!platform || g.platform === platform));
 
   return (
     <div>

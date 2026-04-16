@@ -21,7 +21,7 @@ export default function GameFilters() {
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
-    router.push(`/games?${params.toString()}`);
+    router.push(`/library/games?${params.toString()}`);
   }
 
   return (

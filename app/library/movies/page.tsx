@@ -17,13 +17,8 @@ interface PageProps {
 export default async function MoviesPage({ searchParams }: PageProps) {
   const { status } = await searchParams;
 
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-
-  const [allMovies, filteredMovies] = await Promise.all([
-    db.movie.findMany({ orderBy: { createdAt: "desc" } }),
-    db.movie.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const allMovies = await db.movie.findMany({ orderBy: { createdAt: "desc" } });
+  const filteredMovies = allMovies.filter(m => !status || m.status === status);
 
   return (
     <div>

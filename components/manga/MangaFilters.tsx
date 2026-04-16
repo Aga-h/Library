@@ -21,7 +21,7 @@ export default function MangaFilters() {
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
-    router.push(`/manga?${params.toString()}`);
+    router.push(`/library/manga?${params.toString()}`);
   }
 
   return (

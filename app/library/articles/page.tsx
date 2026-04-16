@@ -14,14 +14,8 @@ interface PageProps { searchParams: Promise<{ status?: string; language?: string
 
 export default async function ArticlesPage({ searchParams }: PageProps) {
   const { status, language } = await searchParams;
-  const where: Record<string, unknown> = {};
-  if (status) where.status = status;
-  if (language) where.language = language;
-
-  const [all, filtered] = await Promise.all([
-    db.article.findMany({ orderBy: { createdAt: "desc" } }),
-    db.article.findMany({ where, orderBy: { createdAt: "desc" } }),
-  ]);
+  const all = await db.article.findMany({ orderBy: { createdAt: "desc" } });
+  const filtered = all.filter(a => (!status || a.status === status) && (!language || a.language === language));
 
   return (
     <div>
