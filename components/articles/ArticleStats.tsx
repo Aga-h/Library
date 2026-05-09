@@ -4,14 +4,14 @@ import { FileText, Clock } from "lucide-react";
 import { calculateArticleTime, formatReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 
-interface Article { status: string; wordCount: number; language: string; }
+interface Article { status: string; wordCount: number; language: string; timesReread: number; }
 
 export default function ArticleStats({ articles }: { articles: Article[] }) {
   const read     = articles.filter((a) => a.status === "READ");
   const wantTo   = articles.filter((a) => a.status === "WANT_TO_READ");
 
   const totalWords   = read.reduce((s, a) => s + a.wordCount, 0);
-  const readMinutes  = read.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes, 0);
+  const readMinutes  = read.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes * (a.timesReread + 1), 0);
   const remainMinutes = wantTo.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes, 0);
 
   return (

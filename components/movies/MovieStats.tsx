@@ -7,6 +7,7 @@ interface Movie {
   id: string;
   status: string;
   runtime: number;
+  timesRewatched: number;
 }
 
 interface MovieStatsProps {
@@ -18,7 +19,7 @@ export default function MovieStats({ movies }: MovieStatsProps) {
   const wantToWatch = movies.filter((m) => m.status === "WANT_TO_WATCH");
   const dropped = movies.filter((m) => m.status === "DROPPED");
 
-  const totalWatchMinutes = watched.reduce((s, m) => s + m.runtime, 0);
+  const totalWatchMinutes = watched.reduce((s, m) => s + m.runtime * (m.timesRewatched + 1), 0);
   const totalWatchFormatted = totalWatchMinutes > 0 ? formatReadingTime(totalWatchMinutes) : "—";
 
   return (

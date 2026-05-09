@@ -7,6 +7,7 @@ interface Anime {
   status: string;
   episodesWatched: number;
   episodeDuration: number;
+  timesRewatched: number;
 }
 
 export default function AnimeStats({ anime }: { anime: Anime[] }) {
@@ -16,7 +17,7 @@ export default function AnimeStats({ anime }: { anime: Anime[] }) {
   const dropped    = anime.filter((a) => a.status === "DROPPED");
   const onHold     = anime.filter((a) => a.status === "ON_HOLD");
 
-  const toMinutes = (a: Anime) => a.episodesWatched * a.episodeDuration;
+  const toMinutes = (a: Anime) => a.episodesWatched * a.episodeDuration * (a.timesRewatched + 1);
 
   const watchedMinutes = [...watching, ...completed].reduce((s, a) => s + toMinutes(a), 0);
   const remainingMinutes = planTo.reduce((s, a) => s + toMinutes(a), 0);

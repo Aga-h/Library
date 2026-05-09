@@ -4,7 +4,7 @@ import { BookOpen, Clock } from "lucide-react";
 import { calculateComicTime, formatReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 
-interface Comic { status: string; issuesRead: number; language: string; }
+interface Comic { status: string; issuesRead: number; language: string; timesReread: number; }
 
 export default function ComicStats({ comics }: { comics: Comic[] }) {
   const reading   = comics.filter((c) => c.status === "READING");
@@ -13,7 +13,7 @@ export default function ComicStats({ comics }: { comics: Comic[] }) {
   const dropped   = comics.filter((c) => c.status === "DROPPED");
 
   const totalIssues  = [...reading, ...completed].reduce((s, c) => s + c.issuesRead, 0);
-  const readMinutes  = [...reading, ...completed].reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes, 0);
+  const readMinutes  = [...reading, ...completed].reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes * (c.timesReread + 1), 0);
   const remainMinutes = planTo.reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes, 0);
 
   return (

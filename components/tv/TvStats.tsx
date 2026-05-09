@@ -8,6 +8,7 @@ interface TvShow {
   episodesWatched: number;
   episodeRuntime: number;
   totalEpisodes: number | null;
+  timesRewatched: number;
 }
 
 export default function TvStats({ shows }: { shows: TvShow[] }) {
@@ -17,7 +18,7 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
   const onHold     = shows.filter((s) => s.status === "ON_HOLD");
   const dropped    = shows.filter((s) => s.status === "DROPPED");
 
-  const toMinutes = (s: TvShow) => s.episodesWatched * s.episodeRuntime;
+  const toMinutes = (s: TvShow) => s.episodesWatched * s.episodeRuntime * (s.timesRewatched + 1);
 
   const watchedMinutes = [...watching, ...completed].reduce((sum, s) => sum + toMinutes(s), 0);
   const remainingMinutes = planTo.reduce((sum, s) => sum + toMinutes(s), 0);

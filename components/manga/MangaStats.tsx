@@ -4,7 +4,7 @@ import { BookMarked, Clock } from "lucide-react";
 import { calculateMangaTime, formatReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 
-interface Manga { status: string; chaptersRead: number; volumesRead: number; language: string; }
+interface Manga { status: string; chaptersRead: number; volumesRead: number; language: string; timesReread: number; }
 
 export default function MangaStats({ manga }: { manga: Manga[] }) {
   const reading   = manga.filter((m) => m.status === "READING");
@@ -15,7 +15,7 @@ export default function MangaStats({ manga }: { manga: Manga[] }) {
 
   const totalChapters = [...reading, ...completed].reduce((s, m) => s + m.chaptersRead, 0);
   const totalVolumes  = [...reading, ...completed].reduce((s, m) => s + m.volumesRead, 0);
-  const readMinutes   = [...reading, ...completed].reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes, 0);
+  const readMinutes   = [...reading, ...completed].reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes * (m.timesReread + 1), 0);
   const remainMinutes = planTo.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes, 0);
 
   return (

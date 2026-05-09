@@ -1,13 +1,15 @@
 "use client";
 
 import { BookOpen, BookMarked, Clock, Library } from "lucide-react";
-import { formatReadingTime, sumReadingTime } from "@/lib/reading-time";
+import { calculateReadingTime, formatReadingTime, sumReadingTime } from "@/lib/reading-time";
+import type { LanguageKey } from "@/lib/constants/languages";
 
 interface Book {
   id: string;
   status: string;
   pages: number;
   language: string;
+  timesReread: number;
 }
 
 interface BooksStatsProps {
@@ -21,7 +23,7 @@ export default function BooksStats({ books }: BooksStatsProps) {
   const dnf = books.filter((b) => b.status === "DNF");
 
   const totalPagesRead = read.reduce((s, b) => s + b.pages, 0);
-  const timeRead = sumReadingTime(read);
+  const readMinutes = read.reduce((s, b) => s + calculateReadingTime(b.pages, b.language as LanguageKey).minutes * (b.timesReread + 1), 0);
   const timeRemaining = sumReadingTime([...reading, ...wantToRead]);
 
   return (
@@ -48,10 +50,10 @@ export default function BooksStats({ books }: BooksStatsProps) {
         <TimeStat
           icon={<Clock className="w-4 h-4" />}
           label="Time Read"
-          value={timeRead.minutes > 0 ? timeRead.formatted : "—"}
+          value={readMinutes > 0 ? formatReadingTime(readMinutes) : "—"}
           sub={
-            timeRead.minutes > 0
-              ? `${Math.round(timeRead.hours * 10) / 10}h total`
+            readMinutes > 0
+              ? `${Math.round(readMinutes / 60 * 10) / 10}h total`
               : undefined
           }
         />
