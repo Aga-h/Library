@@ -37,7 +37,7 @@ export default function BookCard({ book }: { book: Book }) {
       className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all"
     >
       {/* Cover */}
-      <div className="relative bg-gray-100 h-44 flex items-center justify-center overflow-hidden">
+      <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {book.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
