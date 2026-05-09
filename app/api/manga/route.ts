@@ -21,9 +21,11 @@ const createMangaSchema = z.object({
       "JAPANESE", "CHINESE", "KOREAN",
     ])
     .default("JAPANESE"),
+  format: z.enum(["MANGA", "MANHWA", "MANHUA"]).default("MANGA"),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
   notes: z.string().optional(),
+  timesReread: z.number().int().min(0).default(0),
 });
 
 export async function GET(request: NextRequest) {
@@ -65,9 +67,11 @@ export async function POST(request: NextRequest) {
       totalChapters: data.totalChapters ?? null,
       chaptersRead: data.chaptersRead,
       language: data.language,
+      format: data.format,
       coverImage: data.coverImage || null,
       rating: data.rating ?? null,
       notes: data.notes ?? null,
+      timesReread: data.timesReread,
     },
   });
 

@@ -9,7 +9,7 @@ interface Anime {
   id: string; title: string; studio: string | null; status: string;
   episodes: number | null; episodesWatched: number; episodeDuration: number;
   season: string | null; year: number | null; language: string;
-  coverImage: string | null; rating: number | null;
+  coverImage: string | null; rating: number | null; timesRewatched: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -44,6 +44,7 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
           {watchedMinutes > 0 && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatReadingTime(watchedMinutes)}</span>}
         </div>
         {anime.rating !== null && <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">★ {anime.rating}/10</div>}
+        {anime.timesRewatched > 0 && <p className="text-xs text-gray-400 mt-0.5">Rewatched ×{anime.timesRewatched}</p>}
       </div>
     </Link>
   );

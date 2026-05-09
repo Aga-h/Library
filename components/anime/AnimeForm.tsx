@@ -10,6 +10,7 @@ interface AnimeFormData {
   episodes: string; episodesWatched: string; episodeDuration: string;
   season: string; year: string; language: string;
   coverImage: string; rating: string; notes: string;
+  timesRewatched: string;
 }
 
 const DEFAULT: AnimeFormData = {
@@ -17,6 +18,7 @@ const DEFAULT: AnimeFormData = {
   episodes: "", episodesWatched: "0", episodeDuration: "24",
   season: "", year: "", language: "JAPANESE",
   coverImage: "", rating: "", notes: "",
+  timesRewatched: "0",
 };
 
 interface Props { initialData?: Partial<AnimeFormData & { id: string }>; mode: "create" | "edit"; }
@@ -25,7 +27,7 @@ const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm tex
 
 export default function AnimeForm({ initialData, mode }: Props) {
   const router = useRouter();
-  const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData });
+  const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,7 @@ export default function AnimeForm({ initialData, mode }: Props) {
       season: form.season || undefined, year: form.year ? parseInt(form.year, 10) : undefined,
       language: form.language, coverImage: form.coverImage || undefined,
       rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
+      timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
     const url = mode === "edit" && initialData?.id ? `/api/anime/${initialData.id}` : "/api/anime";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -103,6 +106,17 @@ export default function AnimeForm({ initialData, mode }: Props) {
       </div>
 
       <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Times rewatched">
+          <select value={form.timesRewatched} onChange={(e) => update("timesRewatched", e.target.value)} className={inputCls}>
+            {Array.from({ length: 11 }, (_, i) => (
+              <option key={i} value={String(i)}>{i === 0 ? "Never" : `${i}×`}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, reviews..." className={inputCls} /></Field>
 
       <div className="flex gap-3 pt-2">

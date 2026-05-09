@@ -8,14 +8,14 @@ import type { LanguageKey } from "@/lib/constants/languages";
 
 interface MangaFormData {
   title: string; author: string; artist: string; publisher: string; status: string;
-  totalVolumes: string; volumesRead: string; totalChapters: string; chaptersRead: string;
-  language: string; coverImage: string; rating: string; notes: string;
+  format: string; totalVolumes: string; volumesRead: string; totalChapters: string; chaptersRead: string;
+  language: string; coverImage: string; rating: string; notes: string; timesReread: string;
 }
 
 const DEFAULT: MangaFormData = {
   title: "", author: "", artist: "", publisher: "", status: "PLAN_TO_READ",
-  totalVolumes: "", volumesRead: "0", totalChapters: "", chaptersRead: "0",
-  language: "JAPANESE", coverImage: "", rating: "", notes: "",
+  format: "MANGA", totalVolumes: "", volumesRead: "0", totalChapters: "", chaptersRead: "0",
+  language: "JAPANESE", coverImage: "", rating: "", notes: "", timesReread: "0",
 };
 
 interface Props { initialData?: Partial<MangaFormData & { id: string }>; mode: "create" | "edit"; }
@@ -23,7 +23,7 @@ const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm tex
 
 export default function MangaForm({ initialData, mode }: Props) {
   const router = useRouter();
-  const [form, setForm] = useState<MangaFormData>({ ...DEFAULT, ...initialData });
+  const [form, setForm] = useState<MangaFormData>({ ...DEFAULT, ...initialData, timesReread: initialData?.timesReread?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,13 +36,14 @@ export default function MangaForm({ initialData, mode }: Props) {
     e.preventDefault(); setLoading(true); setError(null);
     const payload = {
       title: form.title, author: form.author, artist: form.artist || undefined,
-      publisher: form.publisher || undefined, status: form.status,
+      publisher: form.publisher || undefined, status: form.status, format: form.format,
       totalVolumes: form.totalVolumes ? parseInt(form.totalVolumes, 10) : undefined,
       volumesRead: parseInt(form.volumesRead, 10) || 0,
       totalChapters: form.totalChapters ? parseInt(form.totalChapters, 10) : undefined,
       chaptersRead: parseInt(form.chaptersRead, 10) || 0,
       language: form.language, coverImage: form.coverImage || undefined,
       rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
+      timesReread: parseInt(form.timesReread, 10) || 0,
     };
     const url = mode === "edit" && initialData?.id ? `/api/manga/${initialData.id}` : "/api/manga";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -60,7 +61,7 @@ export default function MangaForm({ initialData, mode }: Props) {
         <Field label="Author *"><input type="text" required value={form.author} onChange={(e) => update("author", e.target.value)} placeholder="Author name" className={inputCls} /></Field>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Status">
           <select value={form.status} onChange={(e) => update("status", e.target.value)} className={inputCls}>
             <option value="PLAN_TO_READ">Plan to Read</option>
@@ -68,6 +69,13 @@ export default function MangaForm({ initialData, mode }: Props) {
             <option value="COMPLETED">Completed</option>
             <option value="ON_HOLD">On Hold</option>
             <option value="DROPPED">Dropped</option>
+          </select>
+        </Field>
+        <Field label="Format">
+          <select value={form.format} onChange={(e) => update("format", e.target.value)} className={inputCls}>
+            <option value="MANGA">Manga</option>
+            <option value="MANHWA">Manhwa</option>
+            <option value="MANHUA">Manhua</option>
           </select>
         </Field>
         <Field label="Language">
@@ -92,9 +100,16 @@ export default function MangaForm({ initialData, mode }: Props) {
         <Field label="Publisher"><input type="text" value={form.publisher} onChange={(e) => update("publisher", e.target.value)} placeholder="e.g. Shueisha" className={inputCls} /></Field>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 9" className={inputCls} /></Field>
+        <Field label="Times reread">
+          <select value={form.timesReread} onChange={(e) => update("timesReread", e.target.value)} className={inputCls}>
+            {Array.from({ length: 11 }, (_, i) => (
+              <option key={i} value={String(i)}>{i === 0 ? "Never" : `${i}×`}</option>
+            ))}
+          </select>
+        </Field>
       </div>
 
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, reviews..." className={inputCls} /></Field>

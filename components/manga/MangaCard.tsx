@@ -7,9 +7,11 @@ import type { LanguageKey } from "@/lib/constants/languages";
 
 interface Manga {
   id: string; title: string; author: string; status: string;
+  format: string;
   totalVolumes: number | null; volumesRead: number;
   totalChapters: number | null; chaptersRead: number;
   language: string; coverImage: string | null; rating: number | null;
+  timesReread: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -37,12 +39,16 @@ export default function MangaCard({ manga }: { manga: Manga }) {
       </div>
       <div className="flex flex-col gap-1 p-4 flex-1">
         <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">{manga.title}</h3>
-        <p className="text-xs text-gray-500">{manga.author}</p>
+        <p className="text-xs text-gray-500">
+          {manga.format !== "MANGA" && <span className="text-gray-400">{manga.format === "MANHWA" ? "Manhwa" : "Manhua"} · </span>}
+          {manga.author}
+        </p>
         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto pt-3 text-xs text-gray-400">
           <span>{manga.chaptersRead}{manga.totalChapters ? `/${manga.totalChapters}` : ""} ch</span>
           {manga.chaptersRead > 0 && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{time.formatted}</span>}
         </div>
         {manga.rating !== null && <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">★ {manga.rating}/10</div>}
+        {manga.timesReread > 0 && <p className="text-xs text-gray-400 mt-0.5">Reread ×{manga.timesReread}</p>}
       </div>
     </Link>
   );

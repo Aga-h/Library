@@ -18,6 +18,7 @@ interface TvFormData {
   coverImage: string;
   rating: string;
   notes: string;
+  timesRewatched: string;
 }
 
 interface TvFormProps {
@@ -38,6 +39,7 @@ const DEFAULT_DATA: TvFormData = {
   coverImage: "",
   rating: "",
   notes: "",
+  timesRewatched: "0",
 };
 
 const inputCls =
@@ -53,6 +55,7 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
     episodeRuntime: initialData?.episodeRuntime?.toString() ?? "45",
     year: initialData?.year?.toString() ?? "",
     rating: initialData?.rating?.toString() ?? "",
+    timesRewatched: initialData?.timesRewatched?.toString() ?? "0",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +91,7 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
       coverImage: form.coverImage || undefined,
       rating: form.rating ? parseFloat(form.rating) : undefined,
       notes: form.notes || undefined,
+      timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
 
     const url =
@@ -251,7 +255,7 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
         </Field>
       </div>
 
-      {/* Rating */}
+      {/* Rating & Times rewatched */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Rating (1–10)">
           <input
@@ -264,6 +268,13 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
             placeholder="e.g. 8.5"
             className={inputCls}
           />
+        </Field>
+        <Field label="Times rewatched">
+          <select value={form.timesRewatched} onChange={(e) => update("timesRewatched", e.target.value)} className={inputCls}>
+            {Array.from({ length: 11 }, (_, i) => (
+              <option key={i} value={String(i)}>{i === 0 ? "Never" : `${i}×`}</option>
+            ))}
+          </select>
         </Field>
       </div>
 

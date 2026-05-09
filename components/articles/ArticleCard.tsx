@@ -8,7 +8,7 @@ import type { LanguageKey } from "@/lib/constants/languages";
 interface Article {
   id: string; title: string; author: string | null; status: string;
   wordCount: number; language: string; publication: string | null;
-  url: string | null; rating: number | null;
+  url: string | null; rating: number | null; timesReread: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -36,6 +36,7 @@ export default function ArticleCard({ article }: { article: Article }) {
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{time.formatted}</span>
         </div>
         {article.rating !== null && <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">★ {article.rating}/10</div>}
+        {article.timesReread > 0 && <p className="text-xs text-gray-400 mt-0.5">Reread ×{article.timesReread}</p>}
       </div>
     </Link>
   );

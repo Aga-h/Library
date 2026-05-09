@@ -23,6 +23,7 @@ const updateTvShowSchema = z.object({
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
+  timesRewatched: z.number().int().min(0).optional(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };

@@ -9,7 +9,7 @@ interface Comic {
   id: string; title: string; author: string | null; status: string;
   totalIssues: number | null; issuesRead: number;
   language: string; coverImage: string | null; rating: number | null;
-  universe: string | null;
+  universe: string | null; timesReread: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -43,6 +43,7 @@ export default function ComicCard({ comic }: { comic: Comic }) {
           {comic.issuesRead > 0 && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{time.formatted}</span>}
         </div>
         {comic.rating !== null && <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">★ {comic.rating}/10</div>}
+        {comic.timesReread > 0 && <p className="text-xs text-gray-400 mt-0.5">Reread ×{comic.timesReread}</p>}
       </div>
     </Link>
   );

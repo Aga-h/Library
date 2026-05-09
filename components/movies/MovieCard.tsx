@@ -13,6 +13,7 @@ interface Movie {
   year: number | null;
   coverImage: string | null;
   rating: number | null;
+  timesRewatched: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -75,6 +76,9 @@ export default function MovieCard({ movie }: { movie: Movie }) {
           <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">
             ★ {movie.rating}/10
           </div>
+        )}
+        {movie.timesRewatched > 0 && (
+          <p className="text-xs text-gray-400 mt-0.5">Rewatched ×{movie.timesRewatched}</p>
         )}
       </div>
     </Link>

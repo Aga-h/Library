@@ -16,6 +16,7 @@ interface BookFormData {
   coverImage: string;
   rating: string;
   notes: string;
+  timesReread: string;
 }
 
 interface BookFormProps {
@@ -34,6 +35,7 @@ const DEFAULT_DATA: BookFormData = {
   coverImage: "",
   rating: "",
   notes: "",
+  timesReread: "0",
 };
 
 export default function BookForm({ initialData, mode }: BookFormProps) {
@@ -43,6 +45,7 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
     ...initialData,
     pages: initialData?.pages?.toString() ?? "",
     rating: initialData?.rating?.toString() ?? "",
+    timesReread: initialData?.timesReread?.toString() ?? "0",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +76,7 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
       coverImage: form.coverImage || undefined,
       rating: form.rating ? parseFloat(form.rating) : undefined,
       notes: form.notes || undefined,
+      timesReread: parseInt(form.timesReread, 10) || 0,
     };
 
     const url =
@@ -211,6 +215,17 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
             placeholder="e.g. 8.5"
             className={inputCls}
           />
+        </Field>
+      </div>
+
+      {/* Times Reread */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Times reread">
+          <select value={form.timesReread} onChange={(e) => update("timesReread", e.target.value)} className={inputCls}>
+            {Array.from({ length: 11 }, (_, i) => (
+              <option key={i} value={String(i)}>{i === 0 ? "Never" : `${i}×`}</option>
+            ))}
+          </select>
         </Field>
       </div>
 

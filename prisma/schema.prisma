@@ -9,19 +9,20 @@ datasource db {
 // ─── BOOKS ───────────────────────────────────────────────────────────────────
 
 model Book {
-  id         String     @id @default(cuid())
-  title      String
-  author     String
-  status     BookStatus @default(WANT_TO_READ)
-  owned      Boolean    @default(false)
-  language   Language   @default(ENGLISH)
-  publisher  String?
-  pages      Int
-  coverImage String?
-  rating     Float?
-  notes      String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  title        String
+  author       String
+  status       BookStatus @default(WANT_TO_READ)
+  owned        Boolean    @default(false)
+  language     Language   @default(ENGLISH)
+  publisher    String?
+  pages        Int
+  coverImage   String?
+  rating       Float?
+  notes        String?
+  timesReread  Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 enum BookStatus {
@@ -47,6 +48,7 @@ model Anime {
   coverImage      String?
   rating          Float?
   notes           String?
+  timesRewatched  Int          @default(0)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -69,19 +71,20 @@ enum AnimeSeason {
 // ─── MOVIES ──────────────────────────────────────────────────────────────────
 
 model Movie {
-  id         String      @id @default(cuid())
-  title      String
-  director   String?
-  studio     String?
-  status     MovieStatus @default(WANT_TO_WATCH)
-  runtime    Int
-  year       Int?
-  language   Language    @default(ENGLISH)
-  coverImage String?
-  rating     Float?
-  notes      String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id             String      @id @default(cuid())
+  title          String
+  director       String?
+  studio         String?
+  status         MovieStatus @default(WANT_TO_WATCH)
+  runtime        Int
+  year           Int?
+  language       Language    @default(ENGLISH)
+  coverImage     String?
+  rating         Float?
+  notes          String?
+  timesRewatched Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 enum MovieStatus {
@@ -106,6 +109,7 @@ model TvShow {
   coverImage      String?
   rating          Float?
   notes           String?
+  timesRewatched  Int      @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -197,6 +201,7 @@ model Manga {
   artist        String?
   publisher     String?
   status        MangaStatus @default(PLAN_TO_READ)
+  format        MangaFormat @default(MANGA)
   totalVolumes  Int?
   volumesRead   Int         @default(0)
   totalChapters Int?
@@ -205,8 +210,15 @@ model Manga {
   coverImage    String?
   rating        Float?
   notes         String?
+  timesReread   Int         @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+enum MangaFormat {
+  MANGA
+  MANHWA
+  MANHUA
 }
 
 enum MangaStatus {
@@ -233,6 +245,7 @@ model Comic {
   coverImage  String?
   rating      Float?
   notes       String?
+  timesReread Int         @default(0)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -258,6 +271,7 @@ model Article {
   coverImage  String?
   rating      Float?
   notes       String?
+  timesReread Int           @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }

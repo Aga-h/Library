@@ -23,6 +23,7 @@ const createAnimeSchema = z.object({
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
   notes: z.string().optional(),
+  timesRewatched: z.number().int().min(0).default(0),
 });
 
 export async function GET(request: NextRequest) {
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
       coverImage: data.coverImage || null,
       rating: data.rating ?? null,
       notes: data.notes ?? null,
+      timesRewatched: data.timesRewatched,
     },
   });
 

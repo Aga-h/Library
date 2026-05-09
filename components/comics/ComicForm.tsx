@@ -9,13 +9,13 @@ import type { LanguageKey } from "@/lib/constants/languages";
 interface ComicFormData {
   title: string; author: string; artist: string; publisher: string; universe: string;
   status: string; totalIssues: string; issuesRead: string;
-  language: string; coverImage: string; rating: string; notes: string;
+  language: string; coverImage: string; rating: string; notes: string; timesReread: string;
 }
 
 const DEFAULT: ComicFormData = {
   title: "", author: "", artist: "", publisher: "", universe: "",
   status: "PLAN_TO_READ", totalIssues: "", issuesRead: "0",
-  language: "ENGLISH", coverImage: "", rating: "", notes: "",
+  language: "ENGLISH", coverImage: "", rating: "", notes: "", timesReread: "0",
 };
 
 interface Props { initialData?: Partial<ComicFormData & { id: string }>; mode: "create" | "edit"; }
@@ -23,7 +23,7 @@ const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm tex
 
 export default function ComicForm({ initialData, mode }: Props) {
   const router = useRouter();
-  const [form, setForm] = useState<ComicFormData>({ ...DEFAULT, ...initialData });
+  const [form, setForm] = useState<ComicFormData>({ ...DEFAULT, ...initialData, timesReread: initialData?.timesReread?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +42,7 @@ export default function ComicForm({ initialData, mode }: Props) {
       issuesRead: parseInt(form.issuesRead, 10) || 0,
       language: form.language, coverImage: form.coverImage || undefined,
       rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
+      timesReread: parseInt(form.timesReread, 10) || 0,
     };
     const url = mode === "edit" && initialData?.id ? `/api/comics/${initialData.id}` : "/api/comics";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -88,9 +89,16 @@ export default function ComicForm({ initialData, mode }: Props) {
         <Field label="Artist"><input type="text" value={form.artist} onChange={(e) => update("artist", e.target.value)} placeholder="Artist name (if different)" className={inputCls} /></Field>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Publisher"><input type="text" value={form.publisher} onChange={(e) => update("publisher", e.target.value)} placeholder="e.g. Marvel Comics" className={inputCls} /></Field>
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 8" className={inputCls} /></Field>
+        <Field label="Times reread">
+          <select value={form.timesReread} onChange={(e) => update("timesReread", e.target.value)} className={inputCls}>
+            {Array.from({ length: 11 }, (_, i) => (
+              <option key={i} value={String(i)}>{i === 0 ? "Never" : `${i}×`}</option>
+            ))}
+          </select>
+        </Field>
       </div>
 
       <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>

@@ -16,6 +16,7 @@ interface Book {
   pages: number;
   coverImage: string | null;
   rating: number | null;
+  timesReread: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -80,6 +81,9 @@ export default function BookCard({ book }: { book: Book }) {
           <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">
             ★ {book.rating}/10
           </div>
+        )}
+        {book.timesReread > 0 && (
+          <p className="text-xs text-gray-400 mt-0.5">Reread ×{book.timesReread}</p>
         )}
       </div>
     </Link>

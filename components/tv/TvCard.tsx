@@ -14,6 +14,7 @@ interface TvShow {
   episodeRuntime: number;
   coverImage: string | null;
   rating: number | null;
+  timesRewatched: number;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
@@ -79,6 +80,9 @@ export default function TvCard({ show }: { show: TvShow }) {
           <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">
             ★ {show.rating}/10
           </div>
+        )}
+        {show.timesRewatched > 0 && (
+          <p className="text-xs text-gray-400 mt-0.5">Rewatched ×{show.timesRewatched}</p>
         )}
       </div>
     </Link>
