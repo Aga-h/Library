@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, BookMarked, Clock, Globe, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
-import { calculateMangaTime } from "@/lib/reading-time";
+import { calculateMangaTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteMangaButton from "@/components/manga/DeleteMangaButton";
 
@@ -25,7 +25,8 @@ export default async function MangaDetailPage({ params }: PageProps) {
 
   const status = STATUS_STYLES[manga.status] ?? STATUS_STYLES.PLAN_TO_READ;
   const langLabel = LANGUAGE_CONFIG[manga.language as LanguageKey]?.label ?? manga.language;
-  const timeRead = manga.chaptersRead > 0 ? calculateMangaTime(manga.chaptersRead, manga.language as LanguageKey) : null;
+  const baseTimeRead = manga.chaptersRead > 0 ? calculateMangaTime(manga.chaptersRead, manga.language as LanguageKey) : null;
+  const timeReadFormatted = baseTimeRead ? formatReadingTime(baseTimeRead.minutes * (manga.timesReread + 1)) : null;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -68,7 +69,7 @@ export default async function MangaDetailPage({ params }: PageProps) {
         <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
           <DetailCell icon={<BookMarked className="w-4 h-4" />} label="Chapters" value={`${manga.chaptersRead}${manga.totalChapters ? `/${manga.totalChapters}` : ""}`} />
           <DetailCell icon={<BookMarked className="w-4 h-4" />} label="Volumes" value={`${manga.volumesRead}${manga.totalVolumes ? `/${manga.totalVolumes}` : ""}`} />
-          <DetailCell icon={<Clock className="w-4 h-4" />} label="Time Read" value={timeRead ? timeRead.formatted : "—"} />
+          <DetailCell icon={<Clock className="w-4 h-4" />} label="Time Read" value={timeReadFormatted ?? "—"} />
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
         </div>
         {manga.notes && (

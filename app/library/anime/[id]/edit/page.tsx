@@ -28,7 +28,9 @@ export default async function EditAnimePage({ params }: PageProps) {
           episodeDuration: anime.episodeDuration.toString(),
           season: anime.season ?? "", year: anime.year?.toString() ?? "",
           language: anime.language, coverImage: anime.coverImage ?? "",
-          rating: anime.rating?.toString() ?? "", notes: anime.notes ?? "",
+          rating: anime.rating?.toString() ?? "",
+          timesRewatched: anime.timesRewatched.toString(),
+          notes: anime.notes ?? "",
         }} />
       </div>
     </div>

@@ -29,7 +29,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
 
   const status = STATUS_STYLES[anime.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
   const langLabel = LANGUAGE_CONFIG[anime.language as LanguageKey]?.label ?? anime.language;
-  const watchedMinutes = anime.episodesWatched * anime.episodeDuration;
+  const watchedMinutes = anime.episodesWatched * anime.episodeDuration * (anime.timesRewatched + 1);
 
   return (
     <div className="max-w-2xl mx-auto">

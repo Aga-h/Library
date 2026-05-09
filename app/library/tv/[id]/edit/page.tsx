@@ -29,6 +29,7 @@ export default async function EditTvPage({ params }: PageProps) {
           episodeRuntime: show.episodeRuntime.toString(),
           year: show.year?.toString() ?? "", language: show.language,
           coverImage: show.coverImage ?? "", rating: show.rating?.toString() ?? "",
+          timesRewatched: show.timesRewatched.toString(),
           notes: show.notes ?? "",
         }} />
       </div>

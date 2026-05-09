@@ -24,6 +24,7 @@ export default async function EditMangaPage({ params }: PageProps) {
         <MangaForm mode="edit" initialData={{
           id: manga.id, title: manga.title, author: manga.author,
           artist: manga.artist ?? "", publisher: manga.publisher ?? "",
+          format: manga.format,
           status: manga.status,
           totalVolumes: manga.totalVolumes?.toString() ?? "",
           volumesRead: manga.volumesRead.toString(),
@@ -31,6 +32,7 @@ export default async function EditMangaPage({ params }: PageProps) {
           chaptersRead: manga.chaptersRead.toString(),
           language: manga.language,
           coverImage: manga.coverImage ?? "", rating: manga.rating?.toString() ?? "",
+          timesReread: manga.timesReread.toString(),
           notes: manga.notes ?? "",
         }} />
       </div>

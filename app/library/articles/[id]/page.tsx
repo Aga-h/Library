@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, FileText, Clock, Globe, ExternalLink, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
-import { calculateArticleTime } from "@/lib/reading-time";
+import { calculateArticleTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteArticleButton from "@/components/articles/DeleteArticleButton";
 
@@ -22,7 +22,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
   const status = STATUS_STYLES[article.status] ?? STATUS_STYLES.WANT_TO_READ;
   const langLabel = LANGUAGE_CONFIG[article.language as LanguageKey]?.label ?? article.language;
-  const timeRead = calculateArticleTime(article.wordCount, article.language as LanguageKey);
+  const timeRead = formatReadingTime(calculateArticleTime(article.wordCount, article.language as LanguageKey).minutes * (article.timesReread + 1));
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -66,7 +66,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
         </div>
         <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-gray-100">
           <DetailCell icon={<FileText className="w-4 h-4" />} label="Word Count" value={`${article.wordCount.toLocaleString()} words`} />
-          <DetailCell icon={<Clock className="w-4 h-4" />} label="Read Time" value={timeRead.formatted} />
+          <DetailCell icon={<Clock className="w-4 h-4" />} label="Read Time" value={timeRead} />
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
         </div>
         {article.notes && (

@@ -28,6 +28,7 @@ export default async function EditArticlePage({ params }: PageProps) {
           wordCount: article.wordCount.toString(),
           language: article.language,
           coverImage: article.coverImage ?? "", rating: article.rating?.toString() ?? "",
+          timesReread: article.timesReread.toString(),
           notes: article.notes ?? "",
         }} />
       </div>

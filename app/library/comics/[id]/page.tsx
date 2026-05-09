@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, BookOpen, Clock, Globe, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
-import { calculateComicTime } from "@/lib/reading-time";
+import { calculateComicTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteComicButton from "@/components/comics/DeleteComicButton";
 
@@ -24,7 +24,8 @@ export default async function ComicDetailPage({ params }: PageProps) {
 
   const status = STATUS_STYLES[comic.status] ?? STATUS_STYLES.PLAN_TO_READ;
   const langLabel = LANGUAGE_CONFIG[comic.language as LanguageKey]?.label ?? comic.language;
-  const timeRead = comic.issuesRead > 0 ? calculateComicTime(comic.issuesRead, comic.language as LanguageKey) : null;
+  const baseTimeRead = comic.issuesRead > 0 ? calculateComicTime(comic.issuesRead, comic.language as LanguageKey) : null;
+  const timeReadFormatted = baseTimeRead ? formatReadingTime(baseTimeRead.minutes * (comic.timesReread + 1)) : null;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -67,7 +68,7 @@ export default async function ComicDetailPage({ params }: PageProps) {
         </div>
         <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-gray-100">
           <DetailCell icon={<BookOpen className="w-4 h-4" />} label="Issues" value={`${comic.issuesRead}${comic.totalIssues ? `/${comic.totalIssues}` : ""}`} />
-          <DetailCell icon={<Clock className="w-4 h-4" />} label="Time Read" value={timeRead ? timeRead.formatted : "—"} />
+          <DetailCell icon={<Clock className="w-4 h-4" />} label="Time Read" value={timeReadFormatted ?? "—"} />
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
         </div>
         {comic.notes && (

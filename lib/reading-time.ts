@@ -100,21 +100,15 @@ export function sumVideoTime(
 
 // ─── MANGA ───────────────────────────────────────────────────────────────────
 
-const PAGES_PER_MANGA_CHAPTER = 20;
+// Calibrated to MAL benchmark: 20,533 ch = 123.99 days → ~8.69 min/chapter
+const MINUTES_PER_MANGA_CHAPTER = 8.7;
 
-/**
- * Estimated reading time for manga.
- * chaptersRead × ~20 pages/chapter × language units/page / wpm
- */
 export function calculateMangaTime(
   chaptersRead: number,
-  language: LanguageKey
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _language: LanguageKey
 ): ReadingTime {
-  const config = LANGUAGE_CONFIG[language];
-  const pages = chaptersRead * PAGES_PER_MANGA_CHAPTER;
-  const totalUnits = pages * config.unitsPerPage;
-  const minutes = Math.round(totalUnits / config.wpm);
-  return makeReadingTime(minutes);
+  return makeReadingTime(Math.round(chaptersRead * MINUTES_PER_MANGA_CHAPTER));
 }
 
 export function sumMangaTime(
@@ -128,21 +122,15 @@ export function sumMangaTime(
 
 // ─── COMICS ──────────────────────────────────────────────────────────────────
 
-const PAGES_PER_COMIC_ISSUE = 22;
+// Comics are equally visual; use same benchmark as manga
+const MINUTES_PER_COMIC_ISSUE = 8.7;
 
-/**
- * Estimated reading time for comics.
- * issuesRead × ~22 pages/issue × language units/page / wpm
- */
 export function calculateComicTime(
   issuesRead: number,
-  language: LanguageKey
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _language: LanguageKey
 ): ReadingTime {
-  const config = LANGUAGE_CONFIG[language];
-  const pages = issuesRead * PAGES_PER_COMIC_ISSUE;
-  const totalUnits = pages * config.unitsPerPage;
-  const minutes = Math.round(totalUnits / config.wpm);
-  return makeReadingTime(minutes);
+  return makeReadingTime(Math.round(issuesRead * MINUTES_PER_COMIC_ISSUE));
 }
 
 export function sumComicTime(

@@ -31,26 +31,26 @@ export default async function HomePage() {
   ]);
 
   // Batch 2: time data (8 parallel queries)
-  const [booksTime, animeTime, watchedRuntime, tvTime, gamesAgg, mangaTime, comicsTime, articlesTime] = await Promise.all([
-    db.book.findMany({ where: { status: { in: ["READ", "READING"] } }, select: { pages: true, language: true } }),
-    db.anime.findMany({ select: { episodesWatched: true, episodeDuration: true } }),
-    db.movie.aggregate({ _sum: { runtime: true }, where: { status: "WATCHED" } }),
-    db.tvShow.findMany({ select: { episodesWatched: true, episodeRuntime: true } }),
+  const [booksTime, animeTime, watchedMovies, tvTime, gamesAgg, mangaTime, comicsTime, articlesTime] = await Promise.all([
+    db.book.findMany({ where: { status: { in: ["READ", "READING"] } }, select: { pages: true, language: true, timesReread: true } }),
+    db.anime.findMany({ select: { episodesWatched: true, episodeDuration: true, timesRewatched: true } }),
+    db.movie.findMany({ where: { status: "WATCHED" }, select: { runtime: true, timesRewatched: true } }),
+    db.tvShow.findMany({ select: { episodesWatched: true, episodeRuntime: true, timesRewatched: true } }),
     db.game.aggregate({ _sum: { hoursPlayed: true } }),
-    db.manga.findMany({ select: { chaptersRead: true, language: true } }),
-    db.comic.findMany({ select: { issuesRead: true, language: true } }),
-    db.article.findMany({ where: { status: "READ" }, select: { wordCount: true, language: true } }),
+    db.manga.findMany({ select: { chaptersRead: true, language: true, timesReread: true } }),
+    db.comic.findMany({ select: { issuesRead: true, language: true, timesReread: true } }),
+    db.article.findMany({ where: { status: "READ" }, select: { wordCount: true, language: true, timesReread: true } }),
   ]);
 
   const totalMinutes =
-    booksTime.reduce((s, b) => s + calculateReadingTime(b.pages, b.language as LanguageKey).minutes, 0) +
-    animeTime.reduce((s, a) => s + a.episodesWatched * a.episodeDuration, 0) +
-    (watchedRuntime._sum.runtime ?? 0) +
-    tvTime.reduce((s, t) => s + t.episodesWatched * t.episodeRuntime, 0) +
+    booksTime.reduce((s, b) => s + calculateReadingTime(b.pages, b.language as LanguageKey).minutes * (b.timesReread + 1), 0) +
+    animeTime.reduce((s, a) => s + a.episodesWatched * a.episodeDuration * (a.timesRewatched + 1), 0) +
+    watchedMovies.reduce((s, m) => s + m.runtime * (m.timesRewatched + 1), 0) +
+    tvTime.reduce((s, t) => s + t.episodesWatched * t.episodeRuntime * (t.timesRewatched + 1), 0) +
     Math.round((gamesAgg._sum.hoursPlayed ?? 0) * 60) +
-    mangaTime.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes, 0) +
-    comicsTime.reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes, 0) +
-    articlesTime.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes, 0);
+    mangaTime.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes * (m.timesReread + 1), 0) +
+    comicsTime.reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes * (c.timesReread + 1), 0) +
+    articlesTime.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes * (a.timesReread + 1), 0);
 
   const SECTIONS = [
     {

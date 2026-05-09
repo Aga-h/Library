@@ -41,6 +41,7 @@ export default async function EditBookPage({ params }: PageProps) {
             pages: book.pages.toString(),
             coverImage: book.coverImage ?? "",
             rating: book.rating?.toString() ?? "",
+            timesReread: book.timesReread.toString(),
             notes: book.notes ?? "",
           }}
         />

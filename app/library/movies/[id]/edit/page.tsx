@@ -41,6 +41,7 @@ export default async function EditMoviePage({ params }: PageProps) {
             language: movie.language,
             coverImage: movie.coverImage ?? "",
             rating: movie.rating?.toString() ?? "",
+            timesRewatched: movie.timesRewatched.toString(),
             notes: movie.notes ?? "",
           }}
         />

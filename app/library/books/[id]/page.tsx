@@ -13,7 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { db } from "@/lib/db";
-import { calculateReadingTime } from "@/lib/reading-time";
+import { calculateReadingTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteBookButton from "@/components/books/DeleteBookButton";
 
@@ -34,7 +34,8 @@ export default async function BookDetailPage({ params }: PageProps) {
   if (!book) notFound();
 
   const status = STATUS_STYLES[book.status] ?? STATUS_STYLES.WANT_TO_READ;
-  const time = calculateReadingTime(book.pages, book.language as LanguageKey);
+  const baseTime = calculateReadingTime(book.pages, book.language as LanguageKey);
+  const totalMinutes = baseTime.minutes * (book.timesReread + 1);
   const langLabel = LANGUAGE_CONFIG[book.language as LanguageKey]?.label ?? book.language;
 
   return (
@@ -104,7 +105,7 @@ export default async function BookDetailPage({ params }: PageProps) {
         <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
           <DetailCell icon={<BookOpen className="w-4 h-4" />} label="Pages" value={book.pages.toLocaleString()} />
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
-          <DetailCell icon={<Clock className="w-4 h-4" />} label="Est. Time" value={time.formatted} sub={`${Math.round(time.hours * 10) / 10}h`} />
+          <DetailCell icon={<Clock className="w-4 h-4" />} label="Est. Time" value={formatReadingTime(totalMinutes)} sub={`${Math.round(totalMinutes / 60 * 10) / 10}h`} />
           <DetailCell icon={<Building2 className="w-4 h-4" />} label="Publisher" value={book.publisher ?? "—"} />
         </div>
 

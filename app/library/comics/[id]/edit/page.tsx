@@ -30,6 +30,7 @@ export default async function EditComicPage({ params }: PageProps) {
           issuesRead: comic.issuesRead.toString(),
           language: comic.language,
           coverImage: comic.coverImage ?? "", rating: comic.rating?.toString() ?? "",
+          timesReread: comic.timesReread.toString(),
           notes: comic.notes ?? "",
         }} />
       </div>

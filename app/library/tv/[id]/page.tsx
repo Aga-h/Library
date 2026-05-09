@@ -25,7 +25,7 @@ export default async function TvDetailPage({ params }: PageProps) {
 
   const status = STATUS_STYLES[show.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
   const langLabel = LANGUAGE_CONFIG[show.language as LanguageKey]?.label ?? show.language;
-  const watchedMinutes = show.episodesWatched * show.episodeRuntime;
+  const watchedMinutes = show.episodesWatched * show.episodeRuntime * (show.timesRewatched + 1);
 
   return (
     <div className="max-w-2xl mx-auto">
