@@ -25,7 +25,7 @@ export default function ComicCard({ comic }: { comic: Comic }) {
 
   return (
     <Link href={`/library/comics/${comic.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
-      <div className="relative bg-gray-100 h-44 flex items-center justify-center overflow-hidden">
+      <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {comic.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={comic.coverImage} alt={comic.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

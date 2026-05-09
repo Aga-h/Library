@@ -27,7 +27,7 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
 
   return (
     <Link href={`/library/anime/${anime.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
-      <div className="relative bg-gray-100 h-44 flex items-center justify-center overflow-hidden">
+      <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {anime.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={anime.coverImage} alt={anime.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
