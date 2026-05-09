@@ -18,10 +18,8 @@ function total(groups: { status: string; _count: { _all: number } }[]) {
 }
 
 export default async function HomePage() {
-  const [
-    books, anime, movies, tvShows, games, manga, comics, articles,
-    booksTime, animeTime, watchedRuntime, tvTime, gamesAgg, mangaTime, comicsTime, articlesTime,
-  ] = await Promise.all([
+  // Batch 1: status counts (8 parallel queries, completes before batch 2 starts)
+  const [books, anime, movies, tvShows, games, manga, comics, articles] = await Promise.all([
     db.book.groupBy({ by: ["status"], _count: { _all: true } }),
     db.anime.groupBy({ by: ["status"], _count: { _all: true } }),
     db.movie.groupBy({ by: ["status"], _count: { _all: true } }),
@@ -30,6 +28,10 @@ export default async function HomePage() {
     db.manga.groupBy({ by: ["status"], _count: { _all: true } }),
     db.comic.groupBy({ by: ["status"], _count: { _all: true } }),
     db.article.groupBy({ by: ["status"], _count: { _all: true } }),
+  ]);
+
+  // Batch 2: time data (8 parallel queries)
+  const [booksTime, animeTime, watchedRuntime, tvTime, gamesAgg, mangaTime, comicsTime, articlesTime] = await Promise.all([
     db.book.findMany({ where: { status: { in: ["READ", "READING"] } }, select: { pages: true, language: true } }),
     db.anime.findMany({ select: { episodesWatched: true, episodeDuration: true } }),
     db.movie.aggregate({ _sum: { runtime: true }, where: { status: "WATCHED" } }),
