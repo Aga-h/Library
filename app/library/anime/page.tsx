@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import AnimeStats from "@/components/anime/AnimeStats";
 import AnimeGroupedView from "@/components/anime/AnimeGroupedView";
+import AnimeSeriesManager from "@/components/anime/AnimeSeriesManager";
 import AnimeFilters from "@/components/anime/AnimeFilters";
 
 
@@ -26,9 +27,12 @@ export default async function AnimePage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Anime</h1>
           <p className="text-sm text-gray-500 mt-1">{allAnime.length} anime in your library</p>
         </div>
-        <Link href="/library/anime/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-          <Plus className="w-4 h-4" /> Add Anime
-        </Link>
+        <div className="flex items-center gap-2">
+          <AnimeSeriesManager allItems={allAnime.map(a => ({ id: a.id, title: a.title, coverImage: a.coverImage, seriesName: a.seriesName }))} />
+          <Link href="/library/anime/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Anime
+          </Link>
+        </div>
       </div>
 
       <AnimeStats anime={allAnime} />

@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import TvStats from "@/components/tv/TvStats";
 import TvGroupedView from "@/components/tv/TvGroupedView";
+import TvSeriesManager from "@/components/tv/TvSeriesManager";
 import TvFilters from "@/components/tv/TvFilters";
 
 interface PageProps { searchParams: Promise<{ status?: string }> }
@@ -22,9 +23,12 @@ export default async function TvPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">TV Shows</h1>
           <p className="text-sm text-gray-500 mt-1">{all.length} shows in your library</p>
         </div>
-        <Link href="/library/tv/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-          <Plus className="w-4 h-4" /> Add Show
-        </Link>
+        <div className="flex items-center gap-2">
+          <TvSeriesManager allItems={all.map(s => ({ id: s.id, title: s.title, coverImage: s.coverImage, seriesName: s.seriesName }))} />
+          <Link href="/library/tv/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Show
+          </Link>
+        </div>
       </div>
       <TvStats shows={all} />
       <Suspense><TvFilters /></Suspense>

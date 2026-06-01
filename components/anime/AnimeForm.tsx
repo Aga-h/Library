@@ -10,7 +10,7 @@ interface AnimeFormData {
   episodes: string; episodesWatched: string; episodeDuration: string;
   season: string; year: string; language: string;
   coverImage: string; rating: string; notes: string;
-  timesRewatched: string; seriesName: string;
+  timesRewatched: string;
 }
 
 const DEFAULT: AnimeFormData = {
@@ -18,18 +18,17 @@ const DEFAULT: AnimeFormData = {
   episodes: "", episodesWatched: "0", episodeDuration: "24",
   season: "", year: "", language: "JAPANESE",
   coverImage: "", rating: "", notes: "",
-  timesRewatched: "0", seriesName: "",
+  timesRewatched: "0",
 };
 
 interface Props {
   initialData?: Partial<AnimeFormData & { id: string }>;
   mode: "create" | "edit";
-  existingSeriesNames?: string[];
 }
 
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function AnimeForm({ initialData, mode, existingSeriesNames }: Props) {
+export default function AnimeForm({ initialData, mode }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
@@ -52,7 +51,6 @@ export default function AnimeForm({ initialData, mode, existingSeriesNames }: Pr
       language: form.language, coverImage: form.coverImage || undefined,
       rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
-      seriesName: form.seriesName || undefined,
     };
     const url = mode === "edit" && initialData?.id ? `/api/anime/${initialData.id}` : "/api/anime";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -69,14 +67,6 @@ export default function AnimeForm({ initialData, mode, existingSeriesNames }: Pr
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Anime title" className={inputCls} /></Field>
         <Field label="Studio"><input type="text" value={form.studio} onChange={(e) => update("studio", e.target.value)} placeholder="e.g. MAPPA" className={inputCls} /></Field>
       </div>
-
-      <Field label="Series (optional)">
-        <input type="text" list="anime-series-names" value={form.seriesName} onChange={(e) => update("seriesName", e.target.value)} placeholder="e.g. Attack on Titan" className={inputCls} />
-        <datalist id="anime-series-names">
-          {existingSeriesNames?.map((n) => <option key={n} value={n} />)}
-        </datalist>
-        <p className="text-xs text-gray-400 mt-1">Group seasons of the same show together</p>
-      </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Status">

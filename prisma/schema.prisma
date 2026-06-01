@@ -363,6 +363,20 @@ enum DryMethod {
   DO_NOT_DRY
 }
 
+// ─── SERIES ──────────────────────────────────────────────────────────────────
+
+model AnimeSeries {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
+model TvSeries {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
 // ─── SHARED ENUMS ────────────────────────────────────────────────────────────
 
 enum Language {

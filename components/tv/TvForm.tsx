@@ -19,13 +19,11 @@ interface TvFormData {
   rating: string;
   notes: string;
   timesRewatched: string;
-  seriesName: string;
 }
 
 interface TvFormProps {
   initialData?: Partial<TvFormData & { id: string }>;
   mode: "create" | "edit";
-  existingSeriesNames?: string[];
 }
 
 const DEFAULT_DATA: TvFormData = {
@@ -42,13 +40,12 @@ const DEFAULT_DATA: TvFormData = {
   rating: "",
   notes: "",
   timesRewatched: "0",
-  seriesName: "",
 };
 
 const inputCls =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function TvForm({ initialData, mode, existingSeriesNames }: TvFormProps) {
+export default function TvForm({ initialData, mode }: TvFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<TvFormData>({
     ...DEFAULT_DATA,
@@ -95,7 +92,6 @@ export default function TvForm({ initialData, mode, existingSeriesNames }: TvFor
       rating: form.rating ? parseFloat(form.rating) : undefined,
       notes: form.notes || undefined,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
-      seriesName: form.seriesName || undefined,
     };
 
     const url =
@@ -152,14 +148,6 @@ export default function TvForm({ initialData, mode, existingSeriesNames }: TvFor
           />
         </Field>
       </div>
-
-      <Field label="Series (optional)">
-        <input type="text" list="tv-series-names" value={form.seriesName} onChange={(e) => update("seriesName", e.target.value)} placeholder="e.g. Breaking Bad" className={inputCls} />
-        <datalist id="tv-series-names">
-          {existingSeriesNames?.map((n) => <option key={n} value={n} />)}
-        </datalist>
-        <p className="text-xs text-gray-400 mt-1">Group seasons of the same show together</p>
-      </Field>
 
       {/* Network & Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

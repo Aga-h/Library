@@ -10,16 +10,8 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditTvPage({ params }: PageProps) {
   const { id } = await params;
-  const [show, seriesRows] = await Promise.all([
-    db.tvShow.findUnique({ where: { id } }),
-    db.tvShow.findMany({
-      where: { seriesName: { not: null } },
-      select: { seriesName: true },
-      distinct: ["seriesName"],
-    }),
-  ]);
+  const show = await db.tvShow.findUnique({ where: { id } });
   if (!show) notFound();
-  const seriesNames = seriesRows.map((r) => r.seriesName as string);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -29,7 +21,7 @@ export default async function EditTvPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit TV Show</h1>
         <p className="text-sm text-gray-500 mb-6">{show.title}</p>
-        <TvForm mode="edit" existingSeriesNames={seriesNames} initialData={{
+        <TvForm mode="edit" initialData={{
           id: show.id, title: show.title, creator: show.creator ?? "",
           network: show.network ?? "", status: show.status,
           totalEpisodes: show.totalEpisodes?.toString() ?? "",
@@ -39,7 +31,6 @@ export default async function EditTvPage({ params }: PageProps) {
           coverImage: show.coverImage ?? "", rating: show.rating?.toString() ?? "",
           timesRewatched: show.timesRewatched.toString(),
           notes: show.notes ?? "",
-          seriesName: show.seriesName ?? "",
         }} />
       </div>
     </div>
