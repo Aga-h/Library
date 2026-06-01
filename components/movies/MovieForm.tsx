@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface MovieFormData {
   title: string;
@@ -21,6 +22,9 @@ interface MovieFormData {
 interface MovieFormProps {
   initialData?: Partial<MovieFormData & { id: string }>;
   mode: "create" | "edit";
+  directorOptions?: string[];
+  studioOptions?: string[];
+  yearOptions?: string[];
 }
 
 const DEFAULT_DATA: MovieFormData = {
@@ -47,7 +51,7 @@ function formatRuntime(minutes: number): string {
 const inputCls =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function MovieForm({ initialData, mode }: MovieFormProps) {
+export default function MovieForm({ initialData, mode, directorOptions, studioOptions, yearOptions }: MovieFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<MovieFormData>({
     ...DEFAULT_DATA,
@@ -110,7 +114,7 @@ export default function MovieForm({ initialData, mode }: MovieFormProps) {
 
     const movie = await res.json();
     router.push(`/library/movies/${movie.id}`);
-    
+
   }
 
   return (
@@ -133,28 +137,24 @@ export default function MovieForm({ initialData, mode }: MovieFormProps) {
             className={inputCls}
           />
         </Field>
-        <Field label="Director">
-          <input
-            type="text"
-            value={form.director}
-            onChange={(e) => update("director", e.target.value)}
-            placeholder="Director name"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Director"
+          value={form.director}
+          onChange={v => update("director", v)}
+          options={directorOptions ?? []}
+          placeholder="Director name"
+        />
       </div>
 
       {/* Studio & Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Studio">
-          <input
-            type="text"
-            value={form.studio}
-            onChange={(e) => update("studio", e.target.value)}
-            placeholder="e.g. Warner Bros."
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Studio"
+          value={form.studio}
+          onChange={v => update("studio", v)}
+          options={studioOptions ?? []}
+          placeholder="e.g. Warner Bros."
+        />
         <Field label="Watch Status">
           <select
             value={form.status}
@@ -186,17 +186,13 @@ export default function MovieForm({ initialData, mode }: MovieFormProps) {
             </p>
           )}
         </Field>
-        <Field label="Year">
-          <input
-            type="number"
-            min={1888}
-            max={2100}
-            value={form.year}
-            onChange={(e) => update("year", e.target.value)}
-            placeholder="e.g. 2024"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Year"
+          value={form.year}
+          onChange={v => update("year", v)}
+          options={yearOptions ?? []}
+          placeholder="e.g. 2024"
+        />
       </div>
 
       {/* Language & Cover Image */}

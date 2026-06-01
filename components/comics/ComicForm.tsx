@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateComicTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface ComicFormData {
   title: string; author: string; artist: string; publisher: string; universe: string;
@@ -18,10 +19,18 @@ const DEFAULT: ComicFormData = {
   language: "ENGLISH", coverImage: "", rating: "", notes: "", timesReread: "0",
 };
 
-interface Props { initialData?: Partial<ComicFormData & { id: string }>; mode: "create" | "edit"; }
+interface Props {
+  initialData?: Partial<ComicFormData & { id: string }>;
+  mode: "create" | "edit";
+  authorOptions?: string[];
+  artistOptions?: string[];
+  publisherOptions?: string[];
+  universeOptions?: string[];
+}
+
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function ComicForm({ initialData, mode }: Props) {
+export default function ComicForm({ initialData, mode, authorOptions, artistOptions, publisherOptions, universeOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<ComicFormData>({ ...DEFAULT, ...initialData, timesReread: initialData?.timesReread?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
@@ -48,7 +57,7 @@ export default function ComicForm({ initialData, mode }: Props) {
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
-    router.push(`/library/comics/${item.id}`); 
+    router.push(`/library/comics/${item.id}`);
   }
 
   return (
@@ -57,7 +66,7 @@ export default function ComicForm({ initialData, mode }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Comic title" className={inputCls} /></Field>
-        <Field label="Universe"><input type="text" value={form.universe} onChange={(e) => update("universe", e.target.value)} placeholder="e.g. Marvel, DC" className={inputCls} /></Field>
+        <ComboboxField label="Universe" value={form.universe} onChange={v => update("universe", v)} options={universeOptions ?? []} placeholder="e.g. Marvel, DC" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -85,12 +94,12 @@ export default function ComicForm({ initialData, mode }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Writer/Author"><input type="text" value={form.author} onChange={(e) => update("author", e.target.value)} placeholder="Writer name" className={inputCls} /></Field>
-        <Field label="Artist"><input type="text" value={form.artist} onChange={(e) => update("artist", e.target.value)} placeholder="Artist name (if different)" className={inputCls} /></Field>
+        <ComboboxField label="Writer/Author" value={form.author} onChange={v => update("author", v)} options={authorOptions ?? []} placeholder="Writer name" />
+        <ComboboxField label="Artist" value={form.artist} onChange={v => update("artist", v)} options={artistOptions ?? []} placeholder="Artist name (if different)" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Field label="Publisher"><input type="text" value={form.publisher} onChange={(e) => update("publisher", e.target.value)} placeholder="e.g. Marvel Comics" className={inputCls} /></Field>
+        <ComboboxField label="Publisher" value={form.publisher} onChange={v => update("publisher", v)} options={publisherOptions ?? []} placeholder="e.g. Marvel Comics" />
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 8" className={inputCls} /></Field>
         <Field label="Times reread">
           <select value={form.timesReread} onChange={(e) => update("timesReread", e.target.value)} className={inputCls}>

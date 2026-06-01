@@ -12,7 +12,15 @@ interface PageProps {
 
 export default async function EditMoviePage({ params }: PageProps) {
   const { id } = await params;
-  const movie = await db.movie.findUnique({ where: { id } });
+  const [movie, directorOpts, studioOpts, yearOpts] = await Promise.all([
+    db.movie.findUnique({ where: { id } }),
+    db.movie.findMany({ where: { director: { not: null } }, select: { director: true }, distinct: ["director"], orderBy: { director: "asc" } })
+      .then(r => r.map(x => x.director).filter((v): v is string => v !== null && v !== "")),
+    db.movie.findMany({ where: { studio: { not: null } }, select: { studio: true }, distinct: ["studio"], orderBy: { studio: "asc" } })
+      .then(r => r.map(x => x.studio).filter((v): v is string => v !== null && v !== "")),
+    db.movie.findMany({ where: { year: { not: null } }, select: { year: true }, distinct: ["year"], orderBy: { year: "desc" } })
+      .then(r => r.map(x => x.year!.toString())),
+  ]);
   if (!movie) notFound();
 
   return (
@@ -30,6 +38,9 @@ export default async function EditMoviePage({ params }: PageProps) {
         <p className="text-sm text-gray-500 mb-6">{movie.title}</p>
         <MovieForm
           mode="edit"
+          directorOptions={directorOpts}
+          studioOptions={studioOpts}
+          yearOptions={yearOpts}
           initialData={{
             id: movie.id,
             title: movie.title,

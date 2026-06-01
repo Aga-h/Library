@@ -12,7 +12,13 @@ interface PageProps {
 
 export default async function EditBookPage({ params }: PageProps) {
   const { id } = await params;
-  const book = await db.book.findUnique({ where: { id } });
+  const [book, authorOpts, publisherOpts] = await Promise.all([
+    db.book.findUnique({ where: { id } }),
+    db.book.findMany({ where: { author: { not: "" } }, select: { author: true }, distinct: ["author"], orderBy: { author: "asc" } })
+      .then(r => r.map(x => x.author)),
+    db.book.findMany({ where: { publisher: { not: null } }, select: { publisher: true }, distinct: ["publisher"], orderBy: { publisher: "asc" } })
+      .then(r => r.map(x => x.publisher).filter((v): v is string => v !== null && v !== "")),
+  ]);
   if (!book) notFound();
 
   return (
@@ -30,6 +36,8 @@ export default async function EditBookPage({ params }: PageProps) {
         <p className="text-sm text-gray-500 mb-6">{book.title}</p>
         <BookForm
           mode="edit"
+          authorOptions={authorOpts}
+          publisherOptions={publisherOpts}
           initialData={{
             id: book.id,
             title: book.title,

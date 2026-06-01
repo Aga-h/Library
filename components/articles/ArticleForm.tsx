@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateArticleTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface ArticleFormData {
   title: string; author: string; publication: string; url: string;
@@ -18,10 +19,16 @@ const DEFAULT: ArticleFormData = {
   language: "ENGLISH", coverImage: "", rating: "", notes: "", timesReread: "0",
 };
 
-interface Props { initialData?: Partial<ArticleFormData & { id: string }>; mode: "create" | "edit"; }
+interface Props {
+  initialData?: Partial<ArticleFormData & { id: string }>;
+  mode: "create" | "edit";
+  authorOptions?: string[];
+  publicationOptions?: string[];
+}
+
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function ArticleForm({ initialData, mode }: Props) {
+export default function ArticleForm({ initialData, mode, authorOptions, publicationOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<ArticleFormData>({ ...DEFAULT, ...initialData, timesReread: initialData?.timesReread?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
@@ -46,7 +53,7 @@ export default function ArticleForm({ initialData, mode }: Props) {
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
-    router.push(`/library/articles/${item.id}`); 
+    router.push(`/library/articles/${item.id}`);
   }
 
   return (
@@ -55,7 +62,7 @@ export default function ArticleForm({ initialData, mode }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Article title" className={inputCls} /></Field>
-        <Field label="Author"><input type="text" value={form.author} onChange={(e) => update("author", e.target.value)} placeholder="Author name" className={inputCls} /></Field>
+        <ComboboxField label="Author" value={form.author} onChange={v => update("author", v)} options={authorOptions ?? []} placeholder="Author name" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -73,7 +80,7 @@ export default function ArticleForm({ initialData, mode }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Publication"><input type="text" value={form.publication} onChange={(e) => update("publication", e.target.value)} placeholder="e.g. The Atlantic" className={inputCls} /></Field>
+        <ComboboxField label="Publication" value={form.publication} onChange={v => update("publication", v)} options={publicationOptions ?? []} placeholder="e.g. The Atlantic" />
         <Field label="Word Count *">
           <input type="number" required min={1} value={form.wordCount} onChange={(e) => update("wordCount", e.target.value)} placeholder="e.g. 2500" className={inputCls} />
           {previewTime && <p className="text-xs text-gray-400 mt-1.5">Est. read time: <strong className="text-gray-600">{previewTime.formatted}</strong></p>}

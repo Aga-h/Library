@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import BookForm from "@/components/books/BookForm";
+import { db } from "@/lib/db";
 
-export default function NewBookPage() {
+export default async function NewBookPage() {
+  const [authorOpts, publisherOpts] = await Promise.all([
+    db.book.findMany({ where: { author: { not: "" } }, select: { author: true }, distinct: ["author"], orderBy: { author: "asc" } })
+      .then(r => r.map(x => x.author)),
+    db.book.findMany({ where: { publisher: { not: null } }, select: { publisher: true }, distinct: ["publisher"], orderBy: { publisher: "asc" } })
+      .then(r => r.map(x => x.publisher).filter((v): v is string => v !== null && v !== "")),
+  ]);
+
   return (
     <div className="max-w-2xl mx-auto">
       <Link
@@ -15,7 +23,7 @@ export default function NewBookPage() {
 
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Add a New Book</h1>
-        <BookForm mode="create" />
+        <BookForm mode="create" authorOptions={authorOpts} publisherOptions={publisherOpts} />
       </div>
     </div>
   );

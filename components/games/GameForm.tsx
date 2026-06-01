@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_GROUPS, PLATFORM_LABELS } from "@/lib/constants/platforms";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface GameFormData {
   title: string; developer: string; publisher: string; status: string;
@@ -18,10 +19,16 @@ const DEFAULT: GameFormData = {
   coverImage: "", rating: "", notes: "",
 };
 
-interface Props { initialData?: Partial<GameFormData & { id: string }>; mode: "create" | "edit"; }
+interface Props {
+  initialData?: Partial<GameFormData & { id: string }>;
+  mode: "create" | "edit";
+  developerOptions?: string[];
+  publisherOptions?: string[];
+}
+
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function GameForm({ initialData, mode }: Props) {
+export default function GameForm({ initialData, mode, developerOptions, publisherOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<GameFormData>({ ...DEFAULT, ...initialData });
   const [loading, setLoading] = useState(false);
@@ -46,7 +53,7 @@ export default function GameForm({ initialData, mode }: Props) {
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
-    router.push(`/library/games/${item.id}`); 
+    router.push(`/library/games/${item.id}`);
   }
 
   return (
@@ -55,7 +62,7 @@ export default function GameForm({ initialData, mode }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Game title" className={inputCls} /></Field>
-        <Field label="Developer"><input type="text" value={form.developer} onChange={(e) => update("developer", e.target.value)} placeholder="e.g. FromSoftware" className={inputCls} /></Field>
+        <ComboboxField label="Developer" value={form.developer} onChange={v => update("developer", v)} options={developerOptions ?? []} placeholder="e.g. FromSoftware" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -86,7 +93,7 @@ export default function GameForm({ initialData, mode }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Publisher"><input type="text" value={form.publisher} onChange={(e) => update("publisher", e.target.value)} placeholder="e.g. Bandai Namco" className={inputCls} /></Field>
+        <ComboboxField label="Publisher" value={form.publisher} onChange={v => update("publisher", v)} options={publisherOptions ?? []} placeholder="e.g. Bandai Namco" />
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 9" className={inputCls} /></Field>
       </div>
 

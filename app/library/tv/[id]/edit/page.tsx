@@ -10,7 +10,15 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditTvPage({ params }: PageProps) {
   const { id } = await params;
-  const show = await db.tvShow.findUnique({ where: { id } });
+  const [show, creatorOpts, networkOpts, yearOpts] = await Promise.all([
+    db.tvShow.findUnique({ where: { id } }),
+    db.tvShow.findMany({ where: { creator: { not: null } }, select: { creator: true }, distinct: ["creator"], orderBy: { creator: "asc" } })
+      .then(r => r.map(x => x.creator).filter((v): v is string => v !== null && v !== "")),
+    db.tvShow.findMany({ where: { network: { not: null } }, select: { network: true }, distinct: ["network"], orderBy: { network: "asc" } })
+      .then(r => r.map(x => x.network).filter((v): v is string => v !== null && v !== "")),
+    db.tvShow.findMany({ where: { year: { not: null } }, select: { year: true }, distinct: ["year"], orderBy: { year: "desc" } })
+      .then(r => r.map(x => x.year!.toString())),
+  ]);
   if (!show) notFound();
 
   return (
@@ -21,7 +29,7 @@ export default async function EditTvPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit TV Show</h1>
         <p className="text-sm text-gray-500 mb-6">{show.title}</p>
-        <TvForm mode="edit" initialData={{
+        <TvForm mode="edit" creatorOptions={creatorOpts} networkOptions={networkOpts} yearOptions={yearOpts} initialData={{
           id: show.id, title: show.title, creator: show.creator ?? "",
           network: show.network ?? "", status: show.status,
           totalEpisodes: show.totalEpisodes?.toString() ?? "",

@@ -10,7 +10,17 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditComicPage({ params }: PageProps) {
   const { id } = await params;
-  const comic = await db.comic.findUnique({ where: { id } });
+  const [comic, authorOpts, artistOpts, publisherOpts, universeOpts] = await Promise.all([
+    db.comic.findUnique({ where: { id } }),
+    db.comic.findMany({ where: { author: { not: null } }, select: { author: true }, distinct: ["author"], orderBy: { author: "asc" } })
+      .then(r => r.map(x => x.author).filter((v): v is string => v !== null && v !== "")),
+    db.comic.findMany({ where: { artist: { not: null } }, select: { artist: true }, distinct: ["artist"], orderBy: { artist: "asc" } })
+      .then(r => r.map(x => x.artist).filter((v): v is string => v !== null && v !== "")),
+    db.comic.findMany({ where: { publisher: { not: null } }, select: { publisher: true }, distinct: ["publisher"], orderBy: { publisher: "asc" } })
+      .then(r => r.map(x => x.publisher).filter((v): v is string => v !== null && v !== "")),
+    db.comic.findMany({ where: { universe: { not: null } }, select: { universe: true }, distinct: ["universe"], orderBy: { universe: "asc" } })
+      .then(r => r.map(x => x.universe).filter((v): v is string => v !== null && v !== "")),
+  ]);
   if (!comic) notFound();
 
   return (
@@ -21,7 +31,7 @@ export default async function EditComicPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Comic</h1>
         <p className="text-sm text-gray-500 mb-6">{comic.title}</p>
-        <ComicForm mode="edit" initialData={{
+        <ComicForm mode="edit" authorOptions={authorOpts} artistOptions={artistOpts} publisherOptions={publisherOpts} universeOptions={universeOpts} initialData={{
           id: comic.id, title: comic.title,
           author: comic.author ?? "", artist: comic.artist ?? "",
           publisher: comic.publisher ?? "", universe: comic.universe ?? "",

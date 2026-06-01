@@ -10,7 +10,15 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditMangaPage({ params }: PageProps) {
   const { id } = await params;
-  const manga = await db.manga.findUnique({ where: { id } });
+  const [manga, authorOpts, artistOpts, publisherOpts] = await Promise.all([
+    db.manga.findUnique({ where: { id } }),
+    db.manga.findMany({ where: { author: { not: "" } }, select: { author: true }, distinct: ["author"], orderBy: { author: "asc" } })
+      .then(r => r.map(x => x.author)),
+    db.manga.findMany({ where: { artist: { not: null } }, select: { artist: true }, distinct: ["artist"], orderBy: { artist: "asc" } })
+      .then(r => r.map(x => x.artist).filter((v): v is string => v !== null && v !== "")),
+    db.manga.findMany({ where: { publisher: { not: null } }, select: { publisher: true }, distinct: ["publisher"], orderBy: { publisher: "asc" } })
+      .then(r => r.map(x => x.publisher).filter((v): v is string => v !== null && v !== "")),
+  ]);
   if (!manga) notFound();
 
   return (
@@ -21,7 +29,7 @@ export default async function EditMangaPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Manga</h1>
         <p className="text-sm text-gray-500 mb-6">{manga.title}</p>
-        <MangaForm mode="edit" initialData={{
+        <MangaForm mode="edit" authorOptions={authorOpts} artistOptions={artistOpts} publisherOptions={publisherOpts} initialData={{
           id: manga.id, title: manga.title, author: manga.author,
           artist: manga.artist ?? "", publisher: manga.publisher ?? "",
           format: manga.format,

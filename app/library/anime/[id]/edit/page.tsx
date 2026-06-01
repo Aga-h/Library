@@ -10,7 +10,13 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditAnimePage({ params }: PageProps) {
   const { id } = await params;
-  const anime = await db.anime.findUnique({ where: { id } });
+  const [anime, studioOpts, yearOpts] = await Promise.all([
+    db.anime.findUnique({ where: { id } }),
+    db.anime.findMany({ where: { studio: { not: null } }, select: { studio: true }, distinct: ["studio"], orderBy: { studio: "asc" } })
+      .then(r => r.map(x => x.studio).filter((v): v is string => v !== null && v !== "")),
+    db.anime.findMany({ where: { year: { not: null } }, select: { year: true }, distinct: ["year"], orderBy: { year: "desc" } })
+      .then(r => r.map(x => x.year!.toString())),
+  ]);
   if (!anime) notFound();
 
   return (
@@ -21,7 +27,7 @@ export default async function EditAnimePage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Anime</h1>
         <p className="text-sm text-gray-500 mb-6">{anime.title}</p>
-        <AnimeForm mode="edit" initialData={{
+        <AnimeForm mode="edit" studioOptions={studioOpts} yearOptions={yearOpts} initialData={{
           id: anime.id, title: anime.title, studio: anime.studio ?? "",
           status: anime.status, episodes: anime.episodes?.toString() ?? "",
           episodesWatched: anime.episodesWatched.toString(),

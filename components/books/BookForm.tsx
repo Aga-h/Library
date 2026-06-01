@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateReadingTime } from "@/lib/reading-time";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface BookFormData {
   title: string;
@@ -22,6 +23,8 @@ interface BookFormData {
 interface BookFormProps {
   initialData?: Partial<BookFormData & { id: string }>;
   mode: "create" | "edit";
+  authorOptions?: string[];
+  publisherOptions?: string[];
 }
 
 const DEFAULT_DATA: BookFormData = {
@@ -38,7 +41,7 @@ const DEFAULT_DATA: BookFormData = {
   timesReread: "0",
 };
 
-export default function BookForm({ initialData, mode }: BookFormProps) {
+export default function BookForm({ initialData, mode, authorOptions, publisherOptions }: BookFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<BookFormData>({
     ...DEFAULT_DATA,
@@ -100,7 +103,7 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
 
     const book = await res.json();
     router.push(`/library/books/${book.id}`);
-    
+
   }
 
   return (
@@ -123,16 +126,14 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
             className={inputCls}
           />
         </Field>
-        <Field label="Author *">
-          <input
-            type="text"
-            required
-            value={form.author}
-            onChange={(e) => update("author", e.target.value)}
-            placeholder="Author name"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Author *"
+          value={form.author}
+          onChange={v => update("author", v)}
+          options={authorOptions ?? []}
+          placeholder="Author name"
+          required
+        />
       </div>
 
       {/* Status & Language */}
@@ -182,15 +183,13 @@ export default function BookForm({ initialData, mode }: BookFormProps) {
             </p>
           )}
         </Field>
-        <Field label="Publisher">
-          <input
-            type="text"
-            value={form.publisher}
-            onChange={(e) => update("publisher", e.target.value)}
-            placeholder="e.g. Penguin Books"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Publisher"
+          value={form.publisher}
+          onChange={v => update("publisher", v)}
+          options={publisherOptions ?? []}
+          placeholder="e.g. Penguin Books"
+        />
       </div>
 
       {/* Cover Image & Rating */}

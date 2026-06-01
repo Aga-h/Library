@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface TvFormData {
   title: string;
@@ -24,6 +25,9 @@ interface TvFormData {
 interface TvFormProps {
   initialData?: Partial<TvFormData & { id: string }>;
   mode: "create" | "edit";
+  creatorOptions?: string[];
+  networkOptions?: string[];
+  yearOptions?: string[];
 }
 
 const DEFAULT_DATA: TvFormData = {
@@ -45,7 +49,7 @@ const DEFAULT_DATA: TvFormData = {
 const inputCls =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function TvForm({ initialData, mode }: TvFormProps) {
+export default function TvForm({ initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<TvFormData>({
     ...DEFAULT_DATA,
@@ -115,7 +119,7 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
 
     const show = await res.json();
     router.push(`/library/tv/${show.id}`);
-    
+
   }
 
   return (
@@ -138,28 +142,24 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
             className={inputCls}
           />
         </Field>
-        <Field label="Creator">
-          <input
-            type="text"
-            value={form.creator}
-            onChange={(e) => update("creator", e.target.value)}
-            placeholder="Creator name"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Creator"
+          value={form.creator}
+          onChange={v => update("creator", v)}
+          options={creatorOptions ?? []}
+          placeholder="Creator name"
+        />
       </div>
 
       {/* Network & Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Network">
-          <input
-            type="text"
-            value={form.network}
-            onChange={(e) => update("network", e.target.value)}
-            placeholder="e.g. HBO, Netflix"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Network"
+          value={form.network}
+          onChange={v => update("network", v)}
+          options={networkOptions ?? []}
+          placeholder="e.g. HBO, Netflix"
+        />
         <Field label="Watch Status">
           <select
             value={form.status}
@@ -216,17 +216,13 @@ export default function TvForm({ initialData, mode }: TvFormProps) {
             </p>
           )}
         </Field>
-        <Field label="Year">
-          <input
-            type="number"
-            min={1900}
-            max={2100}
-            value={form.year}
-            onChange={(e) => update("year", e.target.value)}
-            placeholder="e.g. 2024"
-            className={inputCls}
-          />
-        </Field>
+        <ComboboxField
+          label="Year"
+          value={form.year}
+          onChange={v => update("year", v)}
+          options={yearOptions ?? []}
+          placeholder="e.g. 2024"
+        />
       </div>
 
       {/* Language & Cover Image */}

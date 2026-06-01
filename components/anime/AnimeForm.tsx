@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface AnimeFormData {
   title: string; studio: string; status: string;
@@ -24,11 +25,13 @@ const DEFAULT: AnimeFormData = {
 interface Props {
   initialData?: Partial<AnimeFormData & { id: string }>;
   mode: "create" | "edit";
+  studioOptions?: string[];
+  yearOptions?: string[];
 }
 
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function AnimeForm({ initialData, mode }: Props) {
+export default function AnimeForm({ initialData, mode, studioOptions, yearOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
@@ -56,7 +59,7 @@ export default function AnimeForm({ initialData, mode }: Props) {
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
-    router.push(`/library/anime/${item.id}`); 
+    router.push(`/library/anime/${item.id}`);
   }
 
   return (
@@ -65,7 +68,7 @@ export default function AnimeForm({ initialData, mode }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Anime title" className={inputCls} /></Field>
-        <Field label="Studio"><input type="text" value={form.studio} onChange={(e) => update("studio", e.target.value)} placeholder="e.g. MAPPA" className={inputCls} /></Field>
+        <ComboboxField label="Studio" value={form.studio} onChange={v => update("studio", v)} options={studioOptions ?? []} placeholder="e.g. MAPPA" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -104,7 +107,7 @@ export default function AnimeForm({ initialData, mode }: Props) {
             <option value="FALL">Fall</option>
           </select>
         </Field>
-        <Field label="Year"><input type="number" min={1960} max={2030} value={form.year} onChange={(e) => update("year", e.target.value)} placeholder="e.g. 2023" className={inputCls} /></Field>
+        <ComboboxField label="Year" value={form.year} onChange={v => update("year", v)} options={yearOptions ?? []} placeholder="e.g. 2023" />
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 8.5" className={inputCls} /></Field>
       </div>
 

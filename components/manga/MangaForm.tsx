@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateMangaTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface MangaFormData {
   title: string; author: string; artist: string; publisher: string; status: string;
@@ -18,10 +19,17 @@ const DEFAULT: MangaFormData = {
   language: "JAPANESE", coverImage: "", rating: "", notes: "", timesReread: "0",
 };
 
-interface Props { initialData?: Partial<MangaFormData & { id: string }>; mode: "create" | "edit"; }
+interface Props {
+  initialData?: Partial<MangaFormData & { id: string }>;
+  mode: "create" | "edit";
+  authorOptions?: string[];
+  artistOptions?: string[];
+  publisherOptions?: string[];
+}
+
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function MangaForm({ initialData, mode }: Props) {
+export default function MangaForm({ initialData, mode, authorOptions, artistOptions, publisherOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<MangaFormData>({ ...DEFAULT, ...initialData, timesReread: initialData?.timesReread?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
@@ -49,7 +57,7 @@ export default function MangaForm({ initialData, mode }: Props) {
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
-    router.push(`/library/manga/${item.id}`); 
+    router.push(`/library/manga/${item.id}`);
   }
 
   return (
@@ -58,7 +66,7 @@ export default function MangaForm({ initialData, mode }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Manga title" className={inputCls} /></Field>
-        <Field label="Author *"><input type="text" required value={form.author} onChange={(e) => update("author", e.target.value)} placeholder="Author name" className={inputCls} /></Field>
+        <ComboboxField label="Author *" value={form.author} onChange={v => update("author", v)} options={authorOptions ?? []} placeholder="Author name" required />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -96,8 +104,8 @@ export default function MangaForm({ initialData, mode }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Artist"><input type="text" value={form.artist} onChange={(e) => update("artist", e.target.value)} placeholder="Artist name (if different)" className={inputCls} /></Field>
-        <Field label="Publisher"><input type="text" value={form.publisher} onChange={(e) => update("publisher", e.target.value)} placeholder="e.g. Shueisha" className={inputCls} /></Field>
+        <ComboboxField label="Artist" value={form.artist} onChange={v => update("artist", v)} options={artistOptions ?? []} placeholder="Artist name (if different)" />
+        <ComboboxField label="Publisher" value={form.publisher} onChange={v => update("publisher", v)} options={publisherOptions ?? []} placeholder="e.g. Shueisha" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

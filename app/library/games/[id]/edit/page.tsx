@@ -10,7 +10,13 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditGamePage({ params }: PageProps) {
   const { id } = await params;
-  const game = await db.game.findUnique({ where: { id } });
+  const [game, developerOpts, publisherOpts] = await Promise.all([
+    db.game.findUnique({ where: { id } }),
+    db.game.findMany({ where: { developer: { not: null } }, select: { developer: true }, distinct: ["developer"], orderBy: { developer: "asc" } })
+      .then(r => r.map(x => x.developer).filter((v): v is string => v !== null && v !== "")),
+    db.game.findMany({ where: { publisher: { not: null } }, select: { publisher: true }, distinct: ["publisher"], orderBy: { publisher: "asc" } })
+      .then(r => r.map(x => x.publisher).filter((v): v is string => v !== null && v !== "")),
+  ]);
   if (!game) notFound();
 
   return (
@@ -21,7 +27,7 @@ export default async function EditGamePage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Game</h1>
         <p className="text-sm text-gray-500 mb-6">{game.title}</p>
-        <GameForm mode="edit" initialData={{
+        <GameForm mode="edit" developerOptions={developerOpts} publisherOptions={publisherOpts} initialData={{
           id: game.id, title: game.title, developer: game.developer ?? "",
           publisher: game.publisher ?? "", status: game.status, platform: game.platform,
           emulated: game.emulated, hoursPlayed: game.hoursPlayed.toString(),
