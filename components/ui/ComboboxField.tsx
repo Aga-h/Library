@@ -17,7 +17,6 @@ export default function ComboboxField({ label, value, onChange, options, placeho
   const [open, setOpen] = useState(false);
   const q = value.toLowerCase();
   const filtered = options.filter(o => o.toLowerCase().includes(q));
-  const showAdd = value.trim() !== "" && !options.some(o => o.toLowerCase() === q);
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -34,7 +33,7 @@ export default function ComboboxField({ label, value, onChange, options, placeho
           autoComplete="off"
           className={inputCls}
         />
-        {open && (filtered.length > 0 || showAdd) && (
+        {open && filtered.length > 0 && (
           <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
             {filtered.map(opt => (
               <li key={opt}>
@@ -47,17 +46,6 @@ export default function ComboboxField({ label, value, onChange, options, placeho
                 </button>
               </li>
             ))}
-            {showAdd && (
-              <li className="border-t border-gray-100">
-                <button
-                  type="button"
-                  onMouseDown={e => { e.preventDefault(); onChange(value.trim()); setOpen(false); }}
-                  className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors font-medium"
-                >
-                  Add &ldquo;{value.trim()}&rdquo;
-                </button>
-              </li>
-            )}
           </ul>
         )}
       </div>
