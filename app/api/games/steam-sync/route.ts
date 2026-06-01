@@ -80,14 +80,16 @@ async function fetchCoverUrls(appids: number[]): Promise<Map<number, string>> {
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) continue;
       const data = await res.json();
-      const items: { appid: number; assets?: { asset_url_format?: string; library_capsule_2x?: string; library_capsule?: string } }[] =
+      const items: { id?: number; appid?: number; assets?: { asset_url_format?: string; library_capsule_2x?: string; library_capsule?: string } }[] =
         data.response?.store_items ?? [];
       for (const item of items) {
+        const id = item.appid ?? item.id;
+        if (!id) continue;
         const fmt: string = item.assets?.asset_url_format ?? "";
         const filename: string | null =
           item.assets?.library_capsule_2x ?? item.assets?.library_capsule ?? null;
         if (fmt && filename) {
-          map.set(item.appid, fmt.replace("${FILENAME}", filename));
+          map.set(id, fmt.replace("${FILENAME}", filename));
         }
       }
     } catch {
@@ -120,7 +122,7 @@ async function resolveCover(appid: number, coverMap: Map<number, string>, sgdbKe
     if (fromSgdb) return fromSgdb;
   }
 
-  return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
+  return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/library_600x900.jpg`;
 }
 
 async function processInBatches<T, R>(
@@ -193,7 +195,7 @@ export async function POST() {
 
     const hoursPlayed = Math.round((game.playtime_forever / 60) * 10) / 10;
     const allAchieved = ach !== null && ach.total > 0 && ach.unlocked === ach.total;
-    const coverImage = await resolveCover(game.appid, coverMap, sgdbKey);
+    const newCoverUrl = coverMap.get(game.appid);
 
     const existing = await db.game.findUnique({ where: { steamAppId: game.appid } });
 
@@ -202,7 +204,7 @@ export async function POST() {
         where: { id: existing.id },
         data: {
           hoursPlayed,
-          coverImage,
+          ...(newCoverUrl ? { coverImage: newCoverUrl } : {}),
           achievementsUnlocked: ach?.unlocked ?? existing.achievementsUnlocked,
           achievementsTotal: ach?.total ?? existing.achievementsTotal,
           ...(allAchieved && existing.status === "PLAYING" ? { status: "PLATINUM" } : {}),
@@ -216,6 +218,7 @@ export async function POST() {
         : game.playtime_forever > 0 ? "PLAYING"
         : "PLAN_TO_PLAY";
 
+      const coverImage = await resolveCover(game.appid, coverMap, sgdbKey);
       await db.game.create({
         data: {
           title: game.name,
