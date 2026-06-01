@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import GameStats from "@/components/games/GameStats";
 import GameCard from "@/components/games/GameCard";
 import GameFilters from "@/components/games/GameFilters";
+import SteamSyncButton from "@/components/games/SteamSyncButton";
 
 type Game = Awaited<ReturnType<typeof db.game.findMany>>[number];
 
@@ -24,9 +25,12 @@ export default async function GamesPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Games</h1>
           <p className="text-sm text-gray-500 mt-1">{all.length} games in your library</p>
         </div>
-        <Link href="/library/games/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-          <Plus className="w-4 h-4" /> Add Game
-        </Link>
+        <div className="flex items-center gap-2">
+          <SteamSyncButton />
+          <Link href="/library/games/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Game
+          </Link>
+        </div>
       </div>
       <GameStats games={all} />
       <Suspense><GameFilters /></Suspense>

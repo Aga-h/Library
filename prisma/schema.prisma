@@ -140,6 +140,7 @@ model Game {
   coverImage           String?
   rating               Float?
   notes                String?
+  steamAppId           Int?         @unique
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 }
