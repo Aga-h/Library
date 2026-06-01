@@ -22,6 +22,7 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
 
   const watchedMinutes = [...watching, ...completed].reduce((sum, s) => sum + toMinutes(s), 0);
   const remainingMinutes = planTo.reduce((sum, s) => sum + toMinutes(s), 0);
+  const seasonsWatched = watching.length + completed.length;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
@@ -37,7 +38,8 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
         <StatPill label="Dropped"       value={dropped.length}   color="red"    />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+        <TimeStat icon={<CheckCircle2 className="w-4 h-4" />} label="Seasons Watched" value={seasonsWatched > 0 ? `${seasonsWatched}` : "—"} />
         <TimeStat
           icon={<Clock className="w-4 h-4" />}
           label="Time Watched"
@@ -45,7 +47,7 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
           sub={watchedMinutes > 0 ? `${Math.round((watchedMinutes / 60) * 10) / 10}h` : undefined}
         />
         <TimeStat
-          icon={<CheckCircle2 className="w-4 h-4" />}
+          icon={<Clock className="w-4 h-4" />}
           label="Time Remaining"
           value={remainingMinutes > 0 ? formatReadingTime(remainingMinutes) : "—"}
           sub={remainingMinutes > 0 ? `${Math.round((remainingMinutes / 60) * 10) / 10}h` : undefined}
