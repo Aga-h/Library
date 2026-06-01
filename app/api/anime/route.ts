@@ -24,6 +24,7 @@ const createAnimeSchema = z.object({
   rating: z.number().min(1).max(10).optional(),
   notes: z.string().optional(),
   timesRewatched: z.number().int().min(0).default(0),
+  seriesName: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
       rating: data.rating ?? null,
       notes: data.notes ?? null,
       timesRewatched: data.timesRewatched,
+      seriesName: data.seriesName || null,
     },
   });
 

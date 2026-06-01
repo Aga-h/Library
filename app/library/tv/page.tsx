@@ -5,10 +5,8 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import TvStats from "@/components/tv/TvStats";
-import TvCard from "@/components/tv/TvCard";
+import TvGroupedView from "@/components/tv/TvGroupedView";
 import TvFilters from "@/components/tv/TvFilters";
-
-type TvShow = Awaited<ReturnType<typeof db.tvShow.findMany>>[number];
 
 interface PageProps { searchParams: Promise<{ status?: string }> }
 
@@ -30,15 +28,14 @@ export default async function TvPage({ searchParams }: PageProps) {
       </div>
       <TvStats shows={all} />
       <Suspense><TvFilters /></Suspense>
+
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No shows found</p>
           <p className="text-gray-400 text-sm mt-1">{status ? "Try adjusting your filters." : "Add your first show to get started."}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((show: TvShow) => <TvCard key={show.id} show={show} />)}
-        </div>
+        <TvGroupedView items={filtered} />
       )}
     </div>
   );
