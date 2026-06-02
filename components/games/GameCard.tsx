@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Gamepad2, Clock, Trophy } from "lucide-react";
 import { PLATFORM_LABELS } from "@/lib/constants/platforms";
@@ -20,15 +21,16 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 };
 
 export default function GameCard({ game }: { game: Game }) {
+  const [imgError, setImgError] = useState(false);
   const status = STATUS_STYLES[game.status] ?? STATUS_STYLES.PLAN_TO_PLAY;
   const platformLabel = PLATFORM_LABELS[game.platform] ?? game.platform;
 
   return (
     <Link href={`/library/games/${game.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
       <div className="relative bg-gray-100 h-44 flex items-center justify-center overflow-hidden">
-        {game.coverImage ? (
+        {game.coverImage && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={() => setImgError(true)} />
         ) : (
           <Gamepad2 className="w-12 h-12 text-gray-300" />
         )}
