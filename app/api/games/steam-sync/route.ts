@@ -68,7 +68,7 @@ async function fetchStoreDetails(appid: number): Promise<StoreDetails> {
 async function fetchSteamGridDbCover(appid: number, apiKey: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `https://www.steamgriddb.com/api/v2/grids/steam/${appid}?dimensions=600x900`,
+      `https://www.steamgriddb.com/api/v2/grids/steam/${appid}?dimensions=600x900&types=static`,
       { headers: { Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
     );
     if (!res.ok) return null;
