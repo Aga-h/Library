@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 const BATCH_SIZE = 5;
-const COVER_BATCH_SIZE = 100;
 
 interface SteamGame {
   appid: number;
@@ -66,39 +65,6 @@ async function fetchStoreDetails(appid: number): Promise<StoreDetails> {
   }
 }
 
-async function fetchCoverUrls(appids: number[]): Promise<Map<number, string>> {
-  const map = new Map<number, string>();
-  for (let i = 0; i < appids.length; i += COVER_BATCH_SIZE) {
-    const batch = appids.slice(i, i + COVER_BATCH_SIZE);
-    try {
-      const input = JSON.stringify({
-        ids: batch.map(appid => ({ appid })),
-        context: { country_code: "US", language: "english" },
-        data_request: { include_assets: true },
-      });
-      const url = `https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=${encodeURIComponent(input)}`;
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const items: { id?: number; appid?: number; assets?: { asset_url_format?: string; library_capsule_2x?: string; library_capsule?: string } }[] =
-        data.response?.store_items ?? [];
-      for (const item of items) {
-        const id = item.appid ?? item.id;
-        if (!id) continue;
-        const fmt: string = item.assets?.asset_url_format ?? "";
-        const filename: string | null =
-          item.assets?.library_capsule_2x ?? item.assets?.library_capsule ?? null;
-        if (fmt && filename) {
-          map.set(id, fmt.replace("${FILENAME}", filename));
-        }
-      }
-    } catch {
-      // continue with next batch
-    }
-  }
-  return map;
-}
-
 async function fetchSteamGridDbCover(appid: number, apiKey: string): Promise<string | null> {
   try {
     const res = await fetch(
@@ -113,15 +79,11 @@ async function fetchSteamGridDbCover(appid: number, apiKey: string): Promise<str
   }
 }
 
-async function resolveCover(appid: number, coverMap: Map<number, string>, sgdbKey?: string): Promise<string> {
-  const fromGetItems = coverMap.get(appid);
-  if (fromGetItems) return fromGetItems;
-
+async function resolveCover(appid: number, sgdbKey?: string): Promise<string> {
   if (sgdbKey) {
     const fromSgdb = await fetchSteamGridDbCover(appid, sgdbKey);
     if (fromSgdb) return fromSgdb;
   }
-
   return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/library_600x900.jpg`;
 }
 
@@ -167,12 +129,6 @@ export async function POST() {
     return NextResponse.json({ created: 0, updated: 0 });
   }
 
-  const appids = ownedGames.map(g => g.appid);
-
-  // Fetch cover URLs in large batches (100 per call) — runs before the upsert loop
-  const coverMap = await fetchCoverUrls(appids);
-
-  // Fetch achievements and store details in parallel batches
   const achievements = await processInBatches(
     ownedGames,
     BATCH_SIZE,
@@ -195,16 +151,19 @@ export async function POST() {
 
     const hoursPlayed = Math.round((game.playtime_forever / 60) * 10) / 10;
     const allAchieved = ach !== null && ach.total > 0 && ach.unlocked === ach.total;
-    const newCoverUrl = coverMap.get(game.appid);
 
     const existing = await db.game.findUnique({ where: { steamAppId: game.appid } });
 
     if (existing) {
+      // Only update coverImage if it's missing or was set to a landscape header (from a bad sync)
+      const needsCoverFix = !existing.coverImage || existing.coverImage.endsWith("header.jpg");
+      const coverImage = needsCoverFix ? await resolveCover(game.appid, sgdbKey) : undefined;
+
       await db.game.update({
         where: { id: existing.id },
         data: {
           hoursPlayed,
-          ...(newCoverUrl ? { coverImage: newCoverUrl } : {}),
+          ...(coverImage !== undefined ? { coverImage } : {}),
           achievementsUnlocked: ach?.unlocked ?? existing.achievementsUnlocked,
           achievementsTotal: ach?.total ?? existing.achievementsTotal,
           ...(allAchieved && existing.status === "PLAYING" ? { status: "PLATINUM" } : {}),
@@ -218,7 +177,6 @@ export async function POST() {
         : game.playtime_forever > 0 ? "PLAYING"
         : "PLAN_TO_PLAY";
 
-      const coverImage = await resolveCover(game.appid, coverMap, sgdbKey);
       await db.game.create({
         data: {
           title: game.name,
@@ -229,7 +187,7 @@ export async function POST() {
           hoursPlayed,
           achievementsUnlocked: ach?.unlocked ?? 0,
           achievementsTotal: ach?.total ?? undefined,
-          coverImage,
+          coverImage: await resolveCover(game.appid, sgdbKey),
           status,
           steamAppId: game.appid,
         },
