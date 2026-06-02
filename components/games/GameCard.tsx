@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Gamepad2, Clock, Trophy } from "lucide-react";
 import { PLATFORM_LABELS } from "@/lib/constants/platforms";
@@ -22,6 +22,14 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 
 export default function GameCard({ game }: { game: Game }) {
   const [imgError, setImgError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // onError won't fire for images that failed before React hydrated; check manually
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth === 0) setImgError(true);
+  }, []);
+
   const status = STATUS_STYLES[game.status] ?? STATUS_STYLES.PLAN_TO_PLAY;
   const platformLabel = PLATFORM_LABELS[game.platform] ?? game.platform;
 
@@ -30,7 +38,7 @@ export default function GameCard({ game }: { game: Game }) {
       <div className="relative bg-gray-100 h-44 flex items-center justify-center overflow-hidden">
         {game.coverImage && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={() => setImgError(true)} />
+          <img ref={imgRef} src={game.coverImage} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={() => setImgError(true)} />
         ) : (
           <Gamepad2 className="w-12 h-12 text-gray-300" />
         )}
