@@ -79,14 +79,6 @@ async function fetchSteamGridDbCover(appid: number, apiKey: string): Promise<str
   }
 }
 
-async function resolveCover(appid: number, sgdbKey?: string): Promise<string> {
-  if (sgdbKey) {
-    const fromSgdb = await fetchSteamGridDbCover(appid, sgdbKey);
-    if (fromSgdb) return fromSgdb;
-  }
-  return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/library_600x900.jpg`;
-}
-
 async function processInBatches<T, R>(
   items: T[],
   batchSize: number,
@@ -126,44 +118,53 @@ export async function POST() {
   }
 
   if (ownedGames.length === 0) {
-    return NextResponse.json({ created: 0, updated: 0 });
+    return NextResponse.json({ created: 0, updated: 0, sgdbEnabled: !!sgdbKey });
   }
 
-  const achievements = await processInBatches(
-    ownedGames,
-    BATCH_SIZE,
-    (g) => fetchAchievements(apiKey, steamId, g.appid)
-  );
-
-  const storeDetails = await processInBatches(
-    ownedGames,
-    BATCH_SIZE,
-    (g) => fetchStoreDetails(g.appid)
-  );
+  // All three data fetches run in parallel batches before the upsert loop.
+  // SteamGridDB is pre-fetched here so we don't make serial API calls per-game inside the loop.
+  const [achievements, storeDetails, sgdbCovers] = await Promise.all([
+    processInBatches(ownedGames, BATCH_SIZE, (g) => fetchAchievements(apiKey, steamId, g.appid)),
+    processInBatches(ownedGames, BATCH_SIZE, (g) => fetchStoreDetails(g.appid)),
+    sgdbKey
+      ? processInBatches(ownedGames, BATCH_SIZE, (g) => fetchSteamGridDbCover(g.appid, sgdbKey))
+      : Promise.resolve(ownedGames.map(() => null)),
+  ]);
 
   let created = 0;
   let updated = 0;
+  let coversFromSgdb = 0;
+  let coversFallback = 0;
 
   for (let i = 0; i < ownedGames.length; i++) {
     const game = ownedGames[i];
     const ach = achievements[i];
     const store = storeDetails[i] ?? { developer: null, publisher: null };
+    const sgdbUrl = sgdbCovers[i];
 
     const hoursPlayed = Math.round((game.playtime_forever / 60) * 10) / 10;
     const allAchieved = ach !== null && ach.total > 0 && ach.unlocked === ach.total;
 
+    function pickCover(existing: string | null): string {
+      // Always try to upgrade null, header.jpg, or bare library_600x900 fallbacks
+      const needsUpgrade = !existing
+        || existing.endsWith("header.jpg")
+        || existing.includes("library_600x900.jpg");
+      if (!needsUpgrade) return existing!;
+      if (sgdbUrl) { coversFromSgdb++; return sgdbUrl; }
+      coversFallback++;
+      return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/library_600x900.jpg`;
+    }
+
     const existing = await db.game.findUnique({ where: { steamAppId: game.appid } });
 
     if (existing) {
-      // Only update coverImage if it's missing or was set to a landscape header (from a bad sync)
-      const needsCoverFix = !existing.coverImage || existing.coverImage.endsWith("header.jpg");
-      const coverImage = needsCoverFix ? await resolveCover(game.appid, sgdbKey) : undefined;
-
+      const newCover = pickCover(existing.coverImage);
       await db.game.update({
         where: { id: existing.id },
         data: {
           hoursPlayed,
-          ...(coverImage !== undefined ? { coverImage } : {}),
+          coverImage: newCover,
           achievementsUnlocked: ach?.unlocked ?? existing.achievementsUnlocked,
           achievementsTotal: ach?.total ?? existing.achievementsTotal,
           ...(allAchieved && existing.status === "PLAYING" ? { status: "PLATINUM" } : {}),
@@ -187,7 +188,7 @@ export async function POST() {
           hoursPlayed,
           achievementsUnlocked: ach?.unlocked ?? 0,
           achievementsTotal: ach?.total ?? undefined,
-          coverImage: await resolveCover(game.appid, sgdbKey),
+          coverImage: pickCover(null),
           status,
           steamAppId: game.appid,
         },
@@ -196,5 +197,10 @@ export async function POST() {
     }
   }
 
-  return NextResponse.json({ created, updated });
+  return NextResponse.json({
+    created,
+    updated,
+    sgdbEnabled: !!sgdbKey,
+    covers: { sgdb: coversFromSgdb, fallback: coversFallback },
+  });
 }

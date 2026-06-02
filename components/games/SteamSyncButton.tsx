@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 type State =
   | { kind: "idle" }
   | { kind: "loading" }
-  | { kind: "success"; created: number; updated: number }
+  | { kind: "success"; created: number; updated: number; sgdbEnabled: boolean; covers: { sgdb: number; fallback: number } }
   | { kind: "error"; message: string };
 
 export default function SteamSyncButton() {
@@ -22,9 +22,15 @@ export default function SteamSyncButton() {
         setState({ kind: "error", message: data.error ?? "Sync failed" });
         return;
       }
-      setState({ kind: "success", created: data.created, updated: data.updated });
+      setState({
+        kind: "success",
+        created: data.created,
+        updated: data.updated,
+        sgdbEnabled: data.sgdbEnabled ?? false,
+        covers: data.covers ?? { sgdb: 0, fallback: 0 },
+      });
       router.refresh();
-      setTimeout(() => setState({ kind: "idle" }), 4000);
+      setTimeout(() => setState({ kind: "idle" }), 6000);
     } catch {
       setState({ kind: "error", message: "Network error — try again" });
     }
@@ -33,7 +39,8 @@ export default function SteamSyncButton() {
   if (state.kind === "success") {
     return (
       <span className="text-sm text-green-700 font-medium px-3 py-2">
-        Added {state.created} · Updated {state.updated}
+        +{state.created} / ~{state.updated} · {state.covers.sgdb} SGDB, {state.covers.fallback} CDN
+        {!state.sgdbEnabled && " · (no SGDB key)"}
       </span>
     );
   }
