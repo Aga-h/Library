@@ -3,6 +3,14 @@ import { db } from "@/lib/db";
 
 const BATCH_SIZE = 5;
 
+// Games to permanently exclude from the library. Matched against Steam's
+// game name (exact, case-sensitive) so the entry is deleted from the DB and
+// never re-created on future syncs.
+const BLOCKED_STEAM_GAME_NAMES = new Set([
+  "Dungeon Baller Playtest",
+  "FINAL FANTASY VII", // plain re-release, not the 2013 version
+]);
+
 interface SteamGame {
   appid: number;
   name: string;
@@ -116,6 +124,11 @@ export async function POST() {
       { status: 502 }
     );
   }
+
+  // Remove any blocked games already in the DB, then exclude from this sync run.
+  const blockedTitles = [...BLOCKED_STEAM_GAME_NAMES];
+  await db.game.deleteMany({ where: { title: { in: blockedTitles } } });
+  ownedGames = ownedGames.filter(g => !BLOCKED_STEAM_GAME_NAMES.has(g.name));
 
   if (ownedGames.length === 0) {
     return NextResponse.json({ created: 0, updated: 0, sgdbEnabled: !!sgdbKey });
