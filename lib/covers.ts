@@ -25,6 +25,7 @@ export async function uploadCover(buffer: ArrayBuffer, path: string, contentType
     method: "POST",
     headers: {
       Authorization: `Bearer ${SERVICE_KEY}`,
+      apikey: SERVICE_KEY,
       "Content-Type": contentType,
       "x-upsert": "true",
     },
@@ -41,6 +42,6 @@ export async function deleteCover(path: string): Promise<void> {
   const url = `${SUPABASE_URL}/storage/v1/object/covers/${path}`;
   await fetch(url, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${SERVICE_KEY}` },
+    headers: { Authorization: `Bearer ${SERVICE_KEY}`, apikey: SERVICE_KEY },
   });
 }
