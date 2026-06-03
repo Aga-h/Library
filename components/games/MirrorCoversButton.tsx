@@ -27,6 +27,10 @@ export default function MirrorCoversButton() {
         }
         totalMirrored += data.mirrored as number;
         if (data.remaining === 0) break;
+        if ((data.mirrored as number) === 0) {
+          setState({ kind: "error", message: "No covers uploaded — check Supabase bucket and keys" });
+          return;
+        }
         setState({ kind: "running", done: totalMirrored, remaining: data.remaining as number });
       } catch {
         setState({ kind: "error", message: "Network error — try again" });

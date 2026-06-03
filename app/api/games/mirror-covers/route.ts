@@ -21,6 +21,7 @@ export async function POST() {
   const batch = pending.slice(0, MIRROR_BATCH);
 
   let mirrored = 0;
+  let lastError: string | null = null;
   await Promise.allSettled(
     batch.map(async (game) => {
       try {
@@ -28,11 +29,15 @@ export async function POST() {
         const newUrl = await mirrorCover(game.coverImage!, path);
         await db.game.update({ where: { id: game.id }, data: { coverImage: newUrl } });
         mirrored++;
-      } catch {
-        // leave original URL in place
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : String(e);
       }
     })
   );
+
+  if (mirrored === 0 && batch.length > 0 && lastError) {
+    return NextResponse.json({ error: lastError }, { status: 502 });
+  }
 
   return NextResponse.json({ mirrored, remaining: pending.length - mirrored });
 }
