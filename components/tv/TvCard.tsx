@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
+import { thumbUrl } from "@/lib/covers";
 
 interface TvShow {
   id: string;
@@ -44,8 +45,9 @@ export default function TvCard({ show }: { show: TvShow }) {
         {show.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={show.coverImage}
+            src={thumbUrl(show.coverImage, 300) ?? ""}
             alt={show.title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

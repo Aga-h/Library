@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Gamepad2, Clock, Trophy } from "lucide-react";
 import { PLATFORM_LABELS } from "@/lib/constants/platforms";
+import { thumbUrl } from "@/lib/covers";
 
 interface Game {
   id: string; title: string; developer: string | null; status: string;
@@ -34,7 +35,7 @@ export default function GameCard({ game }: { game: Game }) {
         {game.coverImage && (
           <div
             className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
-            style={{ backgroundImage: `url("${game.coverImage}")` }}
+            style={{ backgroundImage: `url("${thumbUrl(game.coverImage, 300) ?? game.coverImage}")` }}
           />
         )}
         <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>

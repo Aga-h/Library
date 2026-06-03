@@ -155,7 +155,7 @@ export default function GarmentForm({ initialData, mode }: Props) {
       {/* Optional */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Photo URL (optional)">
-          <input type="url" value={form.image} onChange={(e) => update("image", e.target.value)} placeholder="https://..." className={inputCls} />
+          <ImageUpload value={form.image} onChange={(url) => update("image", url)} fieldName="wardrobe" />
         </Field>
         <Field label="Notes (optional)">
           <input type="text" value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Any extra care notes" className={inputCls} />

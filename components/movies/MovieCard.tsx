@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Film, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
+import { thumbUrl } from "@/lib/covers";
 
 interface Movie {
   id: string;
@@ -42,8 +43,9 @@ export default function MovieCard({ movie }: { movie: Movie }) {
         {movie.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={movie.coverImage}
+            src={thumbUrl(movie.coverImage, 300) ?? ""}
             alt={movie.title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
