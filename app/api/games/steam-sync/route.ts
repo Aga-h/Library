@@ -146,10 +146,9 @@ export async function POST() {
     const allAchieved = ach !== null && ach.total > 0 && ach.unlocked === ach.total;
 
     function pickCover(existing: string | null): string {
-      // Always try to upgrade null, header.jpg, or bare library_600x900 fallbacks
       const needsUpgrade = !existing
-        || existing.endsWith("header.jpg")
-        || existing.includes("library_600x900.jpg");
+        || !existing.startsWith("https://")
+        || existing.includes("library_600x900");
       if (!needsUpgrade) return existing!;
       if (sgdbUrl) { coversFromSgdb++; return sgdbUrl; }
       coversFallback++;
