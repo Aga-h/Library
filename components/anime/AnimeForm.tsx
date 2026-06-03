@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface AnimeFormData {
   title: string; studio: string; status: string;
@@ -111,7 +112,7 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 8.5" className={inputCls} /></Field>
       </div>
 
-      <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
+      <Field label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="anime" /></Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Times rewatched">

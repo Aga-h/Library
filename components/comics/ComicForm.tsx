@@ -6,6 +6,7 @@ import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateComicTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface ComicFormData {
   title: string; author: string; artist: string; publisher: string; universe: string;
@@ -110,7 +111,7 @@ export default function ComicForm({ initialData, mode, authorOptions, artistOpti
         </Field>
       </div>
 
-      <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
+      <Field label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="comics" /></Field>
 
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, reviews..." className={inputCls} /></Field>
 

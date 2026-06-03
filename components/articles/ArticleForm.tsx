@@ -6,6 +6,7 @@ import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateArticleTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface ArticleFormData {
   title: string; author: string; publication: string; url: string;
@@ -90,7 +91,7 @@ export default function ArticleForm({ initialData, mode, authorOptions, publicat
       <Field label="Article URL"><input type="url" value={form.url} onChange={(e) => update("url", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
+        <Field label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="articles" /></Field>
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 8" className={inputCls} /></Field>
         <Field label="Times reread">
           <select value={form.timesReread} onChange={(e) => update("timesReread", e.target.value)} className={inputCls}>

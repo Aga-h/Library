@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_GROUPS, PLATFORM_LABELS } from "@/lib/constants/platforms";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface GameFormData {
   title: string; developer: string; publisher: string; status: string;
@@ -102,7 +103,7 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
         <span className="text-sm text-gray-700">This is an emulated version</span>
       </label>
 
-      <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
+      <Field label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="games" /></Field>
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, playthroughs..." className={inputCls} /></Field>
 
       <div className="flex gap-3 pt-2">

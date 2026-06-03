@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface BookFormData {
   title: string;
@@ -195,13 +196,7 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
       {/* Cover Image & Rating */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Cover Image URL">
-          <input
-            type="url"
-            value={form.coverImage}
-            onChange={(e) => update("coverImage", e.target.value)}
-            placeholder="https://..."
-            className={inputCls}
-          />
+          <ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="books" />
         </Field>
         <Field label="Rating (1–10)">
           <input

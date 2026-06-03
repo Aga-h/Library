@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface TvFormData {
   title: string;
@@ -241,13 +242,7 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
           </select>
         </Field>
         <Field label="Cover Image URL">
-          <input
-            type="url"
-            value={form.coverImage}
-            onChange={(e) => update("coverImage", e.target.value)}
-            placeholder="https://..."
-            className={inputCls}
-          />
+          <ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="tv" />
         </Field>
       </div>
 

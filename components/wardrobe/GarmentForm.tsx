@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface FormData {
   name: string; type: string; brand: string; color: string; colorGroup: string;

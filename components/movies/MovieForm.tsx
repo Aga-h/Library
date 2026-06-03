@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 interface MovieFormData {
   title: string;
@@ -211,13 +212,7 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
           </select>
         </Field>
         <Field label="Cover Image URL">
-          <input
-            type="url"
-            value={form.coverImage}
-            onChange={(e) => update("coverImage", e.target.value)}
-            placeholder="https://..."
-            className={inputCls}
-          />
+          <ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="movies" />
         </Field>
       </div>
 
