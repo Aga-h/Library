@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { isSupabaseCover, mirrorCover } from "@/lib/covers";
 
 const BATCH_SIZE = 5;
 
@@ -169,19 +168,10 @@ export async function POST() {
       return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/library_600x900.jpg`;
     }
 
-    async function mirrorIfNeeded(url: string): Promise<string> {
-      if (isSupabaseCover(url)) return url;
-      try {
-        return await mirrorCover(url, `games/${game.appid}.jpg`);
-      } catch {
-        return url;
-      }
-    }
-
     const existing = await db.game.findUnique({ where: { steamAppId: game.appid } });
 
     if (existing) {
-      const newCover = await mirrorIfNeeded(pickCover(existing.coverImage));
+      const newCover = pickCover(existing.coverImage);
       await db.game.update({
         where: { id: existing.id },
         data: {
@@ -210,7 +200,7 @@ export async function POST() {
           hoursPlayed,
           achievementsUnlocked: ach?.unlocked ?? 0,
           achievementsTotal: ach?.total ?? undefined,
-          coverImage: await mirrorIfNeeded(pickCover(null)),
+          coverImage: pickCover(null),
           status,
           steamAppId: game.appid,
         },
