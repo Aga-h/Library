@@ -11,14 +11,19 @@ import BookCard from "@/components/books/BookCard";
 import BookFilters from "@/components/books/BookFilters";
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; language?: string }>;
+  searchParams: Promise<{ status?: string; language?: string; q?: string }>;
 }
 
 export default async function BooksPage({ searchParams }: PageProps) {
-  const { status, language } = await searchParams;
+  const { status, language, q } = await searchParams;
 
   const allBooks = await db.book.findMany({ orderBy: { createdAt: "desc" } });
-  const filteredBooks = allBooks.filter(b => (!status || b.status === status) && (!language || b.language === language));
+  const ql = q?.toLowerCase();
+  const filteredBooks = allBooks.filter(b =>
+    (!status || b.status === status) &&
+    (!language || b.language === language) &&
+    (!ql || b.title.toLowerCase().includes(ql) || b.author.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -46,11 +51,11 @@ export default async function BooksPage({ searchParams }: PageProps) {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No books found</p>
           <p className="text-gray-400 text-sm mt-1">
-            {status || language
+            {status || language || q
               ? "Try adjusting your filters."
               : "Add your first book to get started."}
           </p>
-          {!status && !language && (
+          {!status && !language && !q && (
             <Link
               href="/library/books/new"
               className="mt-4 flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"

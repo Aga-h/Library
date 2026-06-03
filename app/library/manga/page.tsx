@@ -10,12 +10,17 @@ import MangaFilters from "@/components/manga/MangaFilters";
 
 type Manga = Awaited<ReturnType<typeof db.manga.findMany>>[number];
 
-interface PageProps { searchParams: Promise<{ status?: string; language?: string }> }
+interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function MangaPage({ searchParams }: PageProps) {
-  const { status, language } = await searchParams;
+  const { status, language, q } = await searchParams;
   const all = await db.manga.findMany({ orderBy: { createdAt: "desc" } });
-  const filtered = all.filter(m => (!status || m.status === status) && (!language || m.language === language));
+  const ql = q?.toLowerCase();
+  const filtered = all.filter(m =>
+    (!status || m.status === status) &&
+    (!language || m.language === language) &&
+    (!ql || m.title.toLowerCase().includes(ql) || m.author.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -33,7 +38,7 @@ export default async function MangaPage({ searchParams }: PageProps) {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No manga found</p>
-          <p className="text-gray-400 text-sm mt-1">{status || language ? "Try adjusting your filters." : "Add your first manga to get started."}</p>
+          <p className="text-gray-400 text-sm mt-1">{status || language || q ? "Try adjusting your filters." : "Add your first manga to get started."}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

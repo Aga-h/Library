@@ -11,14 +11,18 @@ import MovieFilters from "@/components/movies/MovieFilters";
 type Movie = Awaited<ReturnType<typeof db.movie.findMany>>[number];
 
 interface PageProps {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string }>;
 }
 
 export default async function MoviesPage({ searchParams }: PageProps) {
-  const { status } = await searchParams;
+  const { status, q } = await searchParams;
 
   const allMovies = await db.movie.findMany({ orderBy: { createdAt: "desc" } });
-  const filteredMovies = allMovies.filter(m => !status || m.status === status);
+  const ql = q?.toLowerCase();
+  const filteredMovies = allMovies.filter(m =>
+    (!status || m.status === status) &&
+    (!ql || m.title.toLowerCase().includes(ql) || m.director?.toLowerCase().includes(ql) || m.studio?.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -46,9 +50,9 @@ export default async function MoviesPage({ searchParams }: PageProps) {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No movies found</p>
           <p className="text-gray-400 text-sm mt-1">
-            {status ? "Try adjusting your filters." : "Add your first movie to get started."}
+            {status || q ? "Try adjusting your filters." : "Add your first movie to get started."}
           </p>
-          {!status && (
+          {!status && !q && (
             <Link
               href="/library/movies/new"
               className="mt-4 flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"

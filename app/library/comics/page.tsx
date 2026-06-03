@@ -10,12 +10,17 @@ import ComicFilters from "@/components/comics/ComicFilters";
 
 type Comic = Awaited<ReturnType<typeof db.comic.findMany>>[number];
 
-interface PageProps { searchParams: Promise<{ status?: string; language?: string }> }
+interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function ComicsPage({ searchParams }: PageProps) {
-  const { status, language } = await searchParams;
+  const { status, language, q } = await searchParams;
   const all = await db.comic.findMany({ orderBy: { createdAt: "desc" } });
-  const filtered = all.filter(c => (!status || c.status === status) && (!language || c.language === language));
+  const ql = q?.toLowerCase();
+  const filtered = all.filter(c =>
+    (!status || c.status === status) &&
+    (!language || c.language === language) &&
+    (!ql || c.title.toLowerCase().includes(ql) || c.author?.toLowerCase().includes(ql) || c.universe?.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -33,7 +38,7 @@ export default async function ComicsPage({ searchParams }: PageProps) {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No comics found</p>
-          <p className="text-gray-400 text-sm mt-1">{status || language ? "Try adjusting your filters." : "Add your first comic to get started."}</p>
+          <p className="text-gray-400 text-sm mt-1">{status || language || q ? "Try adjusting your filters." : "Add your first comic to get started."}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

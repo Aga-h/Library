@@ -11,12 +11,17 @@ import SteamSyncButton from "@/components/games/SteamSyncButton";
 
 type Game = Awaited<ReturnType<typeof db.game.findMany>>[number];
 
-interface PageProps { searchParams: Promise<{ status?: string; platform?: string }> }
+interface PageProps { searchParams: Promise<{ status?: string; platform?: string; q?: string }> }
 
 export default async function GamesPage({ searchParams }: PageProps) {
-  const { status, platform } = await searchParams;
+  const { status, platform, q } = await searchParams;
   const all = await db.game.findMany({ orderBy: { createdAt: "desc" } });
-  const filtered = all.filter(g => (!status || g.status === status) && (!platform || g.platform === platform));
+  const ql = q?.toLowerCase();
+  const filtered = all.filter(g =>
+    (!status || g.status === status) &&
+    (!platform || g.platform === platform) &&
+    (!ql || g.title.toLowerCase().includes(ql) || g.developer?.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -37,7 +42,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No games found</p>
-          <p className="text-gray-400 text-sm mt-1">{status || platform ? "Try adjusting your filters." : "Add your first game to get started."}</p>
+          <p className="text-gray-400 text-sm mt-1">{status || platform || q ? "Try adjusting your filters." : "Add your first game to get started."}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

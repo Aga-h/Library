@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
+import SearchInput from "@/components/ui/SearchInput";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -16,6 +17,7 @@ export default function BookFilters() {
   const searchParams = useSearchParams();
   const currentStatus = searchParams.get("status") ?? "";
   const currentLang = searchParams.get("language") ?? "";
+  const currentQ = searchParams.get("q") ?? "";
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -25,6 +27,12 @@ export default function BookFilters() {
       params.delete(key);
     }
     router.push(`/library/books?${params.toString()}`);
+  }
+
+  function setSearch(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("q", value); else params.delete("q");
+    router.replace(`/library/books?${params.toString()}`);
   }
 
   return (
@@ -59,6 +67,8 @@ export default function BookFilters() {
           </option>
         ))}
       </select>
+
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title or author…" />
     </div>
   );
 }

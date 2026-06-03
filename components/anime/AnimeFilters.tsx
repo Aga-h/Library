@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import SearchInput from "@/components/ui/SearchInput";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -15,11 +16,18 @@ export default function AnimeFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentStatus = searchParams.get("status") ?? "";
+  const currentQ = searchParams.get("q") ?? "";
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
     router.push(`/library/anime?${params.toString()}`);
+  }
+
+  function setSearch(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("q", value); else params.delete("q");
+    router.replace(`/library/anime?${params.toString()}`);
   }
 
   return (
@@ -32,6 +40,7 @@ export default function AnimeFilters() {
           </button>
         ))}
       </div>
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title or studio…" />
     </div>
   );
 }

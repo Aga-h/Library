@@ -9,12 +9,16 @@ import TvGroupedView from "@/components/tv/TvGroupedView";
 import TvSeriesManager from "@/components/tv/TvSeriesManager";
 import TvFilters from "@/components/tv/TvFilters";
 
-interface PageProps { searchParams: Promise<{ status?: string }> }
+interface PageProps { searchParams: Promise<{ status?: string; q?: string }> }
 
 export default async function TvPage({ searchParams }: PageProps) {
-  const { status } = await searchParams;
+  const { status, q } = await searchParams;
   const all = await db.tvShow.findMany({ orderBy: { createdAt: "desc" } });
-  const filtered = all.filter(s => !status || s.status === status);
+  const ql = q?.toLowerCase();
+  const filtered = all.filter(s =>
+    (!status || s.status === status) &&
+    (!ql || s.title.toLowerCase().includes(ql) || s.creator?.toLowerCase().includes(ql) || s.network?.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -36,7 +40,7 @@ export default async function TvPage({ searchParams }: PageProps) {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No shows found</p>
-          <p className="text-gray-400 text-sm mt-1">{status ? "Try adjusting your filters." : "Add your first show to get started."}</p>
+          <p className="text-gray-400 text-sm mt-1">{status || q ? "Try adjusting your filters." : "Add your first show to get started."}</p>
         </div>
       ) : (
         <TvGroupedView items={filtered} />

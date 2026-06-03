@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
+import SearchInput from "@/components/ui/SearchInput";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -16,11 +17,18 @@ export default function ComicFilters() {
   const searchParams = useSearchParams();
   const currentStatus = searchParams.get("status") ?? "";
   const currentLang = searchParams.get("language") ?? "";
+  const currentQ = searchParams.get("q") ?? "";
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
     router.push(`/library/comics?${params.toString()}`);
+  }
+
+  function setSearch(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("q", value); else params.delete("q");
+    router.replace(`/library/comics?${params.toString()}`);
   }
 
   return (
@@ -38,6 +46,7 @@ export default function ComicFilters() {
         <option value="">All Languages</option>
         {LANGUAGE_OPTIONS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
       </select>
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title, author, or universe…" />
     </div>
   );
 }

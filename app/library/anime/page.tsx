@@ -11,14 +11,18 @@ import AnimeFilters from "@/components/anime/AnimeFilters";
 
 
 interface PageProps {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string }>;
 }
 
 export default async function AnimePage({ searchParams }: PageProps) {
-  const { status } = await searchParams;
+  const { status, q } = await searchParams;
 
   const allAnime = await db.anime.findMany({ orderBy: { createdAt: "desc" } });
-  const filteredAnime = allAnime.filter(a => !status || a.status === status);
+  const ql = q?.toLowerCase();
+  const filteredAnime = allAnime.filter(a =>
+    (!status || a.status === status) &&
+    (!ql || a.title.toLowerCase().includes(ql) || a.studio?.toLowerCase().includes(ql))
+  );
 
   return (
     <div>
@@ -39,7 +43,7 @@ export default async function AnimePage({ searchParams }: PageProps) {
 
       <Suspense><AnimeFilters /></Suspense>
 
-      <AnimeGroupedView items={filteredAnime} hasFilter={!!status} />
+      <AnimeGroupedView items={filteredAnime} hasFilter={!!(status || q)} />
     </div>
   );
 }
