@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Gamepad2, Clock, Trophy } from "lucide-react";
 import { PLATFORM_LABELS } from "@/lib/constants/platforms";
-import { thumbUrl } from "@/lib/covers";
 
 interface Game {
   id: string; title: string; developer: string | null; status: string;
@@ -31,11 +30,13 @@ export default function GameCard({ game }: { game: Game }) {
         <div className="absolute inset-0 flex items-center justify-center">
           <Gamepad2 className="w-12 h-12 text-gray-300" />
         </div>
-        {/* CSS background-image: if URL 404s it simply doesn't paint — no broken icon possible */}
         {game.coverImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
-            style={{ backgroundImage: `url("${thumbUrl(game.coverImage, 300) ?? game.coverImage}")` }}
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={game.coverImage}
+            alt={game.title}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         )}
         <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
