@@ -8,19 +8,34 @@ import MangaStats from "@/components/manga/MangaStats";
 import MangaCard from "@/components/manga/MangaCard";
 import MangaFilters from "@/components/manga/MangaFilters";
 
-type Manga = Awaited<ReturnType<typeof db.manga.findMany>>[number];
-
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function MangaPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
-  const all = await db.manga.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filtered = all.filter(m =>
-    (!status || m.status === status) &&
-    (!language || m.language === language) &&
-    (!ql || m.title.toLowerCase().includes(ql) || m.author.toLowerCase().includes(ql))
-  );
+
+  const [all, filteredMaybe] = await Promise.all([
+    db.manga.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || language || q)
+      ? db.manga.findMany({
+          where: {
+            ...(status   ? { status }   : {}),
+            ...(language ? { language } : {}),
+            ...(q ? { OR: [
+              { title:  { contains: q, mode: "insensitive" } },
+              { author: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, author: true, status: true, format: true,
+            totalVolumes: true, volumesRead: true, totalChapters: true,
+            chaptersRead: true, language: true, coverImage: true, rating: true,
+            timesReread: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filtered = filteredMaybe ?? all;
 
   return (
     <div>
@@ -42,7 +57,7 @@ export default async function MangaPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((manga: Manga) => <MangaCard key={manga.id} manga={manga} />)}
+          {filtered.map((manga) => <MangaCard key={manga.id} manga={manga} />)}
         </div>
       )}
     </div>

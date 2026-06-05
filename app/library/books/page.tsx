@@ -4,8 +4,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
-
-type Book = Awaited<ReturnType<typeof db.book.findMany>>[number];
 import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
 import BookFilters from "@/components/books/BookFilters";
@@ -17,20 +15,35 @@ interface PageProps {
 export default async function BooksPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
 
-  const allBooks = await db.book.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filteredBooks = allBooks.filter(b =>
-    (!status || b.status === status) &&
-    (!language || b.language === language) &&
-    (!ql || b.title.toLowerCase().includes(ql) || b.author.toLowerCase().includes(ql))
-  );
+  const [all, filteredMaybe] = await Promise.all([
+    db.book.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || language || q)
+      ? db.book.findMany({
+          where: {
+            ...(status   ? { status }   : {}),
+            ...(language ? { language } : {}),
+            ...(q ? { OR: [
+              { title:  { contains: q, mode: "insensitive" } },
+              { author: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, author: true, status: true, owned: true,
+            language: true, pages: true, coverImage: true, rating: true,
+            timesReread: true, publisher: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filtered = filteredMaybe ?? all;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Books</h1>
-          <p className="text-sm text-gray-500 mt-1">{allBooks.length} books in your library</p>
+          <p className="text-sm text-gray-500 mt-1">{all.length} books in your library</p>
         </div>
         <Link
           href="/library/books/new"
@@ -41,13 +54,13 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <BooksStats books={allBooks} />
+      <BooksStats books={all} />
 
       <Suspense>
         <BookFilters />
       </Suspense>
 
-      {filteredBooks.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No books found</p>
           <p className="text-gray-400 text-sm mt-1">
@@ -67,7 +80,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredBooks.map((book: Book) => (
+          {filtered.map((book) => (
             <BookCard key={book.id} book={book} />
           ))}
         </div>

@@ -8,19 +8,34 @@ import ComicStats from "@/components/comics/ComicStats";
 import ComicCard from "@/components/comics/ComicCard";
 import ComicFilters from "@/components/comics/ComicFilters";
 
-type Comic = Awaited<ReturnType<typeof db.comic.findMany>>[number];
-
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function ComicsPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
-  const all = await db.comic.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filtered = all.filter(c =>
-    (!status || c.status === status) &&
-    (!language || c.language === language) &&
-    (!ql || c.title.toLowerCase().includes(ql) || c.author?.toLowerCase().includes(ql) || c.universe?.toLowerCase().includes(ql))
-  );
+
+  const [all, filteredMaybe] = await Promise.all([
+    db.comic.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || language || q)
+      ? db.comic.findMany({
+          where: {
+            ...(status   ? { status }   : {}),
+            ...(language ? { language } : {}),
+            ...(q ? { OR: [
+              { title:    { contains: q, mode: "insensitive" } },
+              { author:   { contains: q, mode: "insensitive" } },
+              { universe: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, author: true, universe: true, status: true,
+            totalIssues: true, issuesRead: true, language: true,
+            coverImage: true, rating: true, timesReread: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filtered = filteredMaybe ?? all;
 
   return (
     <div>
@@ -42,7 +57,7 @@ export default async function ComicsPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((comic: Comic) => <ComicCard key={comic.id} comic={comic} />)}
+          {filtered.map((comic) => <ComicCard key={comic.id} comic={comic} />)}
         </div>
       )}
     </div>

@@ -8,19 +8,34 @@ import ArticleStats from "@/components/articles/ArticleStats";
 import ArticleCard from "@/components/articles/ArticleCard";
 import ArticleFilters from "@/components/articles/ArticleFilters";
 
-type Article = Awaited<ReturnType<typeof db.article.findMany>>[number];
-
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function ArticlesPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
-  const all = await db.article.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filtered = all.filter(a =>
-    (!status || a.status === status) &&
-    (!language || a.language === language) &&
-    (!ql || a.title.toLowerCase().includes(ql) || a.author?.toLowerCase().includes(ql) || a.publication?.toLowerCase().includes(ql))
-  );
+
+  const [all, filteredMaybe] = await Promise.all([
+    db.article.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || language || q)
+      ? db.article.findMany({
+          where: {
+            ...(status   ? { status }   : {}),
+            ...(language ? { language } : {}),
+            ...(q ? { OR: [
+              { title:       { contains: q, mode: "insensitive" } },
+              { author:      { contains: q, mode: "insensitive" } },
+              { publication: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, author: true, publication: true, url: true,
+            status: true, wordCount: true, language: true,
+            coverImage: true, rating: true, timesReread: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filtered = filteredMaybe ?? all;
 
   return (
     <div>
@@ -42,7 +57,7 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((article: Article) => <ArticleCard key={article.id} article={article} />)}
+          {filtered.map((article) => <ArticleCard key={article.id} article={article} />)}
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 
@@ -65,6 +66,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     data: result.data,
   });
 
+  revalidateTag("library-stats");
   return NextResponse.json(updated);
 }
 
@@ -77,5 +79,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   }
 
   await db.game.delete({ where: { id } });
+  revalidateTag("library-stats");
   return new NextResponse(null, { status: 204 });
 }

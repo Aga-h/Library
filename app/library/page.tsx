@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic";
-
+import { cacheTag, cacheLife } from "next/cache";
 import { db } from "@/lib/db";
 import {
   calculateReadingTime, calculateMangaTime, calculateComicTime, calculateArticleTime,
@@ -15,7 +14,11 @@ function total(groups: { status: string; _count: { _all: number } }[]) {
   return groups.reduce((s, g) => s + g._count._all, 0);
 }
 
-export default async function HomePage() {
+async function getDashboardData() {
+  "use cache";
+  cacheTag("library-stats");
+  cacheLife("hours");
+
   const [books, anime, movies, tvShows, games, manga, comics, articles] = await Promise.all([
     db.book.groupBy({ by: ["status"], _count: { _all: true } }),
     db.anime.groupBy({ by: ["status"], _count: { _all: true } }),
@@ -84,5 +87,10 @@ export default async function HomePage() {
     },
   ];
 
+  return { sections, totalMinutes };
+}
+
+export default async function HomePage() {
+  const { sections, totalMinutes } = await getDashboardData();
   return <DashboardClient sections={sections} totalMinutes={totalMinutes} />;
 }

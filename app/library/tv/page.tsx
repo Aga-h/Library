@@ -13,12 +13,30 @@ interface PageProps { searchParams: Promise<{ status?: string; q?: string }> }
 
 export default async function TvPage({ searchParams }: PageProps) {
   const { status, q } = await searchParams;
-  const all = await db.tvShow.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filtered = all.filter(s =>
-    (!status || s.status === status) &&
-    (!ql || s.title.toLowerCase().includes(ql) || s.creator?.toLowerCase().includes(ql) || s.network?.toLowerCase().includes(ql))
-  );
+
+  const [all, filteredMaybe] = await Promise.all([
+    db.tvShow.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || q)
+      ? db.tvShow.findMany({
+          where: {
+            ...(status ? { status } : {}),
+            ...(q ? { OR: [
+              { title:   { contains: q, mode: "insensitive" } },
+              { creator: { contains: q, mode: "insensitive" } },
+              { network: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, creator: true, network: true, status: true,
+            totalEpisodes: true, episodesWatched: true, episodeRuntime: true,
+            year: true, language: true, coverImage: true, rating: true,
+            timesRewatched: true, seriesName: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filtered = filteredMaybe ?? all;
 
   return (
     <div>
@@ -28,7 +46,7 @@ export default async function TvPage({ searchParams }: PageProps) {
           <p className="text-sm text-gray-500 mt-1">{all.length} shows in your library</p>
         </div>
         <div className="flex items-center gap-2">
-          <TvSeriesManager allItems={all.map(s => ({ id: s.id, title: s.title, coverImage: s.coverImage, seriesName: s.seriesName }))} />
+          <TvSeriesManager allItems={all.map((s) => ({ id: s.id, title: s.title, coverImage: s.coverImage, seriesName: s.seriesName }))} />
           <Link href="/library/tv/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Show
           </Link>

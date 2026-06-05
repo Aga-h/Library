@@ -10,19 +10,33 @@ import GameFilters from "@/components/games/GameFilters";
 import SteamSyncButton from "@/components/games/SteamSyncButton";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
-type Game = Awaited<ReturnType<typeof db.game.findMany>>[number];
-
 interface PageProps { searchParams: Promise<{ status?: string; platform?: string; q?: string }> }
 
 export default async function GamesPage({ searchParams }: PageProps) {
   const { status, platform, q } = await searchParams;
-  const all = await db.game.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filtered = all.filter(g =>
-    (!status || g.status === status) &&
-    (!platform || g.platform === platform) &&
-    (!ql || g.title.toLowerCase().includes(ql) || g.developer?.toLowerCase().includes(ql))
-  );
+
+  const [all, filteredMaybe] = await Promise.all([
+    db.game.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || platform || q)
+      ? db.game.findMany({
+          where: {
+            ...(status   ? { status }   : {}),
+            ...(platform ? { platform } : {}),
+            ...(q ? { OR: [
+              { title:     { contains: q, mode: "insensitive" } },
+              { developer: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, developer: true, status: true, platform: true,
+            emulated: true, hoursPlayed: true, achievementsUnlocked: true,
+            achievementsTotal: true, coverImage: true, rating: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filtered = filteredMaybe ?? all;
 
   return (
     <div>
@@ -48,7 +62,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((game: Game) => <GameCard key={game.id} game={game} />)}
+          {filtered.map((game) => <GameCard key={game.id} game={game} />)}
         </div>
       )}
     </div>

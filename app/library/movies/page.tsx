@@ -8,8 +8,6 @@ import MovieStats from "@/components/movies/MovieStats";
 import MovieCard from "@/components/movies/MovieCard";
 import MovieFilters from "@/components/movies/MovieFilters";
 
-type Movie = Awaited<ReturnType<typeof db.movie.findMany>>[number];
-
 interface PageProps {
   searchParams: Promise<{ status?: string; q?: string }>;
 }
@@ -17,19 +15,34 @@ interface PageProps {
 export default async function MoviesPage({ searchParams }: PageProps) {
   const { status, q } = await searchParams;
 
-  const allMovies = await db.movie.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filteredMovies = allMovies.filter(m =>
-    (!status || m.status === status) &&
-    (!ql || m.title.toLowerCase().includes(ql) || m.director?.toLowerCase().includes(ql) || m.studio?.toLowerCase().includes(ql))
-  );
+  const [all, filteredMaybe] = await Promise.all([
+    db.movie.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || q)
+      ? db.movie.findMany({
+          where: {
+            ...(status ? { status } : {}),
+            ...(q ? { OR: [
+              { title:    { contains: q, mode: "insensitive" } },
+              { director: { contains: q, mode: "insensitive" } },
+              { studio:   { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, director: true, status: true,
+            runtime: true, year: true, coverImage: true, rating: true, timesRewatched: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filteredMovies = filteredMaybe ?? all;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Movies</h1>
-          <p className="text-sm text-gray-500 mt-1">{allMovies.length} movies in your library</p>
+          <p className="text-sm text-gray-500 mt-1">{all.length} movies in your library</p>
         </div>
         <Link
           href="/library/movies/new"
@@ -40,7 +53,7 @@ export default async function MoviesPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <MovieStats movies={allMovies} />
+      <MovieStats movies={all} />
 
       <Suspense>
         <MovieFilters />
@@ -64,7 +77,7 @@ export default async function MoviesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredMovies.map((movie: Movie) => (
+          {filteredMovies.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>

@@ -17,29 +17,45 @@ interface PageProps {
 export default async function AnimePage({ searchParams }: PageProps) {
   const { status, q } = await searchParams;
 
-  const allAnime = await db.anime.findMany({ orderBy: { createdAt: "desc" } });
-  const ql = q?.toLowerCase();
-  const filteredAnime = allAnime.filter(a =>
-    (!status || a.status === status) &&
-    (!ql || a.title.toLowerCase().includes(ql) || a.studio?.toLowerCase().includes(ql))
-  );
+  const [all, filteredMaybe] = await Promise.all([
+    db.anime.findMany({ orderBy: { createdAt: "desc" } }),
+    (status || q)
+      ? db.anime.findMany({
+          where: {
+            ...(status ? { status } : {}),
+            ...(q ? { OR: [
+              { title:  { contains: q, mode: "insensitive" } },
+              { studio: { contains: q, mode: "insensitive" } },
+            ]} : {}),
+          },
+          select: {
+            id: true, title: true, studio: true, status: true, episodes: true,
+            episodesWatched: true, episodeDuration: true, season: true, year: true,
+            language: true, coverImage: true, rating: true, timesRewatched: true,
+            seriesName: true,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve(null),
+  ]);
+  const filteredAnime = filteredMaybe ?? all;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Anime</h1>
-          <p className="text-sm text-gray-500 mt-1">{allAnime.length} anime in your library</p>
+          <p className="text-sm text-gray-500 mt-1">{all.length} anime in your library</p>
         </div>
         <div className="flex items-center gap-2">
-          <AnimeSeriesManager allItems={allAnime.map(a => ({ id: a.id, title: a.title, coverImage: a.coverImage, seriesName: a.seriesName }))} />
+          <AnimeSeriesManager allItems={all.map(a => ({ id: a.id, title: a.title, coverImage: a.coverImage, seriesName: a.seriesName }))} />
           <Link href="/library/anime/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Anime
           </Link>
         </div>
       </div>
 
-      <AnimeStats anime={allAnime} />
+      <AnimeStats anime={all} />
 
       <Suspense><AnimeFilters /></Suspense>
 
