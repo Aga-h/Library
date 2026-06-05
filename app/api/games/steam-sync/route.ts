@@ -3,6 +3,24 @@ import { db } from "@/lib/db";
 
 const BATCH_SIZE = 5;
 
+async function fetchResilient(url: string, init: RequestInit = {}, retries = 3): Promise<Response> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(10_000) });
+      if (res.ok || ![408, 429, 500, 502, 503, 504].includes(res.status)) return res;
+      const retryAfter = res.headers.get("retry-after");
+      const backoff = retryAfter
+        ? Number(retryAfter) * 1_000
+        : Math.min(10_000, 500 * 2 ** (attempt - 1) + Math.random() * 500);
+      if (attempt < retries) await new Promise(r => setTimeout(r, backoff));
+    } catch (e) {
+      if (attempt >= retries) throw e;
+      await new Promise(r => setTimeout(r, Math.min(10_000, 500 * 2 ** (attempt - 1) + Math.random() * 500)));
+    }
+  }
+  throw new Error(`All ${retries} attempts failed: ${url}`);
+}
+
 // Games to permanently exclude from the library. Matched against Steam's
 // game name (exact, case-sensitive) so the entry is deleted from the DB and
 // never re-created on future syncs.
@@ -31,7 +49,7 @@ async function fetchOwnedGames(apiKey: string, steamId: string): Promise<SteamGa
   const url =
     `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/` +
     `?key=${apiKey}&steamid=${steamId}&include_appinfo=true&include_played_free_games=true&format=json`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchResilient(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Steam API error: ${res.status}`);
   const data = await res.json();
   return (data.response?.games ?? []) as SteamGame[];
@@ -42,7 +60,7 @@ async function fetchAchievements(apiKey: string, steamId: string, appid: number)
     const url =
       `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/` +
       `?key=${apiKey}&steamid=${steamId}&appid=${appid}&format=json`;
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetchResilient(url, { cache: "no-store" });
     if (!res.ok) return null;
     const data = await res.json();
     const achievements: { achieved: number }[] = data.playerstats?.achievements ?? [];
@@ -57,7 +75,7 @@ async function fetchAchievements(apiKey: string, steamId: string, appid: number)
 async function fetchStoreDetails(appid: number): Promise<StoreDetails> {
   try {
     const url = `https://store.steampowered.com/api/appdetails?appids=${appid}&filters=basic`;
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetchResilient(url, { cache: "no-store" });
     if (!res.ok) return { developer: null, publisher: null };
     const data = await res.json();
     const appData = data[String(appid)];
@@ -75,7 +93,7 @@ async function fetchStoreDetails(appid: number): Promise<StoreDetails> {
 
 async function fetchSteamGridDbCover(appid: number, apiKey: string): Promise<string | null> {
   try {
-    const res = await fetch(
+    const res = await fetchResilient(
       `https://www.steamgriddb.com/api/v2/grids/steam/${appid}?dimensions=600x900&types=static`,
       { headers: { Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
     );
