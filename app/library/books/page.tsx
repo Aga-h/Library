@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { BookStatus, Language } from "@prisma/client";
 import { db } from "@/lib/db";
 import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
@@ -20,8 +21,8 @@ export default async function BooksPage({ searchParams }: PageProps) {
     (status || language || q)
       ? db.book.findMany({
           where: {
-            ...(status   ? { status }   : {}),
-            ...(language ? { language } : {}),
+            ...(status   ? { status: status as BookStatus } : {}),
+            ...(language ? { language: language as Language } : {}),
             ...(q ? { OR: [
               { title:  { contains: q, mode: "insensitive" } },
               { author: { contains: q, mode: "insensitive" } },

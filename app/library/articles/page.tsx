@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { ArticleStatus, Language } from "@prisma/client";
 import { db } from "@/lib/db";
 import ArticleStats from "@/components/articles/ArticleStats";
 import ArticleCard from "@/components/articles/ArticleCard";
@@ -18,8 +19,8 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
     (status || language || q)
       ? db.article.findMany({
           where: {
-            ...(status   ? { status }   : {}),
-            ...(language ? { language } : {}),
+            ...(status   ? { status: status as ArticleStatus } : {}),
+            ...(language ? { language: language as Language } : {}),
             ...(q ? { OR: [
               { title:       { contains: q, mode: "insensitive" } },
               { author:      { contains: q, mode: "insensitive" } },

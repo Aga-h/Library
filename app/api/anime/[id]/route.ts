@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     data: result.data,
   });
 
-  revalidateTag("library-stats");
+  revalidateTag("library-stats", "max");
   return NextResponse.json(updated);
 }
 
@@ -76,6 +76,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   }
 
   await db.anime.delete({ where: { id } });
-  revalidateTag("library-stats");
+  revalidateTag("library-stats", "max");
   return new NextResponse(null, { status: 204 });
 }

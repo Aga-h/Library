@@ -76,6 +76,6 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  revalidateTag("library-stats");
+  revalidateTag("library-stats", "max");
   return NextResponse.json(manga, { status: 201 });
 }

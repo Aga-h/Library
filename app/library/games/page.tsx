@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { GameStatus, GamePlatform } from "@prisma/client";
 import { db } from "@/lib/db";
 import GameStats from "@/components/games/GameStats";
 import GameCard from "@/components/games/GameCard";
@@ -20,8 +21,8 @@ export default async function GamesPage({ searchParams }: PageProps) {
     (status || platform || q)
       ? db.game.findMany({
           where: {
-            ...(status   ? { status }   : {}),
-            ...(platform ? { platform } : {}),
+            ...(status   ? { status: status as GameStatus } : {}),
+            ...(platform ? { platform: platform as GamePlatform } : {}),
             ...(q ? { OR: [
               { title:     { contains: q, mode: "insensitive" } },
               { developer: { contains: q, mode: "insensitive" } },

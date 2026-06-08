@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { AnimeStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import AnimeStats from "@/components/anime/AnimeStats";
 import AnimeGroupedView from "@/components/anime/AnimeGroupedView";
@@ -22,7 +23,7 @@ export default async function AnimePage({ searchParams }: PageProps) {
     (status || q)
       ? db.anime.findMany({
           where: {
-            ...(status ? { status } : {}),
+            ...(status ? { status: status as AnimeStatus } : {}),
             ...(q ? { OR: [
               { title:  { contains: q, mode: "insensitive" } },
               { studio: { contains: q, mode: "insensitive" } },

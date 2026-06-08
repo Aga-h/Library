@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { MangaStatus, Language } from "@prisma/client";
 import { db } from "@/lib/db";
 import MangaStats from "@/components/manga/MangaStats";
 import MangaCard from "@/components/manga/MangaCard";
@@ -18,8 +19,8 @@ export default async function MangaPage({ searchParams }: PageProps) {
     (status || language || q)
       ? db.manga.findMany({
           where: {
-            ...(status   ? { status }   : {}),
-            ...(language ? { language } : {}),
+            ...(status   ? { status: status as MangaStatus } : {}),
+            ...(language ? { language: language as Language } : {}),
             ...(q ? { OR: [
               { title:  { contains: q, mode: "insensitive" } },
               { author: { contains: q, mode: "insensitive" } },

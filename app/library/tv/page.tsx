@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { TvStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import TvStats from "@/components/tv/TvStats";
 import TvGroupedView from "@/components/tv/TvGroupedView";
@@ -19,7 +20,7 @@ export default async function TvPage({ searchParams }: PageProps) {
     (status || q)
       ? db.tvShow.findMany({
           where: {
-            ...(status ? { status } : {}),
+            ...(status ? { status: status as TvStatus } : {}),
             ...(q ? { OR: [
               { title:   { contains: q, mode: "insensitive" } },
               { creator: { contains: q, mode: "insensitive" } },

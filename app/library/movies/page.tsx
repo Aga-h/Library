@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import type { MovieStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import MovieStats from "@/components/movies/MovieStats";
 import MovieCard from "@/components/movies/MovieCard";
@@ -20,7 +21,7 @@ export default async function MoviesPage({ searchParams }: PageProps) {
     (status || q)
       ? db.movie.findMany({
           where: {
-            ...(status ? { status } : {}),
+            ...(status ? { status: status as MovieStatus } : {}),
             ...(q ? { OR: [
               { title:    { contains: q, mode: "insensitive" } },
               { director: { contains: q, mode: "insensitive" } },
