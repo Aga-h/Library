@@ -393,6 +393,51 @@ enum DryMethod {
   DO_NOT_DRY
 }
 
+// ─── FINANCES ────────────────────────────────────────────────────────────────
+
+model FinanceConfig {
+  id            String   @id @default("global")
+  monthlyBudget Float    @default(0)
+  updatedAt     DateTime @updatedAt
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  year        Int
+  month       Int
+  category    ExpenseCategory
+  amount      Float
+  description String?
+  createdAt   DateTime        @default(now())
+
+  @@index([year, month])
+  @@index([createdAt(sort: Desc)])
+}
+
+model AdditionalIncome {
+  id          String   @id @default(cuid())
+  year        Int
+  month       Int
+  amount      Float
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([year, month])
+}
+
+enum ExpenseCategory {
+  FOOD
+  BOOKS
+  EDUCATION
+  ENTERTAINMENT
+  CLOTHING
+  SUBSCRIPTIONS
+  SELF_CARE
+  TRANSPORTATION
+  OTHER
+  CASH
+}
+
 // ─── SERIES ──────────────────────────────────────────────────────────────────
 
 model AnimeSeries {

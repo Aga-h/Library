@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { BookMarked, Shirt, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Wallet, ArrowRight } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -19,6 +19,15 @@ const SECTIONS = [
     description: "Smart washing & drying calculator",
     icon: Shirt,
     color: "from-emerald-50 to-teal-50 border-emerald-200",
+    iconColor: "text-emerald-600",
+    available: true,
+  },
+  {
+    href: "/finances",
+    label: "Finances",
+    description: "Track monthly budget, expenses, and carryover",
+    icon: Wallet,
+    color: "from-emerald-50 to-green-50 border-emerald-200",
     iconColor: "text-emerald-600",
     available: true,
   },
