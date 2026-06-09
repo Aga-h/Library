@@ -438,6 +438,17 @@ enum ExpenseCategory {
   CASH
 }
 
+model Subscription {
+  id             String   @id @default(cuid())
+  name           String
+  amount         Float
+  startYear      Int
+  startMonth     Int
+  cancelledYear  Int?
+  cancelledMonth Int?
+  createdAt      DateTime @default(now())
+}
+
 // ─── SERIES ──────────────────────────────────────────────────────────────────
 
 model AnimeSeries {

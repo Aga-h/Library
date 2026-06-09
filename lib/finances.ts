@@ -1,10 +1,31 @@
 import { db } from "@/lib/db";
 
+function compareMonths(y1: number, m1: number, y2: number, m2: number): number {
+  if (y1 !== y2) return y1 - y2;
+  return m1 - m2;
+}
+
+function padKey(year: number, month: number) {
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
+export function isSubscriptionActiveInMonth(
+  sub: { startYear: number; startMonth: number; cancelledYear: number | null; cancelledMonth: number | null },
+  year: number,
+  month: number
+): boolean {
+  if (compareMonths(sub.startYear, sub.startMonth, year, month) > 0) return false;
+  if (sub.cancelledYear != null && sub.cancelledMonth != null) {
+    if (compareMonths(sub.cancelledYear, sub.cancelledMonth, year, month) <= 0) return false;
+  }
+  return true;
+}
+
 export async function computeCarryover(targetYear: number, targetMonth: number): Promise<number> {
   const config = await db.financeConfig.findUnique({ where: { id: "global" } });
   const budget = config?.monthlyBudget ?? 0;
 
-  const [expenseGroups, incomeGroups] = await Promise.all([
+  const [expenseGroups, incomeGroups, subscriptions] = await Promise.all([
     db.expense.groupBy({
       by: ["year", "month"],
       _sum: { amount: true },
@@ -25,20 +46,36 @@ export async function computeCarryover(targetYear: number, targetMonth: number):
         ],
       },
     }),
+    db.subscription.findMany(),
   ]);
 
   const monthMap = new Map<string, { expenses: number; income: number }>();
+
   for (const g of expenseGroups) {
-    const key = `${g.year}-${g.month}`;
+    const key = padKey(g.year, g.month);
     const entry = monthMap.get(key) ?? { expenses: 0, income: 0 };
-    entry.expenses = g._sum.amount ?? 0;
+    entry.expenses += g._sum.amount ?? 0;
     monthMap.set(key, entry);
   }
   for (const g of incomeGroups) {
-    const key = `${g.year}-${g.month}`;
+    const key = padKey(g.year, g.month);
     const entry = monthMap.get(key) ?? { expenses: 0, income: 0 };
-    entry.income = g._sum.amount ?? 0;
+    entry.income += g._sum.amount ?? 0;
     monthMap.set(key, entry);
+  }
+
+  for (const sub of subscriptions) {
+    let y = sub.startYear;
+    let m = sub.startMonth;
+    while (compareMonths(y, m, targetYear, targetMonth) < 0) {
+      if (!isSubscriptionActiveInMonth(sub, y, m)) break;
+      const key = padKey(y, m);
+      const entry = monthMap.get(key) ?? { expenses: 0, income: 0 };
+      entry.expenses += sub.amount;
+      monthMap.set(key, entry);
+      m++;
+      if (m > 12) { m = 1; y++; }
+    }
   }
 
   const months = Array.from(monthMap.keys()).sort();
