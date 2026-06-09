@@ -4,7 +4,6 @@ import Link from "next/link";
 import { BookOpen, CheckCircle2, Clock, Package } from "lucide-react";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
-import { thumbUrl } from "@/lib/covers";
 
 interface Book {
   id: string;
@@ -42,7 +41,7 @@ export default function BookCard({ book }: { book: Book }) {
         {book.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={thumbUrl(book.coverImage, 300) ?? ""}
+            src={book.coverImage ?? ""}
             alt={book.title}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

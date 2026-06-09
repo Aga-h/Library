@@ -4,7 +4,6 @@ import Link from "next/link";
 import { BookOpen, Clock } from "lucide-react";
 import { calculateComicTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
-import { thumbUrl } from "@/lib/covers";
 
 interface Comic {
   id: string; title: string; author: string | null; status: string;
@@ -29,7 +28,7 @@ export default function ComicCard({ comic }: { comic: Comic }) {
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {comic.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbUrl(comic.coverImage, 300) ?? ""} alt={comic.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={comic.coverImage ?? ""} alt={comic.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <BookOpen className="w-12 h-12 text-gray-300" />
         )}

@@ -5,12 +5,6 @@ export function isSupabaseCover(url: string | null): boolean {
   return !!url && url.includes("/storage/v1/object/public/covers/");
 }
 
-export function thumbUrl(url: string | null, width: number, quality = 75): string | null {
-  if (!url) return null;
-  if (!isSupabaseCover(url)) return url;
-  return `${url.replace("/object/", "/render/image/")}?width=${width}&quality=${quality}&format=webp`;
-}
-
 export async function mirrorCover(sourceUrl: string, path: string): Promise<string> {
   const res = await fetch(sourceUrl);
   if (!res.ok) throw new Error(`Failed to fetch cover: ${res.status}`);

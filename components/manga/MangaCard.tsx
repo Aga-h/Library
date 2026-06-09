@@ -4,7 +4,6 @@ import Link from "next/link";
 import { BookMarked, Clock } from "lucide-react";
 import { calculateMangaTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
-import { thumbUrl } from "@/lib/covers";
 
 interface Manga {
   id: string; title: string; author: string; status: string;
@@ -32,7 +31,7 @@ export default function MangaCard({ manga }: { manga: Manga }) {
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {manga.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbUrl(manga.coverImage, 300) ?? ""} alt={manga.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={manga.coverImage ?? ""} alt={manga.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <BookMarked className="w-12 h-12 text-gray-300" />
         )}

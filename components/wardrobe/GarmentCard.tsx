@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Shirt, AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { thumbUrl } from "@/lib/covers";
 
 interface Garment {
   id: string; name: string; type: string; brand: string | null;
@@ -33,7 +32,7 @@ export default function GarmentCard({ garment }: { garment: Garment }) {
       <div className="bg-gray-100 h-40 flex items-center justify-center overflow-hidden">
         {garment.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbUrl(garment.image, 300) ?? ""} alt={garment.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={garment.image ?? ""} alt={garment.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <Shirt className="w-12 h-12 text-gray-300" />
         )}

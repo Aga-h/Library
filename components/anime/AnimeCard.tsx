@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
-import { thumbUrl } from "@/lib/covers";
 
 interface Anime {
   id: string; title: string; studio: string | null; status: string;
@@ -31,7 +30,7 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {anime.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbUrl(anime.coverImage, 300) ?? ""} alt={anime.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={anime.coverImage ?? ""} alt={anime.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <Tv2 className="w-12 h-12 text-gray-300" />
         )}
