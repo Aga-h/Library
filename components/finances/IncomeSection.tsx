@@ -6,7 +6,7 @@ import { Trash2, Plus } from "lucide-react";
 import type { AdditionalIncome } from "@prisma/client";
 
 function fmt(n: number) {
-  return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(n);
+  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(n);
 }
 
 interface Props {

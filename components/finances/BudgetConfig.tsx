@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 function fmt(n: number) {
-  return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(n);
+  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(n);
 }
 
 export default function BudgetConfig({ currentBudget }: { currentBudget: number }) {
