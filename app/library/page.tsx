@@ -84,7 +84,23 @@ const getDashboardData = unstable_cache(
       },
     ];
 
-    return { sections, totalMinutes };
+    const [bookCovers, animeCovers, movieCovers, tvCovers, gameCovers, mangaCovers, comicCovers, articleCovers] = await Promise.all([
+      db.book.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.anime.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.movie.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.tvShow.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.game.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.manga.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.comic.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      db.article.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+    ]);
+
+    const coverImages = [
+      ...bookCovers, ...animeCovers, ...movieCovers, ...tvCovers,
+      ...gameCovers, ...mangaCovers, ...comicCovers, ...articleCovers,
+    ].map(r => r.coverImage as string);
+
+    return { sections, totalMinutes, coverImages };
   },
   ["library-dashboard-stats"],
   { tags: ["library-stats"], revalidate: 3600 }
@@ -93,6 +109,6 @@ const getDashboardData = unstable_cache(
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { sections, totalMinutes } = await getDashboardData();
-  return <DashboardClient sections={sections} totalMinutes={totalMinutes} />;
+  const { sections, totalMinutes, coverImages } = await getDashboardData();
+  return <DashboardClient sections={sections} totalMinutes={totalMinutes} coverImages={coverImages} />;
 }
