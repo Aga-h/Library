@@ -5,8 +5,26 @@ export function isSupabaseCover(url: string | null): boolean {
   return !!url && url.includes("/storage/v1/object/public/covers/");
 }
 
+async function fetchResilient(url: string, retries = 3): Promise<Response> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+      if (res.ok || ![408, 429, 500, 502, 503, 504].includes(res.status)) return res;
+      const retryAfter = res.headers.get("retry-after");
+      const backoff = retryAfter
+        ? Number(retryAfter) * 1_000
+        : Math.min(10_000, 500 * 2 ** (attempt - 1) + Math.random() * 500);
+      if (attempt < retries) await new Promise(r => setTimeout(r, backoff));
+    } catch (e) {
+      if (attempt >= retries) throw e;
+      await new Promise(r => setTimeout(r, Math.min(10_000, 500 * 2 ** (attempt - 1) + Math.random() * 500)));
+    }
+  }
+  throw new Error(`All ${retries} attempts failed: ${url}`);
+}
+
 export async function mirrorCover(sourceUrl: string, path: string): Promise<string> {
-  const res = await fetch(sourceUrl);
+  const res = await fetchResilient(sourceUrl);
   if (!res.ok) throw new Error(`Failed to fetch cover: ${res.status}`);
   const buffer = await res.arrayBuffer();
   const contentType = res.headers.get("content-type") ?? "image/jpeg";
