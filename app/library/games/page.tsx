@@ -47,7 +47,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
           <p className="text-sm text-gray-500 mt-1">{all.length} games in your library</p>
         </div>
         <div className="flex items-center gap-2">
-          <MirrorCoversButton />
+          <MirrorCoversButton apiPath="/api/games/mirror-covers" />
           <SteamSyncButton />
           <Link href="/library/games/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Game

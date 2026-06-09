@@ -9,6 +9,7 @@ import TvStats from "@/components/tv/TvStats";
 import TvGroupedView from "@/components/tv/TvGroupedView";
 import TvSeriesManager from "@/components/tv/TvSeriesManager";
 import TvFilters from "@/components/tv/TvFilters";
+import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 interface PageProps { searchParams: Promise<{ status?: string; q?: string }> }
 
@@ -48,6 +49,7 @@ export default async function TvPage({ searchParams }: PageProps) {
         </div>
         <div className="flex items-center gap-2">
           <TvSeriesManager allItems={all.map((s) => ({ id: s.id, title: s.title, coverImage: s.coverImage, seriesName: s.seriesName }))} />
+          <MirrorCoversButton apiPath="/api/tv/mirror-covers" />
           <Link href="/library/tv/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Show
           </Link>

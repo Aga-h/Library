@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
 import BookFilters from "@/components/books/BookFilters";
+import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 interface PageProps {
   searchParams: Promise<{ status?: string; language?: string; q?: string }>;
@@ -46,13 +47,16 @@ export default async function BooksPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Books</h1>
           <p className="text-sm text-gray-500 mt-1">{all.length} books in your library</p>
         </div>
-        <Link
-          href="/library/books/new"
-          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Book
-        </Link>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/books/mirror-covers" />
+          <Link
+            href="/library/books/new"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Book
+          </Link>
+        </div>
       </div>
 
       <BooksStats books={all} />

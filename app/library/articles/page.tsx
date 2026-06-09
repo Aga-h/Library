@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import ArticleStats from "@/components/articles/ArticleStats";
 import ArticleCard from "@/components/articles/ArticleCard";
 import ArticleFilters from "@/components/articles/ArticleFilters";
+import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
@@ -45,9 +46,12 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
           <p className="text-sm text-gray-500 mt-1">{all.length} articles in your library</p>
         </div>
-        <Link href="/library/articles/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-          <Plus className="w-4 h-4" /> Add Article
-        </Link>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/articles/mirror-covers" />
+          <Link href="/library/articles/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Article
+          </Link>
+        </div>
       </div>
       <ArticleStats articles={all} />
       <Suspense><ArticleFilters /></Suspense>

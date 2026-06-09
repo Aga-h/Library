@@ -9,7 +9,7 @@ type State =
   | { kind: "done"; total: number }
   | { kind: "error"; message: string };
 
-export default function MirrorCoversButton() {
+export default function MirrorCoversButton({ apiPath }: { apiPath: string }) {
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: "idle" });
 
@@ -19,7 +19,7 @@ export default function MirrorCoversButton() {
 
     while (true) {
       try {
-        const res = await fetch("/api/games/mirror-covers", { method: "POST" });
+        const res = await fetch(apiPath, { method: "POST" });
         const data = await res.json();
         if (!res.ok) {
           setState({ kind: "error", message: data.error ?? "Mirroring failed" });

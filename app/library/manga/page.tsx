@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import MangaStats from "@/components/manga/MangaStats";
 import MangaCard from "@/components/manga/MangaCard";
 import MangaFilters from "@/components/manga/MangaFilters";
+import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
@@ -45,9 +46,12 @@ export default async function MangaPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Manga</h1>
           <p className="text-sm text-gray-500 mt-1">{all.length} manga in your library</p>
         </div>
-        <Link href="/library/manga/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-          <Plus className="w-4 h-4" /> Add Manga
-        </Link>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/manga/mirror-covers" />
+          <Link href="/library/manga/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Manga
+          </Link>
+        </div>
       </div>
       <MangaStats manga={all} />
       <Suspense><MangaFilters /></Suspense>

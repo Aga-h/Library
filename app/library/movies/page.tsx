@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import MovieStats from "@/components/movies/MovieStats";
 import MovieCard from "@/components/movies/MovieCard";
 import MovieFilters from "@/components/movies/MovieFilters";
+import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 interface PageProps {
   searchParams: Promise<{ status?: string; q?: string }>;
@@ -45,13 +46,16 @@ export default async function MoviesPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Movies</h1>
           <p className="text-sm text-gray-500 mt-1">{all.length} movies in your library</p>
         </div>
-        <Link
-          href="/library/movies/new"
-          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Movie
-        </Link>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/movies/mirror-covers" />
+          <Link
+            href="/library/movies/new"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Movie
+          </Link>
+        </div>
       </div>
 
       <MovieStats movies={all} />

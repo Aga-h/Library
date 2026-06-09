@@ -9,6 +9,7 @@ import AnimeStats from "@/components/anime/AnimeStats";
 import AnimeGroupedView from "@/components/anime/AnimeGroupedView";
 import AnimeSeriesManager from "@/components/anime/AnimeSeriesManager";
 import AnimeFilters from "@/components/anime/AnimeFilters";
+import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 
 interface PageProps {
@@ -50,6 +51,7 @@ export default async function AnimePage({ searchParams }: PageProps) {
         </div>
         <div className="flex items-center gap-2">
           <AnimeSeriesManager allItems={all.map(a => ({ id: a.id, title: a.title, coverImage: a.coverImage, seriesName: a.seriesName }))} />
+          <MirrorCoversButton apiPath="/api/anime/mirror-covers" />
           <Link href="/library/anime/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Anime
           </Link>
