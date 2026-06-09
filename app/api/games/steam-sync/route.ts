@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
+
+export const maxDuration = 300;
 
 const BATCH_SIZE = 5;
 
@@ -29,6 +32,24 @@ const BLOCKED_STEAM_GAME_NAMES = new Set([
   "FINAL FANTASY VII", // plain re-release, not the 2013 version
 ]);
 
+const OwnedGamesSchema = z.object({
+  response: z.object({
+    games: z.array(z.object({
+      appid: z.number(),
+      name: z.string(),
+      playtime_forever: z.number(),
+    })).optional(),
+  }),
+});
+
+const AppDetailsSchema = z.record(z.string(), z.object({
+  success: z.boolean(),
+  data: z.object({
+    developers: z.array(z.string()).optional(),
+    publishers: z.array(z.string()).optional(),
+  }).optional(),
+}));
+
 interface SteamGame {
   appid: number;
   name: string;
@@ -51,8 +72,9 @@ async function fetchOwnedGames(apiKey: string, steamId: string): Promise<SteamGa
     `?key=${apiKey}&steamid=${steamId}&include_appinfo=true&include_played_free_games=true&format=json`;
   const res = await fetchResilient(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Steam API error: ${res.status}`);
-  const data = await res.json();
-  return (data.response?.games ?? []) as SteamGame[];
+  const parsed = OwnedGamesSchema.safeParse(await res.json());
+  if (!parsed.success) throw new Error(`Unexpected Steam API response shape: ${parsed.error.message}`);
+  return parsed.data.response.games ?? [];
 }
 
 async function fetchAchievements(apiKey: string, steamId: string, appid: number): Promise<AchievementResult | null> {
@@ -77,11 +99,12 @@ async function fetchStoreDetails(appid: number): Promise<StoreDetails> {
     const url = `https://store.steampowered.com/api/appdetails?appids=${appid}&filters=basic`;
     const res = await fetchResilient(url, { cache: "no-store" });
     if (!res.ok) return { developer: null, publisher: null };
-    const data = await res.json();
-    const appData = data[String(appid)];
-    if (!appData?.success) return { developer: null, publisher: null };
-    const developers: string[] = appData.data?.developers ?? [];
-    const publishers: string[] = appData.data?.publishers ?? [];
+    const parsed = AppDetailsSchema.safeParse(await res.json());
+    if (!parsed.success) return { developer: null, publisher: null };
+    const appData = parsed.data[String(appid)];
+    if (!appData || !appData.success) return { developer: null, publisher: null };
+    const developers = appData.data?.developers ?? [];
+    const publishers = appData.data?.publishers ?? [];
     return {
       developer: developers[0] ?? null,
       publisher: publishers[0] ?? null,
