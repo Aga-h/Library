@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { computeCarryover, isSubscriptionActiveInMonth } from "@/lib/finances";
+import { computeCarryover } from "@/lib/finances";
+import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 
 export async function GET(
   _request: Request,

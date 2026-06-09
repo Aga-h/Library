@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, X, Plus } from "lucide-react";
 import type { Subscription } from "@prisma/client";
-import { isSubscriptionActiveInMonth } from "@/lib/finances";
+import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(n);

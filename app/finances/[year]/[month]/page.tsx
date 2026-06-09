@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { computeCarryover, isSubscriptionActiveInMonth } from "@/lib/finances";
+import { computeCarryover } from "@/lib/finances";
+import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 import MonthNav from "@/components/finances/MonthNav";
 import BudgetSummary from "@/components/finances/BudgetSummary";
 import ExpenseSection from "@/components/finances/ExpenseSection";
