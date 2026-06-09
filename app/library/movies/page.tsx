@@ -9,6 +9,7 @@ import MovieStats from "@/components/movies/MovieStats";
 import MovieCard from "@/components/movies/MovieCard";
 import MovieFilters from "@/components/movies/MovieFilters";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import GridSkeleton from "@/components/ui/GridSkeleton";
 
 interface PageProps {
   searchParams: Promise<{ status?: string; q?: string }>;
@@ -16,7 +17,35 @@ interface PageProps {
 
 export default async function MoviesPage({ searchParams }: PageProps) {
   const { status, q } = await searchParams;
+  const total = await db.movie.count();
 
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Movies</h1>
+          <p className="text-sm text-gray-500 mt-1">{total} movies in your library</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/movies/mirror-covers" />
+          <Link
+            href="/library/movies/new"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Movie
+          </Link>
+        </div>
+      </div>
+      <Suspense><MovieFilters /></Suspense>
+      <Suspense fallback={<GridSkeleton />}>
+        <MovieContent status={status} q={q} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function MovieContent({ status, q }: { status?: string; q?: string }) {
   const [all, filteredMaybe] = await Promise.all([
     db.movie.findMany({ orderBy: { createdAt: "desc" } }),
     (status || q)
@@ -37,34 +66,12 @@ export default async function MoviesPage({ searchParams }: PageProps) {
         })
       : Promise.resolve(null),
   ]);
-  const filteredMovies = filteredMaybe ?? all;
+  const filtered = filteredMaybe ?? all;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Movies</h1>
-          <p className="text-sm text-gray-500 mt-1">{all.length} movies in your library</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <MirrorCoversButton apiPath="/api/movies/mirror-covers" />
-          <Link
-            href="/library/movies/new"
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Movie
-          </Link>
-        </div>
-      </div>
-
+    <>
       <MovieStats movies={all} />
-
-      <Suspense>
-        <MovieFilters />
-      </Suspense>
-
-      {filteredMovies.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No movies found</p>
           <p className="text-gray-400 text-sm mt-1">
@@ -82,11 +89,9 @@ export default async function MoviesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredMovies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
+          {filtered.map((movie) => <MovieCard key={movie.id} movie={movie} />)}
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -9,12 +9,37 @@ import ArticleStats from "@/components/articles/ArticleStats";
 import ArticleCard from "@/components/articles/ArticleCard";
 import ArticleFilters from "@/components/articles/ArticleFilters";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import GridSkeleton from "@/components/ui/GridSkeleton";
 
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function ArticlesPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
+  const total = await db.article.count();
 
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
+          <p className="text-sm text-gray-500 mt-1">{total} articles in your library</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/articles/mirror-covers" />
+          <Link href="/library/articles/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Article
+          </Link>
+        </div>
+      </div>
+      <Suspense><ArticleFilters /></Suspense>
+      <Suspense fallback={<GridSkeleton />}>
+        <ArticleContent status={status} language={language} q={q} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function ArticleContent({ status, language, q }: { status?: string; language?: string; q?: string }) {
   const [all, filteredMaybe] = await Promise.all([
     db.article.findMany({ orderBy: { createdAt: "desc" } }),
     (status || language || q)
@@ -40,21 +65,8 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
   const filtered = filteredMaybe ?? all;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
-          <p className="text-sm text-gray-500 mt-1">{all.length} articles in your library</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <MirrorCoversButton apiPath="/api/articles/mirror-covers" />
-          <Link href="/library/articles/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-            <Plus className="w-4 h-4" /> Add Article
-          </Link>
-        </div>
-      </div>
+    <>
       <ArticleStats articles={all} />
-      <Suspense><ArticleFilters /></Suspense>
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No articles found</p>
@@ -65,6 +77,6 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
           {filtered.map((article) => <ArticleCard key={article.id} article={article} />)}
         </div>
       )}
-    </div>
+    </>
   );
 }

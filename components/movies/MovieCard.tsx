@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Film, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
@@ -40,13 +41,7 @@ export default function MovieCard({ movie }: { movie: Movie }) {
       {/* Cover */}
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {movie.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={movie.coverImage ?? ""}
-            alt={movie.title}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <Image fill src={movie.coverImage} alt={movie.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
         ) : (
           <Film className="w-12 h-12 text-gray-300" />
         )}

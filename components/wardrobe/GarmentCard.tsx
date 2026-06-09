@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Shirt, AlertCircle, CheckCircle, Clock } from "lucide-react";
 
 interface Garment {
@@ -29,10 +30,9 @@ export default function GarmentCard({ garment }: { garment: Garment }) {
   return (
     <Link href={`/wardrobe/${garment.id}`}
       className={`group flex flex-col bg-white border rounded-xl overflow-hidden hover:shadow-md transition-all ${urgency.color}`}>
-      <div className="bg-gray-100 h-40 flex items-center justify-center overflow-hidden">
+      <div className="relative bg-gray-100 h-40 flex items-center justify-center overflow-hidden">
         {garment.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={garment.image ?? ""} alt={garment.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <Image fill src={garment.image} alt={garment.name} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,25vw" />
         ) : (
           <Shirt className="w-12 h-12 text-gray-300" />
         )}

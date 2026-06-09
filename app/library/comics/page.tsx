@@ -9,12 +9,37 @@ import ComicStats from "@/components/comics/ComicStats";
 import ComicCard from "@/components/comics/ComicCard";
 import ComicFilters from "@/components/comics/ComicFilters";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import GridSkeleton from "@/components/ui/GridSkeleton";
 
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
 export default async function ComicsPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
+  const total = await db.comic.count();
 
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Comics</h1>
+          <p className="text-sm text-gray-500 mt-1">{total} comics in your library</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/comics/mirror-covers" />
+          <Link href="/library/comics/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Comic
+          </Link>
+        </div>
+      </div>
+      <Suspense><ComicFilters /></Suspense>
+      <Suspense fallback={<GridSkeleton />}>
+        <ComicContent status={status} language={language} q={q} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function ComicContent({ status, language, q }: { status?: string; language?: string; q?: string }) {
   const [all, filteredMaybe] = await Promise.all([
     db.comic.findMany({ orderBy: { createdAt: "desc" } }),
     (status || language || q)
@@ -40,21 +65,8 @@ export default async function ComicsPage({ searchParams }: PageProps) {
   const filtered = filteredMaybe ?? all;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Comics</h1>
-          <p className="text-sm text-gray-500 mt-1">{all.length} comics in your library</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <MirrorCoversButton apiPath="/api/comics/mirror-covers" />
-          <Link href="/library/comics/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-            <Plus className="w-4 h-4" /> Add Comic
-          </Link>
-        </div>
-      </div>
+    <>
       <ComicStats comics={all} />
-      <Suspense><ComicFilters /></Suspense>
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No comics found</p>
@@ -65,6 +77,6 @@ export default async function ComicsPage({ searchParams }: PageProps) {
           {filtered.map((comic) => <ComicCard key={comic.id} comic={comic} />)}
         </div>
       )}
-    </div>
+    </>
   );
 }

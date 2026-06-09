@@ -9,6 +9,7 @@ import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
 import BookFilters from "@/components/books/BookFilters";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import GridSkeleton from "@/components/ui/GridSkeleton";
 
 interface PageProps {
   searchParams: Promise<{ status?: string; language?: string; q?: string }>;
@@ -16,7 +17,35 @@ interface PageProps {
 
 export default async function BooksPage({ searchParams }: PageProps) {
   const { status, language, q } = await searchParams;
+  const total = await db.book.count();
 
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Books</h1>
+          <p className="text-sm text-gray-500 mt-1">{total} books in your library</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/books/mirror-covers" />
+          <Link
+            href="/library/books/new"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Book
+          </Link>
+        </div>
+      </div>
+      <Suspense><BookFilters /></Suspense>
+      <Suspense fallback={<GridSkeleton />}>
+        <BookContent status={status} language={language} q={q} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function BookContent({ status, language, q }: { status?: string; language?: string; q?: string }) {
   const [all, filteredMaybe] = await Promise.all([
     db.book.findMany({ orderBy: { createdAt: "desc" } }),
     (status || language || q)
@@ -41,37 +70,13 @@ export default async function BooksPage({ searchParams }: PageProps) {
   const filtered = filteredMaybe ?? all;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Books</h1>
-          <p className="text-sm text-gray-500 mt-1">{all.length} books in your library</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <MirrorCoversButton apiPath="/api/books/mirror-covers" />
-          <Link
-            href="/library/books/new"
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Book
-          </Link>
-        </div>
-      </div>
-
+    <>
       <BooksStats books={all} />
-
-      <Suspense>
-        <BookFilters />
-      </Suspense>
-
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No books found</p>
           <p className="text-gray-400 text-sm mt-1">
-            {status || language || q
-              ? "Try adjusting your filters."
-              : "Add your first book to get started."}
+            {status || language || q ? "Try adjusting your filters." : "Add your first book to get started."}
           </p>
           {!status && !language && !q && (
             <Link
@@ -85,11 +90,9 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
+          {filtered.map((book) => <BookCard key={book.id} book={book} />)}
         </div>
       )}
-    </div>
+    </>
   );
 }

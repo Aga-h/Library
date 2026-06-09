@@ -10,12 +10,38 @@ import GameCard from "@/components/games/GameCard";
 import GameFilters from "@/components/games/GameFilters";
 import SteamSyncButton from "@/components/games/SteamSyncButton";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import GridSkeleton from "@/components/ui/GridSkeleton";
 
 interface PageProps { searchParams: Promise<{ status?: string; platform?: string; q?: string }> }
 
 export default async function GamesPage({ searchParams }: PageProps) {
   const { status, platform, q } = await searchParams;
+  const total = await db.game.count();
 
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Games</h1>
+          <p className="text-sm text-gray-500 mt-1">{total} games in your library</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MirrorCoversButton apiPath="/api/games/mirror-covers" />
+          <SteamSyncButton />
+          <Link href="/library/games/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Plus className="w-4 h-4" /> Add Game
+          </Link>
+        </div>
+      </div>
+      <Suspense><GameFilters /></Suspense>
+      <Suspense fallback={<GridSkeleton />}>
+        <GameContent status={status} platform={platform} q={q} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function GameContent({ status, platform, q }: { status?: string; platform?: string; q?: string }) {
   const [all, filteredMaybe] = await Promise.all([
     db.game.findMany({ orderBy: { createdAt: "desc" } }),
     (status || platform || q)
@@ -40,22 +66,8 @@ export default async function GamesPage({ searchParams }: PageProps) {
   const filtered = filteredMaybe ?? all;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Games</h1>
-          <p className="text-sm text-gray-500 mt-1">{all.length} games in your library</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <MirrorCoversButton apiPath="/api/games/mirror-covers" />
-          <SteamSyncButton />
-          <Link href="/library/games/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-            <Plus className="w-4 h-4" /> Add Game
-          </Link>
-        </div>
-      </div>
+    <>
       <GameStats games={all} />
-      <Suspense><GameFilters /></Suspense>
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No games found</p>
@@ -66,6 +78,6 @@ export default async function GamesPage({ searchParams }: PageProps) {
           {filtered.map((game) => <GameCard key={game.id} game={game} />)}
         </div>
       )}
-    </div>
+    </>
   );
 }

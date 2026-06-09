@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { BookOpen, CheckCircle2, Clock, Package } from "lucide-react";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
@@ -39,13 +40,7 @@ export default function BookCard({ book }: { book: Book }) {
       {/* Cover */}
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {book.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={book.coverImage ?? ""}
-            alt={book.title}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <Image fill src={book.coverImage} alt={book.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
         ) : (
           <BookOpen className="w-12 h-12 text-gray-300" />
         )}
