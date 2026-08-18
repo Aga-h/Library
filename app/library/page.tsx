@@ -16,25 +16,30 @@ function total(groups: { status: string; _count: { _all: number } }[]) {
 
 const getDashboardData = unstable_cache(
   async () => {
-    const [books, anime, movies, tvShows, games, manga, comics, articles] = await Promise.all([
+    const [books, anime, movies, tvShows, games, manga, articles] = await Promise.all([
       db.book.groupBy({ by: ["status"], _count: { _all: true } }),
       db.anime.groupBy({ by: ["status"], _count: { _all: true } }),
       db.movie.groupBy({ by: ["status"], _count: { _all: true } }),
       db.tvShow.groupBy({ by: ["status"], _count: { _all: true } }),
       db.game.groupBy({ by: ["status"], _count: { _all: true } }),
       db.manga.groupBy({ by: ["status"], _count: { _all: true } }),
-      db.comic.groupBy({ by: ["status"], _count: { _all: true } }),
       db.article.groupBy({ by: ["status"], _count: { _all: true } }),
     ]);
 
-    const [booksTime, animeTime, watchedMovies, tvTime, gamesAgg, mangaTime, comicsTime, articlesTime] = await Promise.all([
+    // Comics no longer have a status enum — the hierarchy reports scalar counts instead.
+    const [comicTitleCount, comicIssueCount, comicReadCount] = await Promise.all([
+      db.comicTitle.count(),
+      db.comicIssue.count(),
+      db.comicIssue.count({ where: { read: true } }),
+    ]);
+
+    const [booksTime, animeTime, watchedMovies, tvTime, gamesAgg, mangaTime, articlesTime] = await Promise.all([
       db.book.findMany({ where: { status: { in: ["READ", "READING"] } }, select: { pages: true, language: true, timesReread: true } }),
       db.anime.findMany({ select: { episodesWatched: true, episodeDuration: true, timesRewatched: true } }),
       db.movie.findMany({ where: { status: "WATCHED" }, select: { runtime: true, timesRewatched: true } }),
       db.tvShow.findMany({ select: { episodesWatched: true, episodeRuntime: true, timesRewatched: true } }),
       db.game.aggregate({ _sum: { hoursPlayed: true } }),
       db.manga.findMany({ select: { chaptersRead: true, language: true, timesReread: true } }),
-      db.comic.findMany({ select: { issuesRead: true, language: true, timesReread: true } }),
       db.article.findMany({ where: { status: "READ" }, select: { wordCount: true, language: true, timesReread: true } }),
     ]);
 
@@ -44,7 +49,7 @@ const getDashboardData = unstable_cache(
     const tvMinutes       = tvTime.reduce((s, t) => s + t.episodesWatched * t.episodeRuntime * (t.timesRewatched + 1), 0);
     const gamesMinutes    = Math.round((gamesAgg._sum.hoursPlayed ?? 0) * 60);
     const mangaMinutes    = mangaTime.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes * (m.timesReread + 1), 0);
-    const comicsMinutes   = comicsTime.reduce((s, c) => s + calculateComicTime(c.issuesRead, c.language as LanguageKey).minutes * (c.timesReread + 1), 0);
+    const comicsMinutes   = calculateComicTime(comicReadCount, "ENGLISH").minutes;
     const articlesMinutes = articlesTime.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes * (a.timesReread + 1), 0);
 
     const totalMinutes = booksMinutes + animeMinutes + moviesMinutes + tvMinutes + gamesMinutes + mangaMinutes + comicsMinutes + articlesMinutes;
@@ -76,7 +81,7 @@ const getDashboardData = unstable_cache(
       },
       {
         key: "comics", href: "/library/comics", label: "Comics", minutes: comicsMinutes,
-        stats: [{ label: "Total", value: total(comics) }, { label: "Completed", value: c(comics, "COMPLETED") }, { label: "Reading", value: c(comics, "READING") }],
+        stats: [{ label: "Titles", value: comicTitleCount }, { label: "Issues", value: comicIssueCount }, { label: "Read", value: comicReadCount }],
       },
       {
         key: "articles", href: "/library/articles", label: "Articles", minutes: articlesMinutes,
@@ -91,7 +96,9 @@ const getDashboardData = unstable_cache(
       db.tvShow.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
       db.game.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
       db.manga.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.comic.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
+      // Title covers only, never issue covers — DashboardClient preloads every URL in this list
+      // with new Image(), so a few hundred issues would fire a request storm on dashboard entry.
+      db.comicTitle.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
       db.article.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
     ]);
 

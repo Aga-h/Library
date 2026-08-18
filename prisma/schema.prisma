@@ -255,34 +255,69 @@ enum MangaStatus {
 
 // ─── COMICS ──────────────────────────────────────────────────────────────────
 
-model Comic {
-  id          String      @id @default(cuid())
-  title       String
-  author      String?
-  artist      String?
-  publisher   String?
-  universe    String?
-  status      ComicStatus @default(PLAN_TO_READ)
-  totalIssues Int?
-  issuesRead  Int         @default(0)
-  language    Language    @default(ENGLISH)
-  coverImage  String?
-  rating      Float?
-  notes       String?
-  timesReread Int         @default(0)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+// Four-level hierarchy: Publisher → Universe → Title → Issue.
+// Reading progress and ratings are derived from the issues, never stored on a parent.
 
-  @@index([status, createdAt(sort: Desc)])
-  @@index([createdAt(sort: Desc)])
-  @@index([language, createdAt(sort: Desc)])
+model ComicPublisher {
+  id         String          @id @default(cuid())
+  name       String          @unique
+  coverImage String?
+  notes      String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  universes  ComicUniverse[]
 }
 
-enum ComicStatus {
-  READING
-  COMPLETED
-  PLAN_TO_READ
-  DROPPED
+model ComicUniverse {
+  id          String         @id @default(cuid())
+  name        String
+  publisherId String
+  publisher   ComicPublisher @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+  coverImage  String?
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  titles      ComicTitle[]
+
+  // @@unique's leading column already indexes publisherId — no separate index needed.
+  @@unique([publisherId, name])
+}
+
+model ComicTitle {
+  id         String        @id @default(cuid())
+  name       String
+  universeId String
+  universe   ComicUniverse @relation(fields: [universeId], references: [id], onDelete: Cascade)
+  author     String?
+  artist     String?
+  language   Language      @default(ENGLISH)
+  coverImage String?
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  issues     ComicIssue[]
+
+  @@unique([universeId, name])
+}
+
+model ComicIssue {
+  id          String     @id @default(cuid())
+  titleId     String
+  comicTitle  ComicTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  // Float so #0 prologues and #1.5 interstitials sort correctly between whole numbers.
+  issueNumber Float
+  name        String?
+  read        Boolean    @default(false)
+  owned       Boolean    @default(false)
+  coverImage  String?
+  rating      Float?
+  releaseDate DateTime?
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // @@unique doubles as the (titleId, issueNumber) ordering index.
+  @@unique([titleId, issueNumber])
 }
 
 // ─── ARTICLES ────────────────────────────────────────────────────────────────

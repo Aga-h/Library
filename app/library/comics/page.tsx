@@ -1,82 +1,93 @@
 export const dynamic = "force-dynamic";
 
-import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import type { ComicStatus, Language } from "@prisma/client";
 import { db } from "@/lib/db";
-import ComicStats from "@/components/comics/ComicStats";
-import ComicCard from "@/components/comics/ComicCard";
-import ComicFilters from "@/components/comics/ComicFilters";
+import { rollUp, pluralize } from "@/lib/comics";
+import { calculateComicTime } from "@/lib/reading-time";
+import ComicEntityCard from "@/components/comics/ComicEntityCard";
+import ComicLevelStats from "@/components/comics/ComicLevelStats";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
-import GridSkeleton from "@/components/ui/GridSkeleton";
 
-interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
+export default async function ComicsPage() {
+  const publishers = await db.comicPublisher.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      universes: {
+        select: { id: true, titles: { select: { id: true, issues: { select: { read: true } } } } },
+      },
+    },
+  });
 
-export default async function ComicsPage({ searchParams }: PageProps) {
-  const { status, language, q } = await searchParams;
-  const total = await db.comic.count();
+  const rows = publishers.map((p) => {
+    const titles = p.universes.flatMap((u) => u.titles);
+    return {
+      id: p.id,
+      name: p.name,
+      coverImage: p.coverImage,
+      universeCount: p.universes.length,
+      titleCount: titles.length,
+      progress: rollUp(titles),
+    };
+  });
+
+  const totalIssues = rows.reduce((s, r) => s + r.progress.total, 0);
+  const readIssues = rows.reduce((s, r) => s + r.progress.read, 0);
+  const minutes = calculateComicTime(readIssues, "ENGLISH").minutes;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Comics</h1>
-          <p className="text-sm text-gray-500 mt-1">{total} comics in your library</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {pluralize(rows.length, "publisher")} in your library
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <MirrorCoversButton apiPath="/api/comics/mirror-covers" />
-          <Link href="/library/comics/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-            <Plus className="w-4 h-4" /> Add Comic
+          <Link
+            href="/library/comics/new"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Publisher
           </Link>
         </div>
       </div>
-      <Suspense><ComicFilters /></Suspense>
-      <Suspense fallback={<GridSkeleton />}>
-        <ComicContent status={status} language={language} q={q} />
-      </Suspense>
-    </div>
-  );
-}
 
-async function ComicContent({ status, language, q }: { status?: string; language?: string; q?: string }) {
-  const [all, filteredMaybe] = await Promise.all([
-    db.comic.findMany({ orderBy: { createdAt: "desc" } }),
-    (status || language || q)
-      ? db.comic.findMany({
-          where: {
-            ...(status   ? { status: status as ComicStatus } : {}),
-            ...(language ? { language: language as Language } : {}),
-            ...(q ? { OR: [
-              { title:    { contains: q, mode: "insensitive" } },
-              { author:   { contains: q, mode: "insensitive" } },
-              { universe: { contains: q, mode: "insensitive" } },
-            ]} : {}),
-          },
-          select: {
-            id: true, title: true, author: true, universe: true, status: true,
-            totalIssues: true, issuesRead: true, language: true,
-            coverImage: true, rating: true, timesReread: true,
-          },
-          orderBy: { createdAt: "desc" },
-        })
-      : Promise.resolve(null),
-  ]);
-  const filtered = filteredMaybe ?? all;
+      <ComicLevelStats
+        heading="Comics Stats"
+        stats={[
+          { label: "Publishers", value: rows.length },
+          { label: "Universes", value: rows.reduce((s, r) => s + r.universeCount, 0) },
+          { label: "Comics", value: rows.reduce((s, r) => s + r.titleCount, 0) },
+          { label: "Issues", value: totalIssues },
+        ]}
+        issuesRead={readIssues}
+        minutes={minutes}
+      />
 
-  return (
-    <>
-      <ComicStats comics={all} />
-      {filtered.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-gray-400 text-lg font-medium">No comics found</p>
-          <p className="text-gray-400 text-sm mt-1">{status || language || q ? "Try adjusting your filters." : "Add your first comic to get started."}</p>
+          <p className="text-gray-400 text-lg font-medium">No publishers yet</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Start by adding a publisher like Marvel or DC.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((comic) => <ComicCard key={comic.id} comic={comic} />)}
+          {rows.map((p) => (
+            <ComicEntityCard
+              key={p.id}
+              href={`/library/comics/${p.id}`}
+              name={p.name}
+              coverImage={p.coverImage}
+              meta={`${pluralize(p.universeCount, "universe")} · ${pluralize(p.titleCount, "comic")}`}
+              progress={p.progress}
+            />
+          ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

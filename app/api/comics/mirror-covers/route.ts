@@ -4,6 +4,17 @@ import { isSupabaseCover, mirrorCover } from "@/lib/covers";
 
 const MIRROR_BATCH = 10;
 
+type Pending = { id: string; coverImage: string; folder: string; kind: Kind };
+type Kind = "publisher" | "universe" | "title" | "issue";
+
+async function updateCover(kind: Kind, id: string, coverImage: string) {
+  const data = { coverImage };
+  if (kind === "publisher") return db.comicPublisher.update({ where: { id }, data });
+  if (kind === "universe") return db.comicUniverse.update({ where: { id }, data });
+  if (kind === "title") return db.comicTitle.update({ where: { id }, data });
+  return db.comicIssue.update({ where: { id }, data });
+}
+
 export async function POST() {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -14,8 +25,21 @@ export async function POST() {
     );
   }
 
-  const all = await db.comic.findMany({ select: { id: true, coverImage: true } });
-  const pending = all.filter(c => !!c.coverImage && !isSupabaseCover(c.coverImage));
+  const select = { id: true, coverImage: true };
+  const [publishers, universes, titles, issues] = await Promise.all([
+    db.comicPublisher.findMany({ select }),
+    db.comicUniverse.findMany({ select }),
+    db.comicTitle.findMany({ select }),
+    db.comicIssue.findMany({ select }),
+  ]);
+
+  const pending: Pending[] = [
+    ...publishers.map((r) => ({ ...r, folder: "comic-publishers", kind: "publisher" as const })),
+    ...universes.map((r) => ({ ...r, folder: "comic-universes", kind: "universe" as const })),
+    ...titles.map((r) => ({ ...r, folder: "comic-titles", kind: "title" as const })),
+    ...issues.map((r) => ({ ...r, folder: "comic-issues", kind: "issue" as const })),
+  ].filter((r): r is Pending => !!r.coverImage && !isSupabaseCover(r.coverImage));
+
   const batch = pending.slice(0, MIRROR_BATCH);
 
   let mirrored = 0;
@@ -23,9 +47,8 @@ export async function POST() {
   await Promise.allSettled(
     batch.map(async (item) => {
       try {
-        const path = `comics/${item.id}.jpg`;
-        const newUrl = await mirrorCover(item.coverImage!, path);
-        await db.comic.update({ where: { id: item.id }, data: { coverImage: newUrl } });
+        const newUrl = await mirrorCover(item.coverImage, `${item.folder}/${item.id}.jpg`);
+        await updateCover(item.kind, item.id, newUrl);
         mirrored++;
       } catch (e) {
         lastError = e instanceof Error ? e.message : String(e);

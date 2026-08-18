@@ -90,9 +90,6 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 #### `MangaFormat`
 `MANGA` | `MANHWA` | `MANHUA`
 
-#### `ComicStatus`
-`READING` | `COMPLETED` | `PLAN_TO_READ` | `DROPPED`
-
 #### `ArticleStatus`
 `READ` | `WANT_TO_READ`
 
@@ -229,23 +226,58 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 | `notes` | String? | |
 | `timesReread` | Int | Default: 0 |
 
-#### `Comic`
+#### Comics — a four-level hierarchy
+
+Comics are the only part of the library modelled as a real relational tree:
+`ComicPublisher → ComicUniverse → ComicTitle → ComicIssue`, joined by genuine foreign keys
+with `onDelete: Cascade`. These are the **only** `@relation` fields in the schema — every
+other grouping in the app (anime/TV series) is a denormalized string with no FK.
+
+Reading progress and ratings are **always derived** from the issues. No parent stores a
+status enum or a manual issue count, so the numbers cannot drift.
+
+#### `ComicPublisher`
 | Field | Type | Notes |
 |---|---|---|
 | `id` | String (cuid) | |
-| `title` | String | Required |
-| `author` | String? | |
+| `name` | String | Required, globally `@unique` |
+| `coverImage` | String? | |
+| `notes` | String? | |
+
+#### `ComicUniverse`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | |
+| `name` | String | Required, `@@unique([publisherId, name])` |
+| `publisherId` | String | FK → `ComicPublisher`, cascade delete |
+| `coverImage` | String? | |
+| `notes` | String? | |
+
+#### `ComicTitle`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | |
+| `name` | String | Required, `@@unique([universeId, name])` |
+| `universeId` | String | FK → `ComicUniverse`, cascade delete |
+| `author` | String? | Writer |
 | `artist` | String? | |
-| `publisher` | String? | |
-| `universe` | String? | e.g. "Marvel", "DC" |
-| `status` | ComicStatus | Default: `PLAN_TO_READ` |
-| `totalIssues` | Int? | |
-| `issuesRead` | Int | Default: 0 |
 | `language` | Language | Default: `ENGLISH` |
 | `coverImage` | String? | |
-| `rating` | Float? | |
 | `notes` | String? | |
-| `timesReread` | Int | Default: 0 |
+
+#### `ComicIssue`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | String (cuid) | |
+| `titleId` | String | FK → `ComicTitle`, cascade delete |
+| `issueNumber` | Float | `@@unique([titleId, issueNumber])`. Float so `#0` and `#1.5` sort correctly |
+| `name` | String? | Optional issue title |
+| `read` | Boolean | Default: false |
+| `owned` | Boolean | Default: false |
+| `coverImage` | String? | |
+| `rating` | Float? | 1–10 |
+| `releaseDate` | DateTime? | |
+| `notes` | String? | |
 
 #### `Article`
 | Field | Type | Notes |
@@ -416,13 +448,25 @@ Incremental batch operation that uploads game covers from external URLs to Supab
 
 ### Comics
 
+One route group per level. Creating a duplicate name under the same parent violates a
+`@@unique` constraint and returns **409** with a readable message. Deleting any level
+cascades to everything below it.
+
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/comics` | List all comics |
-| POST | `/api/comics` | Create. Required: `title`. Optional: `author`, `artist`, `publisher`, `universe`, `status`, `totalIssues`, `issuesRead`, `language`, `coverImage`, `rating`, `notes`, `timesReread` |
-| GET | `/api/comics/[id]` | Get single |
-| PATCH | `/api/comics/[id]` | Partial update |
-| DELETE | `/api/comics/[id]` | Delete |
+| GET | `/api/comics/publishers` | List all publishers, `name asc` |
+| POST | `/api/comics/publishers` | Create. Required: `name`. Optional: `coverImage`, `notes` |
+| GET/PATCH/DELETE | `/api/comics/publishers/[id]` | Single publisher. DELETE cascades to universes, titles and issues |
+| GET | `/api/comics/universes?publisherId=` | List universes, optionally scoped to a publisher |
+| POST | `/api/comics/universes` | Create. Required: `name`, `publisherId`. Optional: `coverImage`, `notes` |
+| GET/PATCH/DELETE | `/api/comics/universes/[id]` | Single universe. DELETE cascades to titles and issues |
+| GET | `/api/comics/titles?universeId=` | List comic titles, optionally scoped to a universe |
+| POST | `/api/comics/titles` | Create. Required: `name`, `universeId`. Optional: `author`, `artist`, `language`, `coverImage`, `notes` |
+| GET/PATCH/DELETE | `/api/comics/titles/[id]` | Single title. DELETE cascades to issues |
+| GET | `/api/comics/issues?titleId=` | List issues, optionally scoped to a title, `issueNumber asc` |
+| POST | `/api/comics/issues` | Create. Required: `titleId`, `issueNumber`. Optional: `name`, `read`, `owned`, `coverImage`, `rating`, `releaseDate`, `notes` |
+| GET/PATCH/DELETE | `/api/comics/issues/[id]` | Single issue. PATCH also serves the read/owned toggles |
+| POST | `/api/comics/mirror-covers` | Mirrors external covers across all four tables, 10 per call |
 
 ### Articles
 
@@ -479,9 +523,12 @@ Server Component. Fetches all 8 content types in parallel and computes aggregate
 
 ---
 
-### Per-Category Pages (Books, Anime, Movies, TV, Games, Manga, Comics, Articles)
+### Per-Category Pages (Books, Anime, Movies, TV, Games, Manga, Articles)
 
-Each category follows an identical structure:
+**Comics is the exception** — it is a drill-down hierarchy rather than a flat grid; see
+"Comics Pages" below.
+
+Every other category follows an identical structure:
 
 | Route | Component | Description |
 |---|---|---|
@@ -497,8 +544,36 @@ Each category follows an identical structure:
 - TV: `title`, `creator`, `network`
 - Games: `title`, `developer`
 - Manga: `title`, `author`
-- Comics: `title`, `author`, `universe`
 - Articles: `title`, `author`, `publication`
+
+(Comics has no flat search — you navigate it by drilling down.)
+
+---
+
+### Comics Pages (`app/library/comics/`)
+
+A four-level drill-down. Each level lists its children as cards, shows derived rollup stats,
+and carries a breadcrumb trail back up. Every page validates that the ids in the URL actually
+form a parent-child chain and calls `notFound()` otherwise, so a valid universe id pasted
+under the wrong publisher 404s rather than rendering.
+
+| Route | Description |
+|---|---|
+| `/library/comics` | Publisher grid + library-wide stats |
+| `/library/comics/new` | Add publisher |
+| `/library/comics/[publisherId]` | Universes in the publisher |
+| `/library/comics/[publisherId]/edit` · `/new` | Edit publisher · add universe |
+| `/library/comics/[publisherId]/[universeId]` | Comic titles in the universe |
+| `…/[universeId]/edit` · `/new` | Edit universe · add comic title |
+| `…/[universeId]/[titleId]` | Issue list for the title |
+| `…/[titleId]/edit` · `/new` | Edit title · add issue |
+| `…/[titleId]/[issueId]` · `/edit` | Issue detail · edit issue |
+
+Rollups are computed with nested `select`s — Prisma issues one query per relation *level*,
+not per row, so each page is a fixed handful of queries regardless of collection size. The
+shared aggregation helpers live in `lib/comics.ts` (`summarizeIssues`, `rollUp`,
+`formatIssueNumber`, `pluralize`), which deliberately imports nothing from `lib/db` so
+client components can use it too.
 
 ---
 
@@ -860,11 +935,23 @@ app/
         edit/page.tsx
     comics/
       loading.tsx
-      page.tsx
-      new/page.tsx
-      [id]/
-        page.tsx
+      page.tsx                                    publishers grid
+      new/page.tsx                                add publisher
+      [publisherId]/
+        page.tsx                                  universes
         edit/page.tsx
+        new/page.tsx                              add universe
+        [universeId]/
+          page.tsx                                comic titles
+          edit/page.tsx
+          new/page.tsx                            add comic title
+          [titleId]/
+            page.tsx                              issue list
+            edit/page.tsx
+            new/page.tsx                          add issue
+            [issueId]/
+              page.tsx                            issue detail
+              edit/page.tsx
     games/
       loading.tsx
       page.tsx
@@ -915,8 +1002,15 @@ app/
       route.ts
       [id]/route.ts
     comics/
-      route.ts
-      [id]/route.ts
+      publishers/route.ts
+      publishers/[id]/route.ts
+      universes/route.ts
+      universes/[id]/route.ts
+      titles/route.ts
+      titles/[id]/route.ts
+      issues/route.ts
+      issues/[id]/route.ts
+      mirror-covers/route.ts
     games/
       route.ts
       [id]/route.ts
@@ -969,11 +1063,14 @@ components/
     BooksStats.tsx
     DeleteBookButton.tsx
   comics/
-    ComicCard.tsx
-    ComicFilters.tsx
-    ComicForm.tsx
-    ComicStats.tsx
-    DeleteComicButton.tsx
+    ComicBreadcrumb.tsx
+    ComicEntityCard.tsx
+    ComicLevelStats.tsx
+    ComicNameForm.tsx
+    DeleteComicEntityButton.tsx
+    IssueForm.tsx
+    IssueRow.tsx
+    TitleForm.tsx
   games/
     DeleteGameButton.tsx
     GameCard.tsx
