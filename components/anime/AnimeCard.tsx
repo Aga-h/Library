@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
-import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 
 interface Anime {
   id: string; title: string; studio: string | null; status: string;
@@ -22,7 +21,6 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 export default function AnimeCard({ anime }: { anime: Anime }) {
   const status = STATUS_STYLES[anime.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
   const watchedMinutes = anime.episodesWatched * anime.episodeDuration;
-  const langLabel = LANGUAGE_CONFIG[anime.language as LanguageKey]?.label ?? anime.language;
 
   return (
     <Link href={`/library/anime/${anime.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { inputCls } from "@/components/ui/form";
 
 interface Props {
   label: string;
@@ -11,7 +12,6 @@ interface Props {
   required?: boolean;
 }
 
-const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
 export default function ComboboxField({ label, value, onChange, options, placeholder, required }: Props) {
   const [open, setOpen] = useState(false);

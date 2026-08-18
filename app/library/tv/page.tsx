@@ -8,7 +8,7 @@ import TvStats from "@/components/tv/TvStats";
 import TvGroupedView from "@/components/tv/TvGroupedView";
 import TvSeriesManager from "@/components/tv/TvSeriesManager";
 import TvFilters from "@/components/tv/TvFilters";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { TV_STATUS_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";

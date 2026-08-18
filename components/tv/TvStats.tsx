@@ -1,4 +1,4 @@
-import { Tv2, Clock, CheckCircle2 } from "lucide-react";
+import { Clock, CheckCircle2 } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface TvShow {

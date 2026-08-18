@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import MangaStats from "@/components/manga/MangaStats";
 import MangaCard from "@/components/manga/MangaCard";
 import MangaFilters from "@/components/manga/MangaFilters";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { MANGA_STATUS_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";

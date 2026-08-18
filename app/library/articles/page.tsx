@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import ArticleStats from "@/components/articles/ArticleStats";
 import ArticleCard from "@/components/articles/ArticleCard";
 import ArticleFilters from "@/components/articles/ArticleFilters";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { ARTICLE_STATUS_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";

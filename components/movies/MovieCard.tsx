@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Film, Clock } from "lucide-react";
-import { formatReadingTime } from "@/lib/reading-time";
 
 interface Movie {
   id: string;

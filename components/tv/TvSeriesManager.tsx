@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Plus, Layers, Tv2, Check, X } from "lucide-react";
+import { inputCls } from "@/components/ui/form";
 
 interface Series { id: string; name: string; }
 interface Item { id: string; title: string; coverImage: string | null; seriesName: string | null; }
 
-const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder:text-gray-400";
 
 export default function TvSeriesManager({ allItems }: { allItems: Item[] }) {
   const router = useRouter();
@@ -58,7 +58,10 @@ export default function TvSeriesManager({ allItems }: { allItems: Item[] }) {
   }
 
   function toggle(id: string) {
-    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setSelected(prev => { const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n; });
   }
 
   async function submitAssign() {

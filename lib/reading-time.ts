@@ -71,32 +71,8 @@ export function sumReadingTime(
 
 // ─── ANIME / MOVIES / TV ─────────────────────────────────────────────────────
 
-/**
- * Total time watched for anime: episodes × duration per episode.
- */
-export function calculateAnimeTime(
-  episodesWatched: number,
-  episodeDuration: number
-): ReadingTime {
-  return makeReadingTime(episodesWatched * episodeDuration);
-}
 
-/**
- * Watch time for a movie/TV show: total minutes (runtime or episodes × runtime).
- */
-export function calculateVideoTime(totalMinutes: number): ReadingTime {
-  return makeReadingTime(totalMinutes);
-}
 
-/**
- * Sum video time across multiple entries (anime / movies / TV).
- */
-export function sumVideoTime(
-  entries: Array<{ minutes: number }>
-): ReadingTime {
-  const total = entries.reduce((acc, e) => acc + e.minutes, 0);
-  return makeReadingTime(total);
-}
 
 // ─── MANGA ───────────────────────────────────────────────────────────────────
 
@@ -111,14 +87,6 @@ export function calculateMangaTime(
   return makeReadingTime(Math.round(chaptersRead * MINUTES_PER_MANGA_CHAPTER));
 }
 
-export function sumMangaTime(
-  entries: Array<{ chaptersRead: number; language: string }>
-): ReadingTime {
-  const total = entries.reduce((acc, e) => {
-    return acc + calculateMangaTime(e.chaptersRead, e.language as LanguageKey).minutes;
-  }, 0);
-  return makeReadingTime(total);
-}
 
 // ─── COMICS ──────────────────────────────────────────────────────────────────
 
@@ -133,14 +101,6 @@ export function calculateComicTime(
   return makeReadingTime(Math.round(issuesRead * MINUTES_PER_COMIC_ISSUE));
 }
 
-export function sumComicTime(
-  entries: Array<{ issuesRead: number; language: string }>
-): ReadingTime {
-  const total = entries.reduce((acc, e) => {
-    return acc + calculateComicTime(e.issuesRead, e.language as LanguageKey).minutes;
-  }, 0);
-  return makeReadingTime(total);
-}
 
 // ─── ARTICLES ────────────────────────────────────────────────────────────────
 
@@ -157,11 +117,3 @@ export function calculateArticleTime(
   return makeReadingTime(minutes);
 }
 
-export function sumArticleTime(
-  entries: Array<{ wordCount: number; language: string }>
-): ReadingTime {
-  const total = entries.reduce((acc, e) => {
-    return acc + calculateArticleTime(e.wordCount, e.language as LanguageKey).minutes;
-  }, 0);
-  return makeReadingTime(total);
-}

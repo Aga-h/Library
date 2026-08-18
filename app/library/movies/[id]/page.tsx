@@ -10,10 +10,8 @@ import {
   Building2,
   Pencil,
   Calendar,
-  User,
-} from "lucide-react";
+  } from "lucide-react";
 import { db } from "@/lib/db";
-import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteMovieButton from "@/components/movies/DeleteMovieButton";
 

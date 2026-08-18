@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, CheckCircle2, Clock, Package } from "lucide-react";
+import { BookOpen, Clock, Package } from "lucide-react";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 

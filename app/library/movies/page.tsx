@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import MovieStats from "@/components/movies/MovieStats";
 import MovieCard from "@/components/movies/MovieCard";
 import MovieFilters from "@/components/movies/MovieFilters";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { MOVIE_STATUS_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";

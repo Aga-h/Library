@@ -8,7 +8,7 @@ import GameStats from "@/components/games/GameStats";
 import GameCard from "@/components/games/GameCard";
 import GameFilters from "@/components/games/GameFilters";
 import SteamSyncButton from "@/components/games/SteamSyncButton";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { GAME_STATUS_VALUES, GAME_PLATFORM_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";

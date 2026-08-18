@@ -7,11 +7,9 @@ import {
   BookOpen,
   Clock,
   Globe,
-  Package,
   Building2,
   Pencil,
-  Trash2,
-} from "lucide-react";
+  } from "lucide-react";
 import { db } from "@/lib/db";
 import { calculateReadingTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";

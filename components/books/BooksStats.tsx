@@ -1,4 +1,4 @@
-import { BookOpen, BookMarked, Clock, Library } from "lucide-react";
+import { BookOpen, Clock, Library } from "lucide-react";
 import { calculateReadingTime, formatReadingTime, sumReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 

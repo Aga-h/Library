@@ -13,6 +13,11 @@ export default function SearchInput({ defaultValue, onSearch, placeholder = "Sea
   const [value, setValue] = useState(defaultValue);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Without this, a fast navigation leaves the pending debounce to fire after unmount.
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
     setValue(v);
@@ -24,6 +29,7 @@ export default function SearchInput({ defaultValue, onSearch, placeholder = "Sea
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       <input
+        aria-label={placeholder ?? "Search"}
         type="search"
         value={value}
         onChange={handleChange}

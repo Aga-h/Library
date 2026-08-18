@@ -8,7 +8,7 @@ import { issueAggsByTitle } from "@/lib/comics-agg";
 import { calculateComicTime } from "@/lib/reading-time";
 import ComicEntityCard from "@/components/comics/ComicEntityCard";
 import ComicLevelStats from "@/components/comics/ComicLevelStats";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 
 export default async function ComicsPage() {
   // Issue counters are aggregated in SQL; nesting them here pulled every issue row in the

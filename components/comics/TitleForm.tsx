@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 
 interface TitleFormData {
   name: string;
@@ -135,13 +136,13 @@ export default function TitleForm({
         </select>
       </Field>
 
-      <Field label="Cover Image">
+      <FieldGroup label="Cover Image">
         <ImageUpload
           value={form.coverImage}
           onChange={(url) => update("coverImage", url)}
           fieldName="comic-titles"
         />
-      </Field>
+      </FieldGroup>
 
       <Field label="Notes">
         <textarea
@@ -175,14 +176,4 @@ export default function TitleForm({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {children}
-    </div>
-  );
-}
 
-const inputCls =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";

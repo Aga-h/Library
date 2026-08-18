@@ -7,6 +7,7 @@ import { calculateMangaTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 
 interface MangaFormData {
   title: string; author: string; artist: string; publisher: string; status: string;
@@ -28,7 +29,6 @@ interface Props {
   publisherOptions?: string[];
 }
 
-const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
 export default function MangaForm({ initialData, mode, authorOptions, artistOptions, publisherOptions }: Props) {
   const router = useRouter();
@@ -110,7 +110,7 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Field label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="manga" /></Field>
+        <FieldGroup label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="manga" /></FieldGroup>
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 9" className={inputCls} /></Field>
         <Field label="Times reread">
           <select value={form.timesReread} onChange={(e) => update("timesReread", e.target.value)} className={inputCls}>
@@ -133,6 +133,3 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="flex flex-col gap-1.5"><label className="text-sm font-medium text-gray-700">{label}</label>{children}</div>;
-}

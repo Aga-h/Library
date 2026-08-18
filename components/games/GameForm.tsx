@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PLATFORM_GROUPS, PLATFORM_LABELS } from "@/lib/constants/platforms";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 
 interface GameFormData {
   title: string; developer: string; publisher: string; status: string;
@@ -27,7 +28,6 @@ interface Props {
   publisherOptions?: string[];
 }
 
-const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
 export default function GameForm({ initialData, mode, developerOptions, publisherOptions }: Props) {
   const router = useRouter();
@@ -103,7 +103,7 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
         <span className="text-sm text-gray-700">This is an emulated version</span>
       </label>
 
-      <Field label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="games" /></Field>
+      <FieldGroup label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="games" /></FieldGroup>
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, playthroughs..." className={inputCls} /></Field>
 
       <div className="flex gap-3 pt-2">
@@ -116,6 +116,3 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="flex flex-col gap-1.5"><label className="text-sm font-medium text-gray-700">{label}</label>{children}</div>;
-}

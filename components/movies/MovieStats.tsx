@@ -1,4 +1,4 @@
-import { Film, Clock, Eye } from "lucide-react";
+import { Clock, Eye } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface Movie {

@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import BooksStats from "@/components/books/BooksStats";
 import BookCard from "@/components/books/BookCard";
 import BookFilters from "@/components/books/BookFilters";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { BOOK_STATUS_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";

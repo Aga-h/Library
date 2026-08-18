@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import AnimeStats from "@/components/anime/AnimeStats";
 import AnimeCard from "@/components/anime/AnimeCard";
 import AnimeFilters from "@/components/anime/AnimeFilters";
-import MirrorCoversButton from "@/components/games/MirrorCoversButton";
+import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
 import { ANIME_STATUS_VALUES } from "@/lib/constants/enums";
 import { asEnum } from "@/lib/enum-params";
