@@ -443,6 +443,11 @@ model FinanceConfig {
 
 model Expense {
   id          String          @id @default(cuid())
+  // Supplied by the offline queue. Unique, so a POST replayed by a concurrent sync,
+  // a second tab, or a retry after a lost response can never insert the same expense
+  // twice. Nullable because rows created before this existed have none, and Postgres
+  // permits many NULLs in a unique index.
+  clientId    String?         @unique
   year        Int
   month       Int
   category    ExpenseCategory

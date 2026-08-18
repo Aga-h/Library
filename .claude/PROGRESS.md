@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ
-**Updated:** 2026-08-18 — commit `400f15f`
+**Updated:** 2026-08-18 — commit `9620baf`
 
 ## Done
 
@@ -22,6 +22,10 @@
 - [x] Audit Phase 5/6 — shared form helpers, label `htmlFor`, ESLint + lint/typecheck scripts
 - [x] Verified idempotent SQL migration at `prisma/manual-migrations/001-…sql`
 - [x] RLS enabled on all public tables (closes the Supabase REST API to the anon key)
+- [x] Cross-session resume — `.claude/PROGRESS.md` + SessionStart hook
+- [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
+      offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
+      Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
 
 ## Next
 
@@ -41,13 +45,22 @@ Three items were scoped in the audit but not implemented. In rough value order:
 
 ## Blocked / needs the user
 
-- Nothing outstanding. `prisma/manual-migrations/001-comics-hierarchy-and-indexes.sql` and the
-  RLS block have both been run.
+- **Run `prisma/manual-migrations/002-expense-idempotency.sql`** in the Supabase SQL Editor.
+  Until it is applied, the expense logger's retry path can create duplicate expenses.
+- Provide the production URL so exact install instructions can be given (it is recorded
+  nowhere in the repo).
+- `001-comics-hierarchy-and-indexes.sql` and the RLS block have both been run already.
 - Any *future* schema change needs the same treatment: `prisma db push` cannot reach this
   Supabase instance, so write an idempotent script into `prisma/manual-migrations/` and ask the
   user to paste it into the Supabase SQL Editor. Do not assume it has been run — confirm.
 
 ## Notes for the next session
+
+- The expense logger's duplicate bug was only visible by checking the **database**, not the UI —
+  the browser tests all passed while Postgres held 4 rows for 3 expenses. Assert against the data
+  store, not just the screen.
+- A client-side lock cannot prevent duplicate submissions across page contexts (two tabs, or a
+  navigation racing the `online` event). Idempotency has to be enforced server-side.
 
 - **The container is wiped between sessions.** `node_modules/` will be gone; the session-start
   hook reinstalls it. Anything not committed is lost.

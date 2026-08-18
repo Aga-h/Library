@@ -4,16 +4,29 @@ import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
 const PUBLIC_PATHS = ["/login", "/api/auth"];
 
+// PWA install assets. iOS fetches these *unauthenticated* when adding to the home screen,
+// so gating them behind login makes the app silently uninstallable and stops the service
+// worker from ever registering. None of them contain user data.
+const PUBLIC_FILES = new Set([
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/apple-touch-icon.png",
+  "/favicon.ico",
+]);
+
 function isPublic(pathname: string): boolean {
   // Exact-or-boundary match: a plain startsWith would make "/loginanything" public too.
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true;
+  if (PUBLIC_FILES.has(pathname)) return true;
+  if (pathname.startsWith("/icons/")) return true;
+  return false;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isPublic(pathname)) return NextResponse.next();
-  if (pathname.startsWith("/_next") || pathname === "/favicon.ico") return NextResponse.next();
+  if (pathname.startsWith("/_next")) return NextResponse.next();
 
   const secret = process.env.AUTH_SECRET;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
