@@ -43,15 +43,19 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
-      title: form.title, author: form.author, artist: form.artist || undefined,
-      publisher: form.publisher || undefined, status: form.status, format: form.format,
-      totalVolumes: form.totalVolumes ? parseInt(form.totalVolumes, 10) : undefined,
+      title: form.title, author: form.author, artist: form.artist || clearable,
+      publisher: form.publisher || clearable, status: form.status, format: form.format,
+      totalVolumes: form.totalVolumes ? parseInt(form.totalVolumes, 10) : clearable,
       volumesRead: parseInt(form.volumesRead, 10) || 0,
-      totalChapters: form.totalChapters ? parseInt(form.totalChapters, 10) : undefined,
+      totalChapters: form.totalChapters ? parseInt(form.totalChapters, 10) : clearable,
       chaptersRead: parseInt(form.chaptersRead, 10) || 0,
-      language: form.language, coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
+      language: form.language, coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable, notes: form.notes || clearable,
       timesReread: parseInt(form.timesReread, 10) || 0,
     };
     const url = mode === "edit" && initialData?.id ? `/api/manga/${initialData.id}` : "/api/manga";

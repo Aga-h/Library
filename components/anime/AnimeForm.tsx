@@ -46,14 +46,18 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
-      title: form.title, studio: form.studio || undefined, status: form.status,
-      episodes: form.episodes ? parseInt(form.episodes, 10) : undefined,
+      title: form.title, studio: form.studio || clearable, status: form.status,
+      episodes: form.episodes ? parseInt(form.episodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeDuration: parseInt(form.episodeDuration, 10) || 24,
-      season: form.season || undefined, year: form.year ? parseInt(form.year, 10) : undefined,
-      language: form.language, coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
+      season: form.season || clearable, year: form.year ? parseInt(form.year, 10) : clearable,
+      language: form.language, coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable, notes: form.notes || clearable,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
     const url = mode === "edit" && initialData?.id ? `/api/anime/${initialData.id}` : "/api/anime";

@@ -30,13 +30,17 @@ export default function GarmentForm({ initialData, mode }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
-      name: form.name, type: form.type, brand: form.brand || undefined,
-      color: form.color || undefined, colorGroup: form.colorGroup,
+      name: form.name, type: form.type, brand: form.brand || clearable,
+      color: form.color || clearable, colorGroup: form.colorGroup,
       materials: form.materials, washMethod: form.washMethod,
       maxTemp: form.maxTemp, washCycle: form.washCycle, spinLevel: form.spinLevel,
-      dryMethod: form.dryMethod, image: form.image || undefined,
-      notes: form.notes || undefined,
+      dryMethod: form.dryMethod, image: form.image || clearable,
+      notes: form.notes || clearable,
     };
     const url = mode === "edit" && initialData?.id ? `/api/wardrobe/${initialData.id}` : "/api/wardrobe";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });

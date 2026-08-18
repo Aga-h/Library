@@ -57,7 +57,9 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
 
   const updated = await db.tvShow.update({
     where: { id },
-    data: result.data,
+    // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
+    // through, so a cleared cover was stored as an empty string rather than NULL.
+    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
   });
 
   revalidateTag("library-stats", "max");

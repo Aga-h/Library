@@ -79,17 +79,21 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
     setLoading(true);
     setError(null);
 
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
       title: form.title,
-      director: form.director || undefined,
-      studio: form.studio || undefined,
+      director: form.director || clearable,
+      studio: form.studio || clearable,
       status: form.status,
       runtime: parseInt(form.runtime, 10),
-      year: form.year ? parseInt(form.year, 10) : undefined,
+      year: form.year ? parseInt(form.year, 10) : clearable,
       language: form.language,
-      coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined,
-      notes: form.notes || undefined,
+      coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable,
+      notes: form.notes || clearable,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
 

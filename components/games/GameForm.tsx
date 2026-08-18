@@ -39,16 +39,20 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
-      title: form.title, developer: form.developer || undefined,
-      publisher: form.publisher || undefined, status: form.status,
+      title: form.title, developer: form.developer || clearable,
+      publisher: form.publisher || clearable, status: form.status,
       platform: form.platform, emulated: form.emulated,
       hoursPlayed: parseFloat(form.hoursPlayed) || 0,
       achievementsUnlocked: parseInt(form.achievementsUnlocked, 10) || 0,
-      achievementsTotal: form.achievementsTotal ? parseInt(form.achievementsTotal, 10) : undefined,
-      coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined,
-      notes: form.notes || undefined,
+      achievementsTotal: form.achievementsTotal ? parseInt(form.achievementsTotal, 10) : clearable,
+      coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable,
+      notes: form.notes || clearable,
     };
     const url = mode === "edit" && initialData?.id ? `/api/games/${initialData.id}` : "/api/games";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });

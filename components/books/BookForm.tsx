@@ -70,17 +70,21 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
     setLoading(true);
     setError(null);
 
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
       title: form.title,
       author: form.author,
       status: form.status,
       owned: form.owned,
       language: form.language,
-      publisher: form.publisher || undefined,
+      publisher: form.publisher || clearable,
       pages: parseInt(form.pages, 10),
-      coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined,
-      notes: form.notes || undefined,
+      coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable,
+      notes: form.notes || clearable,
       timesReread: parseInt(form.timesReread, 10) || 0,
     };
 
