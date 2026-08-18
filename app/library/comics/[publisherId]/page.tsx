@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Plus, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
-import { rollUp, pluralize } from "@/lib/comics";
+import { foldAggs, pluralize, EMPTY_AGG } from "@/lib/comics";
+import { issueAggsByTitle } from "@/lib/comics-agg";
 import { calculateComicTime } from "@/lib/reading-time";
 import ComicBreadcrumb from "@/components/comics/ComicBreadcrumb";
 import ComicEntityCard from "@/components/comics/ComicEntityCard";
@@ -18,17 +19,15 @@ interface PageProps {
 export default async function PublisherPage({ params }: PageProps) {
   const { publisherId } = await params;
 
-  const publisher = await db.comicPublisher.findUnique({
-    where: { id: publisherId },
-    include: {
-      universes: {
-        orderBy: { name: "asc" },
-        include: {
-          titles: { select: { id: true, issues: { select: { read: true, timesReread: true } } } },
-        },
+  const [publisher, aggs] = await Promise.all([
+    db.comicPublisher.findUnique({
+      where: { id: publisherId },
+      include: {
+        universes: { orderBy: { name: "asc" }, include: { titles: { select: { id: true } } } },
       },
-    },
-  });
+    }),
+    issueAggsByTitle({ comicTitle: { universe: { publisherId } } }),
+  ]);
   if (!publisher) notFound();
 
   const rows = publisher.universes.map((u) => ({
@@ -36,7 +35,7 @@ export default async function PublisherPage({ params }: PageProps) {
     name: u.name,
     coverImage: u.coverImage,
     titleCount: u.titles.length,
-    progress: rollUp(u.titles),
+    progress: foldAggs(u.titles.map((t) => aggs.get(t.id) ?? EMPTY_AGG)),
   }));
 
   const titleCount = rows.reduce((s, r) => s + r.titleCount, 0);

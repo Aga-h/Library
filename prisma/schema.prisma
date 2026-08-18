@@ -59,6 +59,7 @@ model Anime {
 
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
+  @@index([language, createdAt(sort: Desc)])
 }
 
 enum AnimeStatus {
@@ -370,6 +371,9 @@ model Garment {
   notes      String?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  @@index([type, wornCount(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 enum GarmentType {
@@ -446,8 +450,7 @@ model Expense {
   description String?
   createdAt   DateTime        @default(now())
 
-  @@index([year, month])
-  @@index([createdAt(sort: Desc)])
+  @@index([year, month, createdAt(sort: Desc)])
 }
 
 model AdditionalIncome {
@@ -458,7 +461,7 @@ model AdditionalIncome {
   description String?
   createdAt   DateTime @default(now())
 
-  @@index([year, month])
+  @@index([year, month, createdAt(sort: Desc)])
 }
 
 enum ExpenseCategory {

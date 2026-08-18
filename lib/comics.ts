@@ -48,3 +48,27 @@ export function formatIssueNumber(n: number): string {
 export function pluralize(n: number, singular: string, plural?: string): string {
   return `${n} ${n === 1 ? singular : (plural ?? `${singular}s`)}`;
 }
+
+/**
+ * Per-title issue aggregates, computed in the database.
+ *
+ * The publisher and universe pages previously nested `issues: { select: … }` with no `where`
+ * and no `take`, so every issue row in the library crossed the wire to produce a handful of
+ * counters. This is bounded by title count instead.
+ */
+export interface TitleAgg {
+  total: number;
+  read: number;
+  readUnits: number;
+  rereads: number;
+}
+
+export function foldAggs(aggs: Iterable<TitleAgg>): IssueProgress {
+  let total = 0, read = 0, readUnits = 0, rereads = 0;
+  for (const a of aggs) {
+    total += a.total; read += a.read; readUnits += a.readUnits; rereads += a.rereads;
+  }
+  return { total, read, readUnits, rereads, avgRating: null };
+}
+
+export const EMPTY_AGG: TitleAgg = { total: 0, read: 0, readUnits: 0, rereads: 0 };

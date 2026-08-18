@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { isSupabaseCover, mirrorCover } from "@/lib/covers";
+import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 
 const MIRROR_BATCH = 10;
 
@@ -14,9 +14,16 @@ export async function POST() {
     );
   }
 
-  const all = await db.article.findMany({ select: { id: true, coverImage: true } });
-  const pending = all.filter(a => !!a.coverImage && !isSupabaseCover(a.coverImage));
-  const batch = pending.slice(0, MIRROR_BATCH);
+  // Filter in SQL rather than reading the whole table and discarding all but 10 rows.
+  const pendingWhere = {
+    coverImage: { not: null },
+    NOT: { coverImage: { contains: SUPABASE_COVER_MARKER } },
+  } as const;
+
+  const [batch, pendingCount] = await Promise.all([
+    db.article.findMany({ where: pendingWhere, select: { id: true, coverImage: true }, take: MIRROR_BATCH }),
+    db.article.count({ where: pendingWhere }),
+  ]);
 
   let mirrored = 0;
   let lastError: string | null = null;
@@ -37,5 +44,5 @@ export async function POST() {
     return NextResponse.json({ error: lastError }, { status: 502 });
   }
 
-  return NextResponse.json({ mirrored, remaining: pending.length - mirrored });
+  return NextResponse.json({ mirrored, remaining: pendingCount - mirrored });
 }

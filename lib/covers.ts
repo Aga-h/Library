@@ -1,8 +1,11 @@
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
+/** Marker identifying a cover already hosted in our own Supabase bucket. */
+export const SUPABASE_COVER_MARKER = "/storage/v1/object/public/covers/";
+
 export function isSupabaseCover(url: string | null): boolean {
-  return !!url && url.includes("/storage/v1/object/public/covers/");
+  return !!url && url.includes(SUPABASE_COVER_MARKER);
 }
 
 async function fetchResilient(url: string, retries = 3): Promise<Response> {

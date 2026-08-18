@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
+import type { Prisma } from "@prisma/client";
 
 export const maxDuration = 300;
 
@@ -190,6 +192,18 @@ export async function POST() {
   let coversFromSgdb = 0;
   let coversFallback = 0;
 
+  // One lookup for the whole library instead of a findUnique per game. The external HTTP
+  // calls above were already batched; this loop was still doing 2N sequential round trips,
+  // which on a 500-game library is enough to blow the function timeout on its own.
+  const existingGames = await db.game.findMany({
+    where: { steamAppId: { in: ownedGames.map((g) => g.appid) } },
+  });
+  const existingByAppId = new Map(existingGames.map((g) => [g.steamAppId, g]));
+
+  type UpdateOp = { id: string; data: Prisma.GameUpdateInput };
+  const updateOps: UpdateOp[] = [];
+  const createOps: Prisma.GameCreateManyInput[] = [];
+
   for (let i = 0; i < ownedGames.length; i++) {
     const game = ownedGames[i];
     const ach = achievements[i];
@@ -209,12 +223,12 @@ export async function POST() {
       return `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/library_600x900.jpg`;
     }
 
-    const existing = await db.game.findUnique({ where: { steamAppId: game.appid } });
+    const existing = existingByAppId.get(game.appid) ?? null;
 
     if (existing) {
       const newCover = pickCover(existing.coverImage);
-      await db.game.update({
-        where: { id: existing.id },
+      updateOps.push({
+        id: existing.id,
         data: {
           hoursPlayed,
           coverImage: newCover,
@@ -231,8 +245,7 @@ export async function POST() {
         : game.playtime_forever > 0 ? "PLAYING"
         : "PLAN_TO_PLAY";
 
-      await db.game.create({
-        data: {
+      createOps.push({
           title: game.name,
           developer: store.developer ?? undefined,
           publisher: store.publisher ?? undefined,
@@ -244,11 +257,26 @@ export async function POST() {
           coverImage: pickCover(null),
           status,
           steamAppId: game.appid,
-        },
       });
       created++;
     }
   }
+
+  // Inserts go in one statement; updates are chunked so a huge library does not build a
+  // single oversized transaction.
+  if (createOps.length > 0) {
+    await db.game.createMany({ data: createOps, skipDuplicates: true });
+  }
+  const UPDATE_CHUNK = 25;
+  for (let i = 0; i < updateOps.length; i += UPDATE_CHUNK) {
+    await db.$transaction(
+      updateOps.slice(i, i + UPDATE_CHUNK).map((op) =>
+        db.game.update({ where: { id: op.id }, data: op.data })
+      )
+    );
+  }
+
+  revalidateTag("library-stats", "max");
 
   return NextResponse.json({
     created,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { isSupabaseCover, mirrorCover } from "@/lib/covers";
+import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 
 const MIRROR_BATCH = 10;
 
@@ -25,20 +25,35 @@ export async function POST() {
     );
   }
 
+  // Filter in SQL. Reading all four tables in full to keep 10 rows meant the whole comic
+  // library crossed the wire on every click.
   const select = { id: true, coverImage: true };
-  const [publishers, universes, titles, issues] = await Promise.all([
-    db.comicPublisher.findMany({ select }),
-    db.comicUniverse.findMany({ select }),
-    db.comicTitle.findMany({ select }),
-    db.comicIssue.findMany({ select }),
+  const pendingWhere = {
+    coverImage: { not: null },
+    NOT: { coverImage: { contains: SUPABASE_COVER_MARKER } },
+  } as const;
+  const opts = { where: pendingWhere, select, take: MIRROR_BATCH };
+
+  const [publishers, universes, titles, issues, counts] = await Promise.all([
+    db.comicPublisher.findMany(opts),
+    db.comicUniverse.findMany(opts),
+    db.comicTitle.findMany(opts),
+    db.comicIssue.findMany(opts),
+    Promise.all([
+      db.comicPublisher.count({ where: pendingWhere }),
+      db.comicUniverse.count({ where: pendingWhere }),
+      db.comicTitle.count({ where: pendingWhere }),
+      db.comicIssue.count({ where: pendingWhere }),
+    ]),
   ]);
+  const pendingCount = counts.reduce((a, b) => a + b, 0);
 
   const pending: Pending[] = [
     ...publishers.map((r) => ({ ...r, folder: "comic-publishers", kind: "publisher" as const })),
     ...universes.map((r) => ({ ...r, folder: "comic-universes", kind: "universe" as const })),
     ...titles.map((r) => ({ ...r, folder: "comic-titles", kind: "title" as const })),
     ...issues.map((r) => ({ ...r, folder: "comic-issues", kind: "issue" as const })),
-  ].filter((r): r is Pending => !!r.coverImage && !isSupabaseCover(r.coverImage));
+  ].filter((r): r is Pending => !!r.coverImage);
 
   const batch = pending.slice(0, MIRROR_BATCH);
 
@@ -60,5 +75,5 @@ export async function POST() {
     return NextResponse.json({ error: lastError }, { status: 502 });
   }
 
-  return NextResponse.json({ mirrored, remaining: pending.length - mirrored });
+  return NextResponse.json({ mirrored, remaining: pendingCount - mirrored });
 }

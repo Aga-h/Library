@@ -3,24 +3,23 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { db } from "@/lib/db";
-import { rollUp, pluralize } from "@/lib/comics";
+import { foldAggs, pluralize, EMPTY_AGG } from "@/lib/comics";
+import { issueAggsByTitle } from "@/lib/comics-agg";
 import { calculateComicTime } from "@/lib/reading-time";
 import ComicEntityCard from "@/components/comics/ComicEntityCard";
 import ComicLevelStats from "@/components/comics/ComicLevelStats";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 
 export default async function ComicsPage() {
-  const publishers = await db.comicPublisher.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      universes: {
-        select: {
-          id: true,
-          titles: { select: { id: true, issues: { select: { read: true, timesReread: true } } } },
-        },
-      },
-    },
-  });
+  // Issue counters are aggregated in SQL; nesting them here pulled every issue row in the
+  // library just to produce a few numbers per publisher card.
+  const [publishers, aggs] = await Promise.all([
+    db.comicPublisher.findMany({
+      orderBy: { name: "asc" },
+      include: { universes: { select: { id: true, titles: { select: { id: true } } } } },
+    }),
+    issueAggsByTitle(),
+  ]);
 
   const rows = publishers.map((p) => {
     const titles = p.universes.flatMap((u) => u.titles);
@@ -30,7 +29,7 @@ export default async function ComicsPage() {
       coverImage: p.coverImage,
       universeCount: p.universes.length,
       titleCount: titles.length,
-      progress: rollUp(titles),
+      progress: foldAggs(titles.map((t) => aggs.get(t.id) ?? EMPTY_AGG)),
     };
   });
 
