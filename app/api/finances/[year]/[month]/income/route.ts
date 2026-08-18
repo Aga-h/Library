@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { parseMonthParams } from "@/lib/month-params";
 
 const incomeSchema = z.object({
   amount: z.number().positive(),
@@ -12,9 +13,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ year: string; month: string }> }
 ) {
-  const { year: yearStr, month: monthStr } = await params;
-  const year = parseInt(yearStr, 10);
-  const month = parseInt(monthStr, 10);
+  const parsed = parseMonthParams(await params);
+  if (!parsed) {
+    return NextResponse.json({ error: "Invalid year or month" }, { status: 400 });
+  }
+  const { year, month } = parsed;
 
   const body = await request.json();
   const result = incomeSchema.safeParse(body);

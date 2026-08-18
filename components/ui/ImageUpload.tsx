@@ -10,10 +10,6 @@ interface Props {
   fieldName?: string; // used in storage path e.g. "books", "games"
 }
 
-function storagePath(fieldName: string, ext: string): string {
-  return `${fieldName}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-}
-
 async function deleteOldCover(url: string) {
   if (!isSupabaseCover(url)) return;
   // Extract path after /covers/
@@ -30,19 +26,19 @@ export default function ImageUpload({ value, onChange, fieldName = "uploads" }: 
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = storagePath(fieldName, ext);
+    // The server derives the storage key from `folder` + a UUID. The client never
+    // supplies a path — one containing ".." could escape the covers bucket entirely.
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("path", path);
+    fd.append("folder", fieldName);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) throw new Error("Upload failed");
-      const { url } = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
       await deleteOldCover(value);
-      onChange(url);
-    } catch {
-      alert("Upload failed. Please try again.");
+      onChange(data.url);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Upload failed. Please try again.");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";

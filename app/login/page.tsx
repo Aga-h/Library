@@ -8,7 +8,10 @@ import { Suspense } from "react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "/library";
+  // Only same-origin relative paths. "//evil.com" and "https://evil.com" are both absolute
+  // navigations, so an unvalidated ?from= turns this into a phishing redirect.
+  const rawFrom = searchParams.get("from");
+  const from = rawFrom && rawFrom.startsWith("/") && !rawFrom.startsWith("//") ? rawFrom : "/library";
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,17 +22,23 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
 
-    if (res.ok) {
-      router.push(from);
-      router.refresh();
-    } else {
-      setError("Wrong password. Try again.");
+      if (res.ok) {
+        router.push(from);
+        router.refresh();
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Wrong password. Try again.");
+    } catch {
+      setError("Could not reach the server. Check your connection.");
+    } finally {
       setLoading(false);
     }
   }
