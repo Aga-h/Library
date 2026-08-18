@@ -3,13 +3,14 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { parseMonthParams } from "@/lib/month-params";
+import { withErrors } from "@/lib/api-errors";
 
 const incomeSchema = z.object({
   amount: z.number().positive(),
   description: z.string().optional(),
 });
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ year: string; month: string }> }
 ) {
@@ -32,3 +33,5 @@ export async function POST(
   revalidateTag("finance-stats", "max");
   return NextResponse.json(income, { status: 201 });
 }
+
+export const POST = withErrors(POSTHandler);

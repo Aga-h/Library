@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
+import { withErrors } from "@/lib/api-errors";
 
 const createPublisherSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -10,12 +11,12 @@ const createPublisherSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function GET() {
+async function GETHandler() {
   const publishers = await db.comicPublisher.findMany({ orderBy: { name: "asc" } });
   return NextResponse.json(publishers);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createPublisherSchema.safeParse(body);
 
@@ -49,3 +50,6 @@ export async function POST(request: NextRequest) {
     throw e;
   }
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

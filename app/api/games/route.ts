@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
 const createGameSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -31,7 +32,7 @@ const createGameSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const platform = searchParams.get("platform");
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(games);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createGameSchema.safeParse(body);
 
@@ -80,3 +81,6 @@ export async function POST(request: NextRequest) {
   revalidateTag("library-stats", "max");
   return NextResponse.json(game, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

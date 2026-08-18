@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
-export async function POST(
+async function POSTHandler(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -19,3 +20,5 @@ export async function POST(
   revalidateTag("finance-stats", "max");
   return NextResponse.json(subscription);
 }
+
+export const POST = withErrors(POSTHandler);

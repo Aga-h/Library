@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
-export async function GET() {
+async function GETHandler() {
   const subscriptions = await db.subscription.findMany({ orderBy: { createdAt: "asc" } });
   return NextResponse.json(subscriptions);
 }
@@ -15,7 +16,7 @@ const createSchema = z.object({
   startMonth: z.number().int().min(1).max(12),
 });
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createSchema.safeParse(body);
   if (!result.success) {
@@ -25,3 +26,6 @@ export async function POST(request: NextRequest) {
   revalidateTag("finance-stats", "max");
   return NextResponse.json(subscription, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
-export async function GET() {
+async function GETHandler() {
   const config = await db.financeConfig.upsert({
     where: { id: "global" },
     create: { id: "global", monthlyBudget: 0 },
@@ -14,7 +15,7 @@ export async function GET() {
 
 const deltaSchema = z.object({ delta: z.number() });
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = deltaSchema.safeParse(body);
   if (!result.success) {
@@ -30,3 +31,6 @@ export async function POST(request: NextRequest) {
   revalidateTag("finance-stats", "max");
   return NextResponse.json(config);
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

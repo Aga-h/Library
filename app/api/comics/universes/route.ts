@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
+import { withErrors } from "@/lib/api-errors";
 
 const createUniverseSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -11,7 +12,7 @@ const createUniverseSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const publisherId = searchParams.get("publisherId");
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(universes);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createUniverseSchema.safeParse(body);
 
@@ -62,3 +63,6 @@ export async function POST(request: NextRequest) {
     throw e;
   }
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

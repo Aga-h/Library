@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
+import { withErrors } from "@/lib/api-errors";
 
 const updateUniverseSchema = z.object({
   name: z.string().min(1).optional(),
@@ -12,7 +13,7 @@ const updateUniverseSchema = z.object({
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+async function GETHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const universe = await db.comicUniverse.findUnique({ where: { id } });
   if (!universe) {
@@ -21,7 +22,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(universe);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const universe = await db.comicUniverse.findUnique({ where: { id } });
@@ -61,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+async function DELETEHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const universe = await db.comicUniverse.findUnique({ where: { id } });
@@ -74,3 +75,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   revalidateTag("library-stats", "max");
   return new NextResponse(null, { status: 204 });
 }
+
+export const GET = withErrors(GETHandler);
+export const PATCH = withErrors(PATCHHandler);
+export const DELETE = withErrors(DELETEHandler);

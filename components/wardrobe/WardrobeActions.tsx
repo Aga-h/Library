@@ -7,16 +7,27 @@ import { Shirt, Droplets } from "lucide-react";
 export default function WardrobeActions({ garmentId, wornCount }: { garmentId: string; wornCount: number }) {
   const router = useRouter();
   const [loading, setLoading] = useState<"wear" | "wash" | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function hit(action: "wear" | "wash") {
     setLoading(action);
-    await fetch(`/api/wardrobe/${garmentId}/${action}`, { method: "POST" });
-    router.refresh();
-    setLoading(null);
+    setError(null);
+    try {
+      const res = await fetch(`/api/wardrobe/${garmentId}/${action}`, { method: "POST" });
+      // Previously unchecked: a failed "Mark as Washed" looked identical to a successful one.
+      if (!res.ok) throw new Error();
+      router.refresh();
+    } catch {
+      setError("That did not save. Please try again.");
+    } finally {
+      setLoading(null);
+    }
   }
 
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-col gap-2">
+      {error && <p className="text-red-600 text-xs">{error}</p>}
+      <div className="flex gap-3">
       <button
         onClick={() => hit("wear")}
         disabled={loading !== null}
@@ -35,6 +46,7 @@ export default function WardrobeActions({ garmentId, wornCount }: { garmentId: s
           {loading === "wash" ? "Marking…" : "Mark as Washed"}
         </button>
       )}
+      </div>
     </div>
   );
 }

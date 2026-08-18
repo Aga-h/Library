@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const updateArticleSchema = z.object({
   title: z.string().min(1).optional(),
@@ -21,7 +22,7 @@ const updateArticleSchema = z.object({
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+async function GETHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
@@ -31,7 +32,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(article);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
@@ -58,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+async function DELETEHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
@@ -70,3 +71,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   revalidateTag("library-stats", "max");
   return new NextResponse(null, { status: 204 });
 }
+
+export const GET = withErrors(GETHandler);
+export const PATCH = withErrors(PATCHHandler);
+export const DELETE = withErrors(DELETEHandler);

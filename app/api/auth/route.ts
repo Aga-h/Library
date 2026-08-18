@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, SESSION_MAX_AGE, createSessionToken } from "@/lib/session";
+import { withErrors } from "@/lib/api-errors";
 
 // Fixed-window, per-IP throttle. In-memory, so it resets on cold start and is per-instance —
 // enough to stop casual brute-forcing of a single static password.
@@ -19,7 +20,7 @@ function rateLimited(ip: string): boolean {
   return entry.count > MAX_ATTEMPTS;
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
     request.headers.get("x-real-ip") ??
@@ -57,8 +58,11 @@ export async function POST(request: NextRequest) {
   return response;
 }
 
-export async function DELETE() {
+async function DELETEHandler() {
   const response = NextResponse.json({ ok: true });
   response.cookies.delete(SESSION_COOKIE);
   return response;
 }
+
+export const POST = withErrors(POSTHandler);
+export const DELETE = withErrors(DELETEHandler);

@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const createBookSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -19,7 +20,7 @@ const createBookSchema = z.object({
   timesReread: z.number().int().min(0).default(0),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const language = searchParams.get("language");
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(books);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createBookSchema.safeParse(body);
 
@@ -67,3 +68,6 @@ export async function POST(request: NextRequest) {
   revalidateTag("library-stats", "max");
   return NextResponse.json(book, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

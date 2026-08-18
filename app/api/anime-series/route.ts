@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
-export async function GET() {
+async function GETHandler() {
   const series = await db.animeSeries.findMany({ orderBy: { name: "asc" } });
   return NextResponse.json(series);
 }
 
 const schema = z.object({ name: z.string().min(1) });
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = schema.safeParse(body);
   if (!result.success) {
@@ -22,3 +23,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A series with that name already exists" }, { status: 409 });
   }
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const createTitleSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -15,7 +16,7 @@ const createTitleSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const universeId = searchParams.get("universeId");
 
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(titles);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createTitleSchema.safeParse(body);
 
@@ -69,3 +70,6 @@ export async function POST(request: NextRequest) {
     throw e;
   }
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
 import type { Prisma } from "@prisma/client";
+import { withErrors } from "@/lib/api-errors";
 
 export const maxDuration = 300;
 
@@ -146,7 +147,7 @@ async function processInBatches<T, R>(
   return results;
 }
 
-export async function POST() {
+async function POSTHandler() {
   const apiKey = process.env.STEAM_API_KEY;
   const steamId = process.env.STEAM_USER_ID;
   const sgdbKey = process.env.STEAMGRIDDB_API_KEY;
@@ -285,3 +286,5 @@ export async function POST() {
     covers: { sgdb: coversFromSgdb, fallback: coversFallback },
   });
 }
+
+export const POST = withErrors(POSTHandler);

@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { parseMonthParams } from "@/lib/month-params";
+import { withErrors } from "@/lib/api-errors";
 
 const expenseSchema = z.object({
   category: z.enum(["FOOD", "BOOKS", "EDUCATION", "ENTERTAINMENT", "CLOTHING", "SUBSCRIPTIONS", "SELF_CARE", "TRANSPORTATION", "OTHER", "CASH"]),
@@ -10,7 +11,7 @@ const expenseSchema = z.object({
   description: z.string().optional(),
 });
 
-export async function POST(
+async function POSTHandler(
   request: NextRequest,
   { params }: { params: Promise<{ year: string; month: string }> }
 ) {
@@ -33,3 +34,5 @@ export async function POST(
   revalidateTag("finance-stats", "max");
   return NextResponse.json(expense, { status: 201 });
 }
+
+export const POST = withErrors(POSTHandler);

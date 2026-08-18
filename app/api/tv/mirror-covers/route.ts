@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
+import { withErrors } from "@/lib/api-errors";
 
 const MIRROR_BATCH = 10;
 
-export async function POST() {
+async function POSTHandler() {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) {
@@ -46,3 +47,5 @@ export async function POST() {
 
   return NextResponse.json({ mirrored, remaining: pendingCount - mirrored });
 }
+
+export const POST = withErrors(POSTHandler);

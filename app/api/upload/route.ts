@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadCover, deleteCover } from "@/lib/covers";
+import { withErrors } from "@/lib/api-errors";
 
 // Extension is derived from the verified MIME type, never from the client's filename.
 const ALLOWED_TYPES = new Map([
@@ -19,7 +20,7 @@ const ALLOWED_FOLDERS = new Set([
   "comic-publishers", "comic-universes", "comic-titles", "comic-issues",
 ]);
 
-export async function POST(req: NextRequest) {
+async function POSTHandler(req: NextRequest) {
   let form: FormData;
   try {
     form = await req.formData();
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
+async function DELETEHandler(req: NextRequest) {
   const path = req.nextUrl.searchParams.get("path");
   if (!path) {
     return NextResponse.json({ error: "path is required" }, { status: 400 });
@@ -77,3 +78,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Delete failed" }, { status: 502 });
   }
 }
+
+export const POST = withErrors(POSTHandler);
+export const DELETE = withErrors(DELETEHandler);

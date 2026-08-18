@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { computeCarryover } from "@/lib/finances";
+import { getCarryover } from "@/lib/finances";
 import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 import { parseMonthParams } from "@/lib/month-params";
+import { withErrors } from "@/lib/api-errors";
 
-export async function GET(
+async function GETHandler(
   _request: Request,
   { params }: { params: Promise<{ year: string; month: string }> }
 ) {
@@ -14,7 +15,7 @@ export async function GET(
   }
   const { year, month } = parsed;
 
-  const [config, expenses, income, subscriptions, carryover] = await Promise.all([
+  const [config, expenses, income, subscriptions] = await Promise.all([
     db.financeConfig.upsert({
       where: { id: "global" },
       create: { id: "global", monthlyBudget: 0 },
@@ -23,8 +24,8 @@ export async function GET(
     db.expense.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
     db.additionalIncome.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
     db.subscription.findMany({ orderBy: { createdAt: "asc" } }),
-    computeCarryover(year, month),
   ]);
+  const carryover = await getCarryover(year, month, config.monthlyBudget);
 
   const subscriptionTotal = subscriptions
     .filter((s) => isSubscriptionActiveInMonth(s, year, month))
@@ -47,3 +48,5 @@ export async function GET(
     remaining,
   });
 }
+
+export const GET = withErrors(GETHandler);

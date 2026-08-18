@@ -22,11 +22,12 @@ export default function TvSeriesManager({ allItems }: { allItems: Item[] }) {
   const [activeSeries, setActiveSeries] = useState<Series | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [assignLoading, setAssignLoading] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
 
   function close() {
     setModal(null);
     setNewName(""); setAddError(null);
-    setActiveSeries(null); setSelected(new Set());
+    setActiveSeries(null); setSelected(new Set()); setAssignError(null);
   }
 
   async function openAssign() {
@@ -63,24 +64,37 @@ export default function TvSeriesManager({ allItems }: { allItems: Item[] }) {
   async function submitAssign() {
     if (!activeSeries) return;
     setAssignLoading(true);
-    await Promise.all(
+    setAssignError(null);
+    // allSettled, not all: one rejection used to orphan the remaining in-flight PATCHes as
+    // unhandled rejections and leave the modal stuck open. And since fetch only rejects on
+    // network failure, HTTP errors must be counted explicitly, or a half-failed batch
+    // reported success and refreshed to stale data.
+    const results = await Promise.allSettled(
       allItems
-        .filter(item => {
+        .filter((item) => {
           const shouldBe = selected.has(item.id);
           const isNow = item.seriesName === activeSeries.name;
           return shouldBe !== isNow;
         })
-        .map(item =>
+        .map((item) =>
           fetch(`/api/tv/${item.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ seriesName: selected.has(item.id) ? activeSeries.name : null }),
+          }).then((res) => {
+            if (!res.ok) throw new Error(String(res.status));
+            return res;
           })
         )
     );
+    const failed = results.filter((r) => r.status === "rejected").length;
     setAssignLoading(false);
-    close();
     router.refresh();
+    if (failed > 0) {
+      setAssignError(`${failed} item${failed === 1 ? "" : "s"} could not be updated.`);
+      return;
+    }
+    close();
   }
 
   return (
@@ -208,6 +222,7 @@ export default function TvSeriesManager({ allItems }: { allItems: Item[] }) {
                       </div>
                     </div>
                     <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0">
+                      {assignError && <p className="text-red-600 text-xs mb-2">{assignError}</p>}
                       <button
                         onClick={submitAssign}
                         disabled={assignLoading}

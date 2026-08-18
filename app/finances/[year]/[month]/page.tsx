@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { computeCarryover } from "@/lib/finances";
+import { getCarryover } from "@/lib/finances";
 import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 import MonthNav from "@/components/finances/MonthNav";
 import BudgetSummary from "@/components/finances/BudgetSummary";
@@ -7,17 +7,19 @@ import ExpenseSection from "@/components/finances/ExpenseSection";
 import IncomeSection from "@/components/finances/IncomeSection";
 import SubscriptionSection from "@/components/finances/SubscriptionSection";
 import BudgetConfig from "@/components/finances/BudgetConfig";
+import { notFound } from "next/navigation";
+import { parseMonthParams } from "@/lib/month-params";
 
 interface PageProps {
   params: Promise<{ year: string; month: string }>;
 }
 
 export default async function FinancesMonthPage({ params }: PageProps) {
-  const { year: yearStr, month: monthStr } = await params;
-  const year = parseInt(yearStr, 10);
-  const month = parseInt(monthStr, 10);
+  const parsed = parseMonthParams(await params);
+  if (!parsed) notFound();
+  const { year, month } = parsed;
 
-  const [config, expenses, income, subscriptions, carryover] = await Promise.all([
+  const [config, expenses, income, subscriptions] = await Promise.all([
     db.financeConfig.upsert({
       where: { id: "global" },
       create: { id: "global", monthlyBudget: 0 },
@@ -26,8 +28,8 @@ export default async function FinancesMonthPage({ params }: PageProps) {
     db.expense.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
     db.additionalIncome.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
     db.subscription.findMany({ orderBy: { createdAt: "asc" } }),
-    computeCarryover(year, month),
   ]);
+  const carryover = await getCarryover(year, month, config.monthlyBudget);
 
   const subscriptionTotal = subscriptions
     .filter((s) => isSubscriptionActiveInMonth(s, year, month))
