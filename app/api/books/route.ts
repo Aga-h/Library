@@ -2,18 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const createBookSchema = z.object({
   title: z.string().min(1, "Title is required"),
   author: z.string().min(1, "Author is required"),
   status: z.enum(["READ", "READING", "WANT_TO_READ", "DNF"]).default("WANT_TO_READ"),
   owned: z.boolean().default(false),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .default("ENGLISH"),
   publisher: z.string().optional(),
   pages: z.number().int().positive("Pages must be a positive number"),

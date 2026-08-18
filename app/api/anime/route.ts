@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const createAnimeSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -14,12 +15,7 @@ const createAnimeSchema = z.object({
   episodeDuration: z.number().int().default(24),
   season: z.enum(["WINTER", "SPRING", "SUMMER", "FALL"]).optional(),
   year: z.number().int().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .default("JAPANESE"),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),

@@ -96,33 +96,18 @@ const getDashboardData = unstable_cache(
       },
     ];
 
-    const [bookCovers, animeCovers, movieCovers, tvCovers, gameCovers, mangaCovers, comicCovers, articleCovers] = await Promise.all([
-      db.book.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.anime.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.movie.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.tvShow.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.game.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.manga.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      // Title covers only, never issue covers — DashboardClient preloads every URL in this list
-      // with new Image(), so a few hundred issues would fire a request storm on dashboard entry.
-      db.comicTitle.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-      db.article.findMany({ where: { coverImage: { not: null } }, select: { coverImage: true }, orderBy: { createdAt: "desc" } }),
-    ]);
-
-    const coverImages = [
-      ...bookCovers, ...animeCovers, ...movieCovers, ...tvCovers,
-      ...gameCovers, ...mangaCovers, ...comicCovers, ...articleCovers,
-    ].map(r => r.coverImage as string);
-
-    return { sections, totalMinutes, coverImages };
+    return { sections, totalMinutes };
   },
   ["library-dashboard-stats"],
   { tags: ["library-stats"], revalidate: 3600 }
 );
 
+// The dashboard needs a live database, so it cannot be prerendered at build time. The real
+// win here is unstable_cache + revalidateTag("library-stats"), which already avoids re-running
+// these queries between mutations.
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { sections, totalMinutes, coverImages } = await getDashboardData();
-  return <DashboardClient sections={sections} totalMinutes={totalMinutes} coverImages={coverImages} />;
+  const { sections, totalMinutes } = await getDashboardData();
+  return <DashboardClient sections={sections} totalMinutes={totalMinutes} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -51,18 +51,10 @@ function slicePath(cx: number, cy: number, outerR: number, innerR: number, start
   return `M ${o1.x.toFixed(2)} ${o1.y.toFixed(2)} A ${outerR} ${outerR} 0 ${large} 1 ${o2.x.toFixed(2)} ${o2.y.toFixed(2)} L ${i2.x.toFixed(2)} ${i2.y.toFixed(2)} A ${innerR} ${innerR} 0 ${large} 0 ${i1.x.toFixed(2)} ${i1.y.toFixed(2)} Z`;
 }
 
-export default function DashboardClient({ sections, totalMinutes, coverImages }: { sections: SectionData[]; totalMinutes: number; coverImages: string[] }) {
+export default function DashboardClient({ sections, totalMinutes }: { sections: SectionData[]; totalMinutes: number }) {
   const [view, setView] = useState<"grid" | "chart">("grid");
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    for (const url of coverImages) {
-      const img = new Image();
-      img.src = url;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div>

@@ -1,5 +1,3 @@
-"use client";
-
 import { Thermometer, Wind, Droplets, Info, CheckCircle, XCircle } from "lucide-react";
 import type { WashRecommendation } from "@/lib/wash-calculator";
 

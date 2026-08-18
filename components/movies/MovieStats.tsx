@@ -1,10 +1,7 @@
-"use client";
-
 import { Film, Clock, Eye } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface Movie {
-  id: string;
   status: string;
   runtime: number;
   timesRewatched: number;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const updateArticleSchema = z.object({
   title: z.string().min(1).optional(),
@@ -10,12 +11,7 @@ const updateArticleSchema = z.object({
   url: z.string().url().optional().nullable(),
   status: z.enum(["READ", "WANT_TO_READ"]).optional(),
   wordCount: z.number().int().positive().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .optional(),
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),

@@ -2,18 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const updateBookSchema = z.object({
   title: z.string().min(1).optional(),
   author: z.string().min(1).optional(),
   status: z.enum(["READ", "READING", "WANT_TO_READ", "DNF"]).optional(),
   owned: z.boolean().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .optional(),
   publisher: z.string().optional().nullable(),
   pages: z.number().int().positive().optional(),

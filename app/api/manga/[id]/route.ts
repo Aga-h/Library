@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const updateMangaSchema = z.object({
   title: z.string().min(1).optional(),
@@ -15,12 +16,7 @@ const updateMangaSchema = z.object({
   volumesRead: z.number().int().optional(),
   totalChapters: z.number().int().optional().nullable(),
   chaptersRead: z.number().int().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .optional(),
   format: z.enum(["MANGA", "MANHWA", "MANHUA"]).optional(),
   coverImage: z.string().url().optional().nullable().or(z.literal("")),

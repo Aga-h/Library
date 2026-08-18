@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
-import { LANGUAGE_VALUES } from "@/lib/comics";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const createTitleSchema = z.object({
   name: z.string().min(1, "Name is required"),

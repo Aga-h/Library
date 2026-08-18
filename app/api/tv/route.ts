@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 const createTvShowSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -14,12 +15,7 @@ const createTvShowSchema = z.object({
   episodesWatched: z.number().int().default(0),
   episodeRuntime: z.number().int().default(45),
   year: z.number().int().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .default("ENGLISH"),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),

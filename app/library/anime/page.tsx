@@ -3,13 +3,15 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import type { AnimeStatus, Language } from "@prisma/client";
 import { db } from "@/lib/db";
 import AnimeStats from "@/components/anime/AnimeStats";
 import AnimeCard from "@/components/anime/AnimeCard";
 import AnimeFilters from "@/components/anime/AnimeFilters";
 import MirrorCoversButton from "@/components/games/MirrorCoversButton";
 import GridSkeleton from "@/components/ui/GridSkeleton";
+import { ANIME_STATUS_VALUES } from "@/lib/constants/enums";
+import { asEnum } from "@/lib/enum-params";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 
 interface PageProps { searchParams: Promise<{ status?: string; language?: string; q?: string }> }
 
@@ -40,33 +42,32 @@ export default async function AnimePage({ searchParams }: PageProps) {
 }
 
 async function AnimeContent({ status, language, q }: { status?: string; language?: string; q?: string }) {
-  const [all, filteredMaybe] = await Promise.all([
-    db.anime.findMany({ orderBy: { createdAt: "desc" } }),
-    (status || language || q)
-      ? db.anime.findMany({
-          where: {
-            ...(status   ? { status: status as AnimeStatus } : {}),
-            ...(language ? { language: language as Language } : {}),
-            ...(q ? { OR: [
-              { title:  { contains: q, mode: "insensitive" } },
-              { studio: { contains: q, mode: "insensitive" } },
-            ]} : {}),
-          },
-          select: {
-            id: true, title: true, studio: true, status: true,
-            episodes: true, episodesWatched: true, episodeDuration: true,
-            season: true, year: true, language: true,
-            coverImage: true, rating: true, timesRewatched: true,
-          },
-          orderBy: { createdAt: "desc" },
-        })
-      : Promise.resolve(null),
+  const [statsRows, filtered] = await Promise.all([
+    // Stats-only projection: fetching every column pulled unbounded `notes` for every
+    // row just to compute a handful of counters.
+    db.anime.findMany({ select: { status: true, episodes: true, episodesWatched: true, episodeDuration: true, timesRewatched: true }, orderBy: { createdAt: "desc" } }),
+    db.anime.findMany({
+      where: {
+        ...(asEnum(status, ANIME_STATUS_VALUES) ? { status: asEnum(status, ANIME_STATUS_VALUES) } : {}),
+        ...(asEnum(language, LANGUAGE_VALUES) ? { language: asEnum(language, LANGUAGE_VALUES) } : {}),
+        ...(q ? { OR: [
+          { title:  { contains: q, mode: "insensitive" } },
+          { studio: { contains: q, mode: "insensitive" } },
+        ]} : {}),
+      },
+      select: {
+        id: true, title: true, studio: true, status: true,
+        episodes: true, episodesWatched: true, episodeDuration: true,
+        season: true, year: true, language: true,
+        coverImage: true, rating: true, timesRewatched: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
-  const filtered = filteredMaybe ?? all;
 
   return (
     <>
-      <AnimeStats anime={all} />
+      <AnimeStats anime={statsRows} />
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-gray-400 text-lg font-medium">No anime found</p>

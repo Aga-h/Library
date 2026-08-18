@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 import { BookMarked, Shirt, Wallet, ArrowRight } from "lucide-react";
 

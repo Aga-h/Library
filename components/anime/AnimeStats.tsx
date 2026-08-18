@@ -1,10 +1,9 @@
-"use client";
-
 import { Tv2, Clock, CheckCircle2 } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface Anime {
   status: string;
+  episodes: number | null;
   episodesWatched: number;
   episodeDuration: number;
   timesRewatched: number;
@@ -20,7 +19,10 @@ export default function AnimeStats({ anime }: { anime: Anime[] }) {
   const toMinutes = (a: Anime) => a.episodesWatched * a.episodeDuration * (a.timesRewatched + 1);
 
   const watchedMinutes = [...watching, ...completed].reduce((s, a) => s + toMinutes(a), 0);
-  const remainingMinutes = planTo.reduce((s, a) => s + toMinutes(a), 0);
+  // Episodes still to watch. toMinutes() counts episodesWatched, which is 0 for anything
+  // PLAN_TO_WATCH, so this stat was structurally always "—".
+  const remainingMinutes = [...planTo, ...watching, ...onHold].reduce(
+    (s, a) => s + Math.max(0, (a.episodes ?? 0) - a.episodesWatched) * a.episodeDuration, 0);
   const seasonsWatched = watching.length + completed.length;
 
   return (

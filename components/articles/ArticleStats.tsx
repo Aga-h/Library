@@ -1,5 +1,3 @@
-"use client";
-
 import { FileText, Clock } from "lucide-react";
 import { calculateArticleTime, formatReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";

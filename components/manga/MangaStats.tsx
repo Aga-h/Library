@@ -1,10 +1,8 @@
-"use client";
-
 import { BookMarked, Clock } from "lucide-react";
 import { calculateMangaTime, formatReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 
-interface Manga { status: string; chaptersRead: number; volumesRead: number; language: string; timesReread: number; }
+interface Manga { status: string; chaptersRead: number; totalChapters: number | null; volumesRead: number; language: string; timesReread: number; }
 
 export default function MangaStats({ manga }: { manga: Manga[] }) {
   const reading   = manga.filter((m) => m.status === "READING");
@@ -16,7 +14,11 @@ export default function MangaStats({ manga }: { manga: Manga[] }) {
   const totalChapters = [...reading, ...completed].reduce((s, m) => s + m.chaptersRead, 0);
   const totalVolumes  = [...reading, ...completed].reduce((s, m) => s + m.volumesRead, 0);
   const readMinutes   = [...reading, ...completed].reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes * (m.timesReread + 1), 0);
-  const remainMinutes = planTo.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes, 0);
+  // Chapters still to read, not chapters already read. Summing chaptersRead over PLAN_TO_READ
+  // items is always ~0, which is why this stat used to render "—" permanently.
+  const unread = (m: Manga) => Math.max(0, (m.totalChapters ?? 0) - m.chaptersRead);
+  const remainMinutes = [...planTo, ...reading, ...onHold].reduce(
+    (s, m) => s + calculateMangaTime(unread(m), m.language as LanguageKey).minutes, 0);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">

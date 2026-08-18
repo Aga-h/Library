@@ -1,5 +1,3 @@
-"use client";
-
 import { Tv2, Clock, CheckCircle2 } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
@@ -21,7 +19,11 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
   const toMinutes = (s: TvShow) => s.episodesWatched * s.episodeRuntime * (s.timesRewatched + 1);
 
   const watchedMinutes = [...watching, ...completed].reduce((sum, s) => sum + toMinutes(s), 0);
-  const remainingMinutes = planTo.reduce((sum, s) => sum + toMinutes(s), 0);
+  // Episodes still to watch. toMinutes() counts episodesWatched, which is 0 for anything
+  // PLAN_TO_WATCH, so this stat was structurally always "—". No rewatch multiplier here:
+  // rewatch count is meaningless for content you have not watched yet.
+  const remainingMinutes = [...planTo, ...watching, ...onHold].reduce(
+    (sum, s) => sum + Math.max(0, (s.totalEpisodes ?? 0) - s.episodesWatched) * s.episodeRuntime, 0);
   const seasonsWatched = watching.length + completed.length;
 
   return (

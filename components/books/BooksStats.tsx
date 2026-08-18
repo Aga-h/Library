@@ -1,11 +1,8 @@
-"use client";
-
 import { BookOpen, BookMarked, Clock, Library } from "lucide-react";
 import { calculateReadingTime, formatReadingTime, sumReadingTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
 
 interface Book {
-  id: string;
   status: string;
   pages: number;
   language: string;

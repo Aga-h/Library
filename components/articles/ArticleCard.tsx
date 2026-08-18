@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { FileText, Clock, ExternalLink } from "lucide-react";
 import { calculateArticleTime } from "@/lib/reading-time";

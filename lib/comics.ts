@@ -1,12 +1,6 @@
 // Pure helpers shared by comics server pages, client components and API routes.
 // Must not import "@/lib/db" — client components import from here.
 
-export const LANGUAGE_VALUES = [
-  "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-  "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-  "JAPANESE", "CHINESE", "KOREAN",
-] as const;
-
 /** The shape every rollup needs from an issue. `timesReread` is required, not optional,
  *  so a page that forgets to select it fails to compile instead of silently under-reporting
  *  reading time. */
