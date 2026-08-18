@@ -27,11 +27,18 @@ const getDashboardData = unstable_cache(
     ]);
 
     // Comics no longer have a status enum — the hierarchy reports scalar counts instead.
-    const [comicTitleCount, comicIssueCount, comicReadCount] = await Promise.all([
+    const [comicTitleCount, comicIssueCount, comicReadAgg] = await Promise.all([
       db.comicTitle.count(),
       db.comicIssue.count(),
-      db.comicIssue.count({ where: { read: true } }),
+      db.comicIssue.aggregate({
+        where: { read: true },
+        _count: { _all: true },
+        _sum: { timesReread: true },
+      }),
     ]);
+    const comicReadCount = comicReadAgg._count._all;
+    // One time unit per pass through an issue: the first read plus every reread.
+    const comicReadUnits = comicReadCount + (comicReadAgg._sum.timesReread ?? 0);
 
     const [booksTime, animeTime, watchedMovies, tvTime, gamesAgg, mangaTime, articlesTime] = await Promise.all([
       db.book.findMany({ where: { status: { in: ["READ", "READING"] } }, select: { pages: true, language: true, timesReread: true } }),
@@ -49,7 +56,7 @@ const getDashboardData = unstable_cache(
     const tvMinutes       = tvTime.reduce((s, t) => s + t.episodesWatched * t.episodeRuntime * (t.timesRewatched + 1), 0);
     const gamesMinutes    = Math.round((gamesAgg._sum.hoursPlayed ?? 0) * 60);
     const mangaMinutes    = mangaTime.reduce((s, m) => s + calculateMangaTime(m.chaptersRead, m.language as LanguageKey).minutes * (m.timesReread + 1), 0);
-    const comicsMinutes   = calculateComicTime(comicReadCount, "ENGLISH").minutes;
+    const comicsMinutes   = calculateComicTime(comicReadUnits, "ENGLISH").minutes;
     const articlesMinutes = articlesTime.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes * (a.timesReread + 1), 0);
 
     const totalMinutes = booksMinutes + animeMinutes + moviesMinutes + tvMinutes + gamesMinutes + mangaMinutes + comicsMinutes + articlesMinutes;

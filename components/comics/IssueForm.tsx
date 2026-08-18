@@ -11,13 +11,14 @@ interface IssueFormData {
   owned: boolean;
   rating: string;
   releaseDate: string;
+  timesReread: string;
   coverImage: string;
   notes: string;
 }
 
 const DEFAULT: IssueFormData = {
   issueNumber: "", name: "", read: false, owned: false,
-  rating: "", releaseDate: "", coverImage: "", notes: "",
+  rating: "", releaseDate: "", timesReread: "0", coverImage: "", notes: "",
 };
 
 interface Props {
@@ -68,6 +69,7 @@ export default function IssueForm({
             owned: form.owned,
             rating: form.rating ? parseFloat(form.rating) : null,
             releaseDate: form.releaseDate || null,
+            timesReread: parseInt(form.timesReread, 10) || 0,
             coverImage: form.coverImage || null,
             notes: form.notes || null,
           }
@@ -79,6 +81,7 @@ export default function IssueForm({
             owned: form.owned,
             rating: form.rating ? parseFloat(form.rating) : undefined,
             releaseDate: form.releaseDate || undefined,
+            timesReread: parseInt(form.timesReread, 10) || 0,
             coverImage: form.coverImage || undefined,
             notes: form.notes || undefined,
           };
@@ -157,7 +160,7 @@ export default function IssueForm({
         </label>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Rating (1–10)">
           <input
             type="number"
@@ -177,6 +180,17 @@ export default function IssueForm({
             onChange={(e) => update("releaseDate", e.target.value)}
             className={inputCls}
           />
+        </Field>
+        <Field label="Times reread">
+          <select
+            value={form.timesReread}
+            onChange={(e) => update("timesReread", e.target.value)}
+            className={inputCls}
+          >
+            {Array.from({ length: 11 }, (_, i) => (
+              <option key={i} value={String(i)}>{i === 0 ? "Never" : `${i}×`}</option>
+            ))}
+          </select>
         </Field>
       </div>
 

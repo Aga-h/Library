@@ -13,6 +13,7 @@ const createIssueSchema = z.object({
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
   releaseDate: z.string().optional(),
+  timesReread: z.number().int().min(0).default(0),
   notes: z.string().optional(),
 });
 
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
         coverImage: data.coverImage || null,
         rating: data.rating ?? null,
         releaseDate,
+        timesReread: data.timesReread,
         notes: data.notes || null,
       },
     });

@@ -14,7 +14,10 @@ export default async function ComicsPage() {
     orderBy: { name: "asc" },
     include: {
       universes: {
-        select: { id: true, titles: { select: { id: true, issues: { select: { read: true } } } } },
+        select: {
+          id: true,
+          titles: { select: { id: true, issues: { select: { read: true, timesReread: true } } } },
+        },
       },
     },
   });
@@ -33,7 +36,8 @@ export default async function ComicsPage() {
 
   const totalIssues = rows.reduce((s, r) => s + r.progress.total, 0);
   const readIssues = rows.reduce((s, r) => s + r.progress.read, 0);
-  const minutes = calculateComicTime(readIssues, "ENGLISH").minutes;
+  const readUnits = rows.reduce((s, r) => s + r.progress.readUnits, 0);
+  const minutes = calculateComicTime(readUnits, "ENGLISH").minutes;
 
   return (
     <div>

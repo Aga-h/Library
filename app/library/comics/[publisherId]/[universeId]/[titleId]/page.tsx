@@ -85,10 +85,10 @@ export default async function TitlePage({ params }: PageProps) {
           { label: "Issues", value: progress.total },
           { label: "Read", value: progress.read },
           { label: "Owned", value: ownedCount },
-          { label: "Avg Rating", value: progress.avgRating ?? "—" },
+          { label: "Rereads", value: progress.rereads },
         ]}
         issuesRead={progress.read}
-        minutes={calculateComicTime(progress.read, title.language as LanguageKey).minutes}
+        minutes={calculateComicTime(progress.readUnits, title.language as LanguageKey).minutes}
       />
 
       {title.notes && (

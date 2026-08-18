@@ -277,7 +277,13 @@ status enum or a manual issue count, so the numbers cannot drift.
 | `coverImage` | String? | |
 | `rating` | Float? | 1–10 |
 | `releaseDate` | DateTime? | |
+| `timesReread` | Int | Default: 0. Tracked per issue, not per title |
 | `notes` | String? | |
+
+Reading time is computed from **read units**, not the read count: each read issue contributes
+`timesReread + 1` passes at 8.7 min each. `summarizeIssues` in `lib/comics.ts` returns this as
+`readUnits`, and the dashboard derives the same figure with a single
+`db.comicIssue.aggregate({ where: { read: true }, _count, _sum: { timesReread } })`.
 
 #### `Article`
 | Field | Type | Notes |

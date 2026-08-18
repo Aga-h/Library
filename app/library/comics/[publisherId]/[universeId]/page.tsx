@@ -24,7 +24,7 @@ export default async function UniversePage({ params }: PageProps) {
       publisher: true,
       titles: {
         orderBy: { name: "asc" },
-        include: { issues: { select: { read: true, rating: true } } },
+        include: { issues: { select: { read: true, rating: true, timesReread: true } } },
       },
     },
   });
@@ -88,7 +88,7 @@ export default async function UniversePage({ params }: PageProps) {
           { label: "Avg Rating", value: overall.avgRating ?? "—" },
         ]}
         issuesRead={overall.read}
-        minutes={calculateComicTime(overall.read, "ENGLISH").minutes}
+        minutes={calculateComicTime(overall.readUnits, "ENGLISH").minutes}
       />
 
       {universe.notes && (

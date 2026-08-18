@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BookOpen, Check, Package } from "lucide-react";
+import { BookOpen, Check, Package, Repeat } from "lucide-react";
 import { formatIssueNumber } from "@/lib/comics";
 
 interface Issue {
@@ -15,6 +15,7 @@ interface Issue {
   owned: boolean;
   coverImage: string | null;
   rating: number | null;
+  timesReread: number;
 }
 
 export default function IssueRow({ issue, href }: { issue: Issue; href: string }) {
@@ -54,6 +55,15 @@ export default function IssueRow({ issue, href }: { issue: Issue; href: string }
         </p>
         {issue.name && <p className="text-xs text-gray-500 truncate">{issue.name}</p>}
       </Link>
+
+      {issue.timesReread > 0 && (
+        <span
+          title={`Reread ${issue.timesReread}×`}
+          className="flex items-center gap-0.5 text-xs font-semibold text-gray-400 flex-shrink-0"
+        >
+          <Repeat className="w-3 h-3" />{issue.timesReread}
+        </span>
+      )}
 
       {issue.rating != null && (
         <span className="text-xs font-semibold text-amber-500 flex-shrink-0">★ {issue.rating}</span>

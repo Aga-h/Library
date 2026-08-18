@@ -12,6 +12,7 @@ const updateIssueSchema = z.object({
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),
   releaseDate: z.string().optional().nullable(),
+  timesReread: z.number().int().min(0).optional(),
   notes: z.string().optional().nullable(),
 });
 
@@ -64,6 +65,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         ...(data.coverImage !== undefined ? { coverImage: data.coverImage || null } : {}),
         ...(data.rating !== undefined ? { rating: data.rating ?? null } : {}),
         ...(releaseDate !== undefined ? { releaseDate } : {}),
+        ...(data.timesReread !== undefined ? { timesReread: data.timesReread } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
       },
     });

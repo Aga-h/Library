@@ -23,7 +23,9 @@ export default async function PublisherPage({ params }: PageProps) {
     include: {
       universes: {
         orderBy: { name: "asc" },
-        include: { titles: { select: { id: true, issues: { select: { read: true } } } } },
+        include: {
+          titles: { select: { id: true, issues: { select: { read: true, timesReread: true } } } },
+        },
       },
     },
   });
@@ -40,6 +42,7 @@ export default async function PublisherPage({ params }: PageProps) {
   const titleCount = rows.reduce((s, r) => s + r.titleCount, 0);
   const totalIssues = rows.reduce((s, r) => s + r.progress.total, 0);
   const readIssues = rows.reduce((s, r) => s + r.progress.read, 0);
+  const readUnits = rows.reduce((s, r) => s + r.progress.readUnits, 0);
 
   return (
     <div>
@@ -82,7 +85,7 @@ export default async function PublisherPage({ params }: PageProps) {
           { label: "Read", value: readIssues },
         ]}
         issuesRead={readIssues}
-        minutes={calculateComicTime(readIssues, "ENGLISH").minutes}
+        minutes={calculateComicTime(readUnits, "ENGLISH").minutes}
       />
 
       {publisher.notes && (
