@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronLeft,
   BookOpen,
   Clock,
   Globe,
@@ -13,6 +12,7 @@ import {
 import { db } from "@/lib/db";
 import { calculateReadingTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteBookButton from "@/components/books/DeleteBookButton";
 
 interface PageProps {
@@ -28,7 +28,10 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const book = await db.book.findUnique({ where: { id } });
+  const book = await db.book.findUnique({
+    where: { id },
+    include: { series: { include: { universe: true } } },
+  });
   if (!book) notFound();
 
   const status = STATUS_STYLES[book.status] ?? STATUS_STYLES.WANT_TO_READ;
@@ -38,13 +41,17 @@ export default async function BookDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link
-        href="/library/books"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Back to Books
-      </Link>
+      <Breadcrumb
+        rootHref="/library/books"
+        rootLabel="Books"
+        crumbs={[
+          ...(book.series?.universe
+            ? [{ label: book.series.universe.name, href: `/library/books/u/${book.series.universe.id}` }]
+            : []),
+          ...(book.series ? [{ label: book.series.name, href: `/library/books/s/${book.series.id}` }] : []),
+          { label: book.title },
+        ]}
+      />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         {/* Cover + header */}

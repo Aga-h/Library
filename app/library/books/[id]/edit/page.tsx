@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
+import { bookSeriesOptions } from "@/lib/series-options";
 import BookForm from "@/components/books/BookForm";
 
 interface PageProps {
@@ -12,8 +13,9 @@ interface PageProps {
 
 export default async function EditBookPage({ params }: PageProps) {
   const { id } = await params;
-  const [book, authorOpts, publisherOpts] = await Promise.all([
+  const [book, seriesOpts, authorOpts, publisherOpts] = await Promise.all([
     db.book.findUnique({ where: { id } }),
+    bookSeriesOptions(),
     db.book.findMany({ where: { author: { not: "" } }, select: { author: true }, distinct: ["author"], orderBy: { author: "asc" } })
       .then(r => r.map(x => x.author)),
     db.book.findMany({ where: { publisher: { not: null } }, select: { publisher: true }, distinct: ["publisher"], orderBy: { publisher: "asc" } })
@@ -36,11 +38,13 @@ export default async function EditBookPage({ params }: PageProps) {
         <p className="text-sm text-gray-500 mb-6">{book.title}</p>
         <BookForm
           mode="edit"
+          seriesOptions={seriesOpts}
           authorOptions={authorOpts}
           publisherOptions={publisherOpts}
           initialData={{
             id: book.id,
             title: book.title,
+            seriesId: book.seriesId ?? "",
             author: book.author,
             owned: book.owned,
             language: book.language,

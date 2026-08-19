@@ -9,9 +9,11 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
+import SeriesSelect, { type SeriesOption } from "@/components/ui/SeriesSelect";
 
 interface BookFormData {
   title: string;
+  seriesId: string;
   author: string;
   owned: boolean;
   language: string;
@@ -25,6 +27,7 @@ interface BookFormData {
 }
 
 interface BookFormProps {
+  seriesOptions?: SeriesOption[];
   initialData?: Partial<BookFormData & { id: string }>;
   mode: "create" | "edit";
   authorOptions?: string[];
@@ -32,6 +35,7 @@ interface BookFormProps {
 }
 
 const DEFAULT_DATA: BookFormData = {
+  seriesId: "",
   pagesRead: "0",
   title: "",
   author: "",
@@ -47,7 +51,7 @@ const DEFAULT_DATA: BookFormData = {
 
 const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
 
-export default function BookForm({ initialData, mode, authorOptions, publisherOptions }: BookFormProps) {
+export default function BookForm({ seriesOptions, initialData, mode, authorOptions, publisherOptions }: BookFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<BookFormData>({
     ...DEFAULT_DATA,
@@ -88,6 +92,7 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
       owned: form.owned,
       language: form.language,
       publisher: form.publisher || clearable,
+      seriesId: form.seriesId || clearable,
       pages: parseInt(form.pages, 10),
     pagesRead: parseInt(form.pagesRead, 10) || 0,
       coverImage: form.coverImage || clearable,
@@ -202,6 +207,14 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
           onChange={v => update("publisher", v)}
           options={publisherOptions ?? []}
           placeholder="e.g. Penguin Books"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <SeriesSelect
+          value={form.seriesId}
+          onChange={(v) => update("seriesId", v)}
+          options={seriesOptions ?? []}
         />
       </div>
 

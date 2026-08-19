@@ -19,6 +19,7 @@ const updateBookSchema = z.object({
   rating: z.number().min(1).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
   timesReread: z.number().int().min(0).optional(),
+  seriesId: z.string().optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -49,6 +50,12 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
       { error: "Validation failed", issues: result.error.issues },
       { status: 400 }
     );
+  }
+
+  // A bad series id would otherwise surface as a foreign-key 500.
+  if (result.data.seriesId) {
+    const series = await db.bookSeries.findUnique({ where: { id: result.data.seriesId }, select: { id: true } });
+    if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
   }
 
   const updated = await db.book.update({

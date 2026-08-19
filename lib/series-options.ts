@@ -19,3 +19,7 @@ export async function tvSeriesOptions(): Promise<SeriesOption[]> {
 export async function animeSeriesOptions(): Promise<SeriesOption[]> {
   return shape(await db.animeSeries.findMany({ select: SELECT, orderBy: ORDER }));
 }
+
+export async function bookSeriesOptions(): Promise<SeriesOption[]> {
+  return shape(await db.bookSeries.findMany({ select: SELECT, orderBy: ORDER }));
+}

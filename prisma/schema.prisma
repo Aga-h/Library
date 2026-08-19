@@ -23,12 +23,39 @@ model Book {
   rating       Float?
   notes        String?
   timesReread  Int        @default(0)
+  seriesId     String?
+  series       BookSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  @@index([seriesId])
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
   @@index([language, createdAt(sort: Desc)])
+}
+
+model BookSeries {
+  id         String        @id @default(cuid())
+  name       String
+  universeId String?
+  universe   BookUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  books      Book[]
+
+  // SetNull, not Cascade: deleting a universe must not delete the books inside it.
+  @@unique([universeId, name])
+  @@index([universeId])
+}
+
+model BookUniverse {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  notes     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  series    BookSeries[]
 }
 
 enum BookStatus {
