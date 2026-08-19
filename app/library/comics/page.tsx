@@ -1,13 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { BookOpen, Clock, Plus } from "lucide-react";
 import { db } from "@/lib/db";
 import { foldAggs, pluralize, EMPTY_AGG } from "@/lib/comics";
 import { issueAggsByTitle } from "@/lib/comics-agg";
-import { calculateComicTime } from "@/lib/reading-time";
-import ComicEntityCard from "@/components/comics/ComicEntityCard";
-import ComicLevelStats from "@/components/comics/ComicLevelStats";
+import { calculateComicTime, formatReadingTime } from "@/lib/reading-time";
+import EntityCard from "@/components/ui/EntityCard";
+import LevelStats from "@/components/ui/LevelStats";
 import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
 
 export default async function ComicsPage() {
@@ -26,7 +26,6 @@ export default async function ComicsPage() {
     return {
       id: p.id,
       name: p.name,
-      coverImage: p.coverImage,
       universeCount: p.universes.length,
       titleCount: titles.length,
       progress: foldAggs(titles.map((t) => aggs.get(t.id) ?? EMPTY_AGG)),
@@ -58,7 +57,7 @@ export default async function ComicsPage() {
         </div>
       </div>
 
-      <ComicLevelStats
+      <LevelStats
         heading="Comics Stats"
         stats={[
           { label: "Publishers", value: rows.length },
@@ -66,8 +65,10 @@ export default async function ComicsPage() {
           { label: "Comics", value: rows.reduce((s, r) => s + r.titleCount, 0) },
           { label: "Issues", value: totalIssues },
         ]}
-        issuesRead={readIssues}
-        minutes={minutes}
+        footer={[
+          { icon: <BookOpen className="w-4 h-4" />, label: "Issues Read", value: readIssues > 0 ? `${readIssues} issues` : "—" },
+          { icon: <Clock className="w-4 h-4" />, label: "Time Read", value: minutes > 0 ? formatReadingTime(minutes) : "—" },
+        ]}
       />
 
       {rows.length === 0 ? (
@@ -80,11 +81,10 @@ export default async function ComicsPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {rows.map((p) => (
-            <ComicEntityCard
+            <EntityCard
               key={p.id}
               href={`/library/comics/${p.id}`}
               name={p.name}
-              coverImage={p.coverImage}
               meta={`${pluralize(p.universeCount, "universe")} · ${pluralize(p.titleCount, "comic")}`}
               progress={p.progress}
             />

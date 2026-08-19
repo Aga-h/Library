@@ -6,8 +6,8 @@ import Image from "next/image";
 import { BookOpen, Pencil, Calendar, Check, Package, Repeat } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatIssueNumber } from "@/lib/comics";
-import ComicBreadcrumb from "@/components/comics/ComicBreadcrumb";
-import DeleteComicEntityButton from "@/components/comics/DeleteComicEntityButton";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 
 interface PageProps {
   params: Promise<{ publisherId: string; universeId: string; titleId: string; issueId: string }>;
@@ -34,7 +34,9 @@ export default async function IssueDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <ComicBreadcrumb
+      <Breadcrumb
+        rootHref="/library/comics"
+        rootLabel="Comics"
         crumbs={[
           { label: issue.comicTitle.universe.publisher.name, href: `/library/comics/${publisherId}` },
           { label: issue.comicTitle.universe.name, href: `/library/comics/${publisherId}/${universeId}` },
@@ -67,7 +69,7 @@ export default async function IssueDetailPage({ params }: PageProps) {
                 >
                   <Pencil className="w-3.5 h-3.5" /> Edit
                 </Link>
-                <DeleteComicEntityButton
+                <DeleteEntityButton
                   apiPath={`/api/comics/issues/${issue.id}`}
                   redirectTo={base}
                 />

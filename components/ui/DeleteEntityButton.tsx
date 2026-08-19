@@ -13,7 +13,7 @@ interface Props {
   warning?: string;
 }
 
-export default function DeleteComicEntityButton({ apiPath, redirectTo, warning }: Props) {
+export default function DeleteEntityButton({ apiPath, redirectTo, warning }: Props) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -21,6 +21,7 @@ const createTvShowSchema = z.object({
   notes: z.string().optional(),
   timesRewatched: z.number().int().min(0).default(0),
   seriesName: z.string().optional(),
+  seriesId: z.string().optional().nullable(),
 });
 
 async function GETHandler(request: NextRequest) {

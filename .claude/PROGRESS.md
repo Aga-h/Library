@@ -31,7 +31,16 @@
       write, status dropdown removed, Dropped/On Hold/DNF deleted. Books gained `pagesRead`,
       manga gained a *still releasing* flag. 127 unit assertions + 11 database-level API checks.
 
+- [x] **Phase 1 of the hierarchy work** — shared `ui/` components (Breadcrumb, EntityCard,
+      LevelStats, DeleteEntityButton, HierarchyForm) extracted from comics; comic publishers,
+      universes and titles lost their images; TV gained Universe → Series → Season with the
+      `seriesName` backfill; Seasons Watched replaced by Episodes Watched. **On branch
+      `claude/hierarchy-phase-1`, NOT merged** — waiting on migration 004.
+
 ## Next
+
+- [ ] **Phases 2–4 of the hierarchy work**: anime (same shape as TV), books
+      (Universe → Series → Book), movies (Universe → Movie, no series level).
 
 Three items were scoped in the audit but not implemented. In rough value order:
 
@@ -52,6 +61,9 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **PRODUCTION WAS BROKEN** by deploying 003-dependent code before the SQL ran. Books and manga
   threw `The column Book.pagesRead does not exist`. Combined 002+003 SQL was handed over in chat.
   **Never push schema-dependent code again until the migration is confirmed applied.**
+- **Run `prisma/manual-migrations/004-tv-hierarchy-and-comic-covers.sql`** before merging
+  `claude/hierarchy-phase-1`. Phase 1 is deliberately parked on a side branch so it cannot
+  deploy ahead of its schema.
 - **Run `prisma/manual-migrations/003-derived-status.sql`** — until then the app expects enum
   values and columns the database does not have yet, so Books/TV/Anime/Manga writes will fail.
   It aborts harmlessly if any row still uses DROPPED/ON_HOLD/DNF.

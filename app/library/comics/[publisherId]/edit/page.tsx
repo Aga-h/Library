@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
-import ComicNameForm from "@/components/comics/ComicNameForm";
+import HierarchyForm from "@/components/ui/HierarchyForm";
 
 interface PageProps {
   params: Promise<{ publisherId: string }>;
@@ -28,16 +28,14 @@ export default async function EditPublisherPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Publisher</h1>
         <p className="text-sm text-gray-500 mb-6">{publisher.name}</p>
-        <ComicNameForm
+        <HierarchyForm
           mode="edit"
           apiBase="/api/comics/publishers"
           entityId={publisher.id}
           redirectTo="/library/comics"
           entityLabel="Publisher"
-          imageFolder="comic-publishers"
           initialData={{
             name: publisher.name,
-            coverImage: publisher.coverImage ?? "",
             notes: publisher.notes ?? "",
           }}
         />

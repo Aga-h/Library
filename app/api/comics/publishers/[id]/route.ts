@@ -7,7 +7,6 @@ import { withErrors } from "@/lib/api-errors";
 
 const updatePublisherSchema = z.object({
   name: z.string().min(1).optional(),
-  coverImage: z.string().url().optional().nullable().or(z.literal("")),
   notes: z.string().optional().nullable(),
 });
 
@@ -45,7 +44,6 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
       where: { id },
       data: {
         ...(data.name !== undefined ? { name: data.name.trim() } : {}),
-        ...(data.coverImage !== undefined ? { coverImage: data.coverImage || null } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
       },
     });

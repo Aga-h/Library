@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import ComicNameForm from "@/components/comics/ComicNameForm";
+import HierarchyForm from "@/components/ui/HierarchyForm";
 
 export default function NewPublisherPage() {
   return (
@@ -16,12 +16,11 @@ export default function NewPublisherPage() {
 
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Add Publisher</h1>
-        <ComicNameForm
+        <HierarchyForm
           mode="create"
           apiBase="/api/comics/publishers"
           redirectTo="/library/comics"
           entityLabel="Publisher"
-          imageFolder="comic-publishers"
           namePlaceholder="e.g. Marvel Comics"
         />
       </div>

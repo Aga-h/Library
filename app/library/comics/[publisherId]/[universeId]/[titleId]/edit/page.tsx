@@ -62,7 +62,6 @@ export default async function EditTitlePage({ params }: PageProps) {
             author: title.author ?? "",
             artist: title.artist ?? "",
             language: title.language,
-            coverImage: title.coverImage ?? "",
             notes: title.notes ?? "",
           }}
         />

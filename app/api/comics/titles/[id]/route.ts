@@ -11,7 +11,6 @@ const updateTitleSchema = z.object({
   author: z.string().optional().nullable(),
   artist: z.string().optional().nullable(),
   language: z.enum(LANGUAGE_VALUES).optional(),
-  coverImage: z.string().url().optional().nullable().or(z.literal("")),
   notes: z.string().optional().nullable(),
 });
 
@@ -52,7 +51,6 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
         ...(data.author !== undefined ? { author: data.author || null } : {}),
         ...(data.artist !== undefined ? { artist: data.artist || null } : {}),
         ...(data.language !== undefined ? { language: data.language } : {}),
-        ...(data.coverImage !== undefined ? { coverImage: data.coverImage || null } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
       },
     });

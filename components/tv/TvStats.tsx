@@ -22,7 +22,9 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
   // rewatch count is meaningless for content you have not watched yet.
   const remainingMinutes = [...planTo, ...watching].reduce(
     (sum, s) => sum + Math.max(0, (s.totalEpisodes ?? 0) - s.episodesWatched) * s.episodeRuntime, 0);
-  const seasonsWatched = watching.length + completed.length;
+  // Every row is one season, so counting rows called them seasons watched — which
+  // the season cards already show. Episodes watched is the number that was missing.
+  const episodesWatched = shows.reduce((sum, x) => sum + x.episodesWatched, 0);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
@@ -37,7 +39,8 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
-        <TimeStat icon={<CheckCircle2 className="w-4 h-4" />} label="Seasons Watched" value={seasonsWatched > 0 ? `${seasonsWatched}` : "—"} />
+        <TimeStat icon={<CheckCircle2 className="w-4 h-4" />} label="Episodes Watched"
+          value={episodesWatched > 0 ? `${episodesWatched} episodes` : "—"} />
         <TimeStat
           icon={<Clock className="w-4 h-4" />}
           label="Time Watched"

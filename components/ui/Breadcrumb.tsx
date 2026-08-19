@@ -7,14 +7,21 @@ export interface Crumb {
   href?: string;
 }
 
-export default function ComicBreadcrumb({ crumbs }: { crumbs: Crumb[] }) {
+interface Props {
+  rootHref: string;
+  rootLabel: string;
+  crumbs: Crumb[];
+}
+
+export default function Breadcrumb({ rootHref, rootLabel, crumbs }: Props) {
   return (
     <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6 flex-wrap">
-      <Link href="/library/comics" className="hover:text-gray-800 transition-colors">
-        Comics
+      <Link href={rootHref} className="hover:text-gray-800 transition-colors">
+        {rootLabel}
       </Link>
-      {crumbs.map((crumb) => (
-        <span key={crumb.label} className="flex items-center gap-1.5">
+      {crumbs.map((crumb, i) => (
+        // Index, not label — two levels can legitimately share a name.
+        <span key={`${i}-${crumb.label}`} className="flex items-center gap-1.5">
           <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
           {crumb.href ? (
             <Link href={crumb.href} className="hover:text-gray-800 transition-colors">

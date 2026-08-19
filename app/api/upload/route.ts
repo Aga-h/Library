@@ -17,7 +17,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 // supplies a path, because a client-controlled path can escape the bucket via "..".
 const ALLOWED_FOLDERS = new Set([
   "books", "anime", "movies", "tv", "games", "manga", "articles", "wardrobe", "uploads",
-  "comic-publishers", "comic-universes", "comic-titles", "comic-issues",
+  "comic-issues",
 ]);
 
 async function POSTHandler(req: NextRequest) {

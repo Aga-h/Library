@@ -2,15 +2,15 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { BookOpen, Clock, Plus, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { summarizeIssues, pluralize } from "@/lib/comics";
-import { calculateComicTime } from "@/lib/reading-time";
+import { calculateComicTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
-import ComicBreadcrumb from "@/components/comics/ComicBreadcrumb";
-import ComicLevelStats from "@/components/comics/ComicLevelStats";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import LevelStats from "@/components/ui/LevelStats";
 import IssueRow from "@/components/comics/IssueRow";
-import DeleteComicEntityButton from "@/components/comics/DeleteComicEntityButton";
+import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 
 interface PageProps {
   params: Promise<{ publisherId: string; universeId: string; titleId: string }>;
@@ -37,7 +37,9 @@ export default async function TitlePage({ params }: PageProps) {
 
   return (
     <div>
-      <ComicBreadcrumb
+      <Breadcrumb
+        rootHref="/library/comics"
+        rootLabel="Comics"
         crumbs={[
           { label: title.universe.publisher.name, href: `/library/comics/${publisherId}` },
           { label: title.universe.name, href: `/library/comics/${publisherId}/${universeId}` },
@@ -61,7 +63,7 @@ export default async function TitlePage({ params }: PageProps) {
           >
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
-          <DeleteComicEntityButton
+          <DeleteEntityButton
             apiPath={`/api/comics/titles/${title.id}`}
             redirectTo={`/library/comics/${publisherId}/${universeId}`}
             warning={
@@ -79,7 +81,7 @@ export default async function TitlePage({ params }: PageProps) {
         </div>
       </div>
 
-      <ComicLevelStats
+      <LevelStats
         heading={`${title.name} Stats`}
         stats={[
           { label: "Issues", value: progress.total },
@@ -87,8 +89,10 @@ export default async function TitlePage({ params }: PageProps) {
           { label: "Owned", value: ownedCount },
           { label: "Rereads", value: progress.rereads },
         ]}
-        issuesRead={progress.read}
-        minutes={calculateComicTime(progress.readUnits, title.language as LanguageKey).minutes}
+        footer={[
+          { icon: <BookOpen className="w-4 h-4" />, label: "Issues Read", value: progress.read > 0 ? `${progress.read} issues` : "—" },
+          { icon: <Clock className="w-4 h-4" />, label: "Time Read", value: calculateComicTime(progress.readUnits, title.language as LanguageKey).minutes > 0 ? formatReadingTime(calculateComicTime(progress.readUnits, title.language as LanguageKey).minutes) : "—" },
+        ]}
       />
 
       {title.notes && (

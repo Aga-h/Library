@@ -12,7 +12,6 @@ const createTitleSchema = z.object({
   author: z.string().optional(),
   artist: z.string().optional(),
   language: z.enum(LANGUAGE_VALUES).default("ENGLISH"),
-  coverImage: z.string().url().optional().or(z.literal("")),
   notes: z.string().optional(),
 });
 
@@ -54,7 +53,6 @@ async function POSTHandler(request: NextRequest) {
         author: data.author || null,
         artist: data.artist || null,
         language: data.language,
-        coverImage: data.coverImage || null,
         notes: data.notes || null,
       },
     });

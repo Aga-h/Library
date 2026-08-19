@@ -13,25 +13,25 @@ interface FormData {
 
 interface Props {
   mode: "create" | "edit";
-  /** e.g. "/api/comics/publishers" */
+  /** e.g. "/api/tv/universes" */
   apiBase: string;
   /** Present in edit mode. */
   entityId?: string;
-  /** Extra fields merged into the create payload, e.g. { publisherId }. */
+  /** Extra fields merged into the create payload, e.g. { universeId }. */
   extraPayload?: Record<string, string>;
   /** After save the router goes to `${redirectTo}/${saved.id}`. */
   redirectTo: string;
-  /** "Publisher" | "Universe" — used in the submit button label. */
+  /** "Universe" | "Series" — used in the submit button label. */
   entityLabel: string;
-  /** Supabase storage folder for the cover. */
-  imageFolder: string;
+  /** Supabase storage folder. Omit entirely for levels that carry no artwork. */
+  imageFolder?: string;
   namePlaceholder?: string;
   initialData?: Partial<FormData>;
 }
 
 const DEFAULT: FormData = { name: "", coverImage: "", notes: "" };
 
-export default function ComicNameForm({
+export default function HierarchyForm({
   mode, apiBase, entityId, extraPayload, redirectTo, entityLabel, imageFolder,
   namePlaceholder, initialData,
 }: Props) {
@@ -39,6 +39,8 @@ export default function ComicNameForm({
   const [form, setForm] = useState<FormData>({ ...DEFAULT, ...initialData });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasCover = imageFolder !== undefined;
 
   function update(key: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -54,13 +56,13 @@ export default function ComicNameForm({
       mode === "edit"
         ? {
             name: form.name,
-            coverImage: form.coverImage || null,
+            ...(hasCover ? { coverImage: form.coverImage || null } : {}),
             notes: form.notes || null,
           }
         : {
             ...extraPayload,
             name: form.name,
-            coverImage: form.coverImage || undefined,
+            ...(hasCover ? { coverImage: form.coverImage || undefined } : {}),
             notes: form.notes || undefined,
           };
 
@@ -103,13 +105,15 @@ export default function ComicNameForm({
         />
       </Field>
 
-      <FieldGroup label="Cover Image">
-        <ImageUpload
-          value={form.coverImage}
-          onChange={(url) => update("coverImage", url)}
-          fieldName={imageFolder}
-        />
-      </FieldGroup>
+      {hasCover && (
+        <FieldGroup label="Cover Image">
+          <ImageUpload
+            value={form.coverImage}
+            onChange={(url) => update("coverImage", url)}
+            fieldName={imageFolder}
+          />
+        </FieldGroup>
+      )}
 
       <Field label="Notes">
         <textarea
@@ -142,5 +146,3 @@ export default function ComicNameForm({
     </form>
   );
 }
-
-

@@ -2,15 +2,15 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { BookOpen, Clock, Plus, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { foldAggs, pluralize, EMPTY_AGG } from "@/lib/comics";
 import { issueAggsByTitle } from "@/lib/comics-agg";
-import { calculateComicTime } from "@/lib/reading-time";
-import ComicBreadcrumb from "@/components/comics/ComicBreadcrumb";
-import ComicEntityCard from "@/components/comics/ComicEntityCard";
-import ComicLevelStats from "@/components/comics/ComicLevelStats";
-import DeleteComicEntityButton from "@/components/comics/DeleteComicEntityButton";
+import { calculateComicTime, formatReadingTime } from "@/lib/reading-time";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import EntityCard from "@/components/ui/EntityCard";
+import LevelStats from "@/components/ui/LevelStats";
+import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 
 interface PageProps {
   params: Promise<{ publisherId: string }>;
@@ -33,7 +33,6 @@ export default async function PublisherPage({ params }: PageProps) {
   const rows = publisher.universes.map((u) => ({
     id: u.id,
     name: u.name,
-    coverImage: u.coverImage,
     titleCount: u.titles.length,
     progress: foldAggs(u.titles.map((t) => aggs.get(t.id) ?? EMPTY_AGG)),
   }));
@@ -45,7 +44,7 @@ export default async function PublisherPage({ params }: PageProps) {
 
   return (
     <div>
-      <ComicBreadcrumb crumbs={[{ label: publisher.name }]} />
+      <Breadcrumb rootHref="/library/comics" rootLabel="Comics" crumbs={[{ label: publisher.name }]} />
 
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
@@ -61,7 +60,7 @@ export default async function PublisherPage({ params }: PageProps) {
           >
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
-          <DeleteComicEntityButton
+          <DeleteEntityButton
             apiPath={`/api/comics/publishers/${publisher.id}`}
             redirectTo="/library/comics"
             warning={`This also deletes ${pluralize(rows.length, "universe")}, ${pluralize(titleCount, "comic")} and ${pluralize(totalIssues, "issue")}.`}
@@ -75,7 +74,7 @@ export default async function PublisherPage({ params }: PageProps) {
         </div>
       </div>
 
-      <ComicLevelStats
+      <LevelStats
         heading={`${publisher.name} Stats`}
         stats={[
           { label: "Universes", value: rows.length },
@@ -83,8 +82,10 @@ export default async function PublisherPage({ params }: PageProps) {
           { label: "Issues", value: totalIssues },
           { label: "Read", value: readIssues },
         ]}
-        issuesRead={readIssues}
-        minutes={calculateComicTime(readUnits, "ENGLISH").minutes}
+        footer={[
+          { icon: <BookOpen className="w-4 h-4" />, label: "Issues Read", value: readIssues > 0 ? `${readIssues} issues` : "—" },
+          { icon: <Clock className="w-4 h-4" />, label: "Time Read", value: calculateComicTime(readUnits, "ENGLISH").minutes > 0 ? formatReadingTime(calculateComicTime(readUnits, "ENGLISH").minutes) : "—" },
+        ]}
       />
 
       {publisher.notes && (
@@ -104,11 +105,10 @@ export default async function PublisherPage({ params }: PageProps) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {rows.map((u) => (
-            <ComicEntityCard
+            <EntityCard
               key={u.id}
               href={`/library/comics/${publisher.id}/${u.id}`}
               name={u.name}
-              coverImage={u.coverImage}
               meta={pluralize(u.titleCount, "comic")}
               progress={u.progress}
             />

@@ -8,7 +8,6 @@ import { withErrors } from "@/lib/api-errors";
 const createUniverseSchema = z.object({
   name: z.string().min(1, "Name is required"),
   publisherId: z.string().min(1, "Publisher is required"),
-  coverImage: z.string().url().optional().or(z.literal("")),
   notes: z.string().optional(),
 });
 
@@ -47,7 +46,6 @@ async function POSTHandler(request: NextRequest) {
       data: {
         name,
         publisherId: data.publisherId,
-        coverImage: data.coverImage || null,
         notes: data.notes || null,
       },
     });

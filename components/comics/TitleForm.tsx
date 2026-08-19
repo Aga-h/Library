@@ -4,20 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
-import ImageUpload from "@/components/ui/ImageUpload";
-import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { Field, inputCls } from "@/components/ui/form";
 
 interface TitleFormData {
   name: string;
   author: string;
   artist: string;
   language: string;
-  coverImage: string;
   notes: string;
 }
 
 const DEFAULT: TitleFormData = {
-  name: "", author: "", artist: "", language: "ENGLISH", coverImage: "", notes: "",
+  name: "", author: "", artist: "", language: "ENGLISH", notes: "",
 };
 
 interface Props {
@@ -55,7 +53,6 @@ export default function TitleForm({
             author: form.author || null,
             artist: form.artist || null,
             language: form.language,
-            coverImage: form.coverImage || null,
             notes: form.notes || null,
           }
         : {
@@ -64,7 +61,6 @@ export default function TitleForm({
             author: form.author || undefined,
             artist: form.artist || undefined,
             language: form.language,
-            coverImage: form.coverImage || undefined,
             notes: form.notes || undefined,
           };
 
@@ -136,13 +132,6 @@ export default function TitleForm({
         </select>
       </Field>
 
-      <FieldGroup label="Cover Image">
-        <ImageUpload
-          value={form.coverImage}
-          onChange={(url) => update("coverImage", url)}
-          fieldName="comic-titles"
-        />
-      </FieldGroup>
 
       <Field label="Notes">
         <textarea

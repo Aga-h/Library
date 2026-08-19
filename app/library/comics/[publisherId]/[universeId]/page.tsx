@@ -2,14 +2,14 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { BookOpen, Clock, Plus, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { summarizeIssues, rollUp, pluralize } from "@/lib/comics";
-import { calculateComicTime } from "@/lib/reading-time";
-import ComicBreadcrumb from "@/components/comics/ComicBreadcrumb";
-import ComicEntityCard from "@/components/comics/ComicEntityCard";
-import ComicLevelStats from "@/components/comics/ComicLevelStats";
-import DeleteComicEntityButton from "@/components/comics/DeleteComicEntityButton";
+import { calculateComicTime, formatReadingTime } from "@/lib/reading-time";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import EntityCard from "@/components/ui/EntityCard";
+import LevelStats from "@/components/ui/LevelStats";
+import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 
 interface PageProps {
   params: Promise<{ publisherId: string; universeId: string }>;
@@ -36,7 +36,6 @@ export default async function UniversePage({ params }: PageProps) {
     id: t.id,
     name: t.name,
     author: t.author,
-    coverImage: t.coverImage,
     progress: summarizeIssues(t.issues),
   }));
 
@@ -44,7 +43,9 @@ export default async function UniversePage({ params }: PageProps) {
 
   return (
     <div>
-      <ComicBreadcrumb
+      <Breadcrumb
+        rootHref="/library/comics"
+        rootLabel="Comics"
         crumbs={[
           { label: universe.publisher.name, href: `/library/comics/${publisherId}` },
           { label: universe.name },
@@ -65,7 +66,7 @@ export default async function UniversePage({ params }: PageProps) {
           >
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
-          <DeleteComicEntityButton
+          <DeleteEntityButton
             apiPath={`/api/comics/universes/${universe.id}`}
             redirectTo={`/library/comics/${publisherId}`}
             warning={`This also deletes ${pluralize(rows.length, "comic")} and ${pluralize(overall.total, "issue")}.`}
@@ -79,7 +80,7 @@ export default async function UniversePage({ params }: PageProps) {
         </div>
       </div>
 
-      <ComicLevelStats
+      <LevelStats
         heading={`${universe.name} Stats`}
         stats={[
           { label: "Comics", value: rows.length },
@@ -87,8 +88,10 @@ export default async function UniversePage({ params }: PageProps) {
           { label: "Read", value: overall.read },
           { label: "Avg Rating", value: overall.avgRating ?? "—" },
         ]}
-        issuesRead={overall.read}
-        minutes={calculateComicTime(overall.readUnits, "ENGLISH").minutes}
+        footer={[
+          { icon: <BookOpen className="w-4 h-4" />, label: "Issues Read", value: overall.read > 0 ? `${overall.read} issues` : "—" },
+          { icon: <Clock className="w-4 h-4" />, label: "Time Read", value: calculateComicTime(overall.readUnits, "ENGLISH").minutes > 0 ? formatReadingTime(calculateComicTime(overall.readUnits, "ENGLISH").minutes) : "—" },
+        ]}
       />
 
       {universe.notes && (
@@ -108,11 +111,10 @@ export default async function UniversePage({ params }: PageProps) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {rows.map((t) => (
-            <ComicEntityCard
+            <EntityCard
               key={t.id}
               href={`${base}/${t.id}`}
               name={t.name}
-              coverImage={t.coverImage}
               subtitle={t.author}
               progress={t.progress}
               rating={t.progress.avgRating}
