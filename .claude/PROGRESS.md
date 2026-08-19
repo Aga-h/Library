@@ -1,8 +1,8 @@
 # Current state
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
-**Branch:** claude/hierarchy-phase-1 (feature work) → claude/repository-overview-FcVyQ (deploy)
-**Updated:** 2026-08-19 — hierarchy phases 1–4 plus the attach-existing control
+**Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
+**Updated:** 2026-08-19 — migrations 002–007 confirmed, hierarchy work merged and deployed
 
 ## Done
 
@@ -34,8 +34,7 @@
 - [x] **Phase 1 of the hierarchy work** — shared `ui/` components (Breadcrumb, EntityCard,
       LevelStats, DeleteEntityButton, HierarchyForm) extracted from comics; comic publishers,
       universes and titles lost their images; TV gained Universe → Series → Season with the
-      `seriesName` backfill; Seasons Watched replaced by Episodes Watched. **On branch
-      `claude/hierarchy-phase-1`, NOT merged** — waiting on migration 004.
+      `seriesName` backfill; Seasons Watched replaced by Episodes Watched. **Shipped.**
 
 - [x] **Phase 2 of the hierarchy work** — anime gained Universe → Series → Season, mirroring TV:
       `AnimeUniverse` + extended `AnimeSeries` + `Anime.seriesId` (all `SET NULL`), four API
@@ -49,14 +48,14 @@
       be moved between series from its edit page.
       **Detail pages had no way back up** — TV and anime seasons now carry a breadcrumb showing
       Universe › Series › Title, with each level linked.
-      **Still on `claude/hierarchy-phase-1`, NOT merged** — waiting on migrations 004 and 005.
+      **Shipped.**
 
 - [x] **Phase 3 of the hierarchy work** — books gained Universe → Series → Book plus standalone,
       same shape as anime. Migration `006` has no backfill: books never had a `seriesName`, so
       every existing book stays standalone until filed by hand. The book form gained the shared
       series picker, and the detail page a Universe › Series › Title breadcrumb.
       Also removed the dead `/api/tv-series` route, twin of the `anime-series` one deleted in
-      Phase 2. **Still on `claude/hierarchy-phase-1`** — waiting on migrations 004, 005 and 006.
+      Phase 2. **Shipped.**
 
 - [x] **Phase 4 of the hierarchy work** — movies gained Universe → Movie. Two levels, not
       three: a franchise *is* the universe, so films sit directly inside it and the main page
@@ -65,7 +64,7 @@
       The shared picker was generalised from `SeriesSelect` to `HierarchySelect` (and
       `lib/series-options.ts` to `lib/hierarchy-options.ts`) so movies can pick a universe
       with the same control the other three use for a series.
-      **All four phases are on `claude/hierarchy-phase-1`** — waiting on migrations 004–007.
+      **Shipped.**
 
 - [x] **Attach an existing entry to its parent.** You could only ever *create* a new series
       inside a universe, never file one you already had, and the series edit form had no
@@ -79,10 +78,20 @@
       standalone entries sorted last in every picker, because Postgres puts NULLs last and
       Prisma cannot override that on a relation `orderBy`.
 
+- [x] **Migrations 002–007 confirmed applied, and the hierarchy work deployed.** Confirmed by a
+      read-only preflight query rather than assumed: 14 table/column checks plus the four status
+      enums, all clean. Locally the four scripts were replayed in order onto the pre-deploy
+      schema and `prisma migrate diff` came back empty, proving the chain produces exactly the
+      schema the code expects. Merged fast-forward into `claude/repository-overview-FcVyQ`
+      (`67e4641..e3cef41`) — no divergence, no conflicts.
+
 ## Next
 
-- [ ] Drop the now-dead `seriesName` columns from `TvShow` and `Anime` once 004 and 005 are
-      confirmed applied and the backfill looks right in production.
+- [ ] **Migration `008`: drop the dead `seriesName` columns** from `TvShow` and `Anime`.
+      004 and 005 backfilled them into real series rows and nothing reads them any more, but
+      they are the only surviving copy of the old grouping text — so wait until the user has
+      looked at their TV and anime series and confirmed the grouping came out right. The user
+      deliberately deferred this at deploy time.
 
 Three items were scoped in the audit but not implemented. In rough value order:
 
@@ -100,25 +109,19 @@ Three items were scoped in the audit but not implemented. In rough value order:
 
 ## Blocked / needs the user
 
-- **PRODUCTION WAS BROKEN** by deploying 003-dependent code before the SQL ran. Books and manga
-  threw `The column Book.pagesRead does not exist`. Combined 002+003 SQL was handed over in chat.
-  **Never push schema-dependent code again until the migration is confirmed applied.**
-- **Run `004-tv-hierarchy-and-comic-covers.sql`, `005-anime-hierarchy.sql`,
-  `006-book-hierarchy.sql`, `007-movie-universes.sql`** — in that order — before merging
-  `claude/hierarchy-phase-1`. All four phases are parked on that side branch so they cannot
-  deploy ahead of their schema. Once the SQL is confirmed, merge the branch into
-  `claude/repository-overview-FcVyQ` to deploy.
-- **Run `prisma/manual-migrations/003-derived-status.sql`** — until then the app expects enum
-  values and columns the database does not have yet, so Books/TV/Anime/Manga writes will fail.
-  It aborts harmlessly if any row still uses DROPPED/ON_HOLD/DNF.
-- **Run `prisma/manual-migrations/002-expense-idempotency.sql`** in the Supabase SQL Editor.
-  Until it is applied, the expense logger's retry path can create duplicate expenses.
-- Provide the production URL so exact install instructions can be given (it is recorded
-  nowhere in the repo).
-- `001-comics-hierarchy-and-indexes.sql` and the RLS block have both been run already.
+- **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
+  hierarchy work has never been checked in the browser — only proven correct locally. It is
+  also needed to give exact PWA install instructions.
+- Migrations `001`–`007` and the RLS block are **all applied and confirmed**. Nothing is
+  outstanding.
 - Any *future* schema change needs the same treatment: `prisma db push` cannot reach this
-  Supabase instance, so write an idempotent script into `prisma/manual-migrations/` and ask the
-  user to paste it into the Supabase SQL Editor. Do not assume it has been run — confirm.
+  Supabase instance (no credentials here, and port 5432 is blocked), so write an idempotent
+  script into `prisma/manual-migrations/` and ask the user to paste it into the Supabase SQL
+  Editor. **Do not assume it has been run — confirm it**, and confirm with a query rather than
+  a yes/no. The preflight pattern that worked: a `VALUES` list of expected (table, column)
+  pairs left-joined against `information_schema.columns`, reporting `ok` / `*** MISSING ***`
+  per migration, plus a `pg_enum` roll-up for enum changes. Test it against a throwaway
+  Postgres *and* prove it can fail before handing it over.
 
 ## Notes for the next session
 
