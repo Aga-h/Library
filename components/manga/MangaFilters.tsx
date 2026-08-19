@@ -9,8 +9,6 @@ const STATUS_OPTIONS = [
   { value: "READING", label: "Reading" },
   { value: "COMPLETED", label: "Completed" },
   { value: "PLAN_TO_READ", label: "Plan to Read" },
-  { value: "ON_HOLD", label: "On Hold" },
-  { value: "DROPPED", label: "Dropped" },
 ];
 
 export default function MangaFilters() {

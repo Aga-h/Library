@@ -13,6 +13,7 @@ interface Book {
   language: string;
   publisher: string | null;
   pages: number;
+  pagesRead: number;
   coverImage: string | null;
   rating: number | null;
   timesReread: number;
@@ -64,7 +65,7 @@ export default function BookCard({ book }: { book: Book }) {
         <p className="text-xs text-gray-500">{book.author}</p>
 
         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto pt-3 text-xs text-gray-400">
-          <span>{book.pages} pages</span>
+          <span>{book.pagesRead > 0 ? `${book.pagesRead}/${book.pages}` : book.pages} pages</span>
           <span>{langLabel}</span>
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" /> {time.formatted}

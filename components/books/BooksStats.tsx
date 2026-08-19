@@ -17,7 +17,6 @@ export default function BooksStats({ books }: BooksStatsProps) {
   const read = books.filter((b) => b.status === "READ");
   const reading = books.filter((b) => b.status === "READING");
   const wantToRead = books.filter((b) => b.status === "WANT_TO_READ");
-  const dnf = books.filter((b) => b.status === "DNF");
 
   const totalPagesRead = read.reduce((s, b) => s + b.pages, 0);
   const readMinutes = read.reduce((s, b) => s + calculateReadingTime(b.pages, b.language as LanguageKey).minutes * (b.timesReread + 1), 0);
@@ -30,11 +29,10 @@ export default function BooksStats({ books }: BooksStatsProps) {
       </h2>
 
       {/* Status counts */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <StatPill label="Read" value={read.length} color="green" />
         <StatPill label="Reading" value={reading.length} color="blue" />
         <StatPill label="Plan to Read" value={wantToRead.length} color="yellow" />
-        <StatPill label="Dropped" value={dnf.length} color="red" />
       </div>
 
       {/* Time stats */}

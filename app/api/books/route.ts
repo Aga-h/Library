@@ -4,16 +4,17 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 
 const createBookSchema = z.object({
   title: z.string().min(1, "Title is required"),
   author: z.string().min(1, "Author is required"),
-  status: z.enum(["READ", "READING", "WANT_TO_READ", "DNF"]).default("WANT_TO_READ"),
   owned: z.boolean().default(false),
   language: z.enum(LANGUAGE_VALUES)
     .default("ENGLISH"),
   publisher: z.string().optional(),
   pages: z.number().int().positive("Pages must be a positive number"),
+  pagesRead: z.number().int().min(0).default(0),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
   notes: z.string().optional(),
@@ -53,11 +54,13 @@ async function POSTHandler(request: NextRequest) {
     data: {
       title: data.title,
       author: data.author,
-      status: data.status,
+      // Derived from the counts, never taken from the request.
+      status: deriveStatus(bookProgress(data), BOOK_STATUS),
       owned: data.owned,
       language: data.language,
       publisher: data.publisher ?? null,
       pages: data.pages,
+      pagesRead: data.pagesRead,
       coverImage: data.coverImage || null,
       rating: data.rating ?? null,
       notes: data.notes ?? null,

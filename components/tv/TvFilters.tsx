@@ -8,8 +8,6 @@ const STATUS_OPTIONS = [
   { value: "WATCHING", label: "Watching" },
   { value: "COMPLETED", label: "Completed" },
   { value: "PLAN_TO_WATCH", label: "Plan to Watch" },
-  { value: "ON_HOLD", label: "On Hold" },
-  { value: "DROPPED", label: "Dropped" },
 ];
 
 export default function TvFilters() {

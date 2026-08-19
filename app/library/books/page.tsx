@@ -63,7 +63,7 @@ async function BookContent({ status, language, q }: { status?: string; language?
       },
       select: {
         id: true, title: true, author: true, status: true, owned: true,
-        language: true, pages: true, coverImage: true, rating: true,
+        language: true, pages: true, pagesRead: true, coverImage: true, rating: true,
         timesReread: true, publisher: true,
       },
       orderBy: { createdAt: "desc" },

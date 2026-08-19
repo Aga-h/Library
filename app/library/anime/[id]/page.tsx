@@ -14,8 +14,6 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   WATCHING:      { label: "Watching",       className: "bg-blue-100 text-blue-700" },
   COMPLETED:     { label: "Completed",      className: "bg-green-100 text-green-700" },
   PLAN_TO_WATCH: { label: "Plan to Watch",  className: "bg-amber-100 text-amber-700" },
-  DROPPED:       { label: "Dropped",        className: "bg-red-100 text-red-700" },
-  ON_HOLD:       { label: "On Hold",        className: "bg-purple-100 text-purple-700" },
 };
 
 const SEASON_LABELS: Record<string, string> = {

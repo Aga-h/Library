@@ -13,8 +13,6 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
   const watching   = shows.filter((s) => s.status === "WATCHING");
   const completed  = shows.filter((s) => s.status === "COMPLETED");
   const planTo     = shows.filter((s) => s.status === "PLAN_TO_WATCH");
-  const onHold     = shows.filter((s) => s.status === "ON_HOLD");
-  const dropped    = shows.filter((s) => s.status === "DROPPED");
 
   const toMinutes = (s: TvShow) => s.episodesWatched * s.episodeRuntime * (s.timesRewatched + 1);
 
@@ -22,7 +20,7 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
   // Episodes still to watch. toMinutes() counts episodesWatched, which is 0 for anything
   // PLAN_TO_WATCH, so this stat was structurally always "—". No rewatch multiplier here:
   // rewatch count is meaningless for content you have not watched yet.
-  const remainingMinutes = [...planTo, ...watching, ...onHold].reduce(
+  const remainingMinutes = [...planTo, ...watching].reduce(
     (sum, s) => sum + Math.max(0, (s.totalEpisodes ?? 0) - s.episodesWatched) * s.episodeRuntime, 0);
   const seasonsWatched = watching.length + completed.length;
 
@@ -32,12 +30,10 @@ export default function TvStats({ shows }: { shows: TvShow[] }) {
         TV Stats
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <StatPill label="Watching"      value={watching.length}  color="blue"   />
         <StatPill label="Completed"     value={completed.length} color="green"  />
         <StatPill label="Plan to Watch" value={planTo.length}    color="yellow" />
-        <StatPill label="On Hold"       value={onHold.length}    color="purple" />
-        <StatPill label="Dropped"       value={dropped.length}   color="red"    />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">

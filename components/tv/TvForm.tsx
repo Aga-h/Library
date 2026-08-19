@@ -7,12 +7,13 @@ import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
 
 interface TvFormData {
   title: string;
   creator: string;
   network: string;
-  status: string;
   totalEpisodes: string;
   episodesWatched: string;
   episodeRuntime: string;
@@ -36,7 +37,6 @@ const DEFAULT_DATA: TvFormData = {
   title: "",
   creator: "",
   network: "",
-  status: "PLAN_TO_WATCH",
   totalEpisodes: "",
   episodesWatched: "0",
   episodeRuntime: "45",
@@ -48,6 +48,8 @@ const DEFAULT_DATA: TvFormData = {
   timesRewatched: "0",
 };
 
+
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
 
 export default function TvForm({ initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
   const router = useRouter();
@@ -77,6 +79,9 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(tvProgress({ episodesWatched: parseInt(form.episodesWatched, 10) || 0, totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : null }), WATCH_STATUS);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -90,7 +95,6 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
       title: form.title,
       creator: form.creator || clearable,
       network: form.network || clearable,
-      status: form.status,
       totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeRuntime: parseInt(form.episodeRuntime, 10) || 45,
@@ -164,19 +168,6 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
           options={networkOptions ?? []}
           placeholder="e.g. HBO, Netflix"
         />
-        <Field label="Watch Status">
-          <select
-            value={form.status}
-            onChange={(e) => update("status", e.target.value)}
-            className={inputCls}
-          >
-            <option value="PLAN_TO_WATCH">Plan to Watch</option>
-            <option value="WATCHING">Watching</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="ON_HOLD">On Hold</option>
-            <option value="DROPPED">Dropped</option>
-          </select>
-        </Field>
       </div>
 
       {/* Total Episodes & Episodes Watched */}
@@ -200,6 +191,7 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
             placeholder="0"
             className={inputCls}
           />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
         </Field>
       </div>
 

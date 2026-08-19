@@ -7,15 +7,15 @@
 //
 // `as const` keeps the literal union, which is what z.enum() needs.
 
-export const BOOK_STATUS_VALUES = ["READ", "READING", "WANT_TO_READ", "DNF"] as const;
-export const ANIME_STATUS_VALUES = ["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"] as const;
+export const BOOK_STATUS_VALUES = ["READ", "READING", "WANT_TO_READ"] as const;
+export const ANIME_STATUS_VALUES = ["WATCHING", "COMPLETED", "PLAN_TO_WATCH"] as const;
 export const ANIME_SEASON_VALUES = ["WINTER", "SPRING", "SUMMER", "FALL"] as const;
 export const MOVIE_STATUS_VALUES = ["WATCHED", "WANT_TO_WATCH", "DROPPED"] as const;
-export const TV_STATUS_VALUES = ["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"] as const;
+export const TV_STATUS_VALUES = ["WATCHING", "COMPLETED", "PLAN_TO_WATCH"] as const;
 export const GAME_STATUS_VALUES = ["PLAYING", "COMPLETED", "PLAN_TO_PLAY", "DROPPED", "PLATINUM"] as const;
 export const GAME_PLATFORM_VALUES = ["PC", "MAC", "STEAM_DECK", "PS5", "PS4", "PS3", "PS2", "PS1", "PSP", "PS_VITA", "XBOX_SERIES_X", "XBOX_SERIES_S", "XBOX_ONE_X", "XBOX_ONE_S", "XBOX_ONE", "XBOX_360", "XBOX", "SWITCH_2", "SWITCH", "SWITCH_OLED", "SWITCH_LITE", "WII_U", "WII", "GAMECUBE", "N64", "SNES", "NES", "NINTENDO_3DS", "DS", "GBA", "GBC", "GAMEBOY", "SEGA_DREAMCAST", "SEGA_SATURN", "SEGA_GENESIS", "GAME_GEAR", "IOS", "ANDROID", "OTHER"] as const;
 export const MANGA_FORMAT_VALUES = ["MANGA", "MANHWA", "MANHUA"] as const;
-export const MANGA_STATUS_VALUES = ["READING", "COMPLETED", "PLAN_TO_READ", "DROPPED", "ON_HOLD"] as const;
+export const MANGA_STATUS_VALUES = ["READING", "COMPLETED", "PLAN_TO_READ"] as const;
 export const ARTICLE_STATUS_VALUES = ["READ", "WANT_TO_READ"] as const;
 export const GARMENT_TYPE_VALUES = ["TOPS", "BOTTOMS", "OUTERWEAR", "UNDERWEAR", "SOCKS", "ACTIVEWEAR", "FORMALWEAR", "ACCESSORIES", "OTHER"] as const;
 export const COLOR_GROUP_VALUES = ["WHITE", "LIGHT", "DARK", "VIVID", "MIXED"] as const;

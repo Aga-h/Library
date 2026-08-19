@@ -17,6 +17,8 @@ model Book {
   language     Language   @default(ENGLISH)
   publisher    String?
   pages        Int
+  // Progress. Status is derived from this against `pages`, never set by hand.
+  pagesRead    Int        @default(0)
   coverImage   String?
   rating       Float?
   notes        String?
@@ -33,7 +35,6 @@ enum BookStatus {
   READ
   READING
   WANT_TO_READ
-  DNF
 }
 
 // ─── ANIME ───────────────────────────────────────────────────────────────────
@@ -66,8 +67,6 @@ enum AnimeStatus {
   WATCHING
   COMPLETED
   PLAN_TO_WATCH
-  DROPPED
-  ON_HOLD
 }
 
 enum AnimeSeason {
@@ -134,8 +133,6 @@ enum TvStatus {
   WATCHING
   COMPLETED
   PLAN_TO_WATCH
-  DROPPED
-  ON_HOLD
 }
 
 // ─── GAMES ───────────────────────────────────────────────────────────────────
@@ -227,6 +224,8 @@ model Manga {
   volumesRead   Int         @default(0)
   totalChapters Int?
   chaptersRead  Int         @default(0)
+  // Still releasing: no final chapter/volume count exists yet, so it can never be COMPLETED.
+  ongoing       Boolean     @default(false)
   language      Language    @default(JAPANESE)
   coverImage    String?
   rating        Float?
@@ -250,8 +249,6 @@ enum MangaStatus {
   READING
   COMPLETED
   PLAN_TO_READ
-  DROPPED
-  ON_HOLD
 }
 
 // ─── COMICS ──────────────────────────────────────────────────────────────────

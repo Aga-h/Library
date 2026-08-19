@@ -63,11 +63,16 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 #### `Language`
 `ENGLISH` | `SPANISH` | `FRENCH` | `GERMAN` | `ITALIAN` | `PORTUGUESE` | `TURKISH` | `ARABIC` | `RUSSIAN` | `JAPANESE` | `CHINESE` | `KOREAN`
 
+> **Status is derived, not entered**, for Books, TV, Anime and Manga. It is computed from the
+> progress counts by `lib/derive-status.ts` on every write, and the API ignores any `status` in
+> the request body. Dropped / On Hold / DNF were removed — every remaining value is derivable.
+> An unknown total (or a manga marked *still releasing*) can never be Completed.
+
 #### `BookStatus`
-`READ` | `READING` | `WANT_TO_READ` | `DNF`
+`READ` | `READING` | `WANT_TO_READ`
 
 #### `AnimeStatus`
-`WATCHING` | `COMPLETED` | `PLAN_TO_WATCH` | `DROPPED` | `ON_HOLD`
+`WATCHING` | `COMPLETED` | `PLAN_TO_WATCH`
 
 #### `AnimeSeason`
 `WINTER` | `SPRING` | `SUMMER` | `FALL`
@@ -76,7 +81,7 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 `WATCHED` | `WANT_TO_WATCH` | `DROPPED`
 
 #### `TvStatus`
-`WATCHING` | `COMPLETED` | `PLAN_TO_WATCH` | `DROPPED` | `ON_HOLD`
+`WATCHING` | `COMPLETED` | `PLAN_TO_WATCH`
 
 #### `GameStatus`
 `PLAYING` | `COMPLETED` | `PLAN_TO_PLAY` | `DROPPED` | `PLATINUM`
@@ -85,7 +90,7 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 `PC` | `MAC` | `STEAM_DECK` | `PS1`–`PS5` | `PS_VITA` | `PSP` | `XBOX` | `XBOX_360` | `XBOX_ONE` | `XBOX_SERIES` | `SWITCH` | `SWITCH_2` | `WII` | `WII_U` | `GAMECUBE` | `N64` | `SNES` | `NES` | `3DS` | `DS` | `GBA` | `GBC` | `GAMEBOY` | `SEGA_SATURN` | `SEGA_DREAMCAST` | `SEGA_GENESIS` | `SEGA_GAME_GEAR` | `IOS` | `ANDROID` | `OTHER`
 
 #### `MangaStatus`
-`READING` | `COMPLETED` | `PLAN_TO_READ` | `DROPPED` | `ON_HOLD`
+`READING` | `COMPLETED` | `PLAN_TO_READ`
 
 #### `MangaFormat`
 `MANGA` | `MANHWA` | `MANHUA`
@@ -129,6 +134,7 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 | `language` | Language | Default: `ENGLISH` |
 | `publisher` | String? | Optional |
 | `pages` | Int | Required |
+| `pagesRead` | Int | Default: 0. Status is derived from this against `pages` |
 | `coverImage` | String? | URL |
 | `rating` | Float? | 1–10 |
 | `notes` | String? | |
@@ -220,6 +226,7 @@ All models are defined in `prisma/schema.prisma` and use PostgreSQL. Every model
 | `volumesRead` | Int | Default: 0 |
 | `totalChapters` | Int? | |
 | `chaptersRead` | Int | Default: 0 |
+| `ongoing` | Boolean | Default: false. "Still releasing" — can never be Completed |
 | `language` | Language | Default: `JAPANESE` |
 | `coverImage` | String? | |
 | `rating` | Float? | |

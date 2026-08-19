@@ -8,16 +8,17 @@ import type { LanguageKey } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { deriveStatus, mangaProgress, READ_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
 
 interface MangaFormData {
-  title: string; author: string; artist: string; publisher: string; status: string;
-  format: string; totalVolumes: string; volumesRead: string; totalChapters: string; chaptersRead: string;
+  title: string; author: string; artist: string; publisher: string;
+  format: string; ongoing: boolean; totalVolumes: string; volumesRead: string; totalChapters: string; chaptersRead: string;
   language: string; coverImage: string; rating: string; notes: string; timesReread: string;
 }
 
 const DEFAULT: MangaFormData = {
-  title: "", author: "", artist: "", publisher: "", status: "PLAN_TO_READ",
-  format: "MANGA", totalVolumes: "", volumesRead: "0", totalChapters: "", chaptersRead: "0",
+  title: "", author: "", artist: "", publisher: "", format: "MANGA", ongoing: false, totalVolumes: "", volumesRead: "0", totalChapters: "", chaptersRead: "0",
   language: "JAPANESE", coverImage: "", rating: "", notes: "", timesReread: "0",
 };
 
@@ -30,6 +31,8 @@ interface Props {
 }
 
 
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
+
 export default function MangaForm({ initialData, mode, authorOptions, artistOptions, publisherOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<MangaFormData>({ ...DEFAULT, ...initialData, timesReread: initialData?.timesReread?.toString() ?? "0" });
@@ -39,7 +42,10 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
   const chaptersRead = parseInt(form.chaptersRead, 10) || 0;
   const previewTime = chaptersRead > 0 ? calculateMangaTime(chaptersRead, form.language as LanguageKey) : null;
 
-  function update(key: keyof MangaFormData, value: string) { setForm((p) => ({ ...p, [key]: value })); }
+  function update(key: keyof MangaFormData, value: string | boolean) { setForm((p) => ({ ...p, [key]: value })); }
+
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(mangaProgress({ chaptersRead: parseInt(form.chaptersRead, 10) || 0, totalChapters: form.totalChapters ? parseInt(form.totalChapters, 10) : null, volumesRead: parseInt(form.volumesRead, 10) || 0, totalVolumes: form.totalVolumes ? parseInt(form.totalVolumes, 10) : null, ongoing: form.ongoing }), READ_STATUS);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
@@ -49,11 +55,12 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
 
     const payload = {
       title: form.title, author: form.author, artist: form.artist || clearable,
-      publisher: form.publisher || clearable, status: form.status, format: form.format,
+      publisher: form.publisher || clearable, format: form.format,
       totalVolumes: form.totalVolumes ? parseInt(form.totalVolumes, 10) : clearable,
       volumesRead: parseInt(form.volumesRead, 10) || 0,
       totalChapters: form.totalChapters ? parseInt(form.totalChapters, 10) : clearable,
       chaptersRead: parseInt(form.chaptersRead, 10) || 0,
+      ongoing: form.ongoing,
       language: form.language, coverImage: form.coverImage || clearable,
       rating: form.rating ? parseFloat(form.rating) : clearable, notes: form.notes || clearable,
       timesReread: parseInt(form.timesReread, 10) || 0,
@@ -75,15 +82,6 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Field label="Status">
-          <select value={form.status} onChange={(e) => update("status", e.target.value)} className={inputCls}>
-            <option value="PLAN_TO_READ">Plan to Read</option>
-            <option value="READING">Reading</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="ON_HOLD">On Hold</option>
-            <option value="DROPPED">Dropped</option>
-          </select>
-        </Field>
         <Field label="Format">
           <select value={form.format} onChange={(e) => update("format", e.target.value)} className={inputCls}>
             <option value="MANGA">Manga</option>
@@ -98,12 +96,30 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
         </Field>
       </div>
 
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={form.ongoing}
+          onChange={(e) => {
+            update("ongoing", e.target.checked);
+            // A still-releasing series has no final count, so clear any stale totals.
+            if (e.target.checked) { update("totalVolumes", ""); update("totalChapters", ""); }
+          }}
+          className="w-4 h-4 rounded border-gray-300 accent-gray-900"
+        />
+        Still releasing
+        <span className="font-normal text-gray-400">— no final volume or chapter count yet</span>
+      </label>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Field label="Total Volumes"><input type="number" min={0} value={form.totalVolumes} onChange={(e) => update("totalVolumes", e.target.value)} placeholder="?" className={inputCls} /></Field>
+        <Field label="Total Volumes"><input type="number" min={0} value={form.totalVolumes} onChange={(e) => update("totalVolumes", e.target.value)}
+            disabled={form.ongoing} placeholder="?" className={inputCls} /></Field>
         <Field label="Volumes Read"><input type="number" min={0} value={form.volumesRead} onChange={(e) => update("volumesRead", e.target.value)} placeholder="0" className={inputCls} /></Field>
-        <Field label="Total Chapters"><input type="number" min={0} value={form.totalChapters} onChange={(e) => update("totalChapters", e.target.value)} placeholder="?" className={inputCls} /></Field>
+        <Field label="Total Chapters"><input type="number" min={0} value={form.totalChapters} onChange={(e) => update("totalChapters", e.target.value)}
+            disabled={form.ongoing} placeholder="?" className={inputCls} /></Field>
         <Field label="Chapters Read">
           <input type="number" min={0} value={form.chaptersRead} onChange={(e) => update("chaptersRead", e.target.value)} placeholder="0" className={inputCls} />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
           {previewTime && <p className="text-xs text-gray-400 mt-1.5">Est. time: <strong className="text-gray-600">{previewTime.formatted}</strong></p>}
         </Field>
       </div>

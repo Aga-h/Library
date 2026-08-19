@@ -4,14 +4,12 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
 
 const createTvShowSchema = z.object({
   title: z.string().min(1, "Title is required"),
   creator: z.string().optional(),
   network: z.string().optional(),
-  status: z
-    .enum(["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"])
-    .default("PLAN_TO_WATCH"),
   totalEpisodes: z.number().int().optional(),
   episodesWatched: z.number().int().default(0),
   episodeRuntime: z.number().int().default(45),
@@ -57,7 +55,8 @@ async function POSTHandler(request: NextRequest) {
       title: data.title,
       creator: data.creator ?? null,
       network: data.network ?? null,
-      status: data.status,
+      // Derived from the counts, never taken from the request.
+      status: deriveStatus(tvProgress(data), WATCH_STATUS),
       totalEpisodes: data.totalEpisodes ?? null,
       episodesWatched: data.episodesWatched,
       episodeRuntime: data.episodeRuntime,

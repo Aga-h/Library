@@ -4,14 +4,12 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
 
 const updateTvShowSchema = z.object({
   title: z.string().min(1).optional(),
   creator: z.string().optional().nullable(),
   network: z.string().optional().nullable(),
-  status: z
-    .enum(["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"])
-    .optional(),
   totalEpisodes: z.number().int().optional().nullable(),
   episodesWatched: z.number().int().optional(),
   episodeRuntime: z.number().int().optional(),
@@ -59,7 +57,14 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
     where: { id },
     // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
     // through, so a cleared cover was stored as an empty string rather than NULL.
-    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
+    // Merge over the stored row before deriving: a PATCH that only changes the rating
+    // must still land on the right status, and one that only changes the progress needs
+    // the stored total to compare against.
+    data: {
+      ...result.data,
+      ...(result.data.coverImage === "" ? { coverImage: null } : {}),
+      status: deriveStatus(tvProgress({ ...show, ...result.data }), WATCH_STATUS),
+    },
   });
 
   revalidateTag("library-stats", "max");

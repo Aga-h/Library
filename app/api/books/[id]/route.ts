@@ -4,16 +4,17 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 
 const updateBookSchema = z.object({
   title: z.string().min(1).optional(),
   author: z.string().min(1).optional(),
-  status: z.enum(["READ", "READING", "WANT_TO_READ", "DNF"]).optional(),
   owned: z.boolean().optional(),
   language: z.enum(LANGUAGE_VALUES)
     .optional(),
   publisher: z.string().optional().nullable(),
   pages: z.number().int().positive().optional(),
+  pagesRead: z.number().int().min(0).optional(),
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
@@ -54,7 +55,14 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
     where: { id },
     // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
     // through, so a cleared cover was stored as an empty string rather than NULL.
-    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
+    // Merge over the stored row before deriving: a PATCH that only changes the rating
+    // must still land on the right status, and one that only changes the progress needs
+    // the stored total to compare against.
+    data: {
+      ...result.data,
+      ...(result.data.coverImage === "" ? { coverImage: null } : {}),
+      status: deriveStatus(bookProgress({ ...book, ...result.data }), BOOK_STATUS),
+    },
   });
 
   revalidateTag("library-stats", "max");

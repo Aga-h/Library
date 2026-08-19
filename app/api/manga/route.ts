@@ -4,19 +4,18 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, mangaProgress, READ_STATUS } from "@/lib/derive-status";
 
 const createMangaSchema = z.object({
   title: z.string().min(1, "Title is required"),
   author: z.string().min(1, "Author is required"),
   artist: z.string().optional(),
   publisher: z.string().optional(),
-  status: z
-    .enum(["READING", "COMPLETED", "PLAN_TO_READ", "DROPPED", "ON_HOLD"])
-    .default("PLAN_TO_READ"),
   totalVolumes: z.number().int().optional(),
   volumesRead: z.number().int().default(0),
   totalChapters: z.number().int().optional(),
   chaptersRead: z.number().int().default(0),
+  ongoing: z.boolean().default(false),
   language: z.enum(LANGUAGE_VALUES)
     .default("JAPANESE"),
   format: z.enum(["MANGA", "MANHWA", "MANHUA"]).default("MANGA"),
@@ -59,11 +58,13 @@ async function POSTHandler(request: NextRequest) {
       author: data.author,
       artist: data.artist ?? null,
       publisher: data.publisher ?? null,
-      status: data.status,
+      // Derived from the counts, never taken from the request.
+      status: deriveStatus(mangaProgress(data), READ_STATUS),
       totalVolumes: data.totalVolumes ?? null,
       volumesRead: data.volumesRead,
       totalChapters: data.totalChapters ?? null,
       chaptersRead: data.chaptersRead,
+      ongoing: data.ongoing,
       language: data.language,
       format: data.format,
       coverImage: data.coverImage || null,

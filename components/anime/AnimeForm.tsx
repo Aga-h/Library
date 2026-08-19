@@ -7,9 +7,11 @@ import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
 
 interface AnimeFormData {
-  title: string; studio: string; status: string;
+  title: string; studio: string;
   episodes: string; episodesWatched: string; episodeDuration: string;
   season: string; year: string; language: string;
   coverImage: string; rating: string; notes: string;
@@ -17,8 +19,7 @@ interface AnimeFormData {
 }
 
 const DEFAULT: AnimeFormData = {
-  title: "", studio: "", status: "PLAN_TO_WATCH",
-  episodes: "", episodesWatched: "0", episodeDuration: "24",
+  title: "", studio: "", episodes: "", episodesWatched: "0", episodeDuration: "24",
   season: "", year: "", language: "JAPANESE",
   coverImage: "", rating: "", notes: "",
   timesRewatched: "0",
@@ -32,6 +33,8 @@ interface Props {
 }
 
 
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
+
 export default function AnimeForm({ initialData, mode, studioOptions, yearOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
@@ -44,6 +47,9 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
 
   function update(key: keyof AnimeFormData, value: string) { setForm((p) => ({ ...p, [key]: value })); }
 
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(animeProgress({ episodesWatched: parseInt(form.episodesWatched, 10) || 0, episodes: form.episodes ? parseInt(form.episodes, 10) : null }), WATCH_STATUS);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
     // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
@@ -51,7 +57,7 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
     const clearable = mode === "edit" ? null : undefined;
 
     const payload = {
-      title: form.title, studio: form.studio || clearable, status: form.status,
+      title: form.title, studio: form.studio || clearable,
       episodes: form.episodes ? parseInt(form.episodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeDuration: parseInt(form.episodeDuration, 10) || 24,
@@ -77,15 +83,6 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Status">
-          <select value={form.status} onChange={(e) => update("status", e.target.value)} className={inputCls}>
-            <option value="PLAN_TO_WATCH">Plan to Watch</option>
-            <option value="WATCHING">Watching</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="ON_HOLD">On Hold</option>
-            <option value="DROPPED">Dropped</option>
-          </select>
-        </Field>
         <Field label="Language">
           <select value={form.language} onChange={(e) => update("language", e.target.value)} className={inputCls}>
             {LANGUAGE_OPTIONS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
@@ -97,6 +94,7 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
         <Field label="Total Episodes"><input type="number" min={1} value={form.episodes} onChange={(e) => update("episodes", e.target.value)} placeholder="e.g. 24" className={inputCls} /></Field>
         <Field label="Episodes Watched">
           <input type="number" min={0} value={form.episodesWatched} onChange={(e) => update("episodesWatched", e.target.value)} placeholder="0" className={inputCls} />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
           {previewMinutes > 0 && <p className="text-xs text-gray-400 mt-1.5">Time watched: <strong className="text-gray-600">{formatReadingTime(previewMinutes)}</strong></p>}
         </Field>
         <Field label="Episode Duration (min)"><input type="number" min={1} value={form.episodeDuration} onChange={(e) => update("episodeDuration", e.target.value)} placeholder="24" className={inputCls} /></Field>

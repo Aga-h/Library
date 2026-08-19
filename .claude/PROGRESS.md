@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ
-**Updated:** 2026-08-18 — commit `9620baf`
+**Updated:** 2026-08-18 — commit `d6aa68b`
 
 ## Done
 
@@ -27,6 +27,10 @@
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
 
+- [x] **Auto-derived status** for Books/TV/Anime/Manga — computed from progress counts on every
+      write, status dropdown removed, Dropped/On Hold/DNF deleted. Books gained `pagesRead`,
+      manga gained a *still releasing* flag. 127 unit assertions + 11 database-level API checks.
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
@@ -45,6 +49,9 @@ Three items were scoped in the audit but not implemented. In rough value order:
 
 ## Blocked / needs the user
 
+- **Run `prisma/manual-migrations/003-derived-status.sql`** — until then the app expects enum
+  values and columns the database does not have yet, so Books/TV/Anime/Manga writes will fail.
+  It aborts harmlessly if any row still uses DROPPED/ON_HOLD/DNF.
 - **Run `prisma/manual-migrations/002-expense-idempotency.sql`** in the Supabase SQL Editor.
   Until it is applied, the expense logger's retry path can create duplicate expenses.
 - Provide the production URL so exact install instructions can be given (it is recorded

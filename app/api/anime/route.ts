@@ -4,13 +4,11 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
 
 const createAnimeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   studio: z.string().optional(),
-  status: z
-    .enum(["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"])
-    .default("PLAN_TO_WATCH"),
   episodes: z.number().int().optional(),
   episodesWatched: z.number().int().default(0),
   episodeDuration: z.number().int().default(24),
@@ -56,7 +54,8 @@ async function POSTHandler(request: NextRequest) {
     data: {
       title: data.title,
       studio: data.studio ?? null,
-      status: data.status,
+      // Derived from the counts, never taken from the request.
+      status: deriveStatus(animeProgress(data), WATCH_STATUS),
       episodes: data.episodes ?? null,
       episodesWatched: data.episodesWatched,
       episodeDuration: data.episodeDuration,

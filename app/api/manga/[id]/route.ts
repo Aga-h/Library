@@ -4,19 +4,18 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, mangaProgress, READ_STATUS } from "@/lib/derive-status";
 
 const updateMangaSchema = z.object({
   title: z.string().min(1).optional(),
   author: z.string().min(1).optional(),
   artist: z.string().optional().nullable(),
   publisher: z.string().optional().nullable(),
-  status: z
-    .enum(["READING", "COMPLETED", "PLAN_TO_READ", "DROPPED", "ON_HOLD"])
-    .optional(),
   totalVolumes: z.number().int().optional().nullable(),
   volumesRead: z.number().int().optional(),
   totalChapters: z.number().int().optional().nullable(),
   chaptersRead: z.number().int().optional(),
+  ongoing: z.boolean().optional(),
   language: z.enum(LANGUAGE_VALUES)
     .optional(),
   format: z.enum(["MANGA", "MANHWA", "MANHUA"]).optional(),
@@ -60,7 +59,14 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
     where: { id },
     // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
     // through, so a cleared cover was stored as an empty string rather than NULL.
-    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
+    // Merge over the stored row before deriving: a PATCH that only changes the rating
+    // must still land on the right status, and one that only changes the progress needs
+    // the stored total to compare against.
+    data: {
+      ...result.data,
+      ...(result.data.coverImage === "" ? { coverImage: null } : {}),
+      status: deriveStatus(mangaProgress({ ...manga, ...result.data }), READ_STATUS),
+    },
   });
 
   revalidateTag("library-stats", "max");

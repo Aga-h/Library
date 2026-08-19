@@ -7,15 +7,17 @@ import { calculateReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
 
 interface BookFormData {
   title: string;
   author: string;
-  status: string;
   owned: boolean;
   language: string;
   publisher: string;
   pages: string;
+  pagesRead: string;
   coverImage: string;
   rating: string;
   notes: string;
@@ -30,9 +32,9 @@ interface BookFormProps {
 }
 
 const DEFAULT_DATA: BookFormData = {
+  pagesRead: "0",
   title: "",
   author: "",
-  status: "WANT_TO_READ",
   owned: false,
   language: "ENGLISH",
   publisher: "",
@@ -43,12 +45,15 @@ const DEFAULT_DATA: BookFormData = {
   timesReread: "0",
 };
 
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
+
 export default function BookForm({ initialData, mode, authorOptions, publisherOptions }: BookFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<BookFormData>({
     ...DEFAULT_DATA,
     ...initialData,
     pages: initialData?.pages?.toString() ?? "",
+    pagesRead: initialData?.pagesRead?.toString() ?? "0",
     rating: initialData?.rating?.toString() ?? "",
     timesReread: initialData?.timesReread?.toString() ?? "0",
   });
@@ -65,6 +70,9 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(bookProgress({ pagesRead: parseInt(form.pagesRead, 10) || 0, pages: parseInt(form.pages, 10) || 0 }), BOOK_STATUS);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -77,11 +85,11 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
     const payload = {
       title: form.title,
       author: form.author,
-      status: form.status,
       owned: form.owned,
       language: form.language,
       publisher: form.publisher || clearable,
       pages: parseInt(form.pages, 10),
+    pagesRead: parseInt(form.pagesRead, 10) || 0,
       coverImage: form.coverImage || clearable,
       rating: form.rating ? parseFloat(form.rating) : clearable,
       notes: form.notes || clearable,
@@ -144,18 +152,6 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
 
       {/* Status & Language */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Reading Status">
-          <select
-            value={form.status}
-            onChange={(e) => update("status", e.target.value)}
-            className={inputCls}
-          >
-            <option value="WANT_TO_READ">Plan to Read</option>
-            <option value="READING">Reading</option>
-            <option value="READ">Read</option>
-            <option value="DNF">Dropped</option>
-          </select>
-        </Field>
         <Field label="Language">
           <select
             value={form.language}
@@ -188,6 +184,17 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
               Estimated reading time: <strong className="text-gray-600">{previewTime.formatted}</strong>
             </p>
           )}
+        </Field>
+        <Field label="Pages Read">
+          <input
+            type="number"
+            min={0}
+            value={form.pagesRead}
+            onChange={(e) => update("pagesRead", e.target.value)}
+            placeholder="0"
+            className={inputCls}
+          />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
         </Field>
         <ComboboxField
           label="Publisher"

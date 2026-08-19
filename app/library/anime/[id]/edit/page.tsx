@@ -29,7 +29,7 @@ export default async function EditAnimePage({ params }: PageProps) {
         <p className="text-sm text-gray-500 mb-6">{anime.title}</p>
         <AnimeForm mode="edit" studioOptions={studioOpts} yearOptions={yearOpts} initialData={{
           id: anime.id, title: anime.title, studio: anime.studio ?? "",
-          status: anime.status, episodes: anime.episodes?.toString() ?? "",
+          episodes: anime.episodes?.toString() ?? "",
           episodesWatched: anime.episodesWatched.toString(),
           episodeDuration: anime.episodeDuration.toString(),
           season: anime.season ?? "", year: anime.year?.toString() ?? "",

@@ -8,8 +8,6 @@ export default function MangaStats({ manga }: { manga: Manga[] }) {
   const reading   = manga.filter((m) => m.status === "READING");
   const completed = manga.filter((m) => m.status === "COMPLETED");
   const planTo    = manga.filter((m) => m.status === "PLAN_TO_READ");
-  const dropped   = manga.filter((m) => m.status === "DROPPED");
-  const onHold    = manga.filter((m) => m.status === "ON_HOLD");
 
   const totalChapters = [...reading, ...completed].reduce((s, m) => s + m.chaptersRead, 0);
   const totalVolumes  = [...reading, ...completed].reduce((s, m) => s + m.volumesRead, 0);
@@ -17,18 +15,16 @@ export default function MangaStats({ manga }: { manga: Manga[] }) {
   // Chapters still to read, not chapters already read. Summing chaptersRead over PLAN_TO_READ
   // items is always ~0, which is why this stat used to render "—" permanently.
   const unread = (m: Manga) => Math.max(0, (m.totalChapters ?? 0) - m.chaptersRead);
-  const remainMinutes = [...planTo, ...reading, ...onHold].reduce(
+  const remainMinutes = [...planTo, ...reading].reduce(
     (s, m) => s + calculateMangaTime(unread(m), m.language as LanguageKey).minutes, 0);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Manga Stats</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <StatPill label="Reading"     value={reading.length}   color="blue"   />
         <StatPill label="Completed"   value={completed.length} color="green"  />
         <StatPill label="Plan to Read" value={planTo.length}   color="yellow" />
-        <StatPill label="On Hold"     value={onHold.length}    color="purple" />
-        <StatPill label="Dropped"     value={dropped.length}   color="red"    />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
         <TimeStat icon={<BookMarked className="w-4 h-4" />} label="Chapters Read" value={totalChapters > 0 ? `${totalChapters} ch` : "—"} sub={totalVolumes > 0 ? `${totalVolumes} volumes` : undefined} />

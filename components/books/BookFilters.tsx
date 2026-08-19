@@ -9,7 +9,6 @@ const STATUS_OPTIONS = [
   { value: "READ", label: "Read" },
   { value: "READING", label: "Reading" },
   { value: "WANT_TO_READ", label: "Plan to Read" },
-  { value: "DNF", label: "Dropped" },
 ];
 
 export default function BookFilters() {
