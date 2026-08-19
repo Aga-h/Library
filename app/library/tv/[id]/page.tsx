@@ -2,10 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
+import { Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteTvButton from "@/components/tv/DeleteTvButton";
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -18,7 +19,10 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 
 export default async function TvDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const show = await db.tvShow.findUnique({ where: { id } });
+  const show = await db.tvShow.findUnique({
+    where: { id },
+    include: { series: { include: { universe: true } } },
+  });
   if (!show) notFound();
 
   const status = STATUS_STYLES[show.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
@@ -27,9 +31,17 @@ export default async function TvDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/library/tv" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to TV Shows
-      </Link>
+      <Breadcrumb
+        rootHref="/library/tv"
+        rootLabel="TV Shows"
+        crumbs={[
+          ...(show.series?.universe
+            ? [{ label: show.series.universe.name, href: `/library/tv/u/${show.series.universe.id}` }]
+            : []),
+          ...(show.series ? [{ label: show.series.name, href: `/library/tv/s/${show.series.id}` }] : []),
+          { label: show.title },
+        ]}
+      />
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex gap-6 p-8 pb-6">
           <div className="flex-shrink-0 w-28 h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">

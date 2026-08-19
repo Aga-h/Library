@@ -54,6 +54,12 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
     );
   }
 
+  // A bad series id would otherwise surface as a foreign-key 500.
+  if (result.data.seriesId) {
+    const series = await db.tvSeries.findUnique({ where: { id: result.data.seriesId }, select: { id: true } });
+    if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
+  }
+
   const updated = await db.tvShow.update({
     where: { id },
     // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight

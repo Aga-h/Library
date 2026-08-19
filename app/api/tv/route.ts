@@ -51,6 +51,12 @@ async function POSTHandler(request: NextRequest) {
   }
 
   const data = result.data;
+  // A bad series id would otherwise surface as a foreign-key 500.
+  if (data.seriesId) {
+    const series = await db.tvSeries.findUnique({ where: { id: data.seriesId }, select: { id: true } });
+    if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
+  }
+
   const show = await db.tvShow.create({
     data: {
       title: data.title,
@@ -68,6 +74,7 @@ async function POSTHandler(request: NextRequest) {
       notes: data.notes ?? null,
       timesRewatched: data.timesRewatched,
       seriesName: data.seriesName || null,
+      seriesId: data.seriesId || null,
     },
   });
 

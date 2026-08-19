@@ -2,10 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
+import { Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteAnimeButton from "@/components/anime/DeleteAnimeButton";
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -22,7 +23,10 @@ const SEASON_LABELS: Record<string, string> = {
 
 export default async function AnimeDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const anime = await db.anime.findUnique({ where: { id } });
+  const anime = await db.anime.findUnique({
+    where: { id },
+    include: { series: { include: { universe: true } } },
+  });
   if (!anime) notFound();
 
   const status = STATUS_STYLES[anime.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
@@ -31,9 +35,17 @@ export default async function AnimeDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/library/anime" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to Anime
-      </Link>
+      <Breadcrumb
+        rootHref="/library/anime"
+        rootLabel="Anime"
+        crumbs={[
+          ...(anime.series?.universe
+            ? [{ label: anime.series.universe.name, href: `/library/anime/u/${anime.series.universe.id}` }]
+            : []),
+          ...(anime.series ? [{ label: anime.series.name, href: `/library/anime/s/${anime.series.id}` }] : []),
+          { label: anime.title },
+        ]}
+      />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex gap-6 p-8 pb-6">

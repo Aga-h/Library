@@ -4,14 +4,16 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
+import { tvSeriesOptions } from "@/lib/series-options";
 import TvForm from "@/components/tv/TvForm";
 
 interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditTvPage({ params }: PageProps) {
   const { id } = await params;
-  const [show, creatorOpts, networkOpts, yearOpts] = await Promise.all([
+  const [show, seriesOpts, creatorOpts, networkOpts, yearOpts] = await Promise.all([
     db.tvShow.findUnique({ where: { id } }),
+    tvSeriesOptions(),
     db.tvShow.findMany({ where: { creator: { not: null } }, select: { creator: true }, distinct: ["creator"], orderBy: { creator: "asc" } })
       .then(r => r.map(x => x.creator).filter((v): v is string => v !== null && v !== "")),
     db.tvShow.findMany({ where: { network: { not: null } }, select: { network: true }, distinct: ["network"], orderBy: { network: "asc" } })
@@ -29,8 +31,9 @@ export default async function EditTvPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit TV Show</h1>
         <p className="text-sm text-gray-500 mb-6">{show.title}</p>
-        <TvForm mode="edit" creatorOptions={creatorOpts} networkOptions={networkOpts} yearOptions={yearOpts} initialData={{
+        <TvForm mode="edit" seriesOptions={seriesOpts} creatorOptions={creatorOpts} networkOptions={networkOpts} yearOptions={yearOpts} initialData={{
           id: show.id, title: show.title, creator: show.creator ?? "",
+          seriesId: show.seriesId ?? "",
           network: show.network ?? "", totalEpisodes: show.totalEpisodes?.toString() ?? "",
           episodesWatched: show.episodesWatched.toString(),
           episodeRuntime: show.episodeRuntime.toString(),

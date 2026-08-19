@@ -9,9 +9,11 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
+import SeriesSelect, { type SeriesOption } from "@/components/ui/SeriesSelect";
 
 interface AnimeFormData {
-  title: string; studio: string;
+  title: string;
+  seriesId: string; studio: string;
   episodes: string; episodesWatched: string; episodeDuration: string;
   season: string; year: string; language: string;
   coverImage: string; rating: string; notes: string;
@@ -19,13 +21,14 @@ interface AnimeFormData {
 }
 
 const DEFAULT: AnimeFormData = {
-  title: "", studio: "", episodes: "", episodesWatched: "0", episodeDuration: "24",
+  title: "", seriesId: "", studio: "", episodes: "", episodesWatched: "0", episodeDuration: "24",
   season: "", year: "", language: "JAPANESE",
   coverImage: "", rating: "", notes: "",
   timesRewatched: "0",
 };
 
 interface Props {
+  seriesOptions?: SeriesOption[];
   initialData?: Partial<AnimeFormData & { id: string }>;
   mode: "create" | "edit";
   studioOptions?: string[];
@@ -35,7 +38,7 @@ interface Props {
 
 const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
 
-export default function AnimeForm({ initialData, mode, studioOptions, yearOptions }: Props) {
+export default function AnimeForm({ seriesOptions, initialData, mode, studioOptions, yearOptions }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
   const [loading, setLoading] = useState(false);
@@ -58,6 +61,7 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
 
     const payload = {
       title: form.title, studio: form.studio || clearable,
+      seriesId: form.seriesId || clearable,
       episodes: form.episodes ? parseInt(form.episodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeDuration: parseInt(form.episodeDuration, 10) || 24,
@@ -80,6 +84,7 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Anime title" className={inputCls} /></Field>
         <ComboboxField label="Studio" value={form.studio} onChange={v => update("studio", v)} options={studioOptions ?? []} placeholder="e.g. MAPPA" />
+        <SeriesSelect value={form.seriesId} onChange={(v) => update("seriesId", v)} options={seriesOptions ?? []} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

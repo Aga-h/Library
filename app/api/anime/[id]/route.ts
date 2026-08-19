@@ -21,6 +21,7 @@ const updateAnimeSchema = z.object({
   notes: z.string().optional().nullable(),
   timesRewatched: z.number().int().min(0).optional(),
   seriesName: z.string().optional().nullable(),
+  seriesId: z.string().optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -51,6 +52,12 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
       { error: "Validation failed", issues: result.error.issues },
       { status: 400 }
     );
+  }
+
+  // A bad series id would otherwise surface as a foreign-key 500.
+  if (result.data.seriesId) {
+    const series = await db.animeSeries.findUnique({ where: { id: result.data.seriesId }, select: { id: true } });
+    if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
   }
 
   const updated = await db.anime.update({

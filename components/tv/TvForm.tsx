@@ -9,9 +9,11 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
+import SeriesSelect, { type SeriesOption } from "@/components/ui/SeriesSelect";
 
 interface TvFormData {
   title: string;
+  seriesId: string;
   creator: string;
   network: string;
   totalEpisodes: string;
@@ -26,6 +28,7 @@ interface TvFormData {
 }
 
 interface TvFormProps {
+  seriesOptions?: SeriesOption[];
   initialData?: Partial<TvFormData & { id: string }>;
   mode: "create" | "edit";
   creatorOptions?: string[];
@@ -34,6 +37,7 @@ interface TvFormProps {
 }
 
 const DEFAULT_DATA: TvFormData = {
+  seriesId: "",
   title: "",
   creator: "",
   network: "",
@@ -51,7 +55,7 @@ const DEFAULT_DATA: TvFormData = {
 
 const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
 
-export default function TvForm({ initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
+export default function TvForm({ seriesOptions, initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<TvFormData>({
     ...DEFAULT_DATA,
@@ -93,6 +97,7 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
 
     const payload = {
       title: form.title,
+      seriesId: form.seriesId || clearable,
       creator: form.creator || clearable,
       network: form.network || clearable,
       totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : clearable,
@@ -167,6 +172,11 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
           onChange={v => update("network", v)}
           options={networkOptions ?? []}
           placeholder="e.g. HBO, Netflix"
+        />
+        <SeriesSelect
+          value={form.seriesId}
+          onChange={(v) => update("seriesId", v)}
+          options={seriesOptions ?? []}
         />
       </div>
 

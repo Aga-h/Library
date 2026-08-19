@@ -4,9 +4,14 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import TvForm from "@/components/tv/TvForm";
 import { db } from "@/lib/db";
+import { tvSeriesOptions } from "@/lib/series-options";
 
-export default async function NewTvPage() {
-  const [creatorOpts, networkOpts, yearOpts] = await Promise.all([
+interface PageProps { searchParams: Promise<{ seriesId?: string }> }
+
+export default async function NewTvPage({ searchParams }: PageProps) {
+  const { seriesId } = await searchParams;
+  const [seriesOpts, creatorOpts, networkOpts, yearOpts] = await Promise.all([
+    tvSeriesOptions(),
     db.tvShow.findMany({ where: { creator: { not: null } }, select: { creator: true }, distinct: ["creator"], orderBy: { creator: "asc" } })
       .then(r => r.map(x => x.creator).filter((v): v is string => v !== null && v !== "")),
     db.tvShow.findMany({ where: { network: { not: null } }, select: { network: true }, distinct: ["network"], orderBy: { network: "asc" } })
@@ -22,7 +27,9 @@ export default async function NewTvPage() {
       </Link>
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Add TV Show</h1>
-        <TvForm mode="create" creatorOptions={creatorOpts} networkOptions={networkOpts} yearOptions={yearOpts} />
+        <TvForm mode="create" seriesOptions={seriesOpts}
+          initialData={seriesId ? { seriesId } : undefined}
+          creatorOptions={creatorOpts} networkOptions={networkOpts} yearOptions={yearOpts} />
       </div>
     </div>
   );

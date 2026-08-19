@@ -1,8 +1,8 @@
 # Current state
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
-**Branch:** claude/repository-overview-FcVyQ
-**Updated:** 2026-08-18 — commit `d6aa68b`
+**Branch:** claude/hierarchy-phase-1 (feature work) → claude/repository-overview-FcVyQ (deploy)
+**Updated:** 2026-08-19 — Phase 2 (anime) complete
 
 ## Done
 
@@ -37,10 +37,28 @@
       `seriesName` backfill; Seasons Watched replaced by Episodes Watched. **On branch
       `claude/hierarchy-phase-1`, NOT merged** — waiting on migration 004.
 
+- [x] **Phase 2 of the hierarchy work** — anime gained Universe → Series → Season, mirroring TV:
+      `AnimeUniverse` + extended `AnimeSeries` + `Anime.seriesId` (all `SET NULL`), four API
+      routes, seven pages under `u/` and `s/`, and the main page rebuilt as three buckets
+      (universes / series with no universe / seasons with no series). A filter or search still
+      sweeps the whole library so nothing inside a series becomes unfindable.
+      Also fixed along the way, both of which were live bugs from Phase 1:
+      **`?seriesId=` was ignored** — "Add Season" from a series page created an unattached
+      season, because neither form had a series field. Both forms now have one
+      (`components/ui/SeriesSelect.tsx`), prefilled from the query string, so a season can also
+      be moved between series from its edit page.
+      **Detail pages had no way back up** — TV and anime seasons now carry a breadcrumb showing
+      Universe › Series › Title, with each level linked.
+      **Still on `claude/hierarchy-phase-1`, NOT merged** — waiting on migrations 004 and 005.
+
 ## Next
 
-- [ ] **Phases 2–4 of the hierarchy work**: anime (same shape as TV), books
-      (Universe → Series → Book), movies (Universe → Movie, no series level).
+- [ ] **Phase 3 — books**: `BookUniverse` → `BookSeries` → `Book`, plus standalone books.
+      Same shape as anime; migration `006`.
+- [ ] **Phase 4 — movies**: `MovieUniverse` → `Movie`. No series level — the user asked for
+      universe and standalone only. Migration `007`.
+- [ ] Drop the now-dead `seriesName` columns from `TvShow` and `Anime` once 004 and 005 are
+      confirmed applied and the backfill looks right in production.
 
 Three items were scoped in the audit but not implemented. In rough value order:
 
@@ -61,9 +79,9 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **PRODUCTION WAS BROKEN** by deploying 003-dependent code before the SQL ran. Books and manga
   threw `The column Book.pagesRead does not exist`. Combined 002+003 SQL was handed over in chat.
   **Never push schema-dependent code again until the migration is confirmed applied.**
-- **Run `prisma/manual-migrations/004-tv-hierarchy-and-comic-covers.sql`** before merging
-  `claude/hierarchy-phase-1`. Phase 1 is deliberately parked on a side branch so it cannot
-  deploy ahead of its schema.
+- **Run `prisma/manual-migrations/004-tv-hierarchy-and-comic-covers.sql` and then
+  `005-anime-hierarchy.sql`** before merging `claude/hierarchy-phase-1`. Phases 1 and 2 are
+  deliberately parked on that side branch so they cannot deploy ahead of their schema.
 - **Run `prisma/manual-migrations/003-derived-status.sql`** — until then the app expects enum
   values and columns the database does not have yet, so Books/TV/Anime/Manga writes will fail.
   It aborts harmlessly if any row still uses DROPPED/ON_HOLD/DNF.
