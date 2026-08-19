@@ -49,6 +49,9 @@ Three items were scoped in the audit but not implemented. In rough value order:
 
 ## Blocked / needs the user
 
+- **PRODUCTION WAS BROKEN** by deploying 003-dependent code before the SQL ran. Books and manga
+  threw `The column Book.pagesRead does not exist`. Combined 002+003 SQL was handed over in chat.
+  **Never push schema-dependent code again until the migration is confirmed applied.**
 - **Run `prisma/manual-migrations/003-derived-status.sql`** — until then the app expects enum
   values and columns the database does not have yet, so Books/TV/Anime/Manga writes will fail.
   It aborts harmlessly if any row still uses DROPPED/ON_HOLD/DNF.
