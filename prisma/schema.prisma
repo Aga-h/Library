@@ -81,9 +81,6 @@ model Anime {
   rating          Float?
   notes           String?
   timesRewatched  Int          @default(0)
-  // Legacy string grouping, superseded by seriesId. Kept one release so the backfill
-  // can be checked, then dropped.
-  seriesName      String?
   seriesId        String?
   series          AnimeSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())
@@ -167,9 +164,6 @@ model TvShow {
   rating          Float?
   notes           String?
   timesRewatched  Int      @default(0)
-  // Legacy string grouping, superseded by seriesId. Kept for one release so the
-  // backfill can be checked, then dropped.
-  seriesName      String?
   seriesId        String?
   series          TvSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime @default(now())

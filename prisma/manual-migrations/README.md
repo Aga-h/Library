@@ -11,6 +11,12 @@ already went through.
 Apply them in filename order, then run `npx prisma generate` locally so the client
 types match.
 
+**Which side goes first depends on the direction of the change.** A migration that *adds*
+something must run **before** the code that uses it. A migration that *removes* something —
+`008` is the first — must run **after** the code that stopped referencing it, because Prisma
+names every column explicitly in its `SELECT`s and will fail on a column its schema still
+declares. Getting this backwards is what broke books and manga once already.
+
 | Script | What it does |
 |---|---|
 | `001-comics-hierarchy-and-indexes.sql` | Replaces the flat `Comic` table with the Publisher → Universe → Title → Issue hierarchy, adds `Subscription`, and applies the index tuning from the repo audit. |
@@ -18,6 +24,7 @@ types match.
 | `005-anime-hierarchy.sql` | Gives anime the same Universe → Series → Season hierarchy as TV, with real foreign keys (`SET NULL`) and a backfill of the old `seriesName` strings. Leaves `Anime.season` — the *airing* season enum — alone. |
 | `006-book-hierarchy.sql` | Gives books a Universe → Series → Book hierarchy (`SET NULL`). No backfill: books never had a `seriesName`, so every existing book stays standalone until it is filed by hand. |
 | `007-movie-universes.sql` | Gives movies a Universe → Movie hierarchy (`SET NULL`). Two levels only — there is no series tier for films. No backfill. |
+| `008-drop-series-name.sql` | Drops the legacy `seriesName` strings from `TvShow` and `Anime`, superseded by the real series foreign keys in 004/005. **Run order is reversed for this one — deploy the code that no longer references the column FIRST, then run this.** Aborts without changing anything if any row still has a `seriesName` but no `seriesId`. |
 | `003-derived-status.sql` | Removes DROPPED/ON_HOLD/DNF, adds `Book.pagesRead` and `Manga.ongoing`, and backfills every status from its progress counts. Aborts without changing anything if a removed value is still in use. |
 | `002-expense-idempotency.sql` | Adds a unique `Expense.clientId` so the offline expense logger can retry without creating duplicate expenses. |
 

@@ -20,7 +20,6 @@ const updateAnimeSchema = z.object({
   rating: z.number().min(1).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
   timesRewatched: z.number().int().min(0).optional(),
-  seriesName: z.string().optional().nullable(),
   seriesId: z.string().optional().nullable(),
 });
 
