@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
-**Updated:** 2026-08-19 — hierarchy shipped; 008 written, deployed, awaiting the SQL
+**Updated:** 2026-08-19 — hierarchy shipped; 008 awaiting SQL; knowledge graph committed
 
 ## Done
 
@@ -93,6 +93,14 @@
       column, because Prisma names every column explicitly in its SELECTs. Verified by running
       one build of the new code against the same database before *and* after the drop: pages,
       creates and edits all fine in both states.
+
+- [x] **Knowledge graph committed at `graphify-out/`.** graphify maps the repo to 1398 nodes /
+      2620 edges / 154 labelled communities. Tracked deliberately so it survives a container
+      wipe — the standing rule is in `AGENTS.md`: query the graph before reading the tree, but
+      never for code changed this session, and never in place of verifying against a real
+      Postgres. `npm run graph:seal` inlines vis-network into `graph.html` (SRI-verified)
+      because graphify emits an unpkg `<script src>` that is dead offline and inside the
+      artifact viewer. Run it after every `/graphify .`.
 
 ## Next
 

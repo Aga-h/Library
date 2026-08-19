@@ -42,5 +42,11 @@ next-env.d.ts
 
 /app/generated/prisma
 
-# graphify knowledge-graph output (regenerate with /graphify .)
-/graphify-out/
+# graphify knowledge-graph output — tracked on purpose, so the graph survives a
+# container wipe and Claude can query it instead of re-reading the whole tree.
+# Two exceptions:
+# (gitignore has no trailing comments - a trailing # becomes part of the pattern)
+# absolute path to a container-local interpreter, wrong on any other machine:
+/graphify-out/.graphify_python
+# debug screenshot, not part of graphify's output:
+/graphify-out/graph-preview.png
