@@ -132,6 +132,9 @@ export default function TvForm({ seriesOptions, initialData, mode, creatorOption
 
     const show = await res.json();
     router.push(`/library/tv/${show.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
 
   }
 

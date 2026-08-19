@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/hierarchy-phase-1 (feature work) → claude/repository-overview-FcVyQ (deploy)
-**Updated:** 2026-08-19 — all four hierarchy phases complete
+**Updated:** 2026-08-19 — hierarchy phases 1–4 plus the attach-existing control
 
 ## Done
 
@@ -66,6 +66,18 @@
       `lib/series-options.ts` to `lib/hierarchy-options.ts`) so movies can pick a universe
       with the same control the other three use for a series.
       **All four phases are on `claude/hierarchy-phase-1`** — waiting on migrations 004–007.
+
+- [x] **Attach an existing entry to its parent.** You could only ever *create* a new series
+      inside a universe, never file one you already had, and the series edit form had no
+      universe field at all. **No migration** — every route already accepted its parent key on
+      PATCH with 404/409 guards; nothing sent it. Added `components/ui/AttachExistingButton.tsx`
+      on the three universe pages, the three series pages and the movie universe page, plus a
+      Universe field on `HierarchyForm` for the three series edit and new pages. Three real
+      bugs fixed on the way: the 409 rendered `A series named "undefined" already exists here`
+      whenever the request carried no name (which is every move); the four leaf forms never
+      called `router.refresh()`, so a series you moved something *out of* still listed it; and
+      standalone entries sorted last in every picker, because Postgres puts NULLs last and
+      Prisma cannot override that on a relation `orderBy`.
 
 ## Next
 

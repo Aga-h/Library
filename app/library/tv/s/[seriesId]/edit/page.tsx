@@ -5,12 +5,16 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import HierarchyForm from "@/components/ui/HierarchyForm";
+import { tvUniverseOptions } from "@/lib/hierarchy-options";
 
 interface PageProps { params: Promise<{ seriesId: string }> }
 
 export default async function EditTvSeriesPage({ params }: PageProps) {
   const { seriesId } = await params;
-  const series = await db.tvSeries.findUnique({ where: { id: seriesId } });
+  const [series, universeOptions] = await Promise.all([
+    db.tvSeries.findUnique({ where: { id: seriesId } }),
+    tvUniverseOptions(),
+  ]);
   if (!series) notFound();
 
   return (
@@ -23,7 +27,12 @@ export default async function EditTvSeriesPage({ params }: PageProps) {
         <p className="text-sm text-gray-500 mb-6">{series.name}</p>
         <HierarchyForm mode="edit" apiBase="/api/tv/series" entityId={series.id}
           redirectTo="/library/tv/s" entityLabel="Series"
-          initialData={{ name: series.name, notes: series.notes ?? "" }} />
+          parentOptions={universeOptions} parentLabel="Universe"
+          initialData={{
+            name: series.name,
+            notes: series.notes ?? "",
+            parentId: series.universeId ?? "",
+          }} />
       </div>
     </div>
   );

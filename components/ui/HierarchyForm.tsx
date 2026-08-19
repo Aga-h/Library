@@ -4,11 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface FormData {
   name: string;
   coverImage: string;
   notes: string;
+  /** Id of the level above. "" means standalone. Only used when `parentOptions` is given. */
+  parentId: string;
 }
 
 interface Props {
@@ -17,8 +20,21 @@ interface Props {
   apiBase: string;
   /** Present in edit mode. */
   entityId?: string;
-  /** Extra fields merged into the create payload, e.g. { universeId }. */
+  /**
+   * Extra fields merged into the create payload, e.g. { universeId }. Create-only by design:
+   * a page that sets the parent implicitly ("Add Series — In Middle-earth") has no picker.
+   * Do not combine with `parentOptions` for the same key — the picker would overwrite it.
+   */
   extraPayload?: Record<string, string>;
+  /**
+   * Supplying these turns on a parent picker, which is what lets an *edit* reparent the
+   * entity — the one thing `extraPayload` cannot do. Omit for levels with nothing above them.
+   */
+  parentOptions?: HierarchyOption[];
+  /** Label over the picker, e.g. "Universe". */
+  parentLabel?: string;
+  /** Payload key the picker writes to. */
+  parentKey?: string;
   /** After save the router goes to `${redirectTo}/${saved.id}`. */
   redirectTo: string;
   /** "Universe" | "Series" — used in the submit button label. */
@@ -29,11 +45,12 @@ interface Props {
   initialData?: Partial<FormData>;
 }
 
-const DEFAULT: FormData = { name: "", coverImage: "", notes: "" };
+const DEFAULT: FormData = { name: "", coverImage: "", notes: "", parentId: "" };
 
 export default function HierarchyForm({
   mode, apiBase, entityId, extraPayload, redirectTo, entityLabel, imageFolder,
   namePlaceholder, initialData,
+  parentOptions, parentLabel = "Universe", parentKey = "universeId",
 }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<FormData>({ ...DEFAULT, ...initialData });
@@ -41,6 +58,7 @@ export default function HierarchyForm({
   const [error, setError] = useState<string | null>(null);
 
   const hasCover = imageFolder !== undefined;
+  const hasParent = parentOptions !== undefined;
 
   function update(key: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -51,20 +69,17 @@ export default function HierarchyForm({
     setLoading(true);
     setError(null);
 
-    // Edit sends null (not undefined) for cleared fields so they can actually be blanked.
-    const payload =
-      mode === "edit"
-        ? {
-            name: form.name,
-            ...(hasCover ? { coverImage: form.coverImage || null } : {}),
-            notes: form.notes || null,
-          }
-        : {
-            ...extraPayload,
-            name: form.name,
-            ...(hasCover ? { coverImage: form.coverImage || undefined } : {}),
-            notes: form.notes || undefined,
-          };
+    // Edit sends null (not undefined) for cleared fields so they can actually be blanked;
+    // undefined is dropped by JSON.stringify, so a create simply omits the key.
+    const clearable = mode === "edit" ? null : undefined;
+
+    const payload = {
+      ...(mode === "edit" ? {} : extraPayload),
+      name: form.name,
+      ...(hasCover ? { coverImage: form.coverImage || clearable } : {}),
+      notes: form.notes || clearable,
+      ...(hasParent ? { [parentKey]: form.parentId || clearable } : {}),
+    };
 
     const url = mode === "edit" && entityId ? `${apiBase}/${entityId}` : apiBase;
     const res = await fetch(url, {
@@ -113,6 +128,15 @@ export default function HierarchyForm({
             fieldName={imageFolder}
           />
         </FieldGroup>
+      )}
+
+      {hasParent && (
+        <HierarchySelect
+          label={parentLabel}
+          value={form.parentId}
+          onChange={(v) => update("parentId", v)}
+          options={parentOptions}
+        />
       )}
 
       <Field label="Notes">

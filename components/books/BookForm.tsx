@@ -122,6 +122,9 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
 
     const book = await res.json();
     router.push(`/library/books/${book.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
 
   }
 

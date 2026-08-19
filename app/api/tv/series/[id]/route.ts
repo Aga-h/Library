@@ -23,7 +23,9 @@ async function GETHandler(_r: NextRequest, { params }: RouteContext) {
 
 async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
-  if (!(await db.tvSeries.findUnique({ where: { id } }))) {
+  // Keep the row: the 409 message below needs its name when the request carries none.
+  const existing = await db.tvSeries.findUnique({ where: { id } });
+  if (!existing) {
     return NextResponse.json({ error: "Series not found" }, { status: 404 });
   }
   const result = updateSchema.safeParse(await request.json());
@@ -49,7 +51,12 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json(updated);
   } catch (e) {
     if (isUniqueViolation(e)) {
-      return NextResponse.json({ error: `A series named "${d.name?.trim()}" already exists here` }, { status: 409 });
+      // Only *attaching* can collide. Detaching never can: the unique is
+      // (universeId, name) and Postgres allows repeated NULLs.
+      // Fall back to the stored name — a request that only moves the series sends none,
+      // which used to render as: A series named "undefined" already exists here.
+      const name = d.name?.trim() || existing.name;
+      return NextResponse.json({ error: `A series named "${name}" already exists here` }, { status: 409 });
     }
     throw e;
   }

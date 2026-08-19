@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import EntityCard from "@/components/ui/EntityCard";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
+import AttachExistingButton from "@/components/ui/AttachExistingButton";
+import { bookSeriesOptions } from "@/lib/hierarchy-options";
 
 interface PageProps { params: Promise<{ universeId: string }> }
 
@@ -17,13 +19,20 @@ function count(n: number, one: string, many = `${one}s`) {
 export default async function BookUniversePage({ params }: PageProps) {
   const { universeId } = await params;
 
-  const universe = await db.bookUniverse.findUnique({
-    where: { id: universeId },
-    include: {
-      series: { orderBy: { name: "asc" }, include: { _count: { select: { books: true } } } },
-    },
-  });
+  const [universe, allSeries] = await Promise.all([
+    db.bookUniverse.findUnique({
+      where: { id: universeId },
+      include: {
+        series: { orderBy: { name: "asc" }, include: { _count: { select: { books: true } } } },
+      },
+    }),
+    bookSeriesOptions(),
+  ]);
   if (!universe) notFound();
+
+  // Filtered here rather than in the query: `{ not: universeId }` on a nullable
+  // column would also drop the standalone series, which are the ones most worth offering.
+  const candidates = allSeries.filter((o) => o.parentId !== universeId);
 
   const seasonCount = universe.series.reduce((s, x) => s + x._count.books, 0);
 
@@ -38,7 +47,7 @@ export default async function BookUniversePage({ params }: PageProps) {
             {count(universe.series.length, "series", "series")} · {count(seasonCount, "book")}
           </p>
         </div>
-        <div className="flex items-start gap-2 flex-shrink-0">
+        <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">
           <Link href={`/library/books/u/${universe.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -50,6 +59,14 @@ export default async function BookUniversePage({ params }: PageProps) {
                 ? `The ${count(universe.series.length, "series", "series")} inside will move back to the main page. Nothing is deleted.`
                 : undefined
             }
+          />
+          <AttachExistingButton
+            apiBase="/api/books/series"
+            parentKey="universeId"
+            parentId={universe.id}
+            options={candidates}
+            label="Add existing series"
+            emptyHint="Every series you have is already in this universe."
           />
           <Link href={`/library/books/u/${universe.id}/new`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Series

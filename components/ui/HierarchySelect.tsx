@@ -7,6 +7,13 @@ export interface HierarchyOption {
   name: string;
   /** Name of the level above, shown as a prefix to disambiguate repeated names. */
   parentName: string | null;
+  /**
+   * Id of the level above. Unused by the select itself — it lets a parent page filter out
+   * the entries it already contains without a Prisma `where`, since `{ not: id }` on a
+   * nullable column would also drop the standalone rows, which are the ones most worth
+   * offering.
+   */
+  parentId: string | null;
 }
 
 interface Props {

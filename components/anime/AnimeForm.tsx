@@ -75,6 +75,9 @@ export default function AnimeForm({ seriesOptions, initialData, mode, studioOpti
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
     router.push(`/library/anime/${item.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
   }
 
   return (

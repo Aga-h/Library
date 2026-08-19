@@ -6,6 +6,8 @@ import { Plus, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import Breadcrumb, { type Crumb } from "@/components/ui/Breadcrumb";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
+import AttachExistingButton from "@/components/ui/AttachExistingButton";
+import { animeTitleOptions } from "@/lib/hierarchy-options";
 import AnimeCard from "@/components/anime/AnimeCard";
 
 interface PageProps { params: Promise<{ seriesId: string }> }
@@ -17,11 +19,18 @@ function count(n: number, one: string, many = `${one}s`) {
 export default async function AnimeSeriesPage({ params }: PageProps) {
   const { seriesId } = await params;
 
-  const series = await db.animeSeries.findUnique({
-    where: { id: seriesId },
-    include: { universe: true, anime: { orderBy: { createdAt: "asc" } } },
-  });
+  const [series, allEntries] = await Promise.all([
+    db.animeSeries.findUnique({
+      where: { id: seriesId },
+      include: { universe: true, anime: { orderBy: { createdAt: "asc" } } },
+    }),
+    animeTitleOptions(),
+  ]);
   if (!series) notFound();
+
+  // Filtered here rather than in the query: `{ not: seriesId }` on a nullable column
+  // would also drop the standalone entries, which are the ones most worth offering.
+  const candidates = allEntries.filter((o) => o.parentId !== seriesId);
 
   const crumbs: Crumb[] = series.universe
     ? [{ label: series.universe.name, href: `/library/anime/u/${series.universe.id}` }, { label: series.name }]
@@ -40,7 +49,7 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
             {count(series.anime.length, "season")} · {count(episodesWatched, "episode")} watched
           </p>
         </div>
-        <div className="flex items-start gap-2 flex-shrink-0">
+        <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">
           <Link href={`/library/anime/s/${series.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -52,6 +61,14 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
                 ? `The ${count(series.anime.length, "season")} inside will move back to the main page. Nothing is deleted.`
                 : undefined
             }
+          />
+          <AttachExistingButton
+            apiBase="/api/anime"
+            parentKey="seriesId"
+            parentId={series.id}
+            options={candidates}
+            label="Add existing season"
+            emptyHint="Every season you have is already in this series."
           />
           <Link href={`/library/anime/new?seriesId=${series.id}`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Season

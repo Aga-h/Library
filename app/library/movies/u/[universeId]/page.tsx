@@ -6,6 +6,8 @@ import { Plus, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
+import AttachExistingButton from "@/components/ui/AttachExistingButton";
+import { movieTitleOptions } from "@/lib/hierarchy-options";
 import MovieCard from "@/components/movies/MovieCard";
 import { formatReadingTime } from "@/lib/reading-time";
 
@@ -18,11 +20,18 @@ function count(n: number, one: string, many = `${one}s`) {
 export default async function MovieUniversePage({ params }: PageProps) {
   const { universeId } = await params;
 
-  const universe = await db.movieUniverse.findUnique({
-    where: { id: universeId },
-    include: { movies: { orderBy: [{ year: "asc" }, { createdAt: "asc" }] } },
-  });
+  const [universe, allMovies] = await Promise.all([
+    db.movieUniverse.findUnique({
+      where: { id: universeId },
+      include: { movies: { orderBy: [{ year: "asc" }, { createdAt: "asc" }] } },
+    }),
+    movieTitleOptions(),
+  ]);
   if (!universe) notFound();
+
+  // Filtered here rather than in the query: `{ not: universeId }` on a nullable column
+  // would also drop the standalone films, which are the ones most worth offering.
+  const candidates = allMovies.filter((o) => o.parentId !== universeId);
 
   // Films are ordered by release year here rather than by when they were added: a universe
   // is watched in release order, which the flat main page has no reason to assume.
@@ -41,7 +50,7 @@ export default async function MovieUniversePage({ params }: PageProps) {
             {watchedMinutes > 0 && ` · ${formatReadingTime(watchedMinutes)}`}
           </p>
         </div>
-        <div className="flex items-start gap-2 flex-shrink-0">
+        <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">
           <Link href={`/library/movies/u/${universe.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -53,6 +62,14 @@ export default async function MovieUniversePage({ params }: PageProps) {
                 ? `The ${count(universe.movies.length, "film")} inside will move back to the main page. Nothing is deleted.`
                 : undefined
             }
+          />
+          <AttachExistingButton
+            apiBase="/api/movies"
+            parentKey="universeId"
+            parentId={universe.id}
+            options={candidates}
+            label="Add existing film"
+            emptyHint="Every film you have is already in this universe."
           />
           <Link href={`/library/movies/new?universeId=${universe.id}`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Movie

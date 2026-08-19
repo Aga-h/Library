@@ -123,6 +123,9 @@ export default function MovieForm({ universeOptions, initialData, mode, director
 
     const movie = await res.json();
     router.push(`/library/movies/${movie.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
 
   }
 
