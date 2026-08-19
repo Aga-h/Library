@@ -6,9 +6,11 @@ import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface MovieFormData {
   title: string;
+  universeId: string;
   director: string;
   studio: string;
   status: string;
@@ -22,6 +24,7 @@ interface MovieFormData {
 }
 
 interface MovieFormProps {
+  universeOptions?: HierarchyOption[];
   initialData?: Partial<MovieFormData & { id: string }>;
   mode: "create" | "edit";
   directorOptions?: string[];
@@ -30,6 +33,7 @@ interface MovieFormProps {
 }
 
 const DEFAULT_DATA: MovieFormData = {
+  universeId: "",
   title: "",
   director: "",
   studio: "",
@@ -51,7 +55,7 @@ function formatRuntime(minutes: number): string {
 }
 
 
-export default function MovieForm({ initialData, mode, directorOptions, studioOptions, yearOptions }: MovieFormProps) {
+export default function MovieForm({ universeOptions, initialData, mode, directorOptions, studioOptions, yearOptions }: MovieFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<MovieFormData>({
     ...DEFAULT_DATA,
@@ -87,6 +91,7 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
       title: form.title,
       director: form.director || clearable,
       studio: form.studio || clearable,
+      universeId: form.universeId || clearable,
       status: form.status,
       runtime: parseInt(form.runtime, 10),
       year: form.year ? parseInt(form.year, 10) : clearable,
@@ -170,6 +175,15 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
             <option value="DROPPED">Dropped</option>
           </select>
         </Field>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <HierarchySelect
+          label="Universe"
+          value={form.universeId}
+          onChange={(v) => update("universeId", v)}
+          options={universeOptions ?? []}
+        />
       </div>
 
       {/* Runtime & Year */}

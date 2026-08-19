@@ -17,6 +17,7 @@ types match.
 | `004-tv-hierarchy-and-comic-covers.sql` | Gives TV a Universe → Series → Season hierarchy with real foreign keys (`SET NULL`, so deleting a parent never deletes its children), backfills the old `seriesName` strings into real series rows, and drops the cover columns from comic publishers, universes and titles. |
 | `005-anime-hierarchy.sql` | Gives anime the same Universe → Series → Season hierarchy as TV, with real foreign keys (`SET NULL`) and a backfill of the old `seriesName` strings. Leaves `Anime.season` — the *airing* season enum — alone. |
 | `006-book-hierarchy.sql` | Gives books a Universe → Series → Book hierarchy (`SET NULL`). No backfill: books never had a `seriesName`, so every existing book stays standalone until it is filed by hand. |
+| `007-movie-universes.sql` | Gives movies a Universe → Movie hierarchy (`SET NULL`). Two levels only — there is no series tier for films. No backfill. |
 | `003-derived-status.sql` | Removes DROPPED/ON_HOLD/DNF, adds `Book.pagesRead` and `Manga.ongoing`, and backfills every status from its progress counts. Aborts without changing anything if a removed value is still in use. |
 | `002-expense-idempotency.sql` | Adds a unique `Expense.clientId` so the offline expense logger can retry without creating duplicate expenses. |
 
@@ -31,7 +32,7 @@ instance seeded to match the production schema, and checked for:
 - `issueNumber` ordering numerically (`#0 #1 #1.5 #2 #10`, not string order)
 - `prisma migrate diff` reporting **no** residual drift for any table it touches
 
-## How 004, 005 and 006 were verified
+## How 004–007 were verified
 
 Same bar as 001, against a throwaway PostgreSQL 16 pushed to the previous schema:
 

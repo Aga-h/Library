@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import AnimeForm from "@/components/anime/AnimeForm";
 import { db } from "@/lib/db";
-import { animeSeriesOptions } from "@/lib/series-options";
+import { animeSeriesOptions } from "@/lib/hierarchy-options";
 
 interface PageProps { searchParams: Promise<{ seriesId?: string }> }
 

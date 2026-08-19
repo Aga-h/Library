@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
-import { bookSeriesOptions } from "@/lib/series-options";
+import { bookSeriesOptions } from "@/lib/hierarchy-options";
 import BookForm from "@/components/books/BookForm";
 
 interface PageProps {

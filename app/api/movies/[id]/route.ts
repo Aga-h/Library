@@ -18,6 +18,7 @@ const updateMovieSchema = z.object({
   rating: z.number().min(1).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
   timesRewatched: z.number().int().min(0).optional(),
+  universeId: z.string().optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -48,6 +49,12 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
       { error: "Validation failed", issues: result.error.issues },
       { status: 400 }
     );
+  }
+
+  // A bad universe id would otherwise surface as a foreign-key 500.
+  if (result.data.universeId) {
+    const universe = await db.movieUniverse.findUnique({ where: { id: result.data.universeId }, select: { id: true } });
+    if (!universe) return NextResponse.json({ error: "Universe not found" }, { status: 404 });
   }
 
   const updated = await db.movie.update({

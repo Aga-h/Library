@@ -9,7 +9,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
-import SeriesSelect, { type SeriesOption } from "@/components/ui/SeriesSelect";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface TvFormData {
   title: string;
@@ -28,7 +28,7 @@ interface TvFormData {
 }
 
 interface TvFormProps {
-  seriesOptions?: SeriesOption[];
+  seriesOptions?: HierarchyOption[];
   initialData?: Partial<TvFormData & { id: string }>;
   mode: "create" | "edit";
   creatorOptions?: string[];
@@ -173,7 +173,7 @@ export default function TvForm({ seriesOptions, initialData, mode, creatorOption
           options={networkOptions ?? []}
           placeholder="e.g. HBO, Netflix"
         />
-        <SeriesSelect
+        <HierarchySelect
           value={form.seriesId}
           onChange={(v) => update("seriesId", v)}
           options={seriesOptions ?? []}

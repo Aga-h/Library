@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
-import { tvSeriesOptions } from "@/lib/series-options";
+import { tvSeriesOptions } from "@/lib/hierarchy-options";
 import TvForm from "@/components/tv/TvForm";
 
 interface PageProps { params: Promise<{ id: string }> }

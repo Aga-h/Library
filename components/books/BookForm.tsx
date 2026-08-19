@@ -9,7 +9,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
-import SeriesSelect, { type SeriesOption } from "@/components/ui/SeriesSelect";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface BookFormData {
   title: string;
@@ -27,7 +27,7 @@ interface BookFormData {
 }
 
 interface BookFormProps {
-  seriesOptions?: SeriesOption[];
+  seriesOptions?: HierarchyOption[];
   initialData?: Partial<BookFormData & { id: string }>;
   mode: "create" | "edit";
   authorOptions?: string[];
@@ -211,7 +211,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SeriesSelect
+        <HierarchySelect
           value={form.seriesId}
           onChange={(v) => update("seriesId", v)}
           options={seriesOptions ?? []}

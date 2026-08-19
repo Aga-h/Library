@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import BookForm from "@/components/books/BookForm";
 import { db } from "@/lib/db";
-import { bookSeriesOptions } from "@/lib/series-options";
+import { bookSeriesOptions } from "@/lib/hierarchy-options";
 
 interface PageProps { searchParams: Promise<{ seriesId?: string }> }
 

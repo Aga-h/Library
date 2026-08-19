@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
-import { animeSeriesOptions } from "@/lib/series-options";
+import { animeSeriesOptions } from "@/lib/hierarchy-options";
 import AnimeForm from "@/components/anime/AnimeForm";
 
 interface PageProps { params: Promise<{ id: string }> }

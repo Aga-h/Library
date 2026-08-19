@@ -123,11 +123,25 @@ model Movie {
   rating         Float?
   notes          String?
   timesRewatched Int         @default(0)
+  universeId     String?
+  universe       MovieUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  @@index([universeId])
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
+}
+
+// Movies stop at two levels — universe and film. There is no series tier: a
+// franchise is the universe, and its films sit directly inside it.
+model MovieUniverse {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  movies    Movie[]
 }
 
 enum MovieStatus {

@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/hierarchy-phase-1 (feature work) → claude/repository-overview-FcVyQ (deploy)
-**Updated:** 2026-08-19 — Phase 3 (books) complete
+**Updated:** 2026-08-19 — all four hierarchy phases complete
 
 ## Done
 
@@ -58,10 +58,17 @@
       Also removed the dead `/api/tv-series` route, twin of the `anime-series` one deleted in
       Phase 2. **Still on `claude/hierarchy-phase-1`** — waiting on migrations 004, 005 and 006.
 
+- [x] **Phase 4 of the hierarchy work** — movies gained Universe → Movie. Two levels, not
+      three: a franchise *is* the universe, so films sit directly inside it and the main page
+      has two buckets rather than three. Migration `007`, no backfill. Films inside a universe
+      list in release-year order, since that is how a franchise is watched.
+      The shared picker was generalised from `SeriesSelect` to `HierarchySelect` (and
+      `lib/series-options.ts` to `lib/hierarchy-options.ts`) so movies can pick a universe
+      with the same control the other three use for a series.
+      **All four phases are on `claude/hierarchy-phase-1`** — waiting on migrations 004–007.
+
 ## Next
 
-- [ ] **Phase 4 — movies**: `MovieUniverse` → `Movie`. No series level — the user asked for
-      universe and standalone only. Migration `007`.
 - [ ] Drop the now-dead `seriesName` columns from `TvShow` and `Anime` once 004 and 005 are
       confirmed applied and the backfill looks right in production.
 
@@ -84,10 +91,11 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **PRODUCTION WAS BROKEN** by deploying 003-dependent code before the SQL ran. Books and manga
   threw `The column Book.pagesRead does not exist`. Combined 002+003 SQL was handed over in chat.
   **Never push schema-dependent code again until the migration is confirmed applied.**
-- **Run `004-tv-hierarchy-and-comic-covers.sql`, then `005-anime-hierarchy.sql`, then
-  `006-book-hierarchy.sql`**, in that order, before merging `claude/hierarchy-phase-1`.
-  Phases 1–3 are deliberately parked on that side branch so they cannot deploy ahead of
-  their schema.
+- **Run `004-tv-hierarchy-and-comic-covers.sql`, `005-anime-hierarchy.sql`,
+  `006-book-hierarchy.sql`, `007-movie-universes.sql`** — in that order — before merging
+  `claude/hierarchy-phase-1`. All four phases are parked on that side branch so they cannot
+  deploy ahead of their schema. Once the SQL is confirmed, merge the branch into
+  `claude/repository-overview-FcVyQ` to deploy.
 - **Run `prisma/manual-migrations/003-derived-status.sql`** — until then the app expects enum
   values and columns the database does not have yet, so Books/TV/Anime/Manga writes will fail.
   It aborts harmlessly if any row still uses DROPPED/ON_HOLD/DNF.

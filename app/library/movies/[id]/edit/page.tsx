@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
+import { movieUniverseOptions } from "@/lib/hierarchy-options";
 import MovieForm from "@/components/movies/MovieForm";
 
 interface PageProps {
@@ -12,8 +13,9 @@ interface PageProps {
 
 export default async function EditMoviePage({ params }: PageProps) {
   const { id } = await params;
-  const [movie, directorOpts, studioOpts, yearOpts] = await Promise.all([
+  const [movie, universeOpts, directorOpts, studioOpts, yearOpts] = await Promise.all([
     db.movie.findUnique({ where: { id } }),
+    movieUniverseOptions(),
     db.movie.findMany({ where: { director: { not: null } }, select: { director: true }, distinct: ["director"], orderBy: { director: "asc" } })
       .then(r => r.map(x => x.director).filter((v): v is string => v !== null && v !== "")),
     db.movie.findMany({ where: { studio: { not: null } }, select: { studio: true }, distinct: ["studio"], orderBy: { studio: "asc" } })
@@ -38,12 +40,14 @@ export default async function EditMoviePage({ params }: PageProps) {
         <p className="text-sm text-gray-500 mb-6">{movie.title}</p>
         <MovieForm
           mode="edit"
+          universeOptions={universeOpts}
           directorOptions={directorOpts}
           studioOptions={studioOpts}
           yearOptions={yearOpts}
           initialData={{
             id: movie.id,
             title: movie.title,
+            universeId: movie.universeId ?? "",
             director: movie.director ?? "",
             studio: movie.studio ?? "",
             status: movie.status,

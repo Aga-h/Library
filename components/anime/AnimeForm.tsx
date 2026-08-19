@@ -9,7 +9,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
-import SeriesSelect, { type SeriesOption } from "@/components/ui/SeriesSelect";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface AnimeFormData {
   title: string;
@@ -28,7 +28,7 @@ const DEFAULT: AnimeFormData = {
 };
 
 interface Props {
-  seriesOptions?: SeriesOption[];
+  seriesOptions?: HierarchyOption[];
   initialData?: Partial<AnimeFormData & { id: string }>;
   mode: "create" | "edit";
   studioOptions?: string[];
@@ -84,7 +84,7 @@ export default function AnimeForm({ seriesOptions, initialData, mode, studioOpti
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Anime title" className={inputCls} /></Field>
         <ComboboxField label="Studio" value={form.studio} onChange={v => update("studio", v)} options={studioOptions ?? []} placeholder="e.g. MAPPA" />
-        <SeriesSelect value={form.seriesId} onChange={(v) => update("seriesId", v)} options={seriesOptions ?? []} />
+        <HierarchySelect value={form.seriesId} onChange={(v) => update("seriesId", v)} options={seriesOptions ?? []} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

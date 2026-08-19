@@ -2,25 +2,27 @@
 
 import { Field, inputCls } from "@/components/ui/form";
 
-export interface SeriesOption {
+export interface HierarchyOption {
   id: string;
   name: string;
-  universeName: string | null;
+  /** Name of the level above, shown as a prefix to disambiguate repeated names. */
+  parentName: string | null;
 }
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
-  options: SeriesOption[];
+  options: HierarchyOption[];
   label?: string;
   emptyLabel?: string;
 }
 
 /**
- * Picks the series an entry belongs to. An empty value means standalone — the entry
- * shows on the section's main page instead of inside a series.
+ * Picks the parent an entry belongs to — a series for books, TV and anime, a universe
+ * for movies. An empty value means standalone: the entry shows on the section's main
+ * page instead of inside its parent.
  */
-export default function SeriesSelect({
+export default function HierarchySelect({
   value,
   onChange,
   options,
@@ -37,7 +39,7 @@ export default function SeriesSelect({
         <option value="">{emptyLabel}</option>
         {options.map((o) => (
           <option key={o.id} value={o.id}>
-            {o.universeName ? `${o.universeName} · ${o.name}` : o.name}
+            {o.parentName ? `${o.parentName} · ${o.name}` : o.name}
           </option>
         ))}
       </select>
