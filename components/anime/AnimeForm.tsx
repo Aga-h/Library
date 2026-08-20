@@ -56,7 +56,7 @@ export default function AnimeForm({ seriesOptions, seriesName, initialData, mode
   }
 
   function composeTitle(name: string | undefined, season: string) {
-    return name && season ? `${name} Season ${season}` : null;
+    return name && season ? `${name} | Season ${season}` : null;
   }
 
   function updateSeries(value: string) {

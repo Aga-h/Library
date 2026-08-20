@@ -38,7 +38,7 @@ export default async function NewTvPage({ searchParams }: PageProps) {
     : null;
   const highest = series?.shows[0]?.seasonNumber ?? 0;
   const nextSeason = series ? String(highest + 1) : "";
-  const prefillTitle = series ? `${series.name} Season ${nextSeason}` : "";
+  const prefillTitle = series ? `${series.name} | Season ${nextSeason}` : "";
 
   return (
     <div className="max-w-2xl mx-auto">

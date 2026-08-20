@@ -85,7 +85,7 @@ export default function TvForm({ seriesOptions, seriesName, initialData, mode, c
   }
 
   function composeTitle(name: string | undefined, season: string) {
-    return name && season ? `${name} Season ${season}` : null;
+    return name && season ? `${name} | Season ${season}` : null;
   }
 
   function updateSeries(value: string) {

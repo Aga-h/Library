@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
-**Updated:** 2026-08-19 — season selector built; 008 and 009 awaiting SQL
+**Updated:** 2026-08-19 — season selector shipped; 009 applied; 008 and 011 awaiting SQL
 
 ## Done
 
@@ -114,6 +114,12 @@
       **`010` is a read-only dry run** for parsing seasons out of existing titles — it must be
       reviewed before a backfill is written, because "Stranger Things 4" and "Steins;Gate 0" are
       indistinguishable from real suffixes by shape.
+      The dry run came back clean — 16 rows, all the safe "Season N" pattern, no false
+      positives — so `011` backfills them. Two findings from the real data: titles use a
+      **`Show | Season N`** separator, which the prefill now reproduces; and
+      "Supernatural | Season 4 " carried a **trailing space** that defeated the anchored match
+      and hid it among its seven siblings, so `011` trims before matching. Titles are **not**
+      stripped: that format is the user's, and the season number is stored alongside it.
 
 ## Next
 
@@ -136,10 +142,8 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
-- **Run `prisma/manual-migrations/009-season-number.sql`** — additive, so it goes in **before**
-  the deploy carrying the season selector. Safe to re-run.
-- **Then run `010-dry-run-season-from-title.sql`** — read-only, changes nothing. Send back its
-  output and the backfill (`011`) gets written against rows you have actually eyeballed.
+- **Run `prisma/manual-migrations/011-backfill-season-number.sql`** — fills the season numbers
+  for the 16 existing entries. Safe to re-run; `009` and `010` are done.
 - **Run `prisma/manual-migrations/008-drop-series-name.sql`** — but only *after* the deploy
   carrying this commit is live, since it is a removal (see the run-order note in that file).
   Nothing breaks if it is never run: the columns just sit there unused. It is safe to re-run.
