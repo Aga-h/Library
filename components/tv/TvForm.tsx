@@ -6,7 +6,7 @@ import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { Field, FieldGroup, NumberSelectField, inputCls } from "@/components/ui/form";
 import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
 import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
@@ -14,6 +14,7 @@ import HierarchySelect, { type HierarchyOption } from "@/components/ui/Hierarchy
 interface TvFormData {
   title: string;
   seriesId: string;
+  seasonNumber: string;
   creator: string;
   network: string;
   totalEpisodes: string;
@@ -29,6 +30,8 @@ interface TvFormData {
 
 interface TvFormProps {
   seriesOptions?: HierarchyOption[];
+  /** Name of the series this is being added to, used to prefill the title. */
+  seriesName?: string;
   initialData?: Partial<TvFormData & { id: string }>;
   mode: "create" | "edit";
   creatorOptions?: string[];
@@ -38,6 +41,7 @@ interface TvFormProps {
 
 const DEFAULT_DATA: TvFormData = {
   seriesId: "",
+  seasonNumber: "",
   title: "",
   creator: "",
   network: "",
@@ -55,7 +59,7 @@ const DEFAULT_DATA: TvFormData = {
 
 const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
 
-export default function TvForm({ seriesOptions, initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
+export default function TvForm({ seriesOptions, seriesName, initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<TvFormData>({
     ...DEFAULT_DATA,
@@ -66,9 +70,38 @@ export default function TvForm({ seriesOptions, initialData, mode, creatorOption
     year: initialData?.year?.toString() ?? "",
     rating: initialData?.rating?.toString() ?? "",
     timesRewatched: initialData?.timesRewatched?.toString() ?? "0",
+    seasonNumber: initialData?.seasonNumber?.toString() ?? "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The title is prefilled as "{Series} Season {n}" so a season never has to be typed by hand,
+  // but only while the user has not written their own. Without this flag, naming something
+  // "The Final Season" and then picking a season number would silently destroy that name.
+  const [titleDirty, setTitleDirty] = useState(mode === "edit");
+
+  function seriesNameFor(id: string) {
+    return seriesOptions?.find((o) => o.id === id)?.name ?? (id ? seriesName : undefined);
+  }
+
+  function composeTitle(name: string | undefined, season: string) {
+    return name && season ? `${name} Season ${season}` : null;
+  }
+
+  function updateSeries(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(value), prev.seasonNumber);
+      return { ...prev, seriesId: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
+  function updateSeason(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(prev.seriesId), value);
+      return { ...prev, seasonNumber: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
 
   const runtimeMinutes = parseInt(form.episodeRuntime, 10);
   const episodesWatched = parseInt(form.episodesWatched, 10) || 0;
@@ -98,6 +131,7 @@ export default function TvForm({ seriesOptions, initialData, mode, creatorOption
     const payload = {
       title: form.title,
       seriesId: form.seriesId || clearable,
+      seasonNumber: form.seasonNumber ? parseInt(form.seasonNumber, 10) : clearable,
       creator: form.creator || clearable,
       network: form.network || clearable,
       totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : clearable,
@@ -153,7 +187,7 @@ export default function TvForm({ seriesOptions, initialData, mode, creatorOption
             type="text"
             required
             value={form.title}
-            onChange={(e) => update("title", e.target.value)}
+            onChange={(e) => { setTitleDirty(true); update("title", e.target.value); }}
             placeholder="Show title"
             className={inputCls}
           />
@@ -178,8 +212,16 @@ export default function TvForm({ seriesOptions, initialData, mode, creatorOption
         />
         <HierarchySelect
           value={form.seriesId}
-          onChange={(v) => update("seriesId", v)}
+          onChange={updateSeries}
           options={seriesOptions ?? []}
+        />
+        <NumberSelectField
+          label="Season"
+          value={form.seasonNumber}
+          onChange={updateSeason}
+          max={40}
+          emptyLabel="Not part of a season"
+          format={(n) => `Season ${n}`}
         />
       </div>
 

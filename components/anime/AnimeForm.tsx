@@ -6,14 +6,14 @@ import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { Field, FieldGroup, NumberSelectField, inputCls } from "@/components/ui/form";
 import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
 import DerivedStatus from "@/components/ui/DerivedStatus";
 import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface AnimeFormData {
   title: string;
-  seriesId: string; studio: string;
+  seriesId: string; seasonNumber: string; studio: string;
   episodes: string; episodesWatched: string; episodeDuration: string;
   season: string; year: string; language: string;
   coverImage: string; rating: string; notes: string;
@@ -21,7 +21,7 @@ interface AnimeFormData {
 }
 
 const DEFAULT: AnimeFormData = {
-  title: "", seriesId: "", studio: "", episodes: "", episodesWatched: "0", episodeDuration: "24",
+  title: "", seriesId: "", seasonNumber: "", studio: "", episodes: "", episodesWatched: "0", episodeDuration: "24",
   season: "", year: "", language: "JAPANESE",
   coverImage: "", rating: "", notes: "",
   timesRewatched: "0",
@@ -29,6 +29,8 @@ const DEFAULT: AnimeFormData = {
 
 interface Props {
   seriesOptions?: HierarchyOption[];
+  /** Name of the series this is being added to, used to prefill the title. */
+  seriesName?: string;
   initialData?: Partial<AnimeFormData & { id: string }>;
   mode: "create" | "edit";
   studioOptions?: string[];
@@ -38,11 +40,39 @@ interface Props {
 
 const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
 
-export default function AnimeForm({ seriesOptions, initialData, mode, studioOptions, yearOptions }: Props) {
+export default function AnimeForm({ seriesOptions, seriesName, initialData, mode, studioOptions, yearOptions }: Props) {
   const router = useRouter();
-  const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
+  const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0", seasonNumber: initialData?.seasonNumber?.toString() ?? "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The title is prefilled as "{Series} Season {n}" so a season never has to be typed by hand,
+  // but only while the user has not written their own. Without this flag, naming something
+  // "The Final Season" and then picking a season number would silently destroy that name.
+  const [titleDirty, setTitleDirty] = useState(mode === "edit");
+
+  function seriesNameFor(id: string) {
+    return seriesOptions?.find((o) => o.id === id)?.name ?? (id ? seriesName : undefined);
+  }
+
+  function composeTitle(name: string | undefined, season: string) {
+    return name && season ? `${name} Season ${season}` : null;
+  }
+
+  function updateSeries(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(value), prev.seasonNumber);
+      return { ...prev, seriesId: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
+  function updateSeason(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(prev.seriesId), value);
+      return { ...prev, seasonNumber: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
 
   const watched = parseInt(form.episodesWatched, 10) || 0;
   const duration = parseInt(form.episodeDuration, 10) || 24;
@@ -62,6 +92,7 @@ export default function AnimeForm({ seriesOptions, initialData, mode, studioOpti
     const payload = {
       title: form.title, studio: form.studio || clearable,
       seriesId: form.seriesId || clearable,
+      seasonNumber: form.seasonNumber ? parseInt(form.seasonNumber, 10) : clearable,
       episodes: form.episodes ? parseInt(form.episodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeDuration: parseInt(form.episodeDuration, 10) || 24,
@@ -85,9 +116,10 @@ export default function AnimeForm({ seriesOptions, initialData, mode, studioOpti
       {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Anime title" className={inputCls} /></Field>
+        <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => { setTitleDirty(true); update("title", e.target.value); }} placeholder="Anime title" className={inputCls} /></Field>
         <ComboboxField label="Studio" value={form.studio} onChange={v => update("studio", v)} options={studioOptions ?? []} placeholder="e.g. MAPPA" />
-        <HierarchySelect value={form.seriesId} onChange={(v) => update("seriesId", v)} options={seriesOptions ?? []} />
+        <HierarchySelect value={form.seriesId} onChange={updateSeries} options={seriesOptions ?? []} />
+        <NumberSelectField label="Season" value={form.seasonNumber} onChange={updateSeason} max={40} emptyLabel="Not part of a season" format={(n) => `Season ${n}`} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -109,7 +141,7 @@ export default function AnimeForm({ seriesOptions, initialData, mode, studioOpti
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Field label="Season">
+        <Field label="Aired">
           <select value={form.season} onChange={(e) => update("season", e.target.value)} className={inputCls}>
             <option value="">Unknown</option>
             <option value="WINTER">Winter</option>

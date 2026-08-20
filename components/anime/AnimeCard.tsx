@@ -4,6 +4,7 @@ import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface Anime {
+  seasonNumber: number | null;
   id: string; title: string; studio: string | null; status: string;
   episodes: number | null; episodesWatched: number; episodeDuration: number;
   season: string | null; year: number | null; language: string;
@@ -27,6 +28,11 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
           <Image fill src={anime.coverImage} alt={anime.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
         ) : (
           <Tv2 className="w-12 h-12 text-gray-300" />
+        )}
+        {anime.seasonNumber !== null && (
+          <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900/80 text-white">
+            S{anime.seasonNumber}
+          </span>
         )}
         <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
       </div>

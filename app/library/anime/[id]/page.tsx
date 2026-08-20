@@ -71,6 +71,11 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
+              {anime.seasonNumber !== null && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-900 text-white">
+                  Season {anime.seasonNumber}
+                </span>
+              )}
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
               {anime.season && anime.year && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">{SEASON_LABELS[anime.season]} {anime.year}</span>}
               {anime.rating !== null && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">★ {anime.rating}/10</span>}

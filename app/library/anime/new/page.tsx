@@ -18,6 +18,26 @@ export default async function NewAnimePage({ searchParams }: PageProps) {
       .then(r => r.map(x => x.year!.toString())),
   ]);
 
+  // Adding from a series page: offer the next season and the name to build the title from,
+  // the same way comics suggests the next issue number.
+  const series = seriesId
+    ? await db.animeSeries.findUnique({
+        where: { id: seriesId },
+        select: {
+          name: true,
+          anime: {
+            where: { seasonNumber: { not: null } },
+            select: { seasonNumber: true },
+            orderBy: { seasonNumber: "desc" },
+            take: 1,
+          },
+        },
+      })
+    : null;
+  const highest = series?.anime[0]?.seasonNumber ?? 0;
+  const nextSeason = series ? String(highest + 1) : "";
+  const prefillTitle = series ? `${series.name} Season ${nextSeason}` : "";
+
   return (
     <div className="max-w-2xl mx-auto">
       <Link href="/library/anime" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
@@ -26,7 +46,8 @@ export default async function NewAnimePage({ searchParams }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Add Anime</h1>
         <AnimeForm mode="create" seriesOptions={seriesOpts}
-          initialData={seriesId ? { seriesId } : undefined}
+          seriesName={series?.name}
+          initialData={seriesId ? { seriesId, seasonNumber: nextSeason, title: prefillTitle } : undefined}
           studioOptions={studioOpts} yearOptions={yearOpts} />
       </div>
     </div>

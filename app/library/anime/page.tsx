@@ -19,7 +19,7 @@ const GRID = "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-
 const CARD_FIELDS = {
   id: true, title: true, studio: true, status: true,
   episodes: true, episodesWatched: true, episodeDuration: true,
-  season: true, year: true, language: true,
+  season: true, seasonNumber: true, year: true, language: true,
   coverImage: true, rating: true, timesRewatched: true,
 } as const;
 

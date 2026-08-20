@@ -22,7 +22,7 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
   const [series, allEntries] = await Promise.all([
     db.animeSeries.findUnique({
       where: { id: seriesId },
-      include: { universe: true, anime: { orderBy: { createdAt: "asc" } } },
+      include: { universe: true, anime: { orderBy: [{ seasonNumber: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] } },
     }),
     animeTitleOptions(),
   ]);

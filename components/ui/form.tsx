@@ -35,3 +35,41 @@ export function FieldGroup({ label, children }: { label: string; children: React
     </div>
   );
 }
+
+/**
+ * A `<select>` over a numeric range, wrapped in `Field`.
+ *
+ * The same hand-rolled `Array.from({length}, …)` select is copy-pasted into six forms for
+ * "times rewatched"; this exists so the season selector does not become the seventh. State is
+ * a string, like every other field in these forms, and is parsed on submit.
+ */
+export function NumberSelectField({
+  label, value, onChange, min = 1, max, emptyLabel, format = String,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  min?: number;
+  max: number;
+  /** Shown for the empty option. Omit to make a choice mandatory. */
+  emptyLabel?: string;
+  format?: (n: number) => string;
+}) {
+  const options = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  // An out-of-range stored value must still be selectable, or opening an old entry and saving
+  // would silently snap it to something else.
+  const current = Number(value);
+  const extra = value !== "" && Number.isFinite(current) && !options.includes(current) ? current : null;
+
+  return (
+    <Field label={label}>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className={inputCls}>
+        {emptyLabel !== undefined && <option value="">{emptyLabel}</option>}
+        {extra !== null && <option value={String(extra)}>{format(extra)}</option>}
+        {options.map((n) => (
+          <option key={n} value={String(n)}>{format(n)}</option>
+        ))}
+      </select>
+    </Field>
+  );
+}

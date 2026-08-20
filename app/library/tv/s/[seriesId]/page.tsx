@@ -22,7 +22,7 @@ export default async function TvSeriesPage({ params }: PageProps) {
   const [series, allEntries] = await Promise.all([
     db.tvSeries.findUnique({
       where: { id: seriesId },
-      include: { universe: true, shows: { orderBy: { createdAt: "asc" } } },
+      include: { universe: true, shows: { orderBy: [{ seasonNumber: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] } },
     }),
     tvShowOptions(),
   ]);

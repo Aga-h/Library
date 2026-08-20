@@ -67,6 +67,11 @@ export default async function TvDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
+              {show.seasonNumber !== null && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-900 text-white">
+                  Season {show.seasonNumber}
+                </span>
+              )}
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
               {show.rating !== null && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">★ {show.rating}/10</span>}
             </div>

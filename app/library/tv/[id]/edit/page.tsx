@@ -34,6 +34,7 @@ export default async function EditTvPage({ params }: PageProps) {
         <TvForm mode="edit" seriesOptions={seriesOpts} creatorOptions={creatorOpts} networkOptions={networkOpts} yearOptions={yearOpts} initialData={{
           id: show.id, title: show.title, creator: show.creator ?? "",
           seriesId: show.seriesId ?? "",
+          seasonNumber: show.seasonNumber?.toString() ?? "",
           network: show.network ?? "", totalEpisodes: show.totalEpisodes?.toString() ?? "",
           episodesWatched: show.episodesWatched.toString(),
           episodeRuntime: show.episodeRuntime.toString(),

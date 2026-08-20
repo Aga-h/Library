@@ -32,6 +32,7 @@ export default async function EditAnimePage({ params }: PageProps) {
         <AnimeForm mode="edit" seriesOptions={seriesOpts} studioOptions={studioOpts} yearOptions={yearOpts} initialData={{
           id: anime.id, title: anime.title, studio: anime.studio ?? "",
           seriesId: anime.seriesId ?? "",
+          seasonNumber: anime.seasonNumber?.toString() ?? "",
           episodes: anime.episodes?.toString() ?? "",
           episodesWatched: anime.episodesWatched.toString(),
           episodeDuration: anime.episodeDuration.toString(),

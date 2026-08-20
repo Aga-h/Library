@@ -21,6 +21,7 @@ const updateTvShowSchema = z.object({
   notes: z.string().optional().nullable(),
   timesRewatched: z.number().int().min(0).optional(),
   seriesId: z.string().optional().nullable(),
+  seasonNumber: z.number().int().min(1).optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };

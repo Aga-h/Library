@@ -25,6 +25,8 @@ declares. Getting this backwards is what broke books and manga once already.
 | `006-book-hierarchy.sql` | Gives books a Universe → Series → Book hierarchy (`SET NULL`). No backfill: books never had a `seriesName`, so every existing book stays standalone until it is filed by hand. |
 | `007-movie-universes.sql` | Gives movies a Universe → Movie hierarchy (`SET NULL`). Two levels only — there is no series tier for films. No backfill. |
 | `008-drop-series-name.sql` | Drops the legacy `seriesName` strings from `TvShow` and `Anime`, superseded by the real series foreign keys in 004/005. **Run order is reversed for this one — deploy the code that no longer references the column FIRST, then run this.** Aborts without changing anything if any row still has a `seriesName` but no `seriesId`. |
+| `009-season-number.sql` | Adds `seasonNumber` to `TvShow` and `Anime` so a season is picked rather than typed into the title, plus the `(seriesId, seasonNumber)` ordering index. Additive — run **before** the deploy. |
+| `010-dry-run-season-from-title.sql` | **Read-only.** Proposes a season number and stripped title for every existing entry whose title looks season-suffixed, and flags the ambiguous ones. Review its output before any backfill is written. |
 | `003-derived-status.sql` | Removes DROPPED/ON_HOLD/DNF, adds `Book.pagesRead` and `Manga.ongoing`, and backfills every status from its progress counts. Aborts without changing anything if a removed value is still in use. |
 | `002-expense-idempotency.sql` | Adds a unique `Expense.clientId` so the offline expense logger can retry without creating duplicate expenses. |
 

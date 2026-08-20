@@ -81,6 +81,9 @@ model Anime {
   rating          Float?
   notes           String?
   timesRewatched  Int          @default(0)
+  // Which season of its series this row is. Distinct from `season` above, which is the
+  // AIRING season (Winter/Spring/Summer/Fall). Nullable: a standalone entry has none.
+  seasonNumber    Int?
   seriesId        String?
   series          AnimeSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())
@@ -90,6 +93,7 @@ model Anime {
   @@index([createdAt(sort: Desc)])
   @@index([language, createdAt(sort: Desc)])
   @@index([seriesId])
+  @@index([seriesId, seasonNumber])
 }
 
 enum AnimeStatus {
@@ -164,6 +168,8 @@ model TvShow {
   rating          Float?
   notes           String?
   timesRewatched  Int      @default(0)
+  // Which season of its series this row is. Nullable: a standalone show has none.
+  seasonNumber    Int?
   seriesId        String?
   series          TvSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime @default(now())
@@ -172,6 +178,7 @@ model TvShow {
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
   @@index([seriesId])
+  @@index([seriesId, seasonNumber])
 }
 
 enum TvStatus {
