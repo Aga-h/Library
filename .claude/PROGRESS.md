@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
-**Updated:** 2026-08-19 — season selector shipped; 009 applied; 008 and 011 awaiting SQL
+**Updated:** 2026-08-19 — season selector shipped and backfilled; only 008 (optional) outstanding
 
 ## Done
 
@@ -142,12 +142,12 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
-- **Run `prisma/manual-migrations/011-backfill-season-number.sql`** — fills the season numbers
-  for the 16 existing entries. Safe to re-run; `009` and `010` are done.
+
 - **Run `prisma/manual-migrations/008-drop-series-name.sql`** — but only *after* the deploy
   carrying this commit is live, since it is a removal (see the run-order note in that file).
   Nothing breaks if it is never run: the columns just sit there unused. It is safe to re-run.
-- Migrations `001`–`007` and the RLS block are **all applied and confirmed**.
+- Migrations `001`–`007`, `009` and `011` and the RLS block are **all applied**. `010` was a
+  read-only dry run, not a migration. Only `008` is outstanding, and it is optional.
 - Any *future* schema change needs the same treatment: `prisma db push` cannot reach this
   Supabase instance (no credentials here, and port 5432 is blocked), so write an idempotent
   script into `prisma/manual-migrations/` and ask the user to paste it into the Supabase SQL
