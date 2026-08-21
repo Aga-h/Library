@@ -610,3 +610,72 @@ enum Language {
   CHINESE
   KOREAN
 }
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+// Day plans are dealt onto real dates. A date's kind (school or holiday) is always DERIVED
+// from the terms, days off and the weekend rule — never stored — because terms get edited and
+// a stored kind would quietly disagree with the calendar afterwards.
+
+enum DayKind {
+  SCHOOL
+  HOLIDAY
+}
+
+model DayPlan {
+  id         String        @id @default(cuid())
+  name       String
+  kind       DayKind
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  activities DayActivity[]
+  days       CalendarDay[]
+
+  // Two plans of the same kind may not share a name, or the deal is unreadable.
+  @@unique([kind, name])
+  @@index([kind])
+}
+
+model DayActivity {
+  id          String  @id @default(cuid())
+  planId      String
+  plan        DayPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  // Minutes from midnight. A time of day, not an instant — a DateTime would drag a date and a
+  // timezone along with 09:00.
+  startMinute Int
+  endMinute   Int?
+  title       String
+  notes       String?
+
+  @@index([planId, startMinute])
+}
+
+model SchoolTerm {
+  id        String   @id @default(cuid())
+  name      String?
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@index([startDate, endDate])
+}
+
+// A one-off holiday inside a term.
+model DayOff {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model CalendarDay {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  planId    String?
+  // SetNull, not Cascade: deleting a plan must empty the dates that used it, not delete them.
+  plan      DayPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([planId])
+}

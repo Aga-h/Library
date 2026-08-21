@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookMarked, Shirt, Wallet, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Wallet, CalendarDays, ArrowRight } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -27,6 +27,15 @@ const SECTIONS = [
     icon: Wallet,
     color: "from-emerald-50 to-green-50 border-emerald-200",
     iconColor: "text-emerald-600",
+    available: true,
+  },
+  {
+    href: "/calendar",
+    label: "Calendar",
+    description: "Plan your days — school terms, holidays and shuffled schedules",
+    icon: CalendarDays,
+    color: "from-violet-50 to-purple-50 border-violet-200",
+    iconColor: "text-violet-600",
     available: true,
   },
   {

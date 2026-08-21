@@ -24,4 +24,5 @@ export const WASH_TEMP_VALUES = ["COLD", "W30", "W40", "W60", "W90"] as const;
 export const WASH_CYCLE_VALUES = ["NORMAL", "GENTLE"] as const;
 export const SPIN_LEVEL_VALUES = ["NORMAL", "REDUCED", "NONE"] as const;
 export const DRY_METHOD_VALUES = ["TUMBLE_HIGH", "TUMBLE_MEDIUM", "TUMBLE_LOW", "AIR_LINE", "AIR_FLAT", "AIR_DRIP", "DRY_CLEAN", "DO_NOT_DRY"] as const;
+export const DAY_KIND_VALUES = ["SCHOOL", "HOLIDAY"] as const;
 export const EXPENSE_CATEGORY_VALUES = ["FOOD", "BOOKS", "EDUCATION", "ENTERTAINMENT", "CLOTHING", "SUBSCRIPTIONS", "SELF_CARE", "TRANSPORTATION", "OTHER", "CASH"] as const;

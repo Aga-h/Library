@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
-**Updated:** 2026-08-19 — season selector shipped and backfilled; only 008 (optional) outstanding
+**Updated:** 2026-08-21 — Calendar section built; 012 awaiting SQL
 
 ## Done
 
@@ -121,6 +121,19 @@
       and hid it among its seven siblings, so `011` trims before matching. Titles are **not**
       stripped: that format is the user's, and the season number is stored alongside it.
 
+- [x] **Calendar section** — day plans dealt onto real dates. A day plan is a timetable of
+      activities; each date derives its own kind (weekend always holiday, term weekday school,
+      everything else holiday) and the app deals plans of the matching kind onto it. Dealing is
+      a shuffled deck per kind, so every plan is used before any repeats; "fill" never touches a
+      date you set by hand, "re-deal" replaces the month after confirming. Migration `012`,
+      which also enables RLS on all five new tables — every other public table has it, and
+      without it these would be the only ones open to the Supabase anon key.
+      Two pure modules with 49 assertions (`npm run test`): `lib/calendar-dates.ts` (date-only,
+      UTC accessors only) and `lib/calendar-shuffle.ts` (the deal, injectable RNG).
+      **"Today" resolves in Europe/Istanbul, not the server's zone** — the deploy region is
+      UTC+9 and the user is UTC+3, so a bare `new Date()` opens the wrong month for six hours a
+      day. `app/finances/page.tsx` and the subscription cancel route still have that bug.
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
@@ -143,6 +156,9 @@ Three items were scoped in the audit but not implemented. In rough value order:
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
 
+- **Run `prisma/manual-migrations/012-calendar.sql`** — additive, so it goes in **before** the
+  deploy carrying the Calendar section. Creates five tables and enables RLS on them. Safe to
+  re-run.
 - **Run `prisma/manual-migrations/008-drop-series-name.sql`** — but only *after* the deploy
   carrying this commit is live, since it is a removal (see the run-order note in that file).
   Nothing breaks if it is never run: the columns just sit there unused. It is safe to re-run.
