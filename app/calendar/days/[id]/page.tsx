@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import DayPlanForm from "@/components/calendar/DayPlanForm";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
+import CopyDayButton from "@/components/calendar/CopyDayButton";
 
 function toHHMM(min: number) {
   return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
@@ -29,6 +30,8 @@ export default async function EditDayPage({ params }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <div className="flex items-start justify-between gap-4 mb-6">
           <h1 className="text-xl font-bold text-gray-900">Edit Day</h1>
+          <div className="flex items-start gap-2">
+          <CopyDayButton planId={plan.id} />
           <DeleteEntityButton
             apiPath={`/api/calendar/days/${plan.id}`}
             redirectTo="/calendar/days"
@@ -36,6 +39,7 @@ export default async function EditDayPage({ params }: PageProps) {
               ? `This day is on ${plan._count.days} ${plan._count.days === 1 ? "date" : "dates"}. Those dates stay, but go back to being empty.`
               : undefined}
           />
+          </div>
         </div>
         <DayPlanForm
           mode="edit"

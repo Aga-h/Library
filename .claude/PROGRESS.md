@@ -133,6 +133,10 @@
       **"Today" resolves in Europe/Istanbul, not the server's zone** — the deploy region is
       UTC+9 and the user is UTC+3, so a bare `new Date()` opens the wrong month for six hours a
       day. `app/finances/page.tsx` and the subscription cancel route still have that bug.
+      **Days can be duplicated** — `POST /api/calendar/days/[id]/copy` clones a plan with its
+      whole timetable and opens the copy for editing. Names are unique per kind, so it walks
+      "(copy)", "(copy 2)"… to a free one, and strips an existing suffix first so copying a copy
+      gives "(copy 3)" rather than "(copy 2) (copy)". A copy is never dealt onto a date.
 
 ## Next
 

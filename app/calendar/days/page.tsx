@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { Plus, Sun, GraduationCap } from "lucide-react";
 import { db } from "@/lib/db";
+import CopyDayButton from "@/components/calendar/CopyDayButton";
 
 function formatMinute(min: number) {
   return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
@@ -27,13 +28,17 @@ export default async function DaysPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {list.map((p) => (
-            <Link key={p.id} href={`/calendar/days/${p.id}`}
-              className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-400 hover:shadow-md transition-all">
+            <div key={p.id} className="relative">
+              <div className="absolute top-3 right-3 z-10">
+                <CopyDayButton planId={p.id} compact />
+              </div>
+              <Link href={`/calendar/days/${p.id}`}
+              className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-400 hover:shadow-md transition-all">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="font-semibold text-gray-900">{p.name}</span>
-                <span className="text-xs text-gray-400 flex-shrink-0">
-                  {p._count.days === 0 ? "not used yet" : `on ${p._count.days} ${p._count.days === 1 ? "date" : "dates"}`}
-                </span>
+                <span className="font-semibold text-gray-900 pr-8">{p.name}</span>
+              </div>
+              <div className="text-xs text-gray-400 mt-0.5">
+                {p._count.days === 0 ? "not used yet" : `on ${p._count.days} ${p._count.days === 1 ? "date" : "dates"}`}
               </div>
               {p.activities.length === 0 ? (
                 <p className="text-xs text-gray-400 mt-2">No activities yet</p>
@@ -46,7 +51,8 @@ export default async function DaysPage() {
                   ))}
                 </ul>
               )}
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}
