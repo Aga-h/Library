@@ -2,72 +2,59 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Check } from "lucide-react";
 import { Field, inputCls } from "@/components/ui/form";
+import { formatRange } from "@/lib/calendar-dates";
 
-export interface ActivityDraft {
+export interface ModuleOption {
+  id: string;
   title: string;
-  start: string;   // "HH:MM", the value an <input type="time"> gives
-  end: string;
-  notes: string;
+  startMinute: number;
+  endMinute: number | null;
 }
 
 interface Props {
   mode: "create" | "edit";
   planId?: string;
-  initial?: { name: string; kind: string; notes: string; activities: ActivityDraft[] };
+  modules: ModuleOption[];
+  initial?: { name: string; kind: string; notes: string; moduleIds: string[] };
 }
 
-/** "09:30" → 570. The empty string means "not set". */
-function toMinutes(hhmm: string): number | null {
-  if (!/^\d{2}:\d{2}$/.test(hhmm)) return null;
-  const [h, m] = hhmm.split(":").map(Number);
-  if (h > 23 || m > 59) return null;
-  return h * 60 + m;
-}
-
-const BLANK: ActivityDraft = { title: "", start: "09:00", end: "", notes: "" };
-
-export default function DayPlanForm({ mode, planId, initial }: Props) {
+export default function DayPlanForm({ mode, planId, modules, initial }: Props) {
   const router = useRouter();
   const [name, setName] = useState(initial?.name ?? "");
   const [kind, setKind] = useState(initial?.kind ?? "HOLIDAY");
   const [notes, setNotes] = useState(initial?.notes ?? "");
-  const [activities, setActivities] = useState<ActivityDraft[]>(initial?.activities ?? [BLANK]);
+  const [picked, setPicked] = useState<Set<string>>(new Set(initial?.moduleIds ?? []));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function update(i: number, patch: Partial<ActivityDraft>) {
-    setActivities((prev) => prev.map((a, idx) => (idx === i ? { ...a, ...patch } : a)));
+  function toggle(id: string) {
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   }
+
+  // Shown in time order, which is how a day actually runs.
+  const inOrder = [...modules].sort((a, b) => a.startMinute - b.startMinute || a.title.localeCompare(b.title));
+  const chosen = inOrder.filter((m) => picked.has(m.id));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // Blank rows are how you delete an activity — drop them rather than failing validation.
-    const rows = activities.filter((a) => a.title.trim() !== "");
-    const bad = rows.find((a) => toMinutes(a.start) === null);
-    if (bad) { setError(`"${bad.title}" needs a start time`); setLoading(false); return; }
+    const moduleIds = [...picked];
 
-    const payload = {
-      name,
-      ...(mode === "create" ? { kind } : {}),
-      notes: notes || (mode === "edit" ? null : undefined),
-      activities: rows.map((a) => ({
-        title: a.title.trim(),
-        startMinute: toMinutes(a.start)!,
-        endMinute: a.end ? toMinutes(a.end) : null,
-        notes: a.notes || null,
-      })),
-    };
-
-    // Create cannot carry activities in one call (the plan has no id yet), so a new plan is
-    // created and then immediately patched with its timetable.
+    // Create cannot carry placements in one call (the plan has no id yet), so a new day is
+    // created and then immediately patched with the modules placed in it.
     const res = mode === "edit"
       ? await fetch(`/api/calendar/days/${planId}`, {
-          method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, notes: notes || null, moduleIds }),
         })
       : await fetch("/api/calendar/days", {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -77,14 +64,14 @@ export default function DayPlanForm({ mode, planId, initial }: Props) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { setError(data.error ?? "Something went wrong"); setLoading(false); return; }
 
-    if (mode === "create" && payload.activities.length > 0) {
+    if (mode === "create" && moduleIds.length > 0) {
       const patch = await fetch(`/api/calendar/days/${data.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ activities: payload.activities }),
+        body: JSON.stringify({ moduleIds }),
       });
       if (!patch.ok) {
         const pd = await patch.json().catch(() => ({}));
-        setError(pd.error ?? "The day was created but its activities were not saved");
+        setError(pd.error ?? "The day was created but its modules were not placed");
         setLoading(false);
         return;
       }
@@ -120,26 +107,44 @@ export default function DayPlanForm({ mode, planId, initial }: Props) {
       )}
 
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-gray-700">Activities</span>
-        {activities.map((a, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <input type="time" value={a.start} onChange={(e) => update(i, { start: e.target.value })}
-              aria-label="Start time" className={`${inputCls} w-28`} />
-            <input type="time" value={a.end} onChange={(e) => update(i, { end: e.target.value })}
-              aria-label="End time (optional)" className={`${inputCls} w-28`} />
-            <input type="text" value={a.title} onChange={(e) => update(i, { title: e.target.value })}
-              placeholder="What are you doing?" className={`${inputCls} flex-1 min-w-40`} />
-            <button type="button" onClick={() => setActivities((p) => p.filter((_, idx) => idx !== i))}
-              aria-label="Remove activity"
-              className="p-2 text-gray-400 hover:text-red-600 transition-colors">
-              <Trash2 className="w-4 h-4" />
-            </button>
+        <div className="flex items-baseline justify-between">
+          <span className="text-sm font-medium text-gray-700">
+            Modules in this day{chosen.length > 0 && ` · ${chosen.length}`}
+          </span>
+          <Link href="/calendar/modules" className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
+            Manage modules →
+          </Link>
+        </div>
+
+        {modules.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            No modules yet. <Link href="/calendar/modules" className="underline hover:text-gray-700">Create one</Link> and
+            it will be available in every day.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1 max-h-80 overflow-y-auto border border-gray-200 rounded-lg p-2">
+            {inOrder.map((m) => {
+              const on = picked.has(m.id);
+              return (
+                <button key={m.id} type="button" onClick={() => toggle(m.id)}
+                  aria-pressed={on}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    on ? "bg-gray-900 text-white" : "hover:bg-gray-100 text-gray-700"
+                  }`}>
+                  <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                    on ? "bg-white border-white" : "border-gray-300"
+                  }`}>
+                    {on && <Check className="w-3 h-3 text-gray-900" />}
+                  </span>
+                  <span className={`text-xs tabular-nums flex-shrink-0 ${on ? "text-gray-300" : "text-gray-400"}`}>
+                    {formatRange(m.startMinute, m.endMinute)}
+                  </span>
+                  <span className="text-sm">{m.title}</span>
+                </button>
+              );
+            })}
           </div>
-        ))}
-        <button type="button" onClick={() => setActivities((p) => [...p, { ...BLANK }])}
-          className="self-start flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-          <Plus className="w-4 h-4" /> Add activity
-        </button>
+        )}
       </div>
 
       <Field label="Notes">

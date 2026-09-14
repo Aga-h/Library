@@ -30,7 +30,7 @@ async function POSTHandler(_r: NextRequest, { params }: RouteContext) {
 
   const source = await db.dayPlan.findUnique({
     where: { id },
-    include: { activities: { orderBy: { startMinute: "asc" } } },
+    include: { modules: { select: { moduleId: true } } },
   });
   if (!source) return NextResponse.json({ error: "Day not found" }, { status: 404 });
 
@@ -41,23 +41,17 @@ async function POSTHandler(_r: NextRequest, { params }: RouteContext) {
   const name = freeName(source.name, new Set(siblings.map((s) => s.name)));
 
   try {
-    // The copy is a new plan of the same kind with the same timetable. It is deliberately NOT
-    // dealt onto any date — copying a day should not silently change the calendar.
+    // The copy places the same modules — it does not duplicate them, so editing a module still
+    // changes both days. It is deliberately NOT dealt onto any date: copying a day should not
+    // silently change the calendar.
     const copy = await db.dayPlan.create({
       data: {
         name,
         kind: source.kind,
         notes: source.notes,
-        activities: {
-          create: source.activities.map((a) => ({
-            title: a.title,
-            startMinute: a.startMinute,
-            endMinute: a.endMinute,
-            notes: a.notes,
-          })),
-        },
+        modules: { create: source.modules.map((m) => ({ moduleId: m.moduleId })) },
       },
-      include: { activities: { orderBy: { startMinute: "asc" } } },
+      include: { modules: { include: { module: true } } },
     });
     revalidateTag("calendar", "max");
     return NextResponse.json(copy, { status: 201 });

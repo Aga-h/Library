@@ -8,18 +8,20 @@ import DayPlanForm from "@/components/calendar/DayPlanForm";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 import CopyDayButton from "@/components/calendar/CopyDayButton";
 
-function toHHMM(min: number) {
-  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
-}
-
 interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditDayPage({ params }: PageProps) {
   const { id } = await params;
-  const plan = await db.dayPlan.findUnique({
-    where: { id },
-    include: { activities: { orderBy: { startMinute: "asc" } }, _count: { select: { days: true } } },
-  });
+  const [plan, modules] = await Promise.all([
+    db.dayPlan.findUnique({
+      where: { id },
+      include: { modules: { select: { moduleId: true } }, _count: { select: { days: true } } },
+    }),
+    db.eventModule.findMany({
+      select: { id: true, title: true, startMinute: true, endMinute: true },
+      orderBy: [{ startMinute: "asc" }, { title: "asc" }],
+    }),
+  ]);
   if (!plan) notFound();
 
   return (
@@ -44,16 +46,12 @@ export default async function EditDayPage({ params }: PageProps) {
         <DayPlanForm
           mode="edit"
           planId={plan.id}
+          modules={modules}
           initial={{
             name: plan.name,
             kind: plan.kind,
             notes: plan.notes ?? "",
-            activities: plan.activities.map((a) => ({
-              title: a.title,
-              start: toHHMM(a.startMinute),
-              end: a.endMinute != null ? toHHMM(a.endMinute) : "",
-              notes: a.notes ?? "",
-            })),
+            moduleIds: plan.modules.map((m) => m.moduleId),
           }}
         />
       </div>

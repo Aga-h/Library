@@ -4,15 +4,12 @@ import Link from "next/link";
 import { Plus, Sun, GraduationCap } from "lucide-react";
 import { db } from "@/lib/db";
 import CopyDayButton from "@/components/calendar/CopyDayButton";
-
-function formatMinute(min: number) {
-  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
-}
+import { formatRange } from "@/lib/calendar-dates";
 
 export default async function DaysPage() {
   const plans = await db.dayPlan.findMany({
     orderBy: [{ kind: "asc" }, { name: "asc" }],
-    include: { activities: { orderBy: { startMinute: "asc" } }, _count: { select: { days: true } } },
+    include: { modules: { include: { module: true } }, _count: { select: { days: true } } },
   });
 
   const school = plans.filter((p) => p.kind === "SCHOOL");
@@ -40,15 +37,18 @@ export default async function DaysPage() {
               <div className="text-xs text-gray-400 mt-0.5">
                 {p._count.days === 0 ? "not used yet" : `on ${p._count.days} ${p._count.days === 1 ? "date" : "dates"}`}
               </div>
-              {p.activities.length === 0 ? (
-                <p className="text-xs text-gray-400 mt-2">No activities yet</p>
+              {p.modules.length === 0 ? (
+                <p className="text-xs text-gray-400 mt-2">No modules placed yet</p>
               ) : (
                 <ul className="mt-2 flex flex-col gap-0.5">
-                  {p.activities.map((a) => (
-                    <li key={a.id} className="text-xs text-gray-500">
-                      <span className="text-gray-400 tabular-nums">{formatMinute(a.startMinute)}</span> {a.title}
-                    </li>
-                  ))}
+                  {p.modules
+                    .map((m) => m.module)
+                    .sort((a, b) => a.startMinute - b.startMinute)
+                    .map((m) => (
+                      <li key={m.id} className="text-xs text-gray-500">
+                        <span className="text-gray-400 tabular-nums">{formatRange(m.startMinute, m.endMinute)}</span> {m.title}
+                      </li>
+                    ))}
                 </ul>
               )}
               </Link>

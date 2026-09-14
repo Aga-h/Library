@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
-**Updated:** 2026-08-21 — Calendar section built; 012 awaiting SQL
+**Updated:** 2026-09-14 — Calendar events are reusable modules; 012 and 013 awaiting SQL
 
 ## Done
 
@@ -138,6 +138,15 @@
       "(copy)", "(copy 2)"… to a free one, and strips an existing suffix first so copying a copy
       gives "(copy 3)" rather than "(copy 2) (copy)". A copy is never dealt onto a date.
 
+- [x] **Events became reusable modules.** An `EventModule` is a name plus its hours
+      ("Sat vocab study 00:00–01:00"); days are built by placing modules, and editing a module
+      updates every day it is in. Migration `013` converts every existing `DayActivity`,
+      **merging identical ones into one shared module** — 8 activities across 3 days became 5
+      modules with each day keeping exactly the events it had.
+      `DayActivity` is deliberately NOT dropped: it is the only surviving copy of the
+      pre-conversion timetables and makes the change reversible. A later migration removes it,
+      and per the direction rule that one runs *after* the deploy that stops reading it.
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
@@ -160,9 +169,10 @@ Three items were scoped in the audit but not implemented. In rough value order:
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
 
-- **Run `prisma/manual-migrations/012-calendar.sql`** — additive, so it goes in **before** the
-  deploy carrying the Calendar section. Creates five tables and enables RLS on them. Safe to
-  re-run.
+- **Run `prisma/manual-migrations/012-calendar.sql`, then `013-event-modules.sql`** — both
+  additive, so both go in **before** the deploy. 012 creates the Calendar tables; 013 adds
+  event modules and converts existing activities into them. Both enable RLS on what they create
+  and are safe to re-run.
 - **Run `prisma/manual-migrations/008-drop-series-name.sql`** — but only *after* the deploy
   carrying this commit is live, since it is a removal (see the run-order note in that file).
   Nothing breaks if it is never run: the columns just sit there unused. It is safe to re-run.

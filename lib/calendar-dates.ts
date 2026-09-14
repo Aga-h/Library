@@ -95,3 +95,25 @@ export function monthGrid(year: number, month: number): DateKey[] {
 export function keyMonth(key: DateKey): number {
   return Number(key.slice(5, 7));
 }
+
+/* ── Times of day ────────────────────────────────────────────────────────────
+ * Event times are minutes from midnight, so they carry no date and no timezone.
+ */
+
+/** 570 → "09:30" */
+export function formatMinute(minute: number): string {
+  return `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`;
+}
+
+/** "09:30" → 570, or null if it is not a real time of day. */
+export function parseHHMM(value: string): number | null {
+  if (!/^\d{2}:\d{2}$/.test(value)) return null;
+  const [h, m] = value.split(":").map(Number);
+  if (h > 23 || m > 59) return null;
+  return h * 60 + m;
+}
+
+/** "09:30–10:30", or just "09:30" when there is no end. */
+export function formatRange(startMinute: number, endMinute: number | null): string {
+  return endMinute == null ? formatMinute(startMinute) : `${formatMinute(startMinute)}–${formatMinute(endMinute)}`;
+}

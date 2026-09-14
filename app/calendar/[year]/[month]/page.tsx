@@ -2,13 +2,13 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ChevronRight, CalendarDays, GraduationCap } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, GraduationCap, Blocks } from "lucide-react";
 import { db } from "@/lib/db";
 import { parseMonthParams } from "@/lib/month-params";
 import { loadContext } from "@/lib/calendar";
 import { deriveKind } from "@/lib/calendar-shuffle";
 import {
-  monthGrid, keyMonth, isWeekend, todayKey, fromKey, toKey, type DateKey,
+  monthGrid, keyMonth, isWeekend, todayKey, fromKey, toKey, formatMinute, type DateKey,
 } from "@/lib/calendar-dates";
 import DealButtons from "@/components/calendar/DealButtons";
 
@@ -18,10 +18,6 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function prevMonth(y: number, m: number) { return m === 1 ? { y: y - 1, m: 12 } : { y, m: m - 1 }; }
 function nextMonth(y: number, m: number) { return m === 12 ? { y: y + 1, m: 1 } : { y, m: m + 1 }; }
-
-function formatMinute(min: number) {
-  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
-}
 
 interface PageProps { params: Promise<{ year: string; month: string }> }
 
@@ -35,7 +31,7 @@ export default async function CalendarMonthPage({ params }: PageProps) {
     loadContext(),
     db.calendarDay.findMany({
       where: { date: { gte: fromKey(grid[0]), lte: fromKey(grid[grid.length - 1]) } },
-      include: { plan: { include: { activities: { orderBy: { startMinute: "asc" }, take: 3 } } } },
+      include: { plan: { include: { modules: { include: { module: true } } } } },
     }),
   ]);
 
@@ -67,6 +63,9 @@ export default async function CalendarMonthPage({ params }: PageProps) {
       <div className="flex items-center gap-2 mb-6">
         <Link href="/calendar/days" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
           <CalendarDays className="w-4 h-4" /> Days
+        </Link>
+        <Link href="/calendar/modules" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Blocks className="w-4 h-4" /> Modules
         </Link>
         <Link href="/calendar/terms" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
           <GraduationCap className="w-4 h-4" /> School terms
@@ -111,11 +110,15 @@ export default async function CalendarMonthPage({ params }: PageProps) {
                     {plan.name}
                     {mismatch && " ⚠"}
                   </span>
-                  {plan.activities.map((a) => (
-                    <span key={a.id} className="text-[10px] text-gray-500 leading-tight truncate">
-                      {formatMinute(a.startMinute)} {a.title}
-                    </span>
-                  ))}
+                  {plan.modules
+                    .map((m) => m.module)
+                    .sort((a, b) => a.startMinute - b.startMinute)
+                    .slice(0, 3)
+                    .map((m) => (
+                      <span key={m.id} className="text-[10px] text-gray-500 leading-tight truncate">
+                        {formatMinute(m.startMinute)} {m.title}
+                      </span>
+                    ))}
                 </div>
               )}
             </Link>

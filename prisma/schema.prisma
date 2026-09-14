@@ -628,7 +628,8 @@ model DayPlan {
   notes      String?
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
-  activities DayActivity[]
+  activities DayActivity[]   // legacy, superseded by `modules`; dropped a release later
+  modules    DayPlanModule[]
   days       CalendarDay[]
 
   // Two plans of the same kind may not share a name, or the deal is unreadable.
@@ -636,6 +637,8 @@ model DayPlan {
   @@index([kind])
 }
 
+/// Legacy. Events used to be owned by one day; they are now reusable EventModules placed into
+/// days. Kept one release as the only surviving copy of the pre-conversion timetables.
 model DayActivity {
   id          String  @id @default(cuid())
   planId      String
@@ -648,6 +651,40 @@ model DayActivity {
   notes       String?
 
   @@index([planId, startMinute])
+}
+
+/// A reusable event: a name and the hours it occupies. Placed into any number of days.
+/// The hours belong to the module — "Sat vocab study 00:00–01:00" is one module, and the same
+/// activity at another time is a different module.
+model EventModule {
+  id          String          @id @default(cuid())
+  title       String
+  startMinute Int
+  endMinute   Int?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  placements  DayPlanModule[]
+
+  // Catches an accidental duplicate of an identical module. Note Postgres treats NULLs as
+  // distinct, so two modules with no end time can still collide here — the API checks for that.
+  @@unique([title, startMinute, endMinute])
+  @@index([startMinute])
+}
+
+/// Which modules a day is built from. Cascade on both sides: a placement is meaningless without
+/// either end, and deleting a module should remove it from the days that used it rather than
+/// leave a dangling row.
+model DayPlanModule {
+  id       String      @id @default(cuid())
+  planId   String
+  plan     DayPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  moduleId String
+  module   EventModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, moduleId])
+  @@index([planId])
+  @@index([moduleId])
 }
 
 model SchoolTerm {

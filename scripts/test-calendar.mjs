@@ -5,6 +5,7 @@
 import {
   toKey, fromKey, addDays, dayOfWeek, isWeekend, isWithin,
   datesInMonth, monthGrid, keyMonth, isDateKey, todayKey,
+  formatMinute, parseHHMM, formatRange,
 } from "../lib/calendar-dates.ts";
 import { dealPlans, deriveKind, shuffled } from "../lib/calendar-shuffle.ts";
 
@@ -53,6 +54,21 @@ ok(grid.some((k) => keyMonth(k) !== 8), "the grid includes padding from neighbou
 ok(isDateKey(todayKey()), "todayKey is a valid key");
 eq(todayKey(new Date("2026-08-19T21:30:00Z")), "2026-08-20",
    "22:30 in Istanbul on the 19th UTC is already the 20th there");
+
+// ── times of day ─────────────────────────────────────────────────────────────
+eq(formatMinute(0), "00:00", "midnight");
+eq(formatMinute(570), "09:30", "570 minutes is half nine");
+eq(formatMinute(1439), "23:59", "the last minute of the day");
+eq(parseHHMM("00:00"), 0, "parse midnight");
+eq(parseHHMM("09:30"), 570, "parse half nine");
+eq(parseHHMM("23:59"), 1439, "parse the last minute");
+eq(parseHHMM("24:00"), null, "24:00 is not a time of day");
+eq(parseHHMM("09:60"), null, "neither is :60");
+eq(parseHHMM("9:30"), null, "nor an unpadded hour");
+eq(parseHHMM(""), null, "nor an empty string");
+ok(parseHHMM(formatMinute(742)) === 742, "format and parse round-trip");
+eq(formatRange(0, 60), "00:00\u201301:00", "a range renders with an en dash");
+eq(formatRange(1200, null), "20:00", "no end time renders as just the start");
 
 // ── deriveKind ───────────────────────────────────────────────────────────────
 const terms = [{ startDate: "2026-09-01", endDate: "2026-12-20" }];

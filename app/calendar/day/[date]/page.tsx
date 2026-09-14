@@ -6,16 +6,12 @@ import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import { loadContext } from "@/lib/calendar";
 import { deriveKind } from "@/lib/calendar-shuffle";
-import { fromKey, isDateKey, isWeekend, dayOfWeek, type DateKey } from "@/lib/calendar-dates";
+import { fromKey, isDateKey, isWeekend, dayOfWeek, formatRange, type DateKey } from "@/lib/calendar-dates";
 import AssignDay from "@/components/calendar/AssignDay";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTHS = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
-
-function formatMinute(min: number) {
-  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
-}
 
 interface PageProps { params: Promise<{ date: string }> }
 
@@ -28,7 +24,7 @@ export default async function CalendarDayPage({ params }: PageProps) {
     loadContext(),
     db.calendarDay.findUnique({
       where: { date: fromKey(key) },
-      include: { plan: { include: { activities: { orderBy: { startMinute: "asc" } } } } },
+      include: { plan: { include: { modules: { include: { module: true } } } } },
     }),
     db.dayPlan.findMany({ select: { id: true, name: true, kind: true }, orderBy: { name: "asc" } }),
   ]);
@@ -73,18 +69,21 @@ export default async function CalendarDayPage({ params }: PageProps) {
       {plan && (
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{plan.name}</h2>
-          {plan.activities.length === 0 ? (
-            <p className="text-sm text-gray-400">This day has no activities yet.</p>
+          {plan.modules.length === 0 ? (
+            <p className="text-sm text-gray-400">This day has no modules placed in it yet.</p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {plan.activities.map((a) => (
-                <li key={a.id} className="flex gap-3 text-sm">
-                  <span className="text-gray-400 tabular-nums flex-shrink-0">
-                    {formatMinute(a.startMinute)}{a.endMinute != null && `–${formatMinute(a.endMinute)}`}
-                  </span>
-                  <span className="text-gray-900">{a.title}</span>
-                </li>
-              ))}
+              {plan.modules
+                .map((m) => m.module)
+                .sort((a, b) => a.startMinute - b.startMinute)
+                .map((m) => (
+                  <li key={m.id} className="flex gap-3 text-sm">
+                    <span className="text-gray-400 tabular-nums flex-shrink-0">
+                      {formatRange(m.startMinute, m.endMinute)}
+                    </span>
+                    <span className="text-gray-900">{m.title}</span>
+                  </li>
+                ))}
             </ul>
           )}
           <Link href={`/calendar/days/${plan.id}`} className="inline-block mt-4 text-xs text-gray-500 hover:text-gray-900 transition-colors">
