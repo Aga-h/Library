@@ -9,20 +9,20 @@ datasource db {
 // ─── BOOKS ───────────────────────────────────────────────────────────────────
 
 model Book {
-  id           String     @id @default(cuid())
-  title        String
-  author       String
-  status       BookStatus @default(WANT_TO_READ)
-  owned        Boolean    @default(false)
-  language     Language   @default(ENGLISH)
-  publisher    String?
-  pages        Int
-  coverImage   String?
-  rating       Float?
-  notes        String?
-  timesReread  Int        @default(0)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id          String     @id @default(cuid())
+  title       String
+  author      String
+  status      BookStatus @default(WANT_TO_READ)
+  owned       Boolean    @default(false)
+  language    Language   @default(ENGLISH)
+  publisher   String?
+  pages       Int
+  coverImage  String?
+  rating      Float?
+  notes       String?
+  timesReread Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 enum BookStatus {
@@ -293,7 +293,7 @@ model Garment {
   brand      String?
   color      String?
   colorGroup ColorGroup  @default(MIXED)
-  materials  String      // e.g. "80% cotton, 20% polyester"
+  materials  String // e.g. "80% cotton, 20% polyester"
   washMethod WashMethod  @default(MACHINE)
   maxTemp    WashTemp    @default(W40)
   washCycle  WashCycle   @default(NORMAL)
@@ -393,4 +393,97 @@ enum Language {
   JAPANESE
   CHINESE
   KOREAN
+}
+
+// ─── MODULES, TASKS & STATS ──────────────────────────────────────────────────
+
+model Module {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  color       ModuleColor @default(SLATE)
+  stats       Stat[] // 1–3 stats, enforced in the API layer
+  archived    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tasks       Task[]
+}
+
+enum ModuleColor {
+  SLATE
+  INDIGO
+  VIOLET
+  SKY
+  EMERALD
+  AMBER
+  ROSE
+}
+
+model Task {
+  id            String        @id @default(cuid())
+  moduleId      String
+  module        Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title         String? // falls back to the module name
+  day           String // local day key, "YYYY-MM-DD"
+  startsAt      DateTime
+  endsAt        DateTime
+  status        TaskStatus    @default(SCHEDULED)
+  workedSeconds Int           @default(0) // accumulated from ended sessions
+  resolvedAt    DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  sessions      TaskSession[]
+  xpAwards      XpAward[]
+
+  @@index([day])
+  @@index([startsAt])
+  @@index([status])
+}
+
+enum TaskStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+model TaskSession {
+  id        String    @id @default(cuid())
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  seconds   Int? // filled in when the session ends
+
+  @@index([taskId])
+}
+
+model XpAward {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  stat      Stat
+  amount    Int
+  createdAt DateTime @default(now())
+
+  @@unique([taskId, stat])
+  @@index([stat])
+}
+
+enum Stat {
+  STRENGTH
+  DEXTERITY
+  CONSTITUTION
+  INTELLIGENCE
+  WISDOM
+  CHARISMA
+  RESOLVE
+  INTUITION
+  COMPOSURE
+  WILLPOWER
+  ESSENCE
+  LOGIC
+  RESONANCE
+  MAGIC
 }

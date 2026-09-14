@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { BookMarked, Shirt, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Swords, ArrowRight } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -20,6 +20,15 @@ const SECTIONS = [
     icon: Shirt,
     color: "from-emerald-50 to-teal-50 border-emerald-200",
     iconColor: "text-emerald-600",
+    available: true,
+  },
+  {
+    href: "/tasks",
+    label: "Tasks",
+    description: "Calendar modules, work sessions & stat levels",
+    icon: Swords,
+    color: "from-amber-50 to-orange-50 border-amber-200",
+    iconColor: "text-amber-600",
     available: true,
   },
   {
