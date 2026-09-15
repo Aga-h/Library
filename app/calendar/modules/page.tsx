@@ -19,12 +19,13 @@ export default async function ModulesPage() {
       <h1 className="text-2xl font-bold text-gray-900">Modules</h1>
       <p className="text-sm text-gray-500 mt-1 mb-8">
         An event and the hours it takes. Place a module into any number of days — editing it here
-        updates every day it is in.
+        updates every day it is in. Give one an end time and a stat or two, and it becomes a task
+        you can run sessions against in Tasks.
       </p>
       <ModulesManager
         modules={modules.map((m) => ({
           id: m.id, title: m.title, startMinute: m.startMinute,
-          endMinute: m.endMinute, usedInDays: m._count.placements,
+          endMinute: m.endMinute, usedInDays: m._count.placements, stats: m.stats,
         }))}
       />
     </div>

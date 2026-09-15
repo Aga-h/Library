@@ -5,10 +5,14 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft, CalendarDays, Layers, ListTodo, Swords, TrendingUp } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/tasks",           label: "Today",    icon: ListTodo },
-  { href: "/tasks/calendar",  label: "Calendar", icon: CalendarDays },
-  { href: "/tasks/stats",     label: "Stats",    icon: TrendingUp },
-  { href: "/tasks/modules",   label: "Modules",  icon: Layers },
+  { href: "/tasks",       label: "Today", icon: ListTodo },
+  { href: "/tasks/stats", label: "Stats", icon: TrendingUp },
+];
+
+// Tasks are derived from the calendar, so planning happens there, not here.
+const CALENDAR_LINKS = [
+  { href: "/calendar",         label: "Calendar", icon: CalendarDays },
+  { href: "/calendar/modules", label: "Modules",  icon: Layers },
 ];
 
 export default function TasksSidebar() {
@@ -29,6 +33,19 @@ export default function TasksSidebar() {
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}>
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              {item.label}
+            </Link>
+          );
+        })}
+        <p className="px-3 pt-5 pb-1.5 text-[10px] font-bold text-gray-300 uppercase tracking-wide">
+          Planned in
+        </p>
+        {CALENDAR_LINKS.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors">
               <Icon className="w-4 h-4 flex-shrink-0" />
               {item.label}
             </Link>

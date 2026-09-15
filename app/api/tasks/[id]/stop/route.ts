@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 import { stopSession, syncTasks } from "@/lib/task-service";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 /** Leave the session, banking the time worked so far. */
-export async function POST(_: NextRequest, { params }: RouteContext) {
+async function POSTHandler(_: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const now = new Date();
 
@@ -19,3 +20,5 @@ export async function POST(_: NextRequest, { params }: RouteContext) {
   const updated = await db.task.findUnique({ where: { id }, include: { module: true, sessions: true } });
   return NextResponse.json(updated);
 }
+
+export const POST = withErrors(POSTHandler);

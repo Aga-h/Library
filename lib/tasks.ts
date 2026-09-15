@@ -1,21 +1,19 @@
 // Task rules — sessions, the completion bar and the daily verdict.
 //
-// A task is a module booked into a slot on the calendar. You work it by running
-// sessions inside its window. Once the window closes the task is judged: work at
-// least COMPLETION_RATIO of the booked hours and it is completed, otherwise it
-// is a failure. Completed tasks pay XP — one XP per minute worked — to every
-// stat their module trains.
+// A task is one calendar module on one real date. You work it by running sessions inside the
+// hours the module occupies. Once those hours pass the task is judged: work at least
+// COMPLETION_RATIO of them and it is completed, otherwise it is a failure. Completed tasks pay
+// XP — one per minute worked — to every stat the module trains.
 //
-// Everything here is pure and safe to import from client components; the
-// database side lives in lib/task-service.ts.
+// Everything here is pure and safe to import from client components; the database side lives in
+// lib/task-service.ts.
 
-import type { Module, ModuleColor, Stat, Task, TaskSession, TaskStatus } from "@prisma/client";
-import { localToDate } from "@/lib/time";
+import type { EventModule, Stat, Task, TaskSession, TaskStatus } from "@prisma/client";
 
-/** Fraction of the booked time that has to be worked for a task to count. */
+/** Fraction of the module's hours that has to be worked for a task to count. */
 export const COMPLETION_RATIO = 0.5;
 
-export type TaskWithModule = Task & { module: Module };
+export type TaskWithModule = Task & { module: EventModule };
 export type TaskWithSessions = TaskWithModule & { sessions: TaskSession[] };
 
 export function scheduledSeconds(task: Pick<Task, "startsAt" | "endsAt">): number {
@@ -51,8 +49,20 @@ export function isFinal(task: Pick<Task, "status">): boolean {
   return task.status === "COMPLETED" || task.status === "FAILED";
 }
 
-export function taskTitle(task: TaskWithModule): string {
-  return task.title?.trim() || task.module.name;
+/**
+ * A module only becomes a task if it has an end time (otherwise there are no hours to take half
+ * of) and at least one stat (otherwise finishing it would pay nothing).
+ */
+export function isTrackable(mod: Pick<EventModule, "endMinute" | "stats">): boolean {
+  return mod.endMinute != null && mod.endMinute > 0 && mod.stats.length > 0;
+}
+
+export function untrackableReason(
+  mod: Pick<EventModule, "endMinute" | "stats">,
+): "no-end-time" | "no-stats" | null {
+  if (mod.endMinute == null) return "no-end-time";
+  if (mod.stats.length === 0) return "no-stats";
+  return null;
 }
 
 // ─── Daily verdict ───────────────────────────────────────────────────────────
@@ -73,7 +83,6 @@ export function dayVerdict(tasks: { status: TaskStatus }[]): DayVerdict {
   const completed = tasks.filter((t) => t.status === "COMPLETED").length;
   const failed = tasks.filter((t) => t.status === "FAILED").length;
   const open = tasks.length - completed - failed;
-  const settled = open === 0;
 
   let outcome: DayOutcome;
   if (tasks.length === 0) outcome = "EMPTY";
@@ -82,11 +91,11 @@ export function dayVerdict(tasks: { status: TaskStatus }[]): DayVerdict {
   else if (completed > failed) outcome = "LIT";
   else outcome = "EVEN";
 
-  return { outcome, completed, failed, open, settled };
+  return { outcome, completed, failed, open, settled: open === 0 };
 }
 
 export const DAY_OUTCOME_LABEL: Record<DayOutcome, string> = {
-  EMPTY: "Nothing booked",
+  EMPTY: "Nothing to do",
   PENDING: "In progress",
   LIT: "Lit",
   EVEN: "Even",
@@ -100,14 +109,12 @@ export interface TaskView {
   id: string;
   title: string;
   moduleId: string;
-  moduleName: string;
-  color: ModuleColor;
   stats: Stat[];
-  day: string;
+  date: string;
   startsAt: string;
   endsAt: string;
-  startMinutes: number;
-  endMinutes: number;
+  startMinute: number;
+  endMinute: number;
   status: TaskStatus;
   /** Work already banked, excluding a session that is still running. */
   bankedSeconds: number;
@@ -118,50 +125,24 @@ export interface TaskView {
   notes: string | null;
 }
 
-export interface ModuleView {
-  id: string;
-  name: string;
-  description: string | null;
-  color: ModuleColor;
-  stats: Stat[];
-  archived: boolean;
-}
-
-function minutesFromMidnight(day: string, at: Date): number {
-  return Math.round((at.getTime() - localToDate(day, 0).getTime()) / 60000);
-}
-
-export function toTaskView(task: TaskWithSessions): TaskView {
+export function toTaskView(task: TaskWithSessions, dateKey: string): TaskView {
   const running = openSession(task.sessions);
   return {
     id: task.id,
-    title: taskTitle(task),
+    title: task.module.title,
     moduleId: task.moduleId,
-    moduleName: task.module.name,
-    color: task.module.color,
     stats: task.module.stats,
-    day: task.day,
+    date: dateKey,
     startsAt: task.startsAt.toISOString(),
     endsAt: task.endsAt.toISOString(),
-    startMinutes: minutesFromMidnight(task.day, task.startsAt),
-    endMinutes: minutesFromMidnight(task.day, task.endsAt),
+    startMinute: task.module.startMinute,
+    endMinute: task.module.endMinute ?? 0,
     status: task.status,
     bankedSeconds: task.workedSeconds,
     runningSince: running ? running.startedAt.toISOString() : null,
     scheduledSeconds: scheduledSeconds(task),
     requiredSeconds: requiredSeconds(task),
-    notes: task.notes,
-  };
-}
-
-export function toModuleView(mod: Module): ModuleView {
-  return {
-    id: mod.id,
-    name: mod.name,
-    description: mod.description,
-    color: mod.color,
-    stats: mod.stats,
-    archived: mod.archived,
+    notes: task.module.notes,
   };
 }
 
@@ -171,4 +152,26 @@ export function viewWorkedSeconds(task: TaskView, nowMs: number): number {
   const cap = Math.min(nowMs, Date.parse(task.endsAt));
   const live = Math.max(0, Math.round((cap - Date.parse(task.runningSince)) / 1000));
   return task.bankedSeconds + live;
+}
+
+// ─── Duration formatting ─────────────────────────────────────────────────────
+
+/** "2h 30m" / "45m" / "20s" */
+export function formatDuration(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  if (m > 0) return `${m}m`;
+  return `${total}s`;
+}
+
+/** "01:23:45" — for the live session timer. */
+export function formatStopwatch(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { formatDuration } from "@/lib/time";
+import { withErrors } from "@/lib/api-errors";
 import { settle } from "@/lib/task-service";
-import { isFinal, requiredSeconds, workedSecondsNow } from "@/lib/tasks";
+import { formatDuration, isFinal, requiredSeconds, workedSecondsNow } from "@/lib/tasks";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 /** Close a task out early. Only allowed once the completion bar has been cleared. */
-export async function POST(_: NextRequest, { params }: RouteContext) {
+async function POSTHandler(_: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const now = new Date();
 
@@ -28,3 +28,5 @@ export async function POST(_: NextRequest, { params }: RouteContext) {
   const updated = await db.task.findUnique({ where: { id }, include: { module: true, sessions: true } });
   return NextResponse.json(updated);
 }
+
+export const POST = withErrors(POSTHandler);

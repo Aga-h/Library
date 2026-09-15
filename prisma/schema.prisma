@@ -9,24 +9,24 @@ datasource db {
 // ─── BOOKS ───────────────────────────────────────────────────────────────────
 
 model Book {
-  id           String     @id @default(cuid())
-  title        String
-  author       String
-  status       BookStatus @default(WANT_TO_READ)
-  owned        Boolean    @default(false)
-  language     Language   @default(ENGLISH)
-  publisher    String?
-  pages        Int
+  id          String      @id @default(cuid())
+  title       String
+  author      String
+  status      BookStatus  @default(WANT_TO_READ)
+  owned       Boolean     @default(false)
+  language    Language    @default(ENGLISH)
+  publisher   String?
+  pages       Int
   // Progress. Status is derived from this against `pages`, never set by hand.
-  pagesRead    Int        @default(0)
-  coverImage   String?
-  rating       Float?
-  notes        String?
-  timesReread  Int        @default(0)
-  seriesId     String?
-  series       BookSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  pagesRead   Int         @default(0)
+  coverImage  String?
+  rating      Float?
+  notes       String?
+  timesReread Int         @default(0)
+  seriesId    String?
+  series      BookSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   @@index([seriesId])
   @@index([status, createdAt(sort: Desc)])
@@ -112,22 +112,22 @@ enum AnimeSeason {
 // ─── MOVIES ──────────────────────────────────────────────────────────────────
 
 model Movie {
-  id             String      @id @default(cuid())
+  id             String         @id @default(cuid())
   title          String
   director       String?
   studio         String?
-  status         MovieStatus @default(WANT_TO_WATCH)
+  status         MovieStatus    @default(WANT_TO_WATCH)
   runtime        Int
   year           Int?
-  language       Language    @default(ENGLISH)
+  language       Language       @default(ENGLISH)
   coverImage     String?
   rating         Float?
   notes          String?
-  timesRewatched Int         @default(0)
+  timesRewatched Int            @default(0)
   universeId     String?
   universe       MovieUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([universeId])
   @@index([status, createdAt(sort: Desc)])
@@ -154,26 +154,26 @@ enum MovieStatus {
 // ─── TV SHOWS ────────────────────────────────────────────────────────────────
 
 model TvShow {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   title           String
   creator         String?
   network         String?
-  status          TvStatus @default(PLAN_TO_WATCH)
+  status          TvStatus  @default(PLAN_TO_WATCH)
   totalEpisodes   Int?
-  episodesWatched Int      @default(0)
-  episodeRuntime  Int      @default(45)
+  episodesWatched Int       @default(0)
+  episodeRuntime  Int       @default(45)
   year            Int?
-  language        Language @default(ENGLISH)
+  language        Language  @default(ENGLISH)
   coverImage      String?
   rating          Float?
   notes           String?
-  timesRewatched  Int      @default(0)
+  timesRewatched  Int       @default(0)
   // Which season of its series this row is. Nullable: a standalone show has none.
   seasonNumber    Int?
   seriesId        String?
   series          TvSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
@@ -309,12 +309,12 @@ enum MangaStatus {
 // Reading progress and ratings are derived from the issues, never stored on a parent.
 
 model ComicPublisher {
-  id         String          @id @default(cuid())
-  name       String          @unique
-  notes      String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  universes  ComicUniverse[]
+  id        String          @id @default(cuid())
+  name      String          @unique
+  notes     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  universes ComicUniverse[]
 }
 
 model ComicUniverse {
@@ -405,7 +405,7 @@ model Garment {
   brand      String?
   color      String?
   colorGroup ColorGroup  @default(MIXED)
-  materials  String      // e.g. "80% cotton, 20% polyester"
+  materials  String // e.g. "80% cotton, 20% polyester"
   washMethod WashMethod  @default(MACHINE)
   maxTemp    WashTemp    @default(W40)
   washCycle  WashCycle   @default(NORMAL)
@@ -622,13 +622,13 @@ enum DayKind {
 }
 
 model DayPlan {
-  id         String        @id @default(cuid())
+  id         String          @id @default(cuid())
   name       String
   kind       DayKind
   notes      String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  activities DayActivity[]   // legacy, superseded by `modules`; dropped a release later
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  activities DayActivity[] // legacy, superseded by `modules`; dropped a release later
   modules    DayPlanModule[]
   days       CalendarDay[]
 
@@ -662,9 +662,13 @@ model EventModule {
   startMinute Int
   endMinute   Int?
   notes       String?
+  /// The stats this module trains, 0-3 of them. Empty means it earns no XP: a module only
+  /// becomes a task once it has at least one stat and an end time.
+  stats       Stat[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   placements  DayPlanModule[]
+  tasks       Task[]
 
   // Catches an accidental duplicate of an identical module. Note Postgres treats NULLs as
   // distinct, so two modules with no end time can still collide here — the API checks for that.
@@ -717,49 +721,32 @@ model CalendarDay {
   @@index([planId])
 }
 
-// ─── MODULES, TASKS & STATS ──────────────────────────────────────────────────
+// ─── TASKS & STATS ───────────────────────────────────────────────────────────
 
-model Module {
-  id          String      @id @default(cuid())
-  name        String
-  description String?
-  color       ModuleColor @default(SLATE)
-  stats       Stat[] // 1–3 stats, enforced in the API layer
-  archived    Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  tasks       Task[]
-}
-
-enum ModuleColor {
-  SLATE
-  INDIGO
-  VIOLET
-  SKY
-  EMERALD
-  AMBER
-  ROSE
-}
-
+/// One module on one real date. Not created by hand: a task is materialised from the calendar
+/// the first time a date is looked at, for every module in that date's day plan that has an end
+/// time. It exists to hold what the calendar cannot — the work done against it.
 model Task {
   id            String        @id @default(cuid())
   moduleId      String
-  module        Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  title         String? // falls back to the module name
-  day           String // local day key, "YYYY-MM-DD"
+  module        EventModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  /// The calendar date this instance belongs to. Date-only, like the rest of the calendar.
+  date          DateTime      @db.Date
+  /// The module's hours resolved to real instants on `date`, so sessions can be timed against
+  /// them without re-deriving the timezone everywhere.
   startsAt      DateTime
   endsAt        DateTime
   status        TaskStatus    @default(SCHEDULED)
   workedSeconds Int           @default(0) // accumulated from ended sessions
   resolvedAt    DateTime?
-  notes         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   sessions      TaskSession[]
   xpAwards      XpAward[]
 
-  @@index([day])
-  @@index([startsAt])
+  // A module appears at most once in a day plan, so at most once on a date.
+  @@unique([moduleId, date])
+  @@index([date])
   @@index([status])
 }
 
@@ -789,6 +776,7 @@ model XpAward {
   amount    Int
   createdAt DateTime @default(now())
 
+  // Paying a task twice is the one thing that must never happen.
   @@unique([taskId, stat])
   @@index([stat])
 }

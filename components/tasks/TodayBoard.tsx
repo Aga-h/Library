@@ -2,11 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { CalendarDays, CheckCircle2, Clock, Play, Square, Timer, XCircle } from "lucide-react";
-import { MODULE_COLOR_META } from "@/lib/stats";
-import { viewWorkedSeconds, type TaskView } from "@/lib/tasks";
-import { clockFromMinutes, formatDuration, formatStopwatch } from "@/lib/time";
+import { CheckCircle2, Clock, Play, Square, Timer, XCircle } from "lucide-react";
+import { formatDuration, formatStopwatch, viewWorkedSeconds, type TaskView } from "@/lib/tasks";
+import { formatRange } from "@/lib/calendar-dates";
 import StatBadges from "@/components/tasks/StatBadges";
 
 export default function TodayBoard({
@@ -62,23 +60,7 @@ export default function TodayBoard({
   );
   const judged = tasks.filter((t) => t.status === "COMPLETED" || t.status === "FAILED");
 
-  if (tasks.length === 0) {
-    return (
-      <div className="border border-dashed border-gray-300 rounded-xl p-10 text-center">
-        <CalendarDays className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-        <p className="font-semibold text-gray-700">Nothing booked today</p>
-        <p className="text-sm text-gray-500 mt-1">
-          Tasks come from modules you place on the calendar.
-        </p>
-        <Link
-          href="/tasks/calendar"
-          className="inline-flex items-center gap-2 mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
-        >
-          <CalendarDays className="w-4 h-4" /> Open the calendar
-        </Link>
-      </div>
-    );
-  }
+  if (tasks.length === 0) return null;
 
   return (
     <div className="space-y-6">
@@ -177,8 +159,7 @@ function RunnerCard({
           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">In session</p>
           <h2 className="text-2xl font-bold mt-1 truncate">{task.title}</h2>
           <p className="text-sm text-gray-400 mt-0.5">
-            {task.moduleName} · {clockFromMinutes(task.startMinutes)}–{clockFromMinutes(task.endMinutes)} ·{" "}
-            {formatDuration(left)} of the window left
+            {formatRange(task.startMinute, task.endMinute)} · {formatDuration(left)} of the window left
           </p>
           <div className="mt-3">
             <StatBadges stats={task.stats} />
@@ -229,17 +210,15 @@ function TaskRow({
   onStart?: () => void;
   onFinish?: () => void;
 }) {
-  const color = MODULE_COLOR_META[task.color];
   const worked = viewWorkedSeconds(task, now);
   const cleared = worked >= task.requiredSeconds;
   const isFinal = task.status === "COMPLETED" || task.status === "FAILED";
 
   return (
-    <div className={`border rounded-xl p-4 bg-white ${isFinal ? "border-gray-200" : color.soft}`}>
+    <div className={`border rounded-xl p-4 bg-white ${isFinal ? "border-gray-200" : "border-gray-300"}`}>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`w-2 h-2 rounded-full ${color.chip}`} />
             <p className="font-semibold text-gray-900 truncate">{task.title}</p>
             {task.status === "COMPLETED" && (
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5">
@@ -253,8 +232,8 @@ function TaskRow({
             )}
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            {task.moduleName} · {clockFromMinutes(task.startMinutes)}–{clockFromMinutes(task.endMinutes)} ·{" "}
-            {formatDuration(task.scheduledSeconds)} booked
+            {formatRange(task.startMinute, task.endMinute)} ·{" "}
+            {formatDuration(task.scheduledSeconds)} in the day
           </p>
           <div className="mt-2">
             <StatBadges stats={task.stats} size="xs" />

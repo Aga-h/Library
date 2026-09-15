@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 import { bankOtherSessions, syncTasks } from "@/lib/task-service";
 import { isFinal, openSession } from "@/lib/tasks";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 /** Enter a session on this task. Any session running elsewhere is banked first. */
-export async function POST(_: NextRequest, { params }: RouteContext) {
+async function POSTHandler(_: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const now = new Date();
   await syncTasks(now);
@@ -28,3 +29,5 @@ export async function POST(_: NextRequest, { params }: RouteContext) {
   });
   return NextResponse.json(updated);
 }
+
+export const POST = withErrors(POSTHandler);

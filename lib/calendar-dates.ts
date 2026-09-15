@@ -49,6 +49,38 @@ export function fromKey(key: DateKey): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
+/**
+ * Key + minutes past local midnight → the real instant.
+ *
+ * The one place this module leaves date-land. A task has to be timed against a clock — "did the
+ * session start inside 14:00–16:00 on the 19th" — and that comparison needs an instant. It still
+ * belongs here, because APP_TIME_ZONE lives here and nothing outside may reimplement the offset.
+ */
+export function instantAt(key: DateKey, minute: number): Date {
+  const [y, m, d] = key.split("-").map(Number);
+  const guess = Date.UTC(y, m - 1, d, 0, minute);
+  // Apply the zone offset, then re-apply it at the corrected instant in case the first guess
+  // landed the other side of a DST change.
+  const first = guess - offsetAt(new Date(guess));
+  return new Date(guess - offsetAt(new Date(first)));
+}
+
+/** Milliseconds APP_TIME_ZONE is ahead of UTC at the given instant. */
+function offsetAt(date: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE, hour12: false,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(date);
+  const at: Record<string, string> = {};
+  for (const { type, value } of parts) at[type] = value;
+  const asUtc = Date.UTC(
+    Number(at.year), Number(at.month) - 1, Number(at.day),
+    Number(at.hour) % 24, Number(at.minute), Number(at.second),
+  );
+  return asUtc - Math.floor(date.getTime() / 1000) * 1000;
+}
+
 export function addDays(key: DateKey, days: number): DateKey {
   const d = fromKey(key);
   d.setUTCDate(d.getUTCDate() + days);

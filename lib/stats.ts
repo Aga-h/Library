@@ -41,37 +41,9 @@ export const STAT_META: Record<Stat, StatMeta> = {
   MAGIC:        { label: "Magic",        abbr: "MAG", description: "The strange and creative — imagination, craft, wonder.",  icon: Sparkles,   text: "text-purple-700",  bg: "bg-purple-50",  border: "border-purple-200",  bar: "bg-purple-500" },
 };
 
+/** A module trains up to three stats. Zero is allowed — it is then just an event, not a task. */
 export const MAX_STATS_PER_MODULE = 3;
-export const MIN_STATS_PER_MODULE = 1;
 
 export function isStat(value: string): value is Stat {
   return (STATS as readonly string[]).includes(value);
-}
-
-// ─── Module colours ──────────────────────────────────────────────────────────
-
-export const MODULE_COLORS = ["SLATE", "INDIGO", "VIOLET", "SKY", "EMERALD", "AMBER", "ROSE"] as const;
-
-export type ModuleColor = (typeof MODULE_COLORS)[number];
-
-export interface ModuleColorMeta {
-  label: string;
-  chip: string;   // small swatch
-  block: string;  // calendar block
-  soft: string;   // card accent
-  text: string;
-}
-
-export const MODULE_COLOR_META: Record<ModuleColor, ModuleColorMeta> = {
-  SLATE:   { label: "Slate",   chip: "bg-slate-500",   block: "bg-slate-100 border-slate-300 text-slate-800",       soft: "bg-slate-50 border-slate-200",     text: "text-slate-700" },
-  INDIGO:  { label: "Indigo",  chip: "bg-indigo-500",  block: "bg-indigo-100 border-indigo-300 text-indigo-800",    soft: "bg-indigo-50 border-indigo-200",   text: "text-indigo-700" },
-  VIOLET:  { label: "Violet",  chip: "bg-violet-500",  block: "bg-violet-100 border-violet-300 text-violet-800",    soft: "bg-violet-50 border-violet-200",   text: "text-violet-700" },
-  SKY:     { label: "Sky",     chip: "bg-sky-500",     block: "bg-sky-100 border-sky-300 text-sky-800",             soft: "bg-sky-50 border-sky-200",         text: "text-sky-700" },
-  EMERALD: { label: "Emerald", chip: "bg-emerald-500", block: "bg-emerald-100 border-emerald-300 text-emerald-800", soft: "bg-emerald-50 border-emerald-200", text: "text-emerald-700" },
-  AMBER:   { label: "Amber",   chip: "bg-amber-500",   block: "bg-amber-100 border-amber-300 text-amber-800",       soft: "bg-amber-50 border-amber-200",     text: "text-amber-700" },
-  ROSE:    { label: "Rose",    chip: "bg-rose-500",    block: "bg-rose-100 border-rose-300 text-rose-800",          soft: "bg-rose-50 border-rose-200",       text: "text-rose-700" },
-};
-
-export function isModuleColor(value: string): value is ModuleColor {
-  return (MODULE_COLORS as readonly string[]).includes(value);
 }

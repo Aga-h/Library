@@ -1,8 +1,9 @@
 # Current state
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
-**Branch:** claude/repository-overview-FcVyQ (deploy) — hierarchy-phase-1 merged, done with
-**Updated:** 2026-09-14 — Calendar events are reusable modules; 012 and 013 awaiting SQL
+**Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
+deleted; `main` is the GitHub default and what Vercel deploys.
+**Updated:** 2026-09-15 — Tasks section runs off the calendar; **014 awaiting SQL**
 
 ## Done
 
@@ -26,6 +27,15 @@
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **Tasks section** — `/tasks` and `/tasks/stats`. A task is one calendar module on one real
+      date, materialised from the day plan dealt onto that date (never created by hand). Work it
+      with start/stop sessions; clear half the module's hours and it completes, else it fails.
+      A completed task pays 1 XP per minute worked to each stat its module trains, and each of
+      the 14 stats levels on `floor(5 * ln(1 + xp/120))`. More failures than completions in a day
+      and the day is *extinguished*. Stats are picked per module in the calendar's module editor.
+      Verified against a real Postgres: materialisation is idempotent, sessions clamp to the
+      module's hours, and a task can never pay XP twice.
 
 - [x] **Auto-derived status** for Books/TV/Anime/Manga — computed from progress counts on every
       write, status dropdown removed, Dropped/On Hold/DNF deleted. Books gained `pagesRead`,
@@ -168,6 +178,15 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Run `prisma/manual-migrations/014-task-stats.sql`** — adds `stats` to `EventModule` and
+  rebuilds `Task` against the calendar. Additive for the calendar; it *drops* the old standalone
+  `Module` table and the first-cut task tables (they only referenced the duplicate module system,
+  so nothing real is lost). The rebuild is guarded on the old shape, so a second run leaves real
+  task history alone — proven by running it twice with a completed task and 180 XP in place.
+  Enables RLS on the three tables it creates. Run it **before** deploying.
+  Supersedes the earlier `prisma/tasks-tables.sql`, which is deleted: it created the duplicate
+  tables *without* RLS.
 
 - **Run `prisma/manual-migrations/012-calendar.sql`, then `013-event-modules.sql`** — both
   additive, so both go in **before** the deploy. 012 creates the Calendar tables; 013 adds

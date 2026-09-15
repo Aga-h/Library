@@ -5,12 +5,15 @@ import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { withErrors } from "@/lib/api-errors";
 import { formatRange } from "@/lib/calendar-dates";
+import { MAX_STATS_PER_MODULE, STATS } from "@/lib/stats";
 
 const updateSchema = z.object({
   title: z.string().min(1).optional(),
   startMinute: z.number().int().min(0).max(24 * 60 - 1).optional(),
   endMinute: z.number().int().min(0).max(24 * 60).optional().nullable(),
   notes: z.string().optional().nullable(),
+  // Up to three. An empty list is valid: the module stays an ordinary calendar event.
+  stats: z.array(z.enum(STATS)).max(MAX_STATS_PER_MODULE).optional(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -42,6 +45,7 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
         ...(d.startMinute !== undefined ? { startMinute: d.startMinute } : {}),
         ...(d.endMinute !== undefined ? { endMinute: d.endMinute } : {}),
         ...(d.notes !== undefined ? { notes: d.notes || null } : {}),
+        ...(d.stats !== undefined ? { stats: [...new Set(d.stats)] } : {}),
       },
     });
     revalidateTag("calendar", "max");

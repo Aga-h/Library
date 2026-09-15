@@ -1,9 +1,11 @@
-// Database side of the task engine — resolution, XP awards and queries.
-// Server-only: it pulls in Prisma. Pure rules live in lib/tasks.ts.
+// Database side of the task engine — materialising tasks from the calendar, resolving them,
+// paying XP. Server-only: it pulls in Prisma. Pure rules live in lib/tasks.ts.
 
-import type { Module, Task } from "@prisma/client";
+import type { Task } from "@prisma/client";
 import { db } from "@/lib/db";
+import { fromKey, instantAt, type DateKey } from "@/lib/calendar-dates";
 import {
+  isTrackable,
   openSession,
   requiredSeconds,
   sessionSeconds,
@@ -11,12 +13,54 @@ import {
 } from "@/lib/tasks";
 
 /**
- * Closes any session that outlived its window and judges every task whose
- * window has passed. Safe to call on every read — it does nothing when there is
- * nothing to settle.
+ * Makes sure every trackable module in this date's day plan has a task row, and returns the
+ * date's tasks.
  *
- * Returns the instant it settled against, so a server component can pass "now"
- * to the client without reading the clock during render.
+ * Tasks are never created by hand — the calendar already says what a day holds, so this derives
+ * them from it. Called on every read of a date, so it has to be cheap and idempotent: the
+ * unique index on (moduleId, date) makes the insert a no-op the second time.
+ *
+ * A module whose hours changed after its task was created keeps the old window. Re-dealing the
+ * day is what re-plans it; silently moving a window someone has already worked against would
+ * throw away their session time.
+ */
+export async function tasksForDate(date: DateKey): Promise<TaskWithSessions[]> {
+  const at = fromKey(date);
+
+  const entry = await db.calendarDay.findUnique({
+    where: { date: at },
+    include: { plan: { include: { modules: { include: { module: true } } } } },
+  });
+
+  const wanted = (entry?.plan?.modules ?? [])
+    .map((placement) => placement.module)
+    .filter(isTrackable);
+
+  if (wanted.length > 0) {
+    await db.task.createMany({
+      data: wanted.map((mod) => ({
+        moduleId: mod.id,
+        date: at,
+        startsAt: instantAt(date, mod.startMinute),
+        endsAt: instantAt(date, mod.endMinute!),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  return db.task.findMany({
+    where: { date: at },
+    include: { module: true, sessions: true },
+    orderBy: { startsAt: "asc" },
+  });
+}
+
+/**
+ * Closes any session that outlived its window and judges every task whose window has passed.
+ * Safe to call on every read — it does nothing when there is nothing to settle.
+ *
+ * Returns the instant it settled against, so a server component can pass "now" to the client
+ * without reading the clock during render.
  */
 export async function syncTasks(now: Date = new Date()): Promise<Date> {
   const due = await db.task.findMany({
@@ -28,8 +72,8 @@ export async function syncTasks(now: Date = new Date()): Promise<Date> {
 }
 
 /**
- * Judges a single task there and then — used by the "finish early" button, and
- * by syncTasks once a window has closed.
+ * Judges a single task there and then — used by the "finish early" button, and by syncTasks once
+ * a window has closed.
  */
 export async function settle(task: TaskWithSessions, at: Date): Promise<Task> {
   const cutoff = new Date(Math.min(at.getTime(), task.endsAt.getTime()));
@@ -57,16 +101,18 @@ export async function settle(task: TaskWithSessions, at: Date): Promise<Task> {
     },
   });
 
-  if (completed) await awardXp(task.id, task.module.stats, worked);
+  if (completed) await awardXp(task, worked);
   return updated;
 }
 
 /** One XP per minute worked, to every stat the module trains. */
-async function awardXp(taskId: string, stats: Module["stats"], workedSeconds: number): Promise<void> {
+async function awardXp(task: TaskWithSessions, workedSeconds: number): Promise<void> {
+  const stats = task.module.stats;
   if (stats.length === 0) return;
   const amount = Math.max(1, Math.round(workedSeconds / 60));
+  // The unique index on (taskId, stat) is what actually guarantees a task pays only once.
   await db.xpAward.createMany({
-    data: stats.map((stat) => ({ taskId, stat, amount })),
+    data: stats.map((stat) => ({ taskId: task.id, stat, amount })),
     skipDuplicates: true,
   });
 }
@@ -101,31 +147,9 @@ export async function stopSession(task: TaskWithSessions, now: Date): Promise<vo
   });
 }
 
-// ─── Queries ─────────────────────────────────────────────────────────────────
-
 export async function statXpTotals(): Promise<Record<string, number>> {
   const rows = await db.xpAward.groupBy({ by: ["stat"], _sum: { amount: true } });
   const totals: Record<string, number> = {};
   for (const row of rows) totals[row.stat] = row._sum.amount ?? 0;
   return totals;
-}
-
-export async function tasksForDays(days: string[]): Promise<TaskWithSessions[]> {
-  return db.task.findMany({
-    where: { day: { in: days } },
-    include: { module: true, sessions: true },
-    orderBy: { startsAt: "asc" },
-  });
-}
-
-export async function tasksForDay(day: string): Promise<TaskWithSessions[]> {
-  return tasksForDays([day]);
-}
-
-export async function tasksBetween(from: string, to: string): Promise<TaskWithSessions[]> {
-  return db.task.findMany({
-    where: { day: { gte: from, lte: to } },
-    include: { module: true, sessions: true },
-    orderBy: { startsAt: "asc" },
-  });
 }

@@ -7,8 +7,8 @@ import { db } from "@/lib/db";
 import { levelFromXp, xpForLevel } from "@/lib/leveling";
 import { STATS, STAT_META } from "@/lib/stats";
 import { statXpTotals, syncTasks } from "@/lib/task-service";
-import { dayVerdict } from "@/lib/tasks";
-import { formatDayShort, formatDuration } from "@/lib/time";
+import { dayVerdict, formatDuration } from "@/lib/tasks";
+import { toKey } from "@/lib/calendar-dates";
 import LevelBar from "@/components/tasks/LevelBar";
 import StatBadges from "@/components/tasks/StatBadges";
 
@@ -18,7 +18,7 @@ export default async function StatsPage() {
   const [totals, worked, dayRows, recent] = await Promise.all([
     statXpTotals(),
     db.task.aggregate({ _sum: { workedSeconds: true } }),
-    db.task.groupBy({ by: ["day", "status"], _count: { _all: true } }),
+    db.task.groupBy({ by: ["date", "status"], _count: { _all: true } }),
     db.task.findMany({
       where: { status: "COMPLETED" },
       orderBy: { resolvedAt: "desc" },
@@ -32,9 +32,10 @@ export default async function StatsPage() {
 
   const perDay = new Map<string, { status: TaskStatus }[]>();
   for (const row of dayRows) {
-    const bucket = perDay.get(row.day) ?? [];
+    const key = toKey(row.date);
+    const bucket = perDay.get(key) ?? [];
     for (let i = 0; i < row._count._all; i++) bucket.push({ status: row.status });
-    perDay.set(row.day, bucket);
+    perDay.set(key, bucket);
   }
   const verdicts = [...perDay.values()].map(dayVerdict);
   const lit = verdicts.filter((v) => v.outcome === "LIT").length;
@@ -96,11 +97,9 @@ export default async function StatsPage() {
             {recent.map((task) => (
               <div key={task.id} className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">
-                    {task.title?.trim() || task.module.name}
-                  </p>
+                  <p className="font-semibold text-gray-900 text-sm truncate">{task.module.title}</p>
                   <p className="text-xs text-gray-500">
-                    {formatDayShort(task.day)} · {formatDuration(task.workedSeconds)} worked
+                    {toKey(task.date)} · {formatDuration(task.workedSeconds)} worked
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
