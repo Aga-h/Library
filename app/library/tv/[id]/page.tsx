@@ -2,10 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
+import { Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteTvButton from "@/components/tv/DeleteTvButton";
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -14,13 +15,14 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   WATCHING:      { label: "Watching",       className: "bg-blue-100 text-blue-700" },
   COMPLETED:     { label: "Completed",      className: "bg-green-100 text-green-700" },
   PLAN_TO_WATCH: { label: "Plan to Watch",  className: "bg-amber-100 text-amber-700" },
-  DROPPED:       { label: "Dropped",        className: "bg-red-100 text-red-700" },
-  ON_HOLD:       { label: "On Hold",        className: "bg-purple-100 text-purple-700" },
 };
 
 export default async function TvDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const show = await db.tvShow.findUnique({ where: { id } });
+  const show = await db.tvShow.findUnique({
+    where: { id },
+    include: { series: { include: { universe: true } } },
+  });
   if (!show) notFound();
 
   const status = STATUS_STYLES[show.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
@@ -29,9 +31,17 @@ export default async function TvDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/library/tv" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to TV Shows
-      </Link>
+      <Breadcrumb
+        rootHref="/library/tv"
+        rootLabel="TV Shows"
+        crumbs={[
+          ...(show.series?.universe
+            ? [{ label: show.series.universe.name, href: `/library/tv/u/${show.series.universe.id}` }]
+            : []),
+          ...(show.series ? [{ label: show.series.name, href: `/library/tv/s/${show.series.id}` }] : []),
+          { label: show.title },
+        ]}
+      />
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex gap-6 p-8 pb-6">
           <div className="flex-shrink-0 w-28 h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
@@ -57,6 +67,11 @@ export default async function TvDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
+              {show.seasonNumber !== null && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-900 text-white">
+                  Season {show.seasonNumber}
+                </span>
+              )}
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
               {show.rating !== null && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">★ {show.rating}/10</span>}
             </div>

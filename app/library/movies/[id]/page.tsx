@@ -3,17 +3,15 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronLeft,
   Film,
   Clock,
   Globe,
   Building2,
   Pencil,
   Calendar,
-  User,
-} from "lucide-react";
+  } from "lucide-react";
 import { db } from "@/lib/db";
-import { formatReadingTime } from "@/lib/reading-time";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteMovieButton from "@/components/movies/DeleteMovieButton";
 
@@ -36,7 +34,10 @@ function formatRuntime(minutes: number): string {
 
 export default async function MovieDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const movie = await db.movie.findUnique({ where: { id } });
+  const movie = await db.movie.findUnique({
+    where: { id },
+    include: { universe: true },
+  });
   if (!movie) notFound();
 
   const status = STATUS_STYLES[movie.status] ?? STATUS_STYLES.WANT_TO_WATCH;
@@ -44,13 +45,16 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link
-        href="/library/movies"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Back to Movies
-      </Link>
+      <Breadcrumb
+        rootHref="/library/movies"
+        rootLabel="Movies"
+        crumbs={[
+          ...(movie.universe
+            ? [{ label: movie.universe.name, href: `/library/movies/u/${movie.universe.id}` }]
+            : []),
+          { label: movie.title },
+        ]}
+      />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         {/* Cover + header */}

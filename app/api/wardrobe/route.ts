@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
 const schema = z.object({
   name: z.string().min(1),
@@ -18,7 +19,7 @@ const schema = z.object({
   notes: z.string().optional(),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
   const where: Record<string, unknown> = {};
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(garments);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = schema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Validation failed", issues: result.error.issues }, { status: 400 });
@@ -43,3 +44,6 @@ export async function POST(request: NextRequest) {
   });
   return NextResponse.json(garment, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

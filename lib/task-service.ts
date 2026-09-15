@@ -14,13 +14,17 @@ import {
  * Closes any session that outlived its window and judges every task whose
  * window has passed. Safe to call on every read — it does nothing when there is
  * nothing to settle.
+ *
+ * Returns the instant it settled against, so a server component can pass "now"
+ * to the client without reading the clock during render.
  */
-export async function syncTasks(now: Date = new Date()): Promise<void> {
+export async function syncTasks(now: Date = new Date()): Promise<Date> {
   const due = await db.task.findMany({
     where: { status: { in: ["SCHEDULED", "ACTIVE"] }, endsAt: { lte: now } },
     include: { module: true, sessions: { where: { endedAt: null } } },
   });
   for (const task of due) await settle(task, task.endsAt);
+  return now;
 }
 
 /**

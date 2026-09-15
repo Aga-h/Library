@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const updateArticleSchema = z.object({
   title: z.string().min(1).optional(),
@@ -9,12 +12,7 @@ const updateArticleSchema = z.object({
   url: z.string().url().optional().nullable(),
   status: z.enum(["READ", "WANT_TO_READ"]).optional(),
   wordCount: z.number().int().positive().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .optional(),
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),
@@ -24,7 +22,7 @@ const updateArticleSchema = z.object({
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+async function GETHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
@@ -34,7 +32,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(article);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
@@ -54,13 +52,16 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   const updated = await db.article.update({
     where: { id },
-    data: result.data,
+    // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
+    // through, so a cleared cover was stored as an empty string rather than NULL.
+    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
   });
 
+  revalidateTag("library-stats", "max");
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+async function DELETEHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
@@ -69,5 +70,10 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   }
 
   await db.article.delete({ where: { id } });
+  revalidateTag("library-stats", "max");
   return new NextResponse(null, { status: 204 });
 }
+
+export const GET = withErrors(GETHandler);
+export const PATCH = withErrors(PATCHHandler);
+export const DELETE = withErrors(DELETEHandler);

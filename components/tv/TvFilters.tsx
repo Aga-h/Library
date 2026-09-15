@@ -1,20 +1,20 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import SearchInput from "@/components/ui/SearchInput";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
   { value: "WATCHING", label: "Watching" },
   { value: "COMPLETED", label: "Completed" },
   { value: "PLAN_TO_WATCH", label: "Plan to Watch" },
-  { value: "ON_HOLD", label: "On Hold" },
-  { value: "DROPPED", label: "Dropped" },
 ];
 
 export default function TvFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentStatus = searchParams.get("status") ?? "";
+  const currentQ = searchParams.get("q") ?? "";
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -24,6 +24,12 @@ export default function TvFilters() {
       params.delete(key);
     }
     router.push(`/library/tv?${params.toString()}`);
+  }
+
+  function setSearch(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("q", value); else params.delete("q");
+    router.replace(`/library/tv?${params.toString()}`);
   }
 
   return (
@@ -43,6 +49,7 @@ export default function TvFilters() {
           </button>
         ))}
       </div>
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title or creator…" />
     </div>
   );
 }

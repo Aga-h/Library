@@ -1,6 +1,4 @@
-"use client";
-
-import { Gamepad2, Clock, Trophy } from "lucide-react";
+import { Clock, Trophy } from "lucide-react";
 
 interface Game { status: string; hoursPlayed: number; achievementsUnlocked: number; achievementsTotal: number | null; }
 

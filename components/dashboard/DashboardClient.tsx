@@ -101,7 +101,6 @@ export default function DashboardClient({ sections, totalMinutes }: { sections: 
       ) : (
         <ChartView
           sections={sections}
-          totalMinutes={totalMinutes}
           hoveredKey={hoveredKey}
           setHoveredKey={setHoveredKey}
           onNavigate={(href) => router.push(href)}
@@ -145,10 +144,9 @@ function GridView({ sections }: { sections: SectionData[] }) {
 }
 
 function ChartView({
-  sections, totalMinutes, hoveredKey, setHoveredKey, onNavigate,
+  sections, hoveredKey, setHoveredKey, onNavigate,
 }: {
   sections: SectionData[];
-  totalMinutes: number;
   hoveredKey: string | null;
   setHoveredKey: (key: string | null) => void;
   onNavigate: (href: string) => void;

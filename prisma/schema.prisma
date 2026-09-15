@@ -9,27 +9,59 @@ datasource db {
 // ─── BOOKS ───────────────────────────────────────────────────────────────────
 
 model Book {
-  id          String     @id @default(cuid())
-  title       String
-  author      String
-  status      BookStatus @default(WANT_TO_READ)
-  owned       Boolean    @default(false)
-  language    Language   @default(ENGLISH)
-  publisher   String?
-  pages       Int
-  coverImage  String?
-  rating      Float?
-  notes       String?
-  timesReread Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  title        String
+  author       String
+  status       BookStatus @default(WANT_TO_READ)
+  owned        Boolean    @default(false)
+  language     Language   @default(ENGLISH)
+  publisher    String?
+  pages        Int
+  // Progress. Status is derived from this against `pages`, never set by hand.
+  pagesRead    Int        @default(0)
+  coverImage   String?
+  rating       Float?
+  notes        String?
+  timesReread  Int        @default(0)
+  seriesId     String?
+  series       BookSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([seriesId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([language, createdAt(sort: Desc)])
+}
+
+model BookSeries {
+  id         String        @id @default(cuid())
+  name       String
+  universeId String?
+  universe   BookUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  books      Book[]
+
+  // SetNull, not Cascade: deleting a universe must not delete the books inside it.
+  @@unique([universeId, name])
+  @@index([universeId])
+}
+
+model BookUniverse {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  notes     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  series    BookSeries[]
 }
 
 enum BookStatus {
   READ
   READING
   WANT_TO_READ
-  DNF
 }
 
 // ─── ANIME ───────────────────────────────────────────────────────────────────
@@ -49,17 +81,25 @@ model Anime {
   rating          Float?
   notes           String?
   timesRewatched  Int          @default(0)
-  seriesName      String?
+  // Which season of its series this row is. Distinct from `season` above, which is the
+  // AIRING season (Winter/Spring/Summer/Fall). Nullable: a standalone entry has none.
+  seasonNumber    Int?
+  seriesId        String?
+  series          AnimeSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([language, createdAt(sort: Desc)])
+  @@index([seriesId])
+  @@index([seriesId, seasonNumber])
 }
 
 enum AnimeStatus {
   WATCHING
   COMPLETED
   PLAN_TO_WATCH
-  DROPPED
-  ON_HOLD
 }
 
 enum AnimeSeason {
@@ -84,8 +124,25 @@ model Movie {
   rating         Float?
   notes          String?
   timesRewatched Int         @default(0)
+  universeId     String?
+  universe       MovieUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+
+  @@index([universeId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+// Movies stop at two levels — universe and film. There is no series tier: a
+// franchise is the universe, and its films sit directly inside it.
+model MovieUniverse {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  movies    Movie[]
 }
 
 enum MovieStatus {
@@ -111,17 +168,23 @@ model TvShow {
   rating          Float?
   notes           String?
   timesRewatched  Int      @default(0)
-  seriesName      String?
+  // Which season of its series this row is. Nullable: a standalone show has none.
+  seasonNumber    Int?
+  seriesId        String?
+  series          TvSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([seriesId])
+  @@index([seriesId, seasonNumber])
 }
 
 enum TvStatus {
   WATCHING
   COMPLETED
   PLAN_TO_WATCH
-  DROPPED
-  ON_HOLD
 }
 
 // ─── GAMES ───────────────────────────────────────────────────────────────────
@@ -143,6 +206,10 @@ model Game {
   steamAppId           Int?         @unique
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([platform, createdAt(sort: Desc)])
 }
 
 enum GameStatus {
@@ -209,6 +276,8 @@ model Manga {
   volumesRead   Int         @default(0)
   totalChapters Int?
   chaptersRead  Int         @default(0)
+  // Still releasing: no final chapter/volume count exists yet, so it can never be COMPLETED.
+  ongoing       Boolean     @default(false)
   language      Language    @default(JAPANESE)
   coverImage    String?
   rating        Float?
@@ -216,6 +285,10 @@ model Manga {
   timesReread   Int         @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([language, createdAt(sort: Desc)])
 }
 
 enum MangaFormat {
@@ -228,36 +301,71 @@ enum MangaStatus {
   READING
   COMPLETED
   PLAN_TO_READ
-  DROPPED
-  ON_HOLD
 }
 
 // ─── COMICS ──────────────────────────────────────────────────────────────────
 
-model Comic {
-  id          String      @id @default(cuid())
-  title       String
-  author      String?
-  artist      String?
-  publisher   String?
-  universe    String?
-  status      ComicStatus @default(PLAN_TO_READ)
-  totalIssues Int?
-  issuesRead  Int         @default(0)
-  language    Language    @default(ENGLISH)
-  coverImage  String?
-  rating      Float?
-  notes       String?
-  timesReread Int         @default(0)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+// Four-level hierarchy: Publisher → Universe → Title → Issue.
+// Reading progress and ratings are derived from the issues, never stored on a parent.
+
+model ComicPublisher {
+  id         String          @id @default(cuid())
+  name       String          @unique
+  notes      String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  universes  ComicUniverse[]
 }
 
-enum ComicStatus {
-  READING
-  COMPLETED
-  PLAN_TO_READ
-  DROPPED
+model ComicUniverse {
+  id          String         @id @default(cuid())
+  name        String
+  publisherId String
+  publisher   ComicPublisher @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  titles      ComicTitle[]
+
+  // @@unique's leading column already indexes publisherId — no separate index needed.
+  @@unique([publisherId, name])
+}
+
+model ComicTitle {
+  id         String        @id @default(cuid())
+  name       String
+  universeId String
+  universe   ComicUniverse @relation(fields: [universeId], references: [id], onDelete: Cascade)
+  author     String?
+  artist     String?
+  language   Language      @default(ENGLISH)
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  issues     ComicIssue[]
+
+  @@unique([universeId, name])
+}
+
+model ComicIssue {
+  id          String     @id @default(cuid())
+  titleId     String
+  comicTitle  ComicTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  // Float so #0 prologues and #1.5 interstitials sort correctly between whole numbers.
+  issueNumber Float
+  name        String?
+  read        Boolean    @default(false)
+  owned       Boolean    @default(false)
+  coverImage  String?
+  rating      Float?
+  releaseDate DateTime?
+  timesReread Int        @default(0)
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // @@unique doubles as the (titleId, issueNumber) ordering index.
+  @@unique([titleId, issueNumber])
 }
 
 // ─── ARTICLES ────────────────────────────────────────────────────────────────
@@ -277,6 +385,10 @@ model Article {
   timesReread Int           @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([language, createdAt(sort: Desc)])
 }
 
 enum ArticleStatus {
@@ -293,7 +405,7 @@ model Garment {
   brand      String?
   color      String?
   colorGroup ColorGroup  @default(MIXED)
-  materials  String // e.g. "80% cotton, 20% polyester"
+  materials  String      // e.g. "80% cotton, 20% polyester"
   washMethod WashMethod  @default(MACHINE)
   maxTemp    WashTemp    @default(W40)
   washCycle  WashCycle   @default(NORMAL)
@@ -305,6 +417,9 @@ model Garment {
   notes      String?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  @@index([type, wornCount(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 enum GarmentType {
@@ -364,18 +479,119 @@ enum DryMethod {
   DO_NOT_DRY
 }
 
-// ─── SERIES ──────────────────────────────────────────────────────────────────
+// ─── FINANCES ────────────────────────────────────────────────────────────────
 
-model AnimeSeries {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
+model FinanceConfig {
+  id            String   @id @default("global")
+  monthlyBudget Float    @default(0)
+  updatedAt     DateTime @updatedAt
 }
 
+model Expense {
+  id          String          @id @default(cuid())
+  // Supplied by the offline queue. Unique, so a POST replayed by a concurrent sync,
+  // a second tab, or a retry after a lost response can never insert the same expense
+  // twice. Nullable because rows created before this existed have none, and Postgres
+  // permits many NULLs in a unique index.
+  clientId    String?         @unique
+  year        Int
+  month       Int
+  category    ExpenseCategory
+  amount      Float
+  description String?
+  createdAt   DateTime        @default(now())
+
+  @@index([year, month, createdAt(sort: Desc)])
+}
+
+model AdditionalIncome {
+  id          String   @id @default(cuid())
+  year        Int
+  month       Int
+  amount      Float
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([year, month, createdAt(sort: Desc)])
+}
+
+enum ExpenseCategory {
+  FOOD
+  BOOKS
+  EDUCATION
+  ENTERTAINMENT
+  CLOTHING
+  SUBSCRIPTIONS
+  SELF_CARE
+  TRANSPORTATION
+  OTHER
+  CASH
+}
+
+model Subscription {
+  id             String   @id @default(cuid())
+  name           String
+  amount         Float
+  startYear      Int
+  startMonth     Int
+  cancelledYear  Int?
+  cancelledMonth Int?
+  createdAt      DateTime @default(now())
+}
+
+// ─── SERIES ──────────────────────────────────────────────────────────────────
+
+// Groups seasons of an anime. Universe is optional — a series with no universe shows on
+// the anime main page; one inside a universe is reached by opening that universe.
+model AnimeSeries {
+  id         String         @id @default(cuid())
+  name       String
+  universeId String?
+  universe   AnimeUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
+  notes      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  anime      Anime[]
+
+  // SetNull, not Cascade: deleting a universe must not delete the anime inside it.
+  @@unique([universeId, name])
+  @@index([universeId])
+}
+
+model AnimeUniverse {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  series    AnimeSeries[]
+}
+
+// A series groups seasons. Its universe is optional — a series with no universe shows on
+// the TV main page; one inside a universe is reached by opening that universe instead.
 model TvSeries {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
+  id         String      @id @default(cuid())
+  name       String
+  universeId String?
+  universe   TvUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  shows      TvShow[]
+
+  // SetNull, not Cascade: deleting a universe must not delete the series inside it.
+  // Note Postgres allows repeated NULLs here, so two universe-less series may share a name.
+  @@unique([universeId, name])
+  @@index([universeId])
+}
+
+model TvUniverse {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  series    TvSeries[]
 }
 
 // ─── SHARED ENUMS ────────────────────────────────────────────────────────────
@@ -393,6 +609,112 @@ enum Language {
   JAPANESE
   CHINESE
   KOREAN
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+// Day plans are dealt onto real dates. A date's kind (school or holiday) is always DERIVED
+// from the terms, days off and the weekend rule — never stored — because terms get edited and
+// a stored kind would quietly disagree with the calendar afterwards.
+
+enum DayKind {
+  SCHOOL
+  HOLIDAY
+}
+
+model DayPlan {
+  id         String        @id @default(cuid())
+  name       String
+  kind       DayKind
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  activities DayActivity[]   // legacy, superseded by `modules`; dropped a release later
+  modules    DayPlanModule[]
+  days       CalendarDay[]
+
+  // Two plans of the same kind may not share a name, or the deal is unreadable.
+  @@unique([kind, name])
+  @@index([kind])
+}
+
+/// Legacy. Events used to be owned by one day; they are now reusable EventModules placed into
+/// days. Kept one release as the only surviving copy of the pre-conversion timetables.
+model DayActivity {
+  id          String  @id @default(cuid())
+  planId      String
+  plan        DayPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  // Minutes from midnight. A time of day, not an instant — a DateTime would drag a date and a
+  // timezone along with 09:00.
+  startMinute Int
+  endMinute   Int?
+  title       String
+  notes       String?
+
+  @@index([planId, startMinute])
+}
+
+/// A reusable event: a name and the hours it occupies. Placed into any number of days.
+/// The hours belong to the module — "Sat vocab study 00:00–01:00" is one module, and the same
+/// activity at another time is a different module.
+model EventModule {
+  id          String          @id @default(cuid())
+  title       String
+  startMinute Int
+  endMinute   Int?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  placements  DayPlanModule[]
+
+  // Catches an accidental duplicate of an identical module. Note Postgres treats NULLs as
+  // distinct, so two modules with no end time can still collide here — the API checks for that.
+  @@unique([title, startMinute, endMinute])
+  @@index([startMinute])
+}
+
+/// Which modules a day is built from. Cascade on both sides: a placement is meaningless without
+/// either end, and deleting a module should remove it from the days that used it rather than
+/// leave a dangling row.
+model DayPlanModule {
+  id       String      @id @default(cuid())
+  planId   String
+  plan     DayPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  moduleId String
+  module   EventModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, moduleId])
+  @@index([planId])
+  @@index([moduleId])
+}
+
+model SchoolTerm {
+  id        String   @id @default(cuid())
+  name      String?
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@index([startDate, endDate])
+}
+
+// A one-off holiday inside a term.
+model DayOff {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model CalendarDay {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  planId    String?
+  // SetNull, not Cascade: deleting a plan must empty the dates that used it, not delete them.
+  plan      DayPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([planId])
 }
 
 // ─── MODULES, TASKS & STATS ──────────────────────────────────────────────────

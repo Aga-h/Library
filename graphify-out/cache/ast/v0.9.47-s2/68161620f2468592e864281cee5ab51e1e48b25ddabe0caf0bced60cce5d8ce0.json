@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_prisma_manual_migrations_001_comics_hierarchy_and_indexes_sql", "label": "001-comics-hierarchy-and-indexes.sql", "file_type": "code", "source_file": "prisma/manual-migrations/001-comics-hierarchy-and-indexes.sql", "source_location": null}], "edges": []}

@@ -4,9 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface MovieFormData {
   title: string;
+  universeId: string;
   director: string;
   studio: string;
   status: string;
@@ -20,6 +24,7 @@ interface MovieFormData {
 }
 
 interface MovieFormProps {
+  universeOptions?: HierarchyOption[];
   initialData?: Partial<MovieFormData & { id: string }>;
   mode: "create" | "edit";
   directorOptions?: string[];
@@ -28,6 +33,7 @@ interface MovieFormProps {
 }
 
 const DEFAULT_DATA: MovieFormData = {
+  universeId: "",
   title: "",
   director: "",
   studio: "",
@@ -48,10 +54,8 @@ function formatRuntime(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-const inputCls =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function MovieForm({ initialData, mode, directorOptions, studioOptions, yearOptions }: MovieFormProps) {
+export default function MovieForm({ universeOptions, initialData, mode, directorOptions, studioOptions, yearOptions }: MovieFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<MovieFormData>({
     ...DEFAULT_DATA,
@@ -79,17 +83,22 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
     setLoading(true);
     setError(null);
 
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
       title: form.title,
-      director: form.director || undefined,
-      studio: form.studio || undefined,
+      director: form.director || clearable,
+      studio: form.studio || clearable,
+      universeId: form.universeId || clearable,
       status: form.status,
       runtime: parseInt(form.runtime, 10),
-      year: form.year ? parseInt(form.year, 10) : undefined,
+      year: form.year ? parseInt(form.year, 10) : clearable,
       language: form.language,
-      coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined,
-      notes: form.notes || undefined,
+      coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable,
+      notes: form.notes || clearable,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
 
@@ -114,6 +123,9 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
 
     const movie = await res.json();
     router.push(`/library/movies/${movie.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
 
   }
 
@@ -168,6 +180,15 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
         </Field>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <HierarchySelect
+          label="Universe"
+          value={form.universeId}
+          onChange={(v) => update("universeId", v)}
+          options={universeOptions ?? []}
+        />
+      </div>
+
       {/* Runtime & Year */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Runtime * (minutes)">
@@ -210,15 +231,9 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
             ))}
           </select>
         </Field>
-        <Field label="Cover Image URL">
-          <input
-            type="url"
-            value={form.coverImage}
-            onChange={(e) => update("coverImage", e.target.value)}
-            placeholder="https://..."
-            className={inputCls}
-          />
-        </Field>
+        <FieldGroup label="Cover Image URL">
+          <ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="movies" />
+        </FieldGroup>
       </div>
 
       {/* Rating & Times rewatched */}
@@ -282,17 +297,3 @@ export default function MovieForm({ initialData, mode, directorOptions, studioOp
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {children}
-    </div>
-  );
-}

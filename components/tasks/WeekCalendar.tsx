@@ -120,7 +120,6 @@ export default function WeekCalendar({
           {days.map((day) => (
             <DayColumn
               key={day}
-              day={day}
               isToday={day === today}
               tasks={byDay.get(day) ?? []}
               onSlot={(minutes) => openSlot(day, minutes)}
@@ -144,13 +143,11 @@ export default function WeekCalendar({
 }
 
 function DayColumn({
-  day,
   isToday,
   tasks,
   onSlot,
   onTask,
 }: {
-  day: string;
   isToday: boolean;
   tasks: TaskView[];
   onSlot: (minutes: number) => void;

@@ -1,16 +1,12 @@
-export type LanguageKey =
-  | "ENGLISH"
-  | "SPANISH"
-  | "FRENCH"
-  | "GERMAN"
-  | "ITALIAN"
-  | "PORTUGUESE"
-  | "TURKISH"
-  | "ARABIC"
-  | "RUSSIAN"
-  | "JAPANESE"
-  | "CHINESE"
-  | "KOREAN";
+// Single source of truth for the Language enum. Zod schemas use this tuple directly via
+// z.enum(LANGUAGE_VALUES) instead of each route file re-declaring all 12 values.
+export const LANGUAGE_VALUES = [
+  "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
+  "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
+  "JAPANESE", "CHINESE", "KOREAN",
+] as const;
+
+export type LanguageKey = (typeof LANGUAGE_VALUES)[number];
 
 export interface LanguageConfig {
   label: string;

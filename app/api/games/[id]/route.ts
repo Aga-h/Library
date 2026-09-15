@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
 const updateGameSchema = z.object({
   title: z.string().min(1).optional(),
@@ -32,7 +34,7 @@ const updateGameSchema = z.object({
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+async function GETHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const game = await db.game.findUnique({ where: { id } });
@@ -42,7 +44,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(game);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const game = await db.game.findUnique({ where: { id } });
@@ -62,13 +64,16 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   const updated = await db.game.update({
     where: { id },
-    data: result.data,
+    // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
+    // through, so a cleared cover was stored as an empty string rather than NULL.
+    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
   });
 
+  revalidateTag("library-stats", "max");
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+async function DELETEHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const game = await db.game.findUnique({ where: { id } });
@@ -77,5 +82,10 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   }
 
   await db.game.delete({ where: { id } });
+  revalidateTag("library-stats", "max");
   return new NextResponse(null, { status: 204 });
 }
+
+export const GET = withErrors(GETHandler);
+export const PATCH = withErrors(PATCHHandler);
+export const DELETE = withErrors(DELETEHandler);

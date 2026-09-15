@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_prisma_manual_migrations_002_expense_idempotency_sql", "label": "002-expense-idempotency.sql", "file_type": "code", "source_file": "prisma/manual-migrations/002-expense-idempotency.sql", "source_location": null}], "edges": []}

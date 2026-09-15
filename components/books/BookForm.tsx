@@ -5,15 +5,21 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, inputCls } from "@/components/ui/form";
+import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface BookFormData {
   title: string;
+  seriesId: string;
   author: string;
-  status: string;
   owned: boolean;
   language: string;
   publisher: string;
   pages: string;
+  pagesRead: string;
   coverImage: string;
   rating: string;
   notes: string;
@@ -21,6 +27,7 @@ interface BookFormData {
 }
 
 interface BookFormProps {
+  seriesOptions?: HierarchyOption[];
   initialData?: Partial<BookFormData & { id: string }>;
   mode: "create" | "edit";
   authorOptions?: string[];
@@ -28,9 +35,10 @@ interface BookFormProps {
 }
 
 const DEFAULT_DATA: BookFormData = {
+  seriesId: "",
+  pagesRead: "0",
   title: "",
   author: "",
-  status: "WANT_TO_READ",
   owned: false,
   language: "ENGLISH",
   publisher: "",
@@ -41,12 +49,15 @@ const DEFAULT_DATA: BookFormData = {
   timesReread: "0",
 };
 
-export default function BookForm({ initialData, mode, authorOptions, publisherOptions }: BookFormProps) {
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
+
+export default function BookForm({ seriesOptions, initialData, mode, authorOptions, publisherOptions }: BookFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<BookFormData>({
     ...DEFAULT_DATA,
     ...initialData,
     pages: initialData?.pages?.toString() ?? "",
+    pagesRead: initialData?.pagesRead?.toString() ?? "0",
     rating: initialData?.rating?.toString() ?? "",
     timesReread: initialData?.timesReread?.toString() ?? "0",
   });
@@ -63,22 +74,30 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(bookProgress({ pagesRead: parseInt(form.pagesRead, 10) || 0, pages: parseInt(form.pages, 10) || 0 }), BOOK_STATUS);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
       title: form.title,
       author: form.author,
-      status: form.status,
       owned: form.owned,
       language: form.language,
-      publisher: form.publisher || undefined,
+      publisher: form.publisher || clearable,
+      seriesId: form.seriesId || clearable,
       pages: parseInt(form.pages, 10),
-      coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined,
-      notes: form.notes || undefined,
+    pagesRead: parseInt(form.pagesRead, 10) || 0,
+      coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable,
+      notes: form.notes || clearable,
       timesReread: parseInt(form.timesReread, 10) || 0,
     };
 
@@ -103,6 +122,9 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
 
     const book = await res.json();
     router.push(`/library/books/${book.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
 
   }
 
@@ -138,18 +160,6 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
 
       {/* Status & Language */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Reading Status">
-          <select
-            value={form.status}
-            onChange={(e) => update("status", e.target.value)}
-            className={inputCls}
-          >
-            <option value="WANT_TO_READ">Plan to Read</option>
-            <option value="READING">Reading</option>
-            <option value="READ">Read</option>
-            <option value="DNF">Dropped</option>
-          </select>
-        </Field>
         <Field label="Language">
           <select
             value={form.language}
@@ -183,6 +193,17 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
             </p>
           )}
         </Field>
+        <Field label="Pages Read">
+          <input
+            type="number"
+            min={0}
+            value={form.pagesRead}
+            onChange={(e) => update("pagesRead", e.target.value)}
+            placeholder="0"
+            className={inputCls}
+          />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
+        </Field>
         <ComboboxField
           label="Publisher"
           value={form.publisher}
@@ -192,17 +213,19 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
         />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <HierarchySelect
+          value={form.seriesId}
+          onChange={(v) => update("seriesId", v)}
+          options={seriesOptions ?? []}
+        />
+      </div>
+
       {/* Cover Image & Rating */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Cover Image URL">
-          <input
-            type="url"
-            value={form.coverImage}
-            onChange={(e) => update("coverImage", e.target.value)}
-            placeholder="https://..."
-            className={inputCls}
-          />
-        </Field>
+        <FieldGroup label="Cover Image URL">
+          <ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="books" />
+        </FieldGroup>
         <Field label="Rating (1–10)">
           <input
             type="number"
@@ -277,20 +300,4 @@ export default function BookForm({ initialData, mode, authorOptions, publisherOp
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {children}
-    </div>
-  );
-}
 
-const inputCls =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";

@@ -2,14 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
+import SearchInput from "@/components/ui/SearchInput";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
   { value: "READING", label: "Reading" },
   { value: "COMPLETED", label: "Completed" },
   { value: "PLAN_TO_READ", label: "Plan to Read" },
-  { value: "ON_HOLD", label: "On Hold" },
-  { value: "DROPPED", label: "Dropped" },
 ];
 
 export default function MangaFilters() {
@@ -17,11 +16,18 @@ export default function MangaFilters() {
   const searchParams = useSearchParams();
   const currentStatus = searchParams.get("status") ?? "";
   const currentLang = searchParams.get("language") ?? "";
+  const currentQ = searchParams.get("q") ?? "";
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value); else params.delete(key);
     router.push(`/library/manga?${params.toString()}`);
+  }
+
+  function setSearch(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("q", value); else params.delete("q");
+    router.replace(`/library/manga?${params.toString()}`);
   }
 
   return (
@@ -39,6 +45,7 @@ export default function MangaFilters() {
         <option value="">All Languages</option>
         {LANGUAGE_OPTIONS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
       </select>
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title or author…" />
     </div>
   );
 }

@@ -1,6 +1,5 @@
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 import { BookMarked, Clock } from "lucide-react";
 import { calculateMangaTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
@@ -18,8 +17,6 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   READING:      { label: "Reading",      className: "bg-blue-100 text-blue-700" },
   COMPLETED:    { label: "Completed",    className: "bg-green-100 text-green-700" },
   PLAN_TO_READ: { label: "Plan to Read", className: "bg-amber-100 text-amber-700" },
-  DROPPED:      { label: "Dropped",      className: "bg-red-100 text-red-700" },
-  ON_HOLD:      { label: "On Hold",      className: "bg-purple-100 text-purple-700" },
 };
 
 export default function MangaCard({ manga }: { manga: Manga }) {
@@ -30,8 +27,7 @@ export default function MangaCard({ manga }: { manga: Manga }) {
     <Link href={`/library/manga/${manga.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {manga.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={manga.coverImage} alt={manga.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <Image fill src={manga.coverImage} alt={manga.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
         ) : (
           <BookMarked className="w-12 h-12 text-gray-300" />
         )}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { withErrors } from "@/lib/api-errors";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -20,14 +21,14 @@ const patchSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function GET(_: NextRequest, { params }: RouteContext) {
+async function GETHandler(_: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const garment = await db.garment.findUnique({ where: { id } });
   if (!garment) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(garment);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   const body = await request.json();
   const result = patchSchema.safeParse(body);
@@ -36,8 +37,12 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(garment);
 }
 
-export async function DELETE(_: NextRequest, { params }: RouteContext) {
+async function DELETEHandler(_: NextRequest, { params }: RouteContext) {
   const { id } = await params;
   await db.garment.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withErrors(GETHandler);
+export const PATCH = withErrors(PATCHHandler);
+export const DELETE = withErrors(DELETEHandler);

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const createArticleSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -11,12 +14,7 @@ const createArticleSchema = z.object({
     .enum(["READ", "WANT_TO_READ"])
     .default("WANT_TO_READ"),
   wordCount: z.number().int().positive("Word count is required"),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .default("ENGLISH"),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
@@ -24,7 +22,7 @@ const createArticleSchema = z.object({
   timesReread: z.number().int().min(0).default(0),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
 
@@ -39,7 +37,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(articles);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createArticleSchema.safeParse(body);
 
@@ -67,5 +65,9 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  revalidateTag("library-stats", "max");
   return NextResponse.json(article, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

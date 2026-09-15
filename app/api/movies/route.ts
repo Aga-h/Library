@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const createMovieSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -11,20 +14,16 @@ const createMovieSchema = z.object({
     .default("WANT_TO_WATCH"),
   runtime: z.number().int().positive("Runtime is required"),
   year: z.number().int().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .default("ENGLISH"),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
   notes: z.string().optional(),
   timesRewatched: z.number().int().min(0).default(0),
+  universeId: z.string().optional().nullable(),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
 
@@ -39,7 +38,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(movies);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createMovieSchema.safeParse(body);
 
@@ -51,6 +50,13 @@ export async function POST(request: NextRequest) {
   }
 
   const data = result.data;
+
+  // A bad universe id would otherwise surface as a foreign-key 500.
+  if (data.universeId) {
+    const universe = await db.movieUniverse.findUnique({ where: { id: data.universeId }, select: { id: true } });
+    if (!universe) return NextResponse.json({ error: "Universe not found" }, { status: 404 });
+  }
+
   const movie = await db.movie.create({
     data: {
       title: data.title,
@@ -64,8 +70,13 @@ export async function POST(request: NextRequest) {
       rating: data.rating ?? null,
       notes: data.notes ?? null,
       timesRewatched: data.timesRewatched,
+      universeId: data.universeId || null,
     },
   });
 
+  revalidateTag("library-stats", "max");
   return NextResponse.json(movie, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

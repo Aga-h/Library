@@ -1,10 +1,9 @@
-"use client";
-
-import { Tv2, Clock, CheckCircle2 } from "lucide-react";
+import { Clock, CheckCircle2 } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface Anime {
   status: string;
+  episodes: number | null;
   episodesWatched: number;
   episodeDuration: number;
   timesRewatched: number;
@@ -14,14 +13,17 @@ export default function AnimeStats({ anime }: { anime: Anime[] }) {
   const watching   = anime.filter((a) => a.status === "WATCHING");
   const completed  = anime.filter((a) => a.status === "COMPLETED");
   const planTo     = anime.filter((a) => a.status === "PLAN_TO_WATCH");
-  const dropped    = anime.filter((a) => a.status === "DROPPED");
-  const onHold     = anime.filter((a) => a.status === "ON_HOLD");
 
   const toMinutes = (a: Anime) => a.episodesWatched * a.episodeDuration * (a.timesRewatched + 1);
 
   const watchedMinutes = [...watching, ...completed].reduce((s, a) => s + toMinutes(a), 0);
-  const remainingMinutes = planTo.reduce((s, a) => s + toMinutes(a), 0);
-  const seasonsWatched = watching.length + completed.length;
+  // Episodes still to watch. toMinutes() counts episodesWatched, which is 0 for anything
+  // PLAN_TO_WATCH, so this stat was structurally always "—".
+  const remainingMinutes = [...planTo, ...watching].reduce(
+    (s, a) => s + Math.max(0, (a.episodes ?? 0) - a.episodesWatched) * a.episodeDuration, 0);
+  // Every row is one season, so counting rows called them seasons watched — which
+  // the season cards already show. Episodes watched is the number that was missing.
+  const episodesWatched = anime.reduce((sum, x) => sum + x.episodesWatched, 0);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
@@ -29,16 +31,15 @@ export default function AnimeStats({ anime }: { anime: Anime[] }) {
         Anime Stats
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <StatPill label="Watching"     value={watching.length}  color="blue"   />
         <StatPill label="Completed"    value={completed.length} color="green"  />
         <StatPill label="Plan to Watch" value={planTo.length}   color="yellow" />
-        <StatPill label="On Hold"      value={onHold.length}    color="purple" />
-        <StatPill label="Dropped"      value={dropped.length}   color="red"    />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
-        <TimeStat icon={<CheckCircle2 className="w-4 h-4" />} label="Seasons Watched" value={seasonsWatched > 0 ? `${seasonsWatched}` : "—"} />
+        <TimeStat icon={<CheckCircle2 className="w-4 h-4" />} label="Episodes Watched"
+          value={episodesWatched > 0 ? `${episodesWatched} episodes` : "—"} />
         <TimeStat icon={<Clock className="w-4 h-4" />}        label="Time Watched"    value={watchedMinutes > 0   ? formatReadingTime(watchedMinutes)   : "—"} sub={watchedMinutes > 0   ? `${Math.round(watchedMinutes / 60 * 10) / 10}h`   : undefined} />
         <TimeStat icon={<Clock className="w-4 h-4" />}        label="Time Remaining"  value={remainingMinutes > 0 ? formatReadingTime(remainingMinutes) : "—"} sub={remainingMinutes > 0 ? `${Math.round(remainingMinutes / 60 * 10) / 10}h` : undefined} />
       </div>

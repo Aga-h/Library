@@ -12,7 +12,7 @@ import DayVerdictBadge from "@/components/tasks/DayVerdictBadge";
 import TodayBoard from "@/components/tasks/TodayBoard";
 
 export default async function TasksTodayPage() {
-  await syncTasks();
+  const now = await syncTasks();
 
   const day = todayKey();
   const [tasks, totals, earnedToday] = await Promise.all([
@@ -73,7 +73,7 @@ export default async function TasksTodayPage() {
         </div>
       </div>
 
-      <TodayBoard tasks={tasks.map(toTaskView)} serverNow={Date.now()} />
+      <TodayBoard tasks={tasks.map(toTaskView)} serverNow={now.getTime()} />
     </div>
   );
 }

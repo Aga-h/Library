@@ -1,10 +1,10 @@
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 
 interface TvShow {
+  seasonNumber: number | null;
   id: string;
   title: string;
   creator: string | null;
@@ -21,8 +21,6 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   WATCHING:     { label: "Watching",      className: "bg-blue-100 text-blue-700" },
   COMPLETED:    { label: "Completed",     className: "bg-green-100 text-green-700" },
   PLAN_TO_WATCH:{ label: "Plan to Watch", className: "bg-amber-100 text-amber-700" },
-  ON_HOLD:      { label: "On Hold",       className: "bg-purple-100 text-purple-700" },
-  DROPPED:      { label: "Dropped",       className: "bg-red-100 text-red-700" },
 };
 
 export default function TvCard({ show }: { show: TvShow }) {
@@ -42,14 +40,14 @@ export default function TvCard({ show }: { show: TvShow }) {
       {/* Cover */}
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {show.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={show.coverImage}
-            alt={show.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <Image fill src={show.coverImage} alt={show.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
         ) : (
           <Tv2 className="w-12 h-12 text-gray-300" />
+        )}
+        {show.seasonNumber !== null && (
+          <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900/80 text-white">
+            S{show.seasonNumber}
+          </span>
         )}
         <span
           className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}

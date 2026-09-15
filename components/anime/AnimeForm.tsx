@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, NumberSelectField, inputCls } from "@/components/ui/form";
+import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface AnimeFormData {
-  title: string; studio: string; status: string;
+  title: string;
+  seriesId: string; seasonNumber: string; studio: string;
   episodes: string; episodesWatched: string; episodeDuration: string;
   season: string; year: string; language: string;
   coverImage: string; rating: string; notes: string;
@@ -15,27 +21,58 @@ interface AnimeFormData {
 }
 
 const DEFAULT: AnimeFormData = {
-  title: "", studio: "", status: "PLAN_TO_WATCH",
-  episodes: "", episodesWatched: "0", episodeDuration: "24",
+  title: "", seriesId: "", seasonNumber: "", studio: "", episodes: "", episodesWatched: "0", episodeDuration: "24",
   season: "", year: "", language: "JAPANESE",
   coverImage: "", rating: "", notes: "",
   timesRewatched: "0",
 };
 
 interface Props {
+  seriesOptions?: HierarchyOption[];
+  /** Name of the series this is being added to, used to prefill the title. */
+  seriesName?: string;
   initialData?: Partial<AnimeFormData & { id: string }>;
   mode: "create" | "edit";
   studioOptions?: string[];
   yearOptions?: string[];
 }
 
-const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function AnimeForm({ initialData, mode, studioOptions, yearOptions }: Props) {
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
+
+export default function AnimeForm({ seriesOptions, seriesName, initialData, mode, studioOptions, yearOptions }: Props) {
   const router = useRouter();
-  const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0" });
+  const [form, setForm] = useState<AnimeFormData>({ ...DEFAULT, ...initialData, timesRewatched: initialData?.timesRewatched?.toString() ?? "0", seasonNumber: initialData?.seasonNumber?.toString() ?? "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The title is prefilled as "{Series} Season {n}" so a season never has to be typed by hand,
+  // but only while the user has not written their own. Without this flag, naming something
+  // "The Final Season" and then picking a season number would silently destroy that name.
+  const [titleDirty, setTitleDirty] = useState(mode === "edit");
+
+  function seriesNameFor(id: string) {
+    return seriesOptions?.find((o) => o.id === id)?.name ?? (id ? seriesName : undefined);
+  }
+
+  function composeTitle(name: string | undefined, season: string) {
+    return name && season ? `${name} | Season ${season}` : null;
+  }
+
+  function updateSeries(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(value), prev.seasonNumber);
+      return { ...prev, seriesId: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
+  function updateSeason(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(prev.seriesId), value);
+      return { ...prev, seasonNumber: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
 
   const watched = parseInt(form.episodesWatched, 10) || 0;
   const duration = parseInt(form.episodeDuration, 10) || 24;
@@ -43,16 +80,25 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
 
   function update(key: keyof AnimeFormData, value: string) { setForm((p) => ({ ...p, [key]: value })); }
 
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(animeProgress({ episodesWatched: parseInt(form.episodesWatched, 10) || 0, episodes: form.episodes ? parseInt(form.episodes, 10) : null }), WATCH_STATUS);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError(null);
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
-      title: form.title, studio: form.studio || undefined, status: form.status,
-      episodes: form.episodes ? parseInt(form.episodes, 10) : undefined,
+      title: form.title, studio: form.studio || clearable,
+      seriesId: form.seriesId || clearable,
+      seasonNumber: form.seasonNumber ? parseInt(form.seasonNumber, 10) : clearable,
+      episodes: form.episodes ? parseInt(form.episodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeDuration: parseInt(form.episodeDuration, 10) || 24,
-      season: form.season || undefined, year: form.year ? parseInt(form.year, 10) : undefined,
-      language: form.language, coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined, notes: form.notes || undefined,
+      season: form.season || clearable, year: form.year ? parseInt(form.year, 10) : clearable,
+      language: form.language, coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable, notes: form.notes || clearable,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
     const url = mode === "edit" && initialData?.id ? `/api/anime/${initialData.id}` : "/api/anime";
@@ -60,6 +106,9 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
     if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
     router.push(`/library/anime/${item.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
   }
 
   return (
@@ -67,20 +116,13 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
       {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Anime title" className={inputCls} /></Field>
+        <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => { setTitleDirty(true); update("title", e.target.value); }} placeholder="Anime title" className={inputCls} /></Field>
         <ComboboxField label="Studio" value={form.studio} onChange={v => update("studio", v)} options={studioOptions ?? []} placeholder="e.g. MAPPA" />
+        <HierarchySelect value={form.seriesId} onChange={updateSeries} options={seriesOptions ?? []} />
+        <NumberSelectField label="Season" value={form.seasonNumber} onChange={updateSeason} max={40} emptyLabel="Not part of a season" format={(n) => `Season ${n}`} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Status">
-          <select value={form.status} onChange={(e) => update("status", e.target.value)} className={inputCls}>
-            <option value="PLAN_TO_WATCH">Plan to Watch</option>
-            <option value="WATCHING">Watching</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="ON_HOLD">On Hold</option>
-            <option value="DROPPED">Dropped</option>
-          </select>
-        </Field>
         <Field label="Language">
           <select value={form.language} onChange={(e) => update("language", e.target.value)} className={inputCls}>
             {LANGUAGE_OPTIONS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
@@ -92,13 +134,14 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
         <Field label="Total Episodes"><input type="number" min={1} value={form.episodes} onChange={(e) => update("episodes", e.target.value)} placeholder="e.g. 24" className={inputCls} /></Field>
         <Field label="Episodes Watched">
           <input type="number" min={0} value={form.episodesWatched} onChange={(e) => update("episodesWatched", e.target.value)} placeholder="0" className={inputCls} />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
           {previewMinutes > 0 && <p className="text-xs text-gray-400 mt-1.5">Time watched: <strong className="text-gray-600">{formatReadingTime(previewMinutes)}</strong></p>}
         </Field>
         <Field label="Episode Duration (min)"><input type="number" min={1} value={form.episodeDuration} onChange={(e) => update("episodeDuration", e.target.value)} placeholder="24" className={inputCls} /></Field>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Field label="Season">
+        <Field label="Aired">
           <select value={form.season} onChange={(e) => update("season", e.target.value)} className={inputCls}>
             <option value="">Unknown</option>
             <option value="WINTER">Winter</option>
@@ -111,7 +154,7 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 8.5" className={inputCls} /></Field>
       </div>
 
-      <Field label="Cover Image URL"><input type="url" value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://..." className={inputCls} /></Field>
+      <FieldGroup label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="anime" /></FieldGroup>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Times rewatched">
@@ -135,6 +178,3 @@ export default function AnimeForm({ initialData, mode, studioOptions, yearOption
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="flex flex-col gap-1.5"><label className="text-sm font-medium text-gray-700">{label}</label>{children}</div>;
-}

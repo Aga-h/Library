@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import SearchInput from "@/components/ui/SearchInput";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -13,6 +14,7 @@ export default function MovieFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentStatus = searchParams.get("status") ?? "";
+  const currentQ = searchParams.get("q") ?? "";
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -22,6 +24,12 @@ export default function MovieFilters() {
       params.delete(key);
     }
     router.push(`/library/movies?${params.toString()}`);
+  }
+
+  function setSearch(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("q", value); else params.delete("q");
+    router.replace(`/library/movies?${params.toString()}`);
   }
 
   return (
@@ -41,6 +49,7 @@ export default function MovieFilters() {
           </button>
         ))}
       </div>
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title or director…" />
     </div>
   );
 }

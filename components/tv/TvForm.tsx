@@ -5,12 +5,18 @@ import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { formatReadingTime } from "@/lib/reading-time";
 import ComboboxField from "@/components/ui/ComboboxField";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { Field, FieldGroup, NumberSelectField, inputCls } from "@/components/ui/form";
+import { deriveStatus, tvProgress, WATCH_STATUS } from "@/lib/derive-status";
+import DerivedStatus from "@/components/ui/DerivedStatus";
+import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 
 interface TvFormData {
   title: string;
+  seriesId: string;
+  seasonNumber: string;
   creator: string;
   network: string;
-  status: string;
   totalEpisodes: string;
   episodesWatched: string;
   episodeRuntime: string;
@@ -23,6 +29,9 @@ interface TvFormData {
 }
 
 interface TvFormProps {
+  seriesOptions?: HierarchyOption[];
+  /** Name of the series this is being added to, used to prefill the title. */
+  seriesName?: string;
   initialData?: Partial<TvFormData & { id: string }>;
   mode: "create" | "edit";
   creatorOptions?: string[];
@@ -31,10 +40,11 @@ interface TvFormProps {
 }
 
 const DEFAULT_DATA: TvFormData = {
+  seriesId: "",
+  seasonNumber: "",
   title: "",
   creator: "",
   network: "",
-  status: "PLAN_TO_WATCH",
   totalEpisodes: "",
   episodesWatched: "0",
   episodeRuntime: "45",
@@ -46,10 +56,10 @@ const DEFAULT_DATA: TvFormData = {
   timesRewatched: "0",
 };
 
-const inputCls =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";
 
-export default function TvForm({ initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
+const STATUS_LABELS: Record<string, string> = {"WANT_TO_READ": "Plan to Read", "READING": "Reading", "READ": "Read", "PLAN_TO_WATCH": "Plan to Watch", "WATCHING": "Watching", "COMPLETED": "Completed", "PLAN_TO_READ": "Plan to Read"};
+
+export default function TvForm({ seriesOptions, seriesName, initialData, mode, creatorOptions, networkOptions, yearOptions }: TvFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<TvFormData>({
     ...DEFAULT_DATA,
@@ -60,9 +70,38 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
     year: initialData?.year?.toString() ?? "",
     rating: initialData?.rating?.toString() ?? "",
     timesRewatched: initialData?.timesRewatched?.toString() ?? "0",
+    seasonNumber: initialData?.seasonNumber?.toString() ?? "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The title is prefilled as "{Series} Season {n}" so a season never has to be typed by hand,
+  // but only while the user has not written their own. Without this flag, naming something
+  // "The Final Season" and then picking a season number would silently destroy that name.
+  const [titleDirty, setTitleDirty] = useState(mode === "edit");
+
+  function seriesNameFor(id: string) {
+    return seriesOptions?.find((o) => o.id === id)?.name ?? (id ? seriesName : undefined);
+  }
+
+  function composeTitle(name: string | undefined, season: string) {
+    return name && season ? `${name} | Season ${season}` : null;
+  }
+
+  function updateSeries(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(value), prev.seasonNumber);
+      return { ...prev, seriesId: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
+  function updateSeason(value: string) {
+    setForm((prev) => {
+      const composed = titleDirty ? null : composeTitle(seriesNameFor(prev.seriesId), value);
+      return { ...prev, seasonNumber: value, ...(composed ? { title: composed } : {}) };
+    });
+  }
+
 
   const runtimeMinutes = parseInt(form.episodeRuntime, 10);
   const episodesWatched = parseInt(form.episodesWatched, 10) || 0;
@@ -77,24 +116,32 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Status is computed, not chosen — see lib/derive-status.ts
+  const derivedStatus = deriveStatus(tvProgress({ episodesWatched: parseInt(form.episodesWatched, 10) || 0, totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : null }), WATCH_STATUS);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    // undefined is dropped by JSON.stringify, so on edit a cleared field would silently keep
+    // its old value. null is sent explicitly; on create the key is simply omitted.
+    const clearable = mode === "edit" ? null : undefined;
+
     const payload = {
       title: form.title,
-      creator: form.creator || undefined,
-      network: form.network || undefined,
-      status: form.status,
-      totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : undefined,
+      seriesId: form.seriesId || clearable,
+      seasonNumber: form.seasonNumber ? parseInt(form.seasonNumber, 10) : clearable,
+      creator: form.creator || clearable,
+      network: form.network || clearable,
+      totalEpisodes: form.totalEpisodes ? parseInt(form.totalEpisodes, 10) : clearable,
       episodesWatched: parseInt(form.episodesWatched, 10) || 0,
       episodeRuntime: parseInt(form.episodeRuntime, 10) || 45,
-      year: form.year ? parseInt(form.year, 10) : undefined,
+      year: form.year ? parseInt(form.year, 10) : clearable,
       language: form.language,
-      coverImage: form.coverImage || undefined,
-      rating: form.rating ? parseFloat(form.rating) : undefined,
-      notes: form.notes || undefined,
+      coverImage: form.coverImage || clearable,
+      rating: form.rating ? parseFloat(form.rating) : clearable,
+      notes: form.notes || clearable,
       timesRewatched: parseInt(form.timesRewatched, 10) || 0,
     };
 
@@ -119,6 +166,9 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
 
     const show = await res.json();
     router.push(`/library/tv/${show.id}`);
+    // refresh() as well as push(): without it a series or universe you just moved this
+    // entry out of still lists it when you navigate back to it.
+    router.refresh();
 
   }
 
@@ -137,7 +187,7 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
             type="text"
             required
             value={form.title}
-            onChange={(e) => update("title", e.target.value)}
+            onChange={(e) => { setTitleDirty(true); update("title", e.target.value); }}
             placeholder="Show title"
             className={inputCls}
           />
@@ -160,19 +210,19 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
           options={networkOptions ?? []}
           placeholder="e.g. HBO, Netflix"
         />
-        <Field label="Watch Status">
-          <select
-            value={form.status}
-            onChange={(e) => update("status", e.target.value)}
-            className={inputCls}
-          >
-            <option value="PLAN_TO_WATCH">Plan to Watch</option>
-            <option value="WATCHING">Watching</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="ON_HOLD">On Hold</option>
-            <option value="DROPPED">Dropped</option>
-          </select>
-        </Field>
+        <HierarchySelect
+          value={form.seriesId}
+          onChange={updateSeries}
+          options={seriesOptions ?? []}
+        />
+        <NumberSelectField
+          label="Season"
+          value={form.seasonNumber}
+          onChange={updateSeason}
+          max={40}
+          emptyLabel="Not part of a season"
+          format={(n) => `Season ${n}`}
+        />
       </div>
 
       {/* Total Episodes & Episodes Watched */}
@@ -196,6 +246,7 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
             placeholder="0"
             className={inputCls}
           />
+          <DerivedStatus label={STATUS_LABELS[derivedStatus] ?? derivedStatus} />
         </Field>
       </div>
 
@@ -240,15 +291,9 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
             ))}
           </select>
         </Field>
-        <Field label="Cover Image URL">
-          <input
-            type="url"
-            value={form.coverImage}
-            onChange={(e) => update("coverImage", e.target.value)}
-            placeholder="https://..."
-            className={inputCls}
-          />
-        </Field>
+        <FieldGroup label="Cover Image URL">
+          <ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="tv" />
+        </FieldGroup>
       </div>
 
       {/* Rating & Times rewatched */}
@@ -312,17 +357,3 @@ export default function TvForm({ initialData, mode, creatorOptions, networkOptio
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {children}
-    </div>
-  );
-}

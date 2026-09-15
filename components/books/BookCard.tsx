@@ -1,7 +1,6 @@
-"use client";
-
 import Link from "next/link";
-import { BookOpen, CheckCircle2, Clock, Package } from "lucide-react";
+import Image from "next/image";
+import { BookOpen, Clock, Package } from "lucide-react";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 
@@ -14,6 +13,7 @@ interface Book {
   language: string;
   publisher: string | null;
   pages: number;
+  pagesRead: number;
   coverImage: string | null;
   rating: number | null;
   timesReread: number;
@@ -39,12 +39,7 @@ export default function BookCard({ book }: { book: Book }) {
       {/* Cover */}
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {book.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={book.coverImage}
-            alt={book.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <Image fill src={book.coverImage} alt={book.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
         ) : (
           <BookOpen className="w-12 h-12 text-gray-300" />
         )}
@@ -70,7 +65,7 @@ export default function BookCard({ book }: { book: Book }) {
         <p className="text-xs text-gray-500">{book.author}</p>
 
         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto pt-3 text-xs text-gray-400">
-          <span>{book.pages} pages</span>
+          <span>{book.pagesRead > 0 ? `${book.pagesRead}/${book.pages}` : book.pages} pages</span>
           <span>{langLabel}</span>
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" /> {time.formatted}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
 
 const updateMovieSchema = z.object({
   title: z.string().min(1).optional(),
@@ -9,22 +12,18 @@ const updateMovieSchema = z.object({
   status: z.enum(["WATCHED", "WANT_TO_WATCH", "DROPPED"]).optional(),
   runtime: z.number().int().positive().optional(),
   year: z.number().int().optional().nullable(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .optional(),
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),
   notes: z.string().optional().nullable(),
   timesRewatched: z.number().int().min(0).optional(),
+  universeId: z.string().optional().nullable(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+async function GETHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const movie = await db.movie.findUnique({ where: { id } });
@@ -34,7 +33,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json(movie);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const movie = await db.movie.findUnique({ where: { id } });
@@ -52,15 +51,24 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     );
   }
 
+  // A bad universe id would otherwise surface as a foreign-key 500.
+  if (result.data.universeId) {
+    const universe = await db.movieUniverse.findUnique({ where: { id: result.data.universeId }, select: { id: true } });
+    if (!universe) return NextResponse.json({ error: "Universe not found" }, { status: 404 });
+  }
+
   const updated = await db.movie.update({
     where: { id },
-    data: result.data,
+    // "" is normalised to null: POST guarded this but PATCH spread the parsed body straight
+    // through, so a cleared cover was stored as an empty string rather than NULL.
+    data: { ...result.data, ...(result.data.coverImage === "" ? { coverImage: null } : {}) },
   });
 
+  revalidateTag("library-stats", "max");
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+async function DELETEHandler(_request: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const movie = await db.movie.findUnique({ where: { id } });
@@ -69,5 +77,10 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   }
 
   await db.movie.delete({ where: { id } });
+  revalidateTag("library-stats", "max");
   return new NextResponse(null, { status: 204 });
 }
+
+export const GET = withErrors(GETHandler);
+export const PATCH = withErrors(PATCHHandler);
+export const DELETE = withErrors(DELETEHandler);

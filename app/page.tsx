@@ -1,7 +1,5 @@
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
-import { BookMarked, Shirt, Swords, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Wallet, CalendarDays, Swords, ArrowRight } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -23,9 +21,27 @@ const SECTIONS = [
     available: true,
   },
   {
+    href: "/finances",
+    label: "Finances",
+    description: "Track monthly budget, expenses, and carryover",
+    icon: Wallet,
+    color: "from-emerald-50 to-green-50 border-emerald-200",
+    iconColor: "text-emerald-600",
+    available: true,
+  },
+  {
+    href: "/calendar",
+    label: "Calendar",
+    description: "Plan your days — school terms, holidays and shuffled schedules",
+    icon: CalendarDays,
+    color: "from-violet-50 to-purple-50 border-violet-200",
+    iconColor: "text-violet-600",
+    available: true,
+  },
+  {
     href: "/tasks",
     label: "Tasks",
-    description: "Calendar modules, work sessions & stat levels",
+    description: "Work sessions off your calendar, and the stats they level",
     icon: Swords,
     color: "from-amber-50 to-orange-50 border-amber-200",
     iconColor: "text-amber-600",

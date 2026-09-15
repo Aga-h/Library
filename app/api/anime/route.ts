@@ -1,33 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { LANGUAGE_VALUES } from "@/lib/constants/languages";
+import { withErrors } from "@/lib/api-errors";
+import { deriveStatus, animeProgress, WATCH_STATUS } from "@/lib/derive-status";
 
 const createAnimeSchema = z.object({
   title: z.string().min(1, "Title is required"),
   studio: z.string().optional(),
-  status: z
-    .enum(["WATCHING", "COMPLETED", "PLAN_TO_WATCH", "DROPPED", "ON_HOLD"])
-    .default("PLAN_TO_WATCH"),
   episodes: z.number().int().optional(),
   episodesWatched: z.number().int().default(0),
   episodeDuration: z.number().int().default(24),
   season: z.enum(["WINTER", "SPRING", "SUMMER", "FALL"]).optional(),
   year: z.number().int().optional(),
-  language: z
-    .enum([
-      "ENGLISH", "SPANISH", "FRENCH", "GERMAN", "ITALIAN",
-      "PORTUGUESE", "TURKISH", "ARABIC", "RUSSIAN",
-      "JAPANESE", "CHINESE", "KOREAN",
-    ])
+  language: z.enum(LANGUAGE_VALUES)
     .default("JAPANESE"),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
   notes: z.string().optional(),
   timesRewatched: z.number().int().min(0).default(0),
-  seriesName: z.string().optional(),
+  seriesId: z.string().optional().nullable(),
+  seasonNumber: z.number().int().min(1).optional().nullable(),
 });
 
-export async function GET(request: NextRequest) {
+async function GETHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
 
@@ -42,7 +39,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(anime);
 }
 
-export async function POST(request: NextRequest) {
+async function POSTHandler(request: NextRequest) {
   const body = await request.json();
   const result = createAnimeSchema.safeParse(body);
 
@@ -54,11 +51,18 @@ export async function POST(request: NextRequest) {
   }
 
   const data = result.data;
+  // A bad series id would otherwise surface as a foreign-key 500.
+  if (data.seriesId) {
+    const series = await db.animeSeries.findUnique({ where: { id: data.seriesId }, select: { id: true } });
+    if (!series) return NextResponse.json({ error: "Series not found" }, { status: 404 });
+  }
+
   const anime = await db.anime.create({
     data: {
       title: data.title,
       studio: data.studio ?? null,
-      status: data.status,
+      // Derived from the counts, never taken from the request.
+      status: deriveStatus(animeProgress(data), WATCH_STATUS),
       episodes: data.episodes ?? null,
       episodesWatched: data.episodesWatched,
       episodeDuration: data.episodeDuration,
@@ -69,9 +73,14 @@ export async function POST(request: NextRequest) {
       rating: data.rating ?? null,
       notes: data.notes ?? null,
       timesRewatched: data.timesRewatched,
-      seriesName: data.seriesName || null,
+      seriesId: data.seriesId || null,
+      seasonNumber: data.seasonNumber ?? null,
     },
   });
 
+  revalidateTag("library-stats", "max");
   return NextResponse.json(anime, { status: 201 });
 }
+
+export const GET = withErrors(GETHandler);
+export const POST = withErrors(POSTHandler);

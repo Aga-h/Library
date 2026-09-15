@@ -2,10 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
+import { Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteAnimeButton from "@/components/anime/DeleteAnimeButton";
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -14,8 +15,6 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   WATCHING:      { label: "Watching",       className: "bg-blue-100 text-blue-700" },
   COMPLETED:     { label: "Completed",      className: "bg-green-100 text-green-700" },
   PLAN_TO_WATCH: { label: "Plan to Watch",  className: "bg-amber-100 text-amber-700" },
-  DROPPED:       { label: "Dropped",        className: "bg-red-100 text-red-700" },
-  ON_HOLD:       { label: "On Hold",        className: "bg-purple-100 text-purple-700" },
 };
 
 const SEASON_LABELS: Record<string, string> = {
@@ -24,7 +23,10 @@ const SEASON_LABELS: Record<string, string> = {
 
 export default async function AnimeDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const anime = await db.anime.findUnique({ where: { id } });
+  const anime = await db.anime.findUnique({
+    where: { id },
+    include: { series: { include: { universe: true } } },
+  });
   if (!anime) notFound();
 
   const status = STATUS_STYLES[anime.status] ?? STATUS_STYLES.PLAN_TO_WATCH;
@@ -33,9 +35,17 @@ export default async function AnimeDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/library/anime" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to Anime
-      </Link>
+      <Breadcrumb
+        rootHref="/library/anime"
+        rootLabel="Anime"
+        crumbs={[
+          ...(anime.series?.universe
+            ? [{ label: anime.series.universe.name, href: `/library/anime/u/${anime.series.universe.id}` }]
+            : []),
+          ...(anime.series ? [{ label: anime.series.name, href: `/library/anime/s/${anime.series.id}` }] : []),
+          { label: anime.title },
+        ]}
+      />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="flex gap-6 p-8 pb-6">
@@ -61,6 +71,11 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
+              {anime.seasonNumber !== null && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-900 text-white">
+                  Season {anime.seasonNumber}
+                </span>
+              )}
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
               {anime.season && anime.year && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">{SEASON_LABELS[anime.season]} {anime.year}</span>}
               {anime.rating !== null && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">★ {anime.rating}/10</span>}
