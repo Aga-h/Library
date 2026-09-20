@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-20 — AP unit lists loaded; **014, 015, 016 awaiting SQL**
+**Updated:** 2026-09-20 — 014 applied; **015 and 016 awaiting SQL**
 
 ## Done
 
@@ -195,7 +195,7 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Run `prisma/manual-migrations/015-ap-courses.sql` then `016-ap-units.sql`** — 015 creates
   `ApCourse`/`ApUnit` (additive, RLS on); 016 loads the 6 courses and 37 units. 016 is an upsert
   that refreshes titles and weightings but never writes `completedAt`, so re-running it applies a
-  CED correction without un-ticking finished units — verified. Both go in the same sitting as 014.
+  CED correction without un-ticking finished units — verified. 016 depends on 015, so run in order.
 
 - **Four unit weightings are missing** (`weighting IS NULL`), because the pasted lists cut off
   before them: Stats Unit 5 Regression Analysis, Physics C Mech Unit 7 Oscillations, World
@@ -206,14 +206,8 @@ Three items were scoped in the audit but not implemented. In rough value order:
   `recentRelayFailures` empty, so it is policy). Any future CED data has to come from the user —
   WebSearch summaries of those pages contradicted each other on unit counts.
 
-- **Run `prisma/manual-migrations/014-task-stats.sql`** — adds `stats` to `EventModule` and
-  rebuilds `Task` against the calendar. Additive for the calendar; it *drops* the old standalone
-  `Module` table and the first-cut task tables (they only referenced the duplicate module system,
-  so nothing real is lost). The rebuild is guarded on the old shape, so a second run leaves real
-  task history alone — proven by running it twice with a completed task and 180 XP in place.
-  Enables RLS on the three tables it creates. Run it **before** deploying.
-  Supersedes the earlier `prisma/tasks-tables.sql`, which is deleted: it created the duplicate
-  tables *without* RLS.
+- Migration `014-task-stats.sql` is **applied** (user confirmed 2026-09-20). It added `stats` to
+  `EventModule` and rebuilt `Task` against the calendar.
 
 - **Run `prisma/manual-migrations/012-calendar.sql`, then `013-event-modules.sql`** — both
   additive, so both go in **before** the deploy. 012 creates the Calendar tables; 013 adds
