@@ -6,18 +6,28 @@ import { CheckCircle2, Flame, Timer, XCircle } from "lucide-react";
 import { db } from "@/lib/db";
 import { levelFromXp, xpForLevel } from "@/lib/leveling";
 import { STATS, STAT_META } from "@/lib/stats";
-import { statXpTotals, syncTasks } from "@/lib/task-service";
+import { statXpTotals, studyTotals, syncTasks } from "@/lib/task-service";
 import { dayVerdict, formatDuration } from "@/lib/tasks";
-import { toKey } from "@/lib/calendar-dates";
+import { todayKey, toKey } from "@/lib/calendar-dates";
 import LevelBar from "@/components/tasks/LevelBar";
 import StatBadges from "@/components/tasks/StatBadges";
 
-export default async function StatsPage() {
-  await syncTasks();
+const MONTHS = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"];
 
-  const [totals, worked, dayRows, recent] = await Promise.all([
+/** "September 2026" from a YYYY-MM-01 key. */
+function MONTH_LABEL(monthStart: string): string {
+  const [y, m] = monthStart.split("-").map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
+}
+
+export default async function StatsPage() {
+  const now = await syncTasks();
+  const today = todayKey(now);
+
+  const [totals, study, dayRows, recent] = await Promise.all([
     statXpTotals(),
-    db.task.aggregate({ _sum: { workedSeconds: true } }),
+    studyTotals(today, now),
     db.task.groupBy({ by: ["date", "status"], _count: { _all: true } }),
     db.task.findMany({
       where: { status: "COMPLETED" },
@@ -61,9 +71,24 @@ export default async function StatsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <section className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Timer className="w-4 h-4 text-gray-400" />
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide">Study time</h3>
+          <span className="text-xs text-gray-400 font-normal">
+            every session, whether or not the task cleared its bar
+          </span>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StudyTile label="Today" value={study.day} />
+          <StudyTile label="This week" value={study.week} hint={`since Mon ${study.weekStart.slice(8)}`} />
+          <StudyTile label="This month" value={study.month} hint={MONTH_LABEL(study.monthStart)} />
+          <StudyTile label="All time" value={study.total} accent />
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Summary icon={Flame} label="Total XP" value={totalXp.toLocaleString()} />
-        <Summary icon={Timer} label="Time worked" value={formatDuration(worked._sum.workedSeconds ?? 0)} />
         <Summary icon={CheckCircle2} label="Tasks completed" value={completed} tone="text-emerald-600" />
         <Summary icon={XCircle} label="Tasks failed" value={failed} tone="text-red-500" />
         <Summary icon={Flame} label="Days lit / out" value={`${lit} / ${extinguished}`} />
@@ -116,6 +141,28 @@ export default async function StatsPage() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function StudyTile({
+  label,
+  value,
+  hint,
+  accent = false,
+}: {
+  label: string;
+  value: number;
+  hint?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className={`rounded-xl px-4 py-3 border ${accent ? "bg-gray-900 border-gray-900" : "bg-gray-50 border-gray-100"}`}>
+      <p className={`text-2xl font-bold tabular-nums ${accent ? "text-white" : "text-gray-900"}`}>
+        {formatDuration(value)}
+      </p>
+      <p className={`text-xs mt-0.5 ${accent ? "text-gray-400" : "text-gray-500"}`}>{label}</p>
+      {hint && <p className={`text-[11px] mt-0.5 ${accent ? "text-gray-500" : "text-gray-400"}`}>{hint}</p>}
     </div>
   );
 }

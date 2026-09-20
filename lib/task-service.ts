@@ -3,7 +3,7 @@
 
 import type { Task } from "@prisma/client";
 import { db } from "@/lib/db";
-import { fromKey, instantAt, type DateKey } from "@/lib/calendar-dates";
+import { addDays, dayOfWeek, fromKey, instantAt, toKey, type DateKey } from "@/lib/calendar-dates";
 import {
   isTrackable,
   openSession,
@@ -151,5 +151,60 @@ export async function statXpTotals(): Promise<Record<string, number>> {
   const rows = await db.xpAward.groupBy({ by: ["stat"], _sum: { amount: true } });
   const totals: Record<string, number> = {};
   for (const row of rows) totals[row.stat] = row._sum.amount ?? 0;
+  return totals;
+}
+
+// ─── Study time ──────────────────────────────────────────────────────────────
+
+export interface StudyTotals {
+  /** Seconds worked, by window. */
+  day: number;
+  week: number;
+  month: number;
+  total: number;
+  /** Monday of the current week, and the first of the month — for labelling. */
+  weekStart: DateKey;
+  monthStart: DateKey;
+}
+
+/**
+ * Time actually worked, today / this week / this month / ever.
+ *
+ * Counts every session, not just the ones that cleared the completion bar — an hour spent on a
+ * task you then failed is still an hour studied. `workedSeconds` only holds *banked* time, so a
+ * session running right now is added on top.
+ *
+ * Weeks start Monday, matching the calendar's month grid.
+ */
+export async function studyTotals(today: DateKey, now: Date = new Date()): Promise<StudyTotals> {
+  const weekStart = addDays(today, -((dayOfWeek(today) + 6) % 7));
+  const monthStart = `${today.slice(0, 7)}-01` as DateKey;
+
+  const banked = async (where: object) =>
+    (await db.task.aggregate({ _sum: { workedSeconds: true }, where }))._sum.workedSeconds ?? 0;
+
+  const [day, week, month, total, running] = await Promise.all([
+    banked({ date: fromKey(today) }),
+    banked({ date: { gte: fromKey(weekStart), lte: fromKey(today) } }),
+    banked({ date: { gte: fromKey(monthStart), lte: fromKey(today) } }),
+    banked({}),
+    db.task.findFirst({
+      where: { sessions: { some: { endedAt: null } } },
+      include: { module: true, sessions: { where: { endedAt: null } } },
+    }),
+  ]);
+
+  const totals: StudyTotals = { day, week, month, total, weekStart, monthStart };
+
+  if (running) {
+    const open = running.sessions[0];
+    const live = open ? sessionSeconds(open, running, now) : 0;
+    const key = toKey(running.date);
+    totals.total += live;
+    if (key >= monthStart && key <= today) totals.month += live;
+    if (key >= weekStart && key <= today) totals.week += live;
+    if (key === today) totals.day += live;
+  }
+
   return totals;
 }

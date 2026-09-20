@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-15 — Tasks section runs off the calendar; **014 awaiting SQL**
+**Updated:** 2026-09-20 — Study-time totals on /tasks/stats; **014 still awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **Study time totals** — `/tasks/stats` shows time worked today / this week / this month /
+      all time. Counts every session, cleared bar or not, and adds a session running right now on
+      top of the banked `workedSeconds`. Weeks start Monday, matching the calendar's month grid.
+      Boundary cases verified against a real Postgres (Monday edge, month edge, live session).
 
 - [x] **Tasks section** — `/tasks` and `/tasks/stats`. A task is one calendar module on one real
       date, materialised from the day plan dealt onto that date (never created by hand). Work it
