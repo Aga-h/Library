@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS "ApCourse" (
   "id"        TEXT NOT NULL,
   "name"      TEXT NOT NULL,
   "shortName" TEXT NOT NULL,
+  -- Courses College Board numbers as one continuous sequence (Physics C) share a series.
+  "series"    TEXT,
   "position"  INTEGER NOT NULL,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL,

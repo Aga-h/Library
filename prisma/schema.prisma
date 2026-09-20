@@ -808,6 +808,10 @@ model ApCourse {
   name      String   @unique
   /// Short label for tight spaces, e.g. "Physics C: Mech".
   shortName String
+  /// Courses College Board treats as one continuous sequence share a series, and the tracker
+  /// shows them together. Physics C is the case: Mechanics is units 1-7 and E&M is units 8-13,
+  /// two separate exams numbered as one course framework.
+  series    String?
   /// Display order across the tracker.
   position  Int
   createdAt DateTime @default(now())

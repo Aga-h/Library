@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-20 — Study-time totals + AP unit tracker; **014, 015 awaiting SQL**
+**Updated:** 2026-09-20 — AP unit lists loaded; **014, 015, 016 awaiting SQL**
 
 ## Done
 
@@ -30,8 +30,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 - [x] **AP unit tracker** — `/tasks/ap`. Courses and their units, ticked off one by one, with
       per-course and overall progress. The tick stores a timestamp, so it doubles as "finished
-      on", and re-ticking keeps the original date. Schema and UI are done; the unit lists
-      themselves are **not loaded yet** (see Blocked).
+      on", and re-ticking keeps the original date. All 6 courses and 37 units are seeded from
+      the CEDs (supplied by the user). Physics C is two courses sharing a `series`, rendered as
+      one group because College Board numbers them 1-7 and 8-13 across one framework.
+      Note the revised frameworks: **AP Statistics is 5 units** (not the old 9) and **AP CS A is
+      4 units** — do not "correct" these from older material.
 
 - [x] **Study time totals** — `/tasks/stats` shows time worked today / this week / this month /
       all time. Counts every session, cleared bar or not, and adds a session running right now on
@@ -189,17 +192,19 @@ Three items were scoped in the audit but not implemented. In rough value order:
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
 
-- **Paste the AP unit lists.** `/tasks/ap` is built but empty. collegeboard.org is blocked by
-  this environment's egress proxy (both apcentral and apstudents — `recentRelayFailures` empty,
-  so it is policy, not a transient failure), and WebSearch summaries of those pages proved
-  unreliable: one reported AP Statistics as 5 units when the current framework has 9, and there
-  is a "PREVIEW REVISED COURSE FRAMEWORK" PDF in flight. So the lists have to come from the user,
-  from AP Classroom or the CED PDFs. Courses: Statistics, Physics C: Mechanics, Physics C: E&M,
-  World History: Modern, **Computer Science A** (confirmed, not Principles), Macroeconomics.
-  Once pasted, they go into `016-ap-units.sql` as plain INSERTs.
+- **Run `prisma/manual-migrations/015-ap-courses.sql` then `016-ap-units.sql`** — 015 creates
+  `ApCourse`/`ApUnit` (additive, RLS on); 016 loads the 6 courses and 37 units. 016 is an upsert
+  that refreshes titles and weightings but never writes `completedAt`, so re-running it applies a
+  CED correction without un-ticking finished units — verified. Both go in the same sitting as 014.
 
-- **Run `prisma/manual-migrations/015-ap-courses.sql`** — creates `ApCourse` and `ApUnit`.
-  Additive, RLS enabled, safe to re-run. Can go in the same sitting as 014.
+- **Four unit weightings are missing** (`weighting IS NULL`), because the pasted lists cut off
+  before them: Stats Unit 5 Regression Analysis, Physics C Mech Unit 7 Oscillations, World
+  History Unit 9 Globalization, Macro Unit 6 Open Economy. The tracker just shows no percentage.
+  To fill them in, edit 016 and re-run it.
+
+- collegeboard.org is blocked by this environment's egress proxy (apcentral and apstudents both;
+  `recentRelayFailures` empty, so it is policy). Any future CED data has to come from the user —
+  WebSearch summaries of those pages contradicted each other on unit counts.
 
 - **Run `prisma/manual-migrations/014-task-stats.sql`** — adds `stats` to `EventModule` and
   rebuilds `Task` against the calendar. Additive for the calendar; it *drops* the old standalone

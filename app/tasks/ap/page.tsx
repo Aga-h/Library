@@ -23,6 +23,7 @@ export default async function ApPage() {
           id: c.id,
           name: c.name,
           shortName: c.shortName,
+          series: c.series,
           units: c.units.map((u) => ({
             id: u.id,
             number: u.number,
