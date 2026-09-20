@@ -797,3 +797,41 @@ enum Stat {
   RESONANCE
   MAGIC
 }
+
+// ─── AP COURSES ──────────────────────────────────────────────────────────────
+
+/// A College Board AP course you are taking. Units are seeded from the official Course and Exam
+/// Description; the tracker only records which of them you have finished.
+model ApCourse {
+  id        String   @id @default(cuid())
+  /// Full official name, e.g. "AP Physics C: Mechanics".
+  name      String   @unique
+  /// Short label for tight spaces, e.g. "Physics C: Mech".
+  shortName String
+  /// Display order across the tracker.
+  position  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  units     ApUnit[]
+
+  @@index([position])
+}
+
+model ApUnit {
+  id          String    @id @default(cuid())
+  courseId    String
+  course      ApCourse  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  /// Unit number as College Board numbers it.
+  number      Int
+  title       String
+  /// Exam weighting as printed in the CED, e.g. "10-13%". Free text: the format varies by course
+  /// and some units are not weighted at all.
+  weighting   String?
+  /// When you ticked it off. Null means not finished — the tick is the timestamp.
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([courseId, number])
+  @@index([courseId])
+}

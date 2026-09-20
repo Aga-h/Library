@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, CalendarDays, Layers, ListTodo, Swords, TrendingUp } from "lucide-react";
+import { ArrowLeft, CalendarDays, GraduationCap, Layers, ListTodo, Swords, TrendingUp } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/tasks",       label: "Today", icon: ListTodo },
   { href: "/tasks/stats", label: "Stats", icon: TrendingUp },
+  { href: "/tasks/ap",    label: "APs",   icon: GraduationCap },
 ];
 
 // Tasks are derived from the calendar, so planning happens there, not here.

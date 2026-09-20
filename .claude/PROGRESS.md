@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-20 — Study-time totals on /tasks/stats; **014 still awaiting SQL**
+**Updated:** 2026-09-20 — Study-time totals + AP unit tracker; **014, 015 awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **AP unit tracker** — `/tasks/ap`. Courses and their units, ticked off one by one, with
+      per-course and overall progress. The tick stores a timestamp, so it doubles as "finished
+      on", and re-ticking keeps the original date. Schema and UI are done; the unit lists
+      themselves are **not loaded yet** (see Blocked).
 
 - [x] **Study time totals** — `/tasks/stats` shows time worked today / this week / this month /
       all time. Counts every session, cleared bar or not, and adds a session running right now on
@@ -183,6 +188,18 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Paste the AP unit lists.** `/tasks/ap` is built but empty. collegeboard.org is blocked by
+  this environment's egress proxy (both apcentral and apstudents — `recentRelayFailures` empty,
+  so it is policy, not a transient failure), and WebSearch summaries of those pages proved
+  unreliable: one reported AP Statistics as 5 units when the current framework has 9, and there
+  is a "PREVIEW REVISED COURSE FRAMEWORK" PDF in flight. So the lists have to come from the user,
+  from AP Classroom or the CED PDFs. Courses: Statistics, Physics C: Mechanics, Physics C: E&M,
+  World History: Modern, **Computer Science A** (confirmed, not Principles), Macroeconomics.
+  Once pasted, they go into `016-ap-units.sql` as plain INSERTs.
+
+- **Run `prisma/manual-migrations/015-ap-courses.sql`** — creates `ApCourse` and `ApUnit`.
+  Additive, RLS enabled, safe to re-run. Can go in the same sitting as 014.
 
 - **Run `prisma/manual-migrations/014-task-stats.sql`** — adds `stats` to `EventModule` and
   rebuilds `Task` against the calendar. Additive for the calendar; it *drops* the old standalone
