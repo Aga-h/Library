@@ -3,10 +3,8 @@
 A personal hub: **Library**, **Wardrobe**, **Finances**, **Calendar** and **Tasks**, behind one
 password. Next.js App Router on Vercel, Prisma against Supabase Postgres, Tailwind.
 
-This file covers how the pieces fit and the conventions that hold across them. For "where does
-this symbol live" and "what would this change ripple into", query the knowledge graph in
-`graphify-out/` first — see `AGENTS.md`. For what is done and what is pending, read
-`.claude/PROGRESS.md`.
+This file covers how the pieces fit and the conventions that hold across them. For what is done
+and what is pending, read `.claude/PROGRESS.md`.
 
 ---
 

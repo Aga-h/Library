@@ -56,5 +56,4 @@ and a new table does not inherit RLS from its neighbours.
 ## Finding your way around
 
 - [`CODEBASE.md`](CODEBASE.md) — architecture: the data model, the conventions, how a section hangs together.
-- [`graphify-out/`](graphify-out/) — a queryable knowledge graph of the code. See [`AGENTS.md`](AGENTS.md).
 - [`.claude/PROGRESS.md`](.claude/PROGRESS.md) — what is done, what is next, and anything waiting on a human.

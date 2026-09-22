@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-22 — Docs brought up to date; **015, 016, 017 awaiting SQL**
+**Updated:** 2026-09-22 — Docs refreshed, knowledge graph removed; **015, 016, 017 awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **Knowledge graph removed** — `graphify-out/` (3.5 MB, 21 files) was a snapshot built at
+      `0e13734`, four features out of date, and AGENTS.md told every session to trust it first.
+      Deleted along with `scripts/seal-graph-html.mjs`, the `graph:seal` script and the
+      `vis-network` dependency that existed only to seal it.
 
 - [x] **Docs refresh** — README was still create-next-app boilerplate; CODEBASE.md was a 41 KB
       "complete reference" that predated Finances, Calendar, Tasks and APs and still documented
@@ -132,14 +137,6 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       one build of the new code against the same database before *and* after the drop: pages,
       creates and edits all fine in both states.
 
-- [x] **Knowledge graph committed at `graphify-out/`.** graphify maps the repo to 1398 nodes /
-      2620 edges / 154 labelled communities. Tracked deliberately so it survives a container
-      wipe — the standing rule is in `AGENTS.md`: query the graph before reading the tree, but
-      never for code changed this session, and never in place of verifying against a real
-      Postgres. `npm run graph:seal` inlines vis-network into `graph.html` (SRI-verified)
-      because graphify emits an unpkg `<script src>` that is dead offline and inside the
-      artifact viewer. Run it after every `/graphify .`.
-
 - [x] **Season is picked, not typed into the title.** `TvShow.seasonNumber` / `Anime.seasonNumber`
       (migration `009`, additive). Opening "Add Season" from a series preselects the next unused
       number and prefills the title as "{Series} Season {n}" — nothing to type — but a title the
@@ -202,10 +199,6 @@ Three items were scoped in the audit but not implemented. In rough value order:
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
-
-- **Re-run `/graphify .` then `npm run graph:seal`.** The committed graph was built at
-  `0e13734`, before the Calendar, Tasks, free study and AP work — so it does not know any of it.
-  Until then it answers confidently about a codebase that is four features out of date.
 
 - **Set the GitHub repo description.** There is no tool for it here; it is Settings → General.
   Suggested: "Personal hub — media library, wardrobe, finances, calendar and a task tracker that
