@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-22 — Docs refreshed, knowledge graph removed; **015, 016, 017 awaiting SQL**
+**Updated:** 2026-09-22 — middleware renamed to proxy; **015 and 016 awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **`middleware.ts` → `proxy.ts`** — the Next 16 rename, which also moves it from the Edge
+      runtime to Node.js. Auth re-verified end to end against a production build: unauthenticated
+      pages redirect, `/api/*` gets 401 JSON, the PWA install assets stay public, `/loginsomething`
+      is still not treated as public, and a tampered, garbage, empty or raw-AUTH_SECRET cookie is
+      rejected — so the HMAC is genuinely verified under the new runtime. Cookie keeps
+      Secure/HttpOnly/SameSite=lax.
 
 - [x] **Knowledge graph removed** — `graphify-out/` (3.5 MB, 21 files) was a snapshot built at
       `0e13734`, four features out of date, and AGENTS.md told every session to trust it first.
@@ -208,10 +215,6 @@ Three items were scoped in the audit but not implemented. In rough value order:
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
 
-- **Run `prisma/manual-migrations/017-free-study.sql`** — adds `StudySession`, makes
-  `XpAward.taskId` nullable and adds `XpAward.studySessionId` so XP can come from either. Purely
-  additive, RLS on, safe to re-run. Independent of 015/016, so order between them does not matter.
-
 - **Run `prisma/manual-migrations/015-ap-courses.sql` then `016-ap-units.sql`** — 015 creates
   `ApCourse`/`ApUnit` (additive, RLS on); 016 loads the 6 courses and 37 units. 016 is an upsert
   that refreshes titles and weightings but never writes `completedAt`, so re-running it applies a
@@ -226,8 +229,9 @@ Three items were scoped in the audit but not implemented. In rough value order:
   `recentRelayFailures` empty, so it is policy). Any future CED data has to come from the user —
   WebSearch summaries of those pages contradicted each other on unit counts.
 
-- Migration `014-task-stats.sql` is **applied** (user confirmed 2026-09-20). It added `stats` to
-  `EventModule` and rebuilt `Task` against the calendar.
+- Migrations `014-task-stats.sql` and `017-free-study.sql` are **applied** (user confirmed).
+  014 added `stats` to `EventModule` and rebuilt `Task` against the calendar; 017 added
+  `StudySession` and the `XpAward` columns for free study.
 
 - **Run `prisma/manual-migrations/012-calendar.sql`, then `013-event-modules.sql`** — both
   additive, so both go in **before** the deploy. 012 creates the Calendar tables; 013 adds

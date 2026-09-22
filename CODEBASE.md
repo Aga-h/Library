@@ -39,8 +39,10 @@ See `prisma/manual-migrations/README.md`. Every new table needs
 
 ## Authentication
 
-`middleware.ts` guards every route except `/login` and `/api/auth`, and `/api/*` gets a 401 JSON
-rather than a redirect.
+`proxy.ts` (the Next 16 name for what used to be `middleware.ts`, and now on the Node.js
+runtime) guards every route except `/login`, `/api/auth` and the PWA install assets iOS fetches
+unauthenticated. `/api/*` gets a 401 JSON rather than a redirect — redirecting an API caller
+produced a 200 that `fetch()` read as success, so forms hung on "Saving…" forever.
 
 The session cookie holds an **HMAC-signed token** (`lib/session.ts`): a payload of issued-at,
 expiry and a random `jti`, signed with `AUTH_SECRET` via Web Crypto. The cookie must never

@@ -1,7 +1,8 @@
 // Signed session tokens. The cookie must never contain AUTH_SECRET itself — a leaked cookie
 // would then be the environment secret, unrevocable and shared by every session.
 //
-// Uses Web Crypto so the same code runs in the Edge middleware and in Node route handlers.
+// Uses Web Crypto, which is available both in the proxy and in route handlers, so one
+// implementation serves both. (The proxy runs on the Node.js runtime as of Next 16.)
 
 const encoder = new TextEncoder();
 

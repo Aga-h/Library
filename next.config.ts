@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     // Explicit allowlist. A wildcard host turns /_next/image into an open image proxy that
-    // anyone can point at any URL — and that route is not behind the auth middleware.
+    // anyone can point at any URL — and that route is not behind the auth proxy.
     remotePatterns,
     formats: ["image/avif", "image/webp"],
     // Cover art is immutable once mirrored; the 60s default re-transforms it constantly.
