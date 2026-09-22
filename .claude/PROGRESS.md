@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-20 — 014 applied; **015 and 016 awaiting SQL**
+**Updated:** 2026-09-22 — Free study sessions; **015, 016, 017 awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,14 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **Free study** — when nothing is scheduled and nothing is running, `/tasks` offers a Study
+      button. It rolls 3 random stats server-side, runs a live timer, and on stop pays 1 XP per
+      minute to each. `StudySession` is its own table, not a Task: there is no window and no bar,
+      so it can neither complete nor fail and never moves the day's verdict. It does count toward
+      the study-time totals. Only one thing runs at a time — starting study banks a running task
+      session and starting a task ends a running study session, verified both ways over HTTP.
+      Under a minute pays nothing rather than rounding up.
 
 - [x] **AP unit tracker** — `/tasks/ap`. Courses and their units, ticked off one by one, with
       per-course and overall progress. The tick stores a timestamp, so it doubles as "finished
@@ -191,6 +199,10 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Run `prisma/manual-migrations/017-free-study.sql`** — adds `StudySession`, makes
+  `XpAward.taskId` nullable and adds `XpAward.studySessionId` so XP can come from either. Purely
+  additive, RLS on, safe to re-run. Independent of 015/016, so order between them does not matter.
 
 - **Run `prisma/manual-migrations/015-ap-courses.sql` then `016-ap-units.sql`** — 015 creates
   `ApCourse`/`ApUnit` (additive, RLS on); 016 loads the 6 courses and 37 units. 016 is an upsert

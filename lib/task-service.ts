@@ -1,8 +1,9 @@
 // Database side of the task engine — materialising tasks from the calendar, resolving them,
 // paying XP. Server-only: it pulls in Prisma. Pure rules live in lib/tasks.ts.
 
-import type { Task } from "@prisma/client";
+import type { Stat, Task } from "@prisma/client";
 import { db } from "@/lib/db";
+import { STATS } from "@/lib/stats";
 import { addDays, dayOfWeek, fromKey, instantAt, toKey, type DateKey } from "@/lib/calendar-dates";
 import {
   isTrackable,
@@ -117,10 +118,16 @@ async function awardXp(task: TaskWithSessions, workedSeconds: number): Promise<v
   });
 }
 
-/** Banks a running session on any other task — only one can run at a time. */
-export async function bankOtherSessions(exceptTaskId: string, now: Date): Promise<void> {
+/**
+ * Banks a running session on any other task — only one thing can run at a time. Pass null to
+ * bank every open task session, with nothing exempt.
+ */
+export async function bankOtherSessions(exceptTaskId: string | null, now: Date): Promise<void> {
   const others = await db.task.findMany({
-    where: { id: { not: exceptTaskId }, sessions: { some: { endedAt: null } } },
+    where: {
+      ...(exceptTaskId ? { id: { not: exceptTaskId } } : {}),
+      sessions: { some: { endedAt: null } },
+    },
     include: { sessions: { where: { endedAt: null } } },
   });
   for (const other of others) {
@@ -183,28 +190,110 @@ export async function studyTotals(today: DateKey, now: Date = new Date()): Promi
   const banked = async (where: object) =>
     (await db.task.aggregate({ _sum: { workedSeconds: true }, where }))._sum.workedSeconds ?? 0;
 
-  const [day, week, month, total, running] = await Promise.all([
-    banked({ date: fromKey(today) }),
-    banked({ date: { gte: fromKey(weekStart), lte: fromKey(today) } }),
-    banked({ date: { gte: fromKey(monthStart), lte: fromKey(today) } }),
-    banked({}),
-    db.task.findFirst({
-      where: { sessions: { some: { endedAt: null } } },
-      include: { module: true, sessions: { where: { endedAt: null } } },
-    }),
-  ]);
+  const free = async (where: object) =>
+    (await db.studySession.aggregate({ _sum: { seconds: true }, where }))._sum.seconds ?? 0;
 
-  const totals: StudyTotals = { day, week, month, total, weekStart, monthStart };
+  const [day, week, month, total, freeDay, freeWeek, freeMonth, freeTotal, running, study] =
+    await Promise.all([
+      banked({ date: fromKey(today) }),
+      banked({ date: { gte: fromKey(weekStart), lte: fromKey(today) } }),
+      banked({ date: { gte: fromKey(monthStart), lte: fromKey(today) } }),
+      banked({}),
+      free({ date: fromKey(today) }),
+      free({ date: { gte: fromKey(weekStart), lte: fromKey(today) } }),
+      free({ date: { gte: fromKey(monthStart), lte: fromKey(today) } }),
+      free({}),
+      db.task.findFirst({
+        where: { sessions: { some: { endedAt: null } } },
+        include: { module: true, sessions: { where: { endedAt: null } } },
+      }),
+      openStudySession(),
+    ]);
+
+  const totals: StudyTotals = {
+    day: day + freeDay,
+    week: week + freeWeek,
+    month: month + freeMonth,
+    total: total + freeTotal,
+    weekStart,
+    monthStart,
+  };
+
+  /** A session still running has banked nothing yet, so add its elapsed time by hand. */
+  const addLive = (seconds: number, key: DateKey) => {
+    totals.total += seconds;
+    if (key >= monthStart && key <= today) totals.month += seconds;
+    if (key >= weekStart && key <= today) totals.week += seconds;
+    if (key === today) totals.day += seconds;
+  };
 
   if (running) {
     const open = running.sessions[0];
-    const live = open ? sessionSeconds(open, running, now) : 0;
-    const key = toKey(running.date);
-    totals.total += live;
-    if (key >= monthStart && key <= today) totals.month += live;
-    if (key >= weekStart && key <= today) totals.week += live;
-    if (key === today) totals.day += live;
+    if (open) addLive(sessionSeconds(open, running, now), toKey(running.date));
+  }
+  if (study) {
+    addLive(Math.max(0, Math.round((now.getTime() - study.startedAt.getTime()) / 1000)), toKey(study.date));
   }
 
   return totals;
+}
+
+// ─── Free study ──────────────────────────────────────────────────────────────
+
+/** Minutes of study that earn no XP — below this, a session rounds to nothing. */
+const MIN_XP_MINUTES = 1;
+
+export type StudySessionWithStats = Awaited<ReturnType<typeof openStudySession>>;
+
+/** The study session currently running, if any. */
+export async function openStudySession() {
+  return db.studySession.findFirst({ where: { endedAt: null }, orderBy: { startedAt: "desc" } });
+}
+
+/** Three distinct stats, drawn at random. */
+export function rollStats(count = 3): Stat[] {
+  const pool = [...STATS];
+  const picked: Stat[] = [];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    picked.push(...pool.splice(Math.floor(Math.random() * pool.length), 1));
+  }
+  return picked;
+}
+
+/**
+ * Starts a free study session. Any task session running is banked first — only one thing can be
+ * running at a time, whether it is scheduled or not.
+ */
+export async function startStudySession(date: DateKey, now: Date = new Date()) {
+  const already = await openStudySession();
+  if (already) return already;
+
+  await bankOtherSessions(null, now);
+  return db.studySession.create({
+    data: { date: fromKey(date), stats: rollStats(), startedAt: now },
+  });
+}
+
+/**
+ * Ends the running study session and pays its stats, one XP per minute. A session shorter than a
+ * minute pays nothing rather than rounding up to one.
+ */
+export async function stopStudySession(now: Date = new Date()) {
+  const session = await openStudySession();
+  if (!session) return null;
+
+  const seconds = Math.max(0, Math.round((now.getTime() - session.startedAt.getTime()) / 1000));
+  const updated = await db.studySession.update({
+    where: { id: session.id },
+    data: { endedAt: now, seconds },
+  });
+
+  const amount = Math.floor(seconds / 60);
+  if (amount >= MIN_XP_MINUTES && session.stats.length > 0) {
+    await db.xpAward.createMany({
+      data: session.stats.map((stat) => ({ studySessionId: session.id, stat, amount })),
+      skipDuplicates: true,
+    });
+  }
+  return updated;
 }

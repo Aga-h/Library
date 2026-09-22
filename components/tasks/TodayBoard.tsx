@@ -2,16 +2,29 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Play, Square, Timer, XCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, Play, Square, Timer, XCircle } from "lucide-react";
 import { formatDuration, formatStopwatch, viewWorkedSeconds, type TaskView } from "@/lib/tasks";
 import { formatRange } from "@/lib/calendar-dates";
 import StatBadges from "@/components/tasks/StatBadges";
+import type { Stat } from "@/lib/stats";
+
+export interface StudyView {
+  id: string;
+  stats: Stat[];
+  startedAt: string;
+}
 
 export default function TodayBoard({
   tasks,
+  study,
+  canStudy,
   serverNow,
 }: {
   tasks: TaskView[];
+  /** A free study session running right now, if there is one. */
+  study: StudyView | null;
+  /** Only today can be studied — you cannot start a session on a date already gone. */
+  canStudy: boolean;
   serverNow: number;
 }) {
   const router = useRouter();
@@ -37,6 +50,23 @@ export default function TodayBoard({
     }
   }, [now, nextBoundary, router]);
 
+  async function studyAct(action: "start" | "stop") {
+    setPending("study");
+    setError(null);
+    const res = await fetch(`/api/study/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Something went wrong");
+    }
+    refreshed.current = false;
+    router.refresh();
+    setPending(null);
+  }
+
   async function act(taskId: string, action: "start" | "stop" | "finish") {
     setPending(taskId);
     setError(null);
@@ -60,12 +90,42 @@ export default function TodayBoard({
   );
   const judged = tasks.filter((t) => t.status === "COMPLETED" || t.status === "FAILED");
 
-  if (tasks.length === 0) return null;
+
+  // Nothing scheduled you could be working on this minute — neither running nor startable.
+  const nothingToDo = !running && live.length === 0;
 
   return (
     <div className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>
+      )}
+
+      {study && (
+        <StudyCard
+          study={study}
+          now={now}
+          pending={pending === "study"}
+          onStop={() => studyAct("stop")}
+        />
+      )}
+
+      {!study && nothingToDo && canStudy && (
+        <div className="flex items-center justify-between gap-4 border border-gray-200 bg-white rounded-xl px-5 py-4 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <BookOpen className="w-5 h-5 text-gray-300 flex-shrink-0" />
+            <p className="text-sm text-gray-600">
+              Nothing to work on right now.{" "}
+              <span className="text-gray-400">Study anyway and three stats are rolled for it.</span>
+            </p>
+          </div>
+          <button
+            onClick={() => studyAct("start")}
+            disabled={pending === "study"}
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0"
+          >
+            <BookOpen className="w-4 h-4" /> {pending === "study" ? "Rolling…" : "Study"}
+          </button>
+        </div>
       )}
 
       {running && (
@@ -129,6 +189,53 @@ function Section({
       </h3>
       <div className="space-y-2">{children}</div>
     </section>
+  );
+}
+
+/** A free study session in progress: no window, no bar, just the clock and the three stats. */
+function StudyCard({
+  study,
+  now,
+  pending,
+  onStop,
+}: {
+  study: StudyView;
+  now: number;
+  pending: boolean;
+  onStop: () => void;
+}) {
+  const elapsed = Math.max(0, Math.round((now - Date.parse(study.startedAt)) / 1000));
+  const minutes = Math.floor(elapsed / 60);
+
+  return (
+    <div className="bg-gray-900 text-white rounded-2xl p-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Free study</p>
+          <h2 className="text-2xl font-bold mt-1">Studying</h2>
+          <p className="text-sm text-gray-400 mt-0.5">
+            Nothing was scheduled, so these three were rolled for it.
+          </p>
+          <div className="mt-3">
+            <StatBadges stats={study.stats} />
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-4xl font-bold tabular-nums leading-none">{formatStopwatch(elapsed)}</p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            {minutes < 1 ? "no XP yet — a minute earns the first" : `+${minutes} XP to each so far`}
+          </p>
+        </div>
+      </div>
+
+      <button
+        onClick={onStop}
+        disabled={pending}
+        className="flex items-center gap-2 mt-5 bg-white text-gray-900 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
+      >
+        <Square className="w-4 h-4" /> {pending ? "Saving…" : "End session"}
+      </button>
+    </div>
   );
 }
 

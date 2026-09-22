@@ -769,16 +769,40 @@ model TaskSession {
 }
 
 model XpAward {
-  id        String   @id @default(cuid())
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  stat      Stat
-  amount    Int
-  createdAt DateTime @default(now())
+  id             String        @id @default(cuid())
+  /// Set when the XP came from a scheduled task. Exactly one of taskId/studySessionId is set.
+  taskId         String?
+  task           Task?         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// Set when it came from a free study session instead.
+  studySessionId String?
+  studySession   StudySession? @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
+  stat           Stat
+  amount         Int
+  createdAt      DateTime      @default(now())
 
-  // Paying a task twice is the one thing that must never happen.
+  // Paying the same work twice is the one thing that must never happen.
   @@unique([taskId, stat])
+  @@unique([studySessionId, stat])
   @@index([stat])
+}
+
+/// Studying with nothing scheduled. There is no window and no bar to clear, so it cannot be
+/// completed or failed and never counts toward the day's verdict — it just banks the time and
+/// pays the three stats it rolled when it started.
+model StudySession {
+  id        String    @id @default(cuid())
+  /// Local calendar date it belongs to, so it lands in the right day/week/month totals.
+  date      DateTime  @db.Date
+  /// Three stats, rolled at random when the session starts and fixed for its lifetime.
+  stats     Stat[]
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  /// Filled in when the session ends.
+  seconds   Int?
+  createdAt DateTime  @default(now())
+  xpAwards  XpAward[]
+
+  @@index([date])
 }
 
 enum Stat {

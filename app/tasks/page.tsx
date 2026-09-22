@@ -5,7 +5,7 @@ import { CalendarDays, Flame, Sparkles } from "lucide-react";
 import { db } from "@/lib/db";
 import { levelFromXp } from "@/lib/leveling";
 import { STATS } from "@/lib/stats";
-import { statXpTotals, syncTasks, tasksForDate } from "@/lib/task-service";
+import { openStudySession, statXpTotals, syncTasks, tasksForDate } from "@/lib/task-service";
 import { dayVerdict, isTrackable, toTaskView } from "@/lib/tasks";
 import { fromKey, isDateKey, todayKey, type DateKey } from "@/lib/calendar-dates";
 import DayVerdictBadge from "@/components/tasks/DayVerdictBadge";
@@ -24,7 +24,7 @@ export default async function TasksTodayPage({
   const { date } = await searchParams;
   const key: DateKey = date && isDateKey(date) ? (date as DateKey) : todayKey();
 
-  const [tasks, totals, earnedToday, entry] = await Promise.all([
+  const [tasks, totals, earnedToday, entry, study] = await Promise.all([
     tasksForDate(key),
     statXpTotals(),
     db.xpAward.aggregate({ where: { task: { date: fromKey(key) } }, _sum: { amount: true } }),
@@ -32,6 +32,7 @@ export default async function TasksTodayPage({
       where: { date: fromKey(key) },
       include: { plan: { include: { modules: { include: { module: true } } } } },
     }),
+    openStudySession(),
   ]);
 
   const verdict = dayVerdict(tasks);
@@ -44,7 +45,7 @@ export default async function TasksTodayPage({
   const skipped = placed.filter((m) => !isTrackable(m));
 
   const [y, m, d] = key.split("-").map(Number);
-  const isToday = key === todayKey();
+  const isToday = key === todayKey(now);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -110,7 +111,16 @@ export default async function TasksTodayPage({
         </div>
       )}
 
-      <TodayBoard tasks={tasks.map((t) => toTaskView(t, key))} serverNow={now.getTime()} />
+      <TodayBoard
+        tasks={tasks.map((t) => toTaskView(t, key))}
+        study={
+          study && isToday
+            ? { id: study.id, stats: study.stats, startedAt: study.startedAt.toISOString() }
+            : null
+        }
+        canStudy={isToday}
+        serverNow={now.getTime()}
+      />
 
       {skipped.length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-4">

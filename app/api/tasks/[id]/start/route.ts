@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { withErrors } from "@/lib/api-errors";
-import { bankOtherSessions, syncTasks } from "@/lib/task-service";
+import { bankOtherSessions, stopStudySession, syncTasks } from "@/lib/task-service";
 import { isFinal, openSession } from "@/lib/tasks";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -19,6 +19,8 @@ async function POSTHandler(_: NextRequest, { params }: RouteContext) {
   if (now >= task.endsAt) return NextResponse.json({ error: "This task's window has closed" }, { status: 400 });
   if (openSession(task.sessions)) return NextResponse.json(task);
 
+  // A free study session is the other thing that can be running; close it out too.
+  await stopStudySession(now);
   await bankOtherSessions(id, now);
   await db.taskSession.create({ data: { taskId: id, startedAt: now } });
 
