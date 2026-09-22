@@ -50,3 +50,6 @@ next-env.d.ts
 /graphify-out/.graphify_python
 # debug screenshot, not part of graphify's output:
 /graphify-out/graph-preview.png
+
+# Vercel request-log exports — downloaded for debugging, not source
+library-log-export-*.csv

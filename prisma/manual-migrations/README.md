@@ -20,6 +20,8 @@ declares. Getting this backwards is what broke books and manga once already.
 | Script | What it does |
 |---|---|
 | `001-comics-hierarchy-and-indexes.sql` | Replaces the flat `Comic` table with the Publisher → Universe → Title → Issue hierarchy, adds `Subscription`, and applies the index tuning from the repo audit. |
+| `002-expense-idempotency.sql` | Adds a unique `Expense.clientId` so the offline expense logger can retry without creating duplicate expenses. |
+| `003-derived-status.sql` | Removes DROPPED/ON_HOLD/DNF, adds `Book.pagesRead` and `Manga.ongoing`, and backfills every status from its progress counts. Aborts without changing anything if a removed value is still in use. |
 | `004-tv-hierarchy-and-comic-covers.sql` | Gives TV a Universe → Series → Season hierarchy with real foreign keys (`SET NULL`, so deleting a parent never deletes its children), backfills the old `seriesName` strings into real series rows, and drops the cover columns from comic publishers, universes and titles. |
 | `005-anime-hierarchy.sql` | Gives anime the same Universe → Series → Season hierarchy as TV, with real foreign keys (`SET NULL`) and a backfill of the old `seriesName` strings. Leaves `Anime.season` — the *airing* season enum — alone. |
 | `006-book-hierarchy.sql` | Gives books a Universe → Series → Book hierarchy (`SET NULL`). No backfill: books never had a `seriesName`, so every existing book stays standalone until it is filed by hand. |
@@ -30,8 +32,10 @@ declares. Getting this backwards is what broke books and manga once already.
 | `011-backfill-season-number.sql` | Fills `seasonNumber` from titles already ending in "| Season N", reviewed against the real library first. **Does not strip titles** — that format is deliberate. Trims trailing whitespace, which is what lets "Supernatural | Season 4 " match. |
 | `012-calendar.sql` | Creates the Calendar section: `DayPlan`, `DayActivity`, `SchoolTerm`, `DayOff`, `CalendarDay` and the `DayKind` enum. Dates are real `date` columns, not timestamps. **Includes `ENABLE ROW LEVEL SECURITY` on all five** — every other public table already has it, and without it these would be the only ones readable by the Supabase anon key. Additive — run **before** the deploy. |
 | `013-event-modules.sql` | Turns per-day events into reusable **modules** (`EventModule`) placed into days (`DayPlanModule`), and converts every existing activity — identical ones merged into one shared module. `DayActivity` is deliberately kept as the only surviving copy of the pre-conversion timetables. Additive — run **before** the deploy. |
-| `003-derived-status.sql` | Removes DROPPED/ON_HOLD/DNF, adds `Book.pagesRead` and `Manga.ongoing`, and backfills every status from its progress counts. Aborts without changing anything if a removed value is still in use. |
-| `002-expense-idempotency.sql` | Adds a unique `Expense.clientId` so the offline expense logger can retry without creating duplicate expenses. |
+| `014-task-stats.sql` | Adds `stats` to `EventModule` and rebuilds `Task` against the calendar — a task is now one module on one date, not a row in a parallel module system. Drops the standalone `Module` table and the first-cut task tables with it. The rebuild is **guarded on the old shape**, so a second run leaves real task history alone. Enables RLS on the three tables it creates, which the superseded `prisma/tasks-tables.sql` failed to do. Additive for the calendar — run **before** the deploy. |
+| `015-ap-courses.sql` | Creates `ApCourse` and `ApUnit` for the AP unit tracker. Additive, RLS on — run **before** the deploy. |
+| `016-ap-units.sql` | Loads the 6 AP courses and their 37 units from the College Board CEDs. Requires 015. An **upsert**: it refreshes titles and weightings so a CED correction can be applied by editing this file and re-running, but never writes `completedAt`, so ticked units stay ticked. |
+| `017-free-study.sql` | Adds `StudySession` for studying with nothing scheduled, makes `XpAward.taskId` nullable and adds `XpAward.studySessionId` so XP can come from either source, each with its own unique index. Additive, RLS on — run **before** the deploy. |
 
 ## How 001 was verified
 

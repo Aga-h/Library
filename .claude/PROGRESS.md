@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-22 — Free study sessions; **015, 016, 017 awaiting SQL**
+**Updated:** 2026-09-22 — Docs brought up to date; **015, 016, 017 awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **Docs refresh** — README was still create-next-app boilerplate; CODEBASE.md was a 41 KB
+      "complete reference" that predated Finances, Calendar, Tasks and APs and still documented
+      the **pre-audit auth** (session cookie = AUTH_SECRET), which the security work deliberately
+      removed. Both rewritten, every claim checked against the code. Migrations README table now
+      covers 001-017 in order. Deleted 4.4 MB of Vercel request-log CSVs and gitignored the
+      pattern.
 
 - [x] **Free study** — when nothing is scheduled and nothing is running, `/tasks` offers a Study
       button. It rolls 3 random stats server-side, runs a live timer, and on stop pays 1 XP per
@@ -195,6 +202,14 @@ Three items were scoped in the audit but not implemented. In rough value order:
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Re-run `/graphify .` then `npm run graph:seal`.** The committed graph was built at
+  `0e13734`, before the Calendar, Tasks, free study and AP work — so it does not know any of it.
+  Until then it answers confidently about a codebase that is four features out of date.
+
+- **Set the GitHub repo description.** There is no tool for it here; it is Settings → General.
+  Suggested: "Personal hub — media library, wardrobe, finances, calendar and a task tracker that
+  levels stats. Next.js, Prisma, Supabase."
 
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
