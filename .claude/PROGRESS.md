@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-22 — middleware renamed to proxy; **015 and 016 awaiting SQL**
+**Updated:** 2026-09-23 — XP curve retuned to k = 10; all migrations applied
 
 ## Done
 
@@ -27,6 +27,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **XP curve retuned** — `k` 5 → 10, with the scale tied to `30k` so level 1 stays at about
+      half an hour. Each level now costs +10.5% instead of +22%, and a doubling of hours buys
+      ~7 levels instead of 3.5. Level 30 moved from 805h to 95h; the old level-30 wall now sits
+      at level 50. No migration: XP is stored, level is derived, so every stat re-mapped on
+      deploy and the numbers jumped up once. `scripts/test-leveling.mjs` pins the properties
+      (round-trips, monotonicity, levels-per-doubling, the hour targets) — 17,292 assertions.
 
 - [x] **`middleware.ts` → `proxy.ts`** — the Next 16 rename, which also moves it from the Edge
       runtime to Node.js. Auth re-verified end to end against a production build: unauthenticated
@@ -72,7 +79,7 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       date, materialised from the day plan dealt onto that date (never created by hand). Work it
       with start/stop sessions; clear half the module's hours and it completes, else it fails.
       A completed task pays 1 XP per minute worked to each stat its module trains, and each of
-      the 14 stats levels on `floor(5 * ln(1 + xp/120))`. More failures than completions in a day
+      the 14 stats levels on `floor(k * ln(1 + xp/30k))`, k = 10. More failures than completions in a day
       and the day is *extinguished*. Stats are picked per module in the calendar's module editor.
       Verified against a real Postgres: materialisation is idempotent, sessions clamp to the
       module's hours, and a task can never pay XP twice.

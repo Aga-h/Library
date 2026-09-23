@@ -1,13 +1,27 @@
 // Stat levelling — a natural-log curve through (0, 0): fast early, slower forever after.
 //
-//   level(xp)  = floor(CURVE_HEIGHT * ln(1 + xp / XP_SCALE))
-//   xpFor(lvl) = XP_SCALE * (e^(lvl / CURVE_HEIGHT) - 1)
+//   level(xp)  = floor(k * ln(1 + xp / 30k))
+//   xpFor(lvl) = 30k * (e^(lvl / k) - 1)
 //
 // 1 XP = 1 minute of work on a completed task. Every stat a module trains gets
 // the full amount, and every stat starts at level 0.
+//
+// There is one real dial, k. It sets how fast the cost compounds: each level costs
+// e^(1/k) - 1 more than the last, and a doubling of total hours always buys the same
+// ln(2) * k levels, whatever the hours are.
+//
+//   k =  5  +22% per level,  3.5 levels per doubling  (the original, too steep)
+//   k =  8  +13% per level,  5.5 levels per doubling
+//   k = 10  +10.5% per level, 7 levels per doubling   (current)
+//   k = 15  +7% per level,   10 levels per doubling
+//
+// Tying the scale to 30k rather than picking it separately is what keeps level 1 at
+// about half an hour no matter which k is chosen — so changing k rescales the whole
+// curve without moving where it starts.
 
-export const CURVE_HEIGHT = 5;
-export const XP_SCALE = 120;
+/** k — the only dial. Raise it to make high levels reachable, lower it to make them hurt. */
+export const CURVE_HEIGHT = 10;
+export const XP_SCALE = 30 * CURVE_HEIGHT;
 
 export function levelFromXp(xp: number): number {
   if (xp <= 0) return 0;

@@ -124,7 +124,7 @@ scripts/                node test scripts, graph sealing
 | `calendar-dates.ts` | Date keys, the app timezone, `instantAt` |
 | `calendar-shuffle.ts` | Whether a date is a school day, and dealing plans onto dates |
 | `tasks.ts` / `task-service.ts` | Task rules (client-safe) / Prisma side |
-| `leveling.ts` | The XP curve: `level = floor(5 · ln(1 + xp/120))` |
+| `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
 | `stats.ts` | The fourteen stats and their presentation |
 | `wash-calculator.ts` | Care labels → machine settings |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
