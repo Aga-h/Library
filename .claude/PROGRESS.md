@@ -190,6 +190,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       curls the JSON and writes the report; if setup is missing it says exactly what, and never
       invents numbers. No connectors — it needs none. Environment `env_01ChuErCg6LBHyTA3T7HcGXZ`.
 
+- [x] **MyPortal Handbook** (Claude Doc, the user's reference) —
+      https://claude.ai/code/artifact/a0b04b43-3225-436e-9296-1072eeff057d — rewritten 2026-09-24
+      for the current app: Calendar/Tasks/Working a task/Free study sections removed; new Study,
+      SAT vocabulary and Daily review sections; Stats, At a glance and environment table corrected
+      (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
+      `lib/dates.ts`). **Update it whenever a section's behaviour changes.**
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
