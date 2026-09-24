@@ -218,11 +218,15 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Set up the nightly review** (the routine fires regardless and reports what is missing):
   1. Vercel → project → Settings → Environment Variables: `REPORT_TOKEN` = 32+ random chars,
      then **redeploy** (env changes only reach new deployments).
-  2. This Claude cloud environment → Edit → environment variables: the same `REPORT_TOKEN`, and
-     `PORTAL_URL` = the site's address, no trailing slash.
-  3. Same settings → Network access: add the site's host to the allowed domains. The current
-     policy denies `*.vercel.app` (proxy 403, verified) — without this the routine cannot reach
-     the site at all.
+  2. Claude environment **Default** (the routine's): edited ONLY from claude.ai/code in a browser
+     or the desktop app — the cloud "Default" button above a new session's message box → gear
+     icon. NOT from inside a session, and not from the iPad app (the gear is hover-only). Add env
+     vars `REPORT_TOKEN` (same as Vercel) and `PORTAL_URL` (site address, no trailing slash).
+  3. Same dialog → Network access → Custom → add the site's host to Allowed domains, keeping
+     "Also include default list of common package managers" ticked. Trusted (the default)
+     denies `*.vercel.app` (proxy 403, verified).
+  User reported steps 2–3 done on 2026-09-24; a manual test run was fired
+  (session `cse_01G3vT8cDNyiXCTVyJFZQUpA`) — its transcript shows which step, if any, still fails.
 
 - **Set the GitHub repo description.** There is no tool for it here; it is Settings → General.
   Suggested: "Personal hub — media library, wardrobe, finances, calendar and a task tracker that
