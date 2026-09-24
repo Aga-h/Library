@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-24 — SAT vocabulary list built in (991 words); **018 awaiting SQL**
+**Updated:** 2026-09-24 — calendar removed, study rebuilt around modules; **018 then 019 awaiting SQL**
 
 ## Done
 
@@ -68,35 +68,9 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       covers 001-017 in order. Deleted 4.4 MB of Vercel request-log CSVs and gitignored the
       pattern.
 
-- [x] **Free study** — when nothing is scheduled and nothing is running, `/tasks` offers a Study
-      button. It rolls 3 random stats server-side, runs a live timer, and on stop pays 1 XP per
-      minute to each. `StudySession` is its own table, not a Task: there is no window and no bar,
-      so it can neither complete nor fail and never moves the day's verdict. It does count toward
-      the study-time totals. Only one thing runs at a time — starting study banks a running task
-      session and starting a task ends a running study session, verified both ways over HTTP.
-      Under a minute pays nothing rather than rounding up.
 
-- [x] **AP unit tracker** — `/tasks/ap`. Courses and their units, ticked off one by one, with
-      per-course and overall progress. The tick stores a timestamp, so it doubles as "finished
-      on", and re-ticking keeps the original date. All 6 courses and 37 units are seeded from
-      the CEDs (supplied by the user). Physics C is two courses sharing a `series`, rendered as
-      one group because College Board numbers them 1-7 and 8-13 across one framework.
-      Note the revised frameworks: **AP Statistics is 5 units** (not the old 9) and **AP CS A is
-      4 units** — do not "correct" these from older material.
 
-- [x] **Study time totals** — `/tasks/stats` shows time worked today / this week / this month /
-      all time. Counts every session, cleared bar or not, and adds a session running right now on
-      top of the banked `workedSeconds`. Weeks start Monday, matching the calendar's month grid.
-      Boundary cases verified against a real Postgres (Monday edge, month edge, live session).
 
-- [x] **Tasks section** — `/tasks` and `/tasks/stats`. A task is one calendar module on one real
-      date, materialised from the day plan dealt onto that date (never created by hand). Work it
-      with start/stop sessions; clear half the module's hours and it completes, else it fails.
-      A completed task pays 1 XP per minute worked to each stat its module trains, and each of
-      the 14 stats levels on `floor(k * ln(1 + xp/30k))`, k = 10. More failures than completions in a day
-      and the day is *extinguished*. Stats are picked per module in the calendar's module editor.
-      Verified against a real Postgres: materialisation is idempotent, sessions clamp to the
-      module's hours, and a task can never pay XP twice.
 
 - [x] **Auto-derived status** for Books/TV/Anime/Manga — computed from progress counts on every
       write, status dropdown removed, Dropped/On Hold/DNF deleted. Books gained `pagesRead`,
@@ -184,22 +158,6 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       and hid it among its seven siblings, so `011` trims before matching. Titles are **not**
       stripped: that format is the user's, and the season number is stored alongside it.
 
-- [x] **Calendar section** — day plans dealt onto real dates. A day plan is a timetable of
-      activities; each date derives its own kind (weekend always holiday, term weekday school,
-      everything else holiday) and the app deals plans of the matching kind onto it. Dealing is
-      a shuffled deck per kind, so every plan is used before any repeats; "fill" never touches a
-      date you set by hand, "re-deal" replaces the month after confirming. Migration `012`,
-      which also enables RLS on all five new tables — every other public table has it, and
-      without it these would be the only ones open to the Supabase anon key.
-      Two pure modules with 49 assertions (`npm run test`): `lib/calendar-dates.ts` (date-only,
-      UTC accessors only) and `lib/calendar-shuffle.ts` (the deal, injectable RNG).
-      **"Today" resolves in Europe/Istanbul, not the server's zone** — the deploy region is
-      UTC+9 and the user is UTC+3, so a bare `new Date()` opens the wrong month for six hours a
-      day. `app/finances/page.tsx` and the subscription cancel route still have that bug.
-      **Days can be duplicated** — `POST /api/calendar/days/[id]/copy` clones a plan with its
-      whole timetable and opens the copy for editing. Names are unique per kind, so it walks
-      "(copy)", "(copy 2)"… to a free one, and strips an existing suffix first so copying a copy
-      gives "(copy 3)" rather than "(copy 2) (copy)". A copy is never dealt onto a date.
 
 - [x] **Events became reusable modules.** An `EventModule` is a name plus its hours
       ("Sat vocab study 00:00–01:00"); days are built by placing modules, and editing a module
@@ -209,6 +167,16 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       `DayActivity` is deliberately NOT dropped: it is the only surviving copy of the
       pre-conversion timetables and makes the change reversible. A later migration removes it,
       and per the direction rule that one runs *after* the deploy that stops reading it.
+
+- [x] **Calendar and tasks removed.** Days, day plans, dealing, school terms, days off and
+      calendar-driven tasks are gone, along with the 50%-of-the-hours bar and extinguished days.
+      Modules survive without hours: a module is a title plus the 1–3 stats it trains. You study
+      by starting a session and picking one; stopping pays one XP per whole minute to each of its
+      stats. No module rolls three at random, for one-off things. `/tasks` and `/calendar` were
+      folded into one **Study** section — sessions, modules, stats, APs and SAT vocabulary — so
+      the portal is four cards and "study" means one thing. Migration `019` converts every worked
+      task into a study session: **no XP and no study time was lost**, proven by before/after
+      totals on a seeded copy of the old schema.
 
 ## Next
 
@@ -235,6 +203,13 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Run `prisma/manual-migrations/019-drop-calendar.sql`** after 018 — removes the calendar and
+  rebuilds study around modules. It is destructive (day plans, terms, days off and task rows are
+  deleted for good) but carries every worked task across as a study session, so XP, levels and
+  study-time totals come out unchanged. Verified against a seeded copy of the old schema: 315 XP
+  and 9,300 seconds identical before and after, `migrate diff` empty, second run a no-op.
+  **/study errors until it runs**, because the new code needs the new shape.
 
 - **Run `prisma/manual-migrations/018-sat-vocab.sql`** — creates `VocabWord`, `VocabMeaning`,
   `VocabRun`, `VocabQuestion` and the `VocabVerdict` enum. Additive, RLS on, safe to re-run.

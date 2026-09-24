@@ -36,6 +36,32 @@ declares. Getting this backwards is what broke books and manga once already.
 | `015-ap-courses.sql` | Creates `ApCourse` and `ApUnit` for the AP unit tracker. Additive, RLS on — run **before** the deploy. |
 | `016-ap-units.sql` | Loads the 6 AP courses and their 37 units from the College Board CEDs. Requires 015. An **upsert**: it refreshes titles and weightings so a CED correction can be applied by editing this file and re-running, but never writes `completedAt`, so ticked units stay ticked. |
 | `017-free-study.sql` | Adds `StudySession` for studying with nothing scheduled, makes `XpAward.taskId` nullable and adds `XpAward.studySessionId` so XP can come from either source, each with its own unique index. Additive, RLS on — run **before** the deploy. |
+| `018-sat-vocab.sql` | Creates `VocabWord`, `VocabMeaning`, `VocabRun`, `VocabQuestion` and the `VocabVerdict` enum for the SAT vocabulary test. Additive, RLS on — run **before** the deploy. |
+| `019-drop-calendar.sql` | **Removes the calendar.** Renames `EventModule` to `Module` and drops its hours, adds `moduleId`/`moduleTitle` to `StudySession`, converts every worked `Task` into a study session carrying its date, seconds and XP, then drops `Task`, `TaskSession`, `CalendarDay`, `DayPlan`, `DayPlanModule`, `DayActivity`, `DayOff`, `SchoolTerm` and the `TaskStatus`/`DayKind` enums. Destructive but **loses no XP and no study time**. The new code needs the new shape, so unlike other removals this runs as soon as the deploy is live. |
+
+## How 019 was verified
+
+It is the only migration so far that both deletes tables and has to preserve what was in them,
+so it was run against a throwaway PostgreSQL 16 built from the *previous* schema and seeded with
+the cases that could break it: two modules sharing a title (the new unique index), a module with
+no stats (an old plain calendar event), a completed task with XP, a failed task with real time on
+it but no XP, a task never started, and a free study session that had already paid. Checked for:
+
+- total XP and every per-stat total **identical** before and after (315, unchanged)
+- total seconds studied **identical** before and after (9,300, unchanged)
+- the duplicate title disambiguated to `Study` and `Study (2)` rather than either failing or
+  dropping one
+- the failed task's time carried across — an hour spent on something you then failed was always
+  counted as studied, and still is
+- the never-started task creating no session
+- `prisma migrate diff` reporting **no difference** against `schema.prisma`
+- a second run changing nothing: same XP, same seconds, same row counts, still no difference
+- all nine calendar tables and both enums gone, RLS on `Module`, `StudySession` and `XpAward`
+
+Then end-to-end against the migrated database over real HTTP: starting a module session
+snapshots that module's stats, stopping pays one XP per whole minute, a second stop pays nothing,
+a stat-less or unknown module is refused, free study rolls three, and deleting a module leaves
+its sessions, seconds and XP untouched and still readable by name.
 
 ## How 001 was verified
 

@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { withErrors } from "@/lib/api-errors";
-import { startStudySession, syncTasks } from "@/lib/task-service";
-import { isDateKey, todayKey, type DateKey } from "@/lib/calendar-dates";
+import { startSession } from "@/lib/study-service";
+import { isDateKey, todayKey, type DateKey } from "@/lib/dates";
 
-const schema = z.object({ date: z.string().refine(isDateKey, "Expected a YYYY-MM-DD date").optional() });
+const schema = z.object({
+  /** The module being studied. Left out or null, the session rolls three stats at random. */
+  moduleId: z.string().min(1).nullable().optional(),
+  date: z.string().refine(isDateKey, "Expected a YYYY-MM-DD date").optional(),
+});
 
-/** Begin studying with nothing scheduled. Three stats are rolled server-side. */
+/** Begin studying. */
 async function POSTHandler(request: NextRequest) {
   const now = new Date();
-  await syncTasks(now);
-
   const body = await request.json().catch(() => ({}));
   const result = schema.safeParse(body ?? {});
   if (!result.success) {
@@ -18,8 +20,15 @@ async function POSTHandler(request: NextRequest) {
   }
 
   const date = (result.data.date ?? todayKey(now)) as DateKey;
-  const session = await startStudySession(date, now);
-  return NextResponse.json(session, { status: 201 });
+  const started = await startSession(date, result.data.moduleId ?? null, now);
+
+  if (!started.ok) {
+    const message = started.reason === "unknown-module"
+      ? "That module no longer exists"
+      : "That module trains no stats, so it would pay nothing";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+  return NextResponse.json(started.session, { status: 201 });
 }
 
 export const POST = withErrors(POSTHandler);

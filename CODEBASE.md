@@ -1,6 +1,6 @@
 # MyPortal — architecture
 
-A personal hub: **Library**, **Wardrobe**, **Finances**, **Calendar** and **Tasks**, behind one
+A personal hub: **Library**, **Wardrobe**, **Finances** and **Study**, behind one
 password. Next.js App Router on Vercel, Prisma against Supabase Postgres, Tailwind.
 
 This file covers how the pieces fit and the conventions that hold across them. For what is done
@@ -24,10 +24,10 @@ path still returns JSON — a bare 500 with an HTML body makes clients throw ins
 
 **Client components must not import anything that reaches `lib/db`.** That pulls `pg` into the
 browser bundle and fails at build. Pure rules live apart from their database access for exactly
-this reason: `lib/tasks.ts` (rules, importable anywhere) vs `lib/task-service.ts` (Prisma).
+this reason: `lib/study.ts` (rules, importable anywhere) vs `lib/study-service.ts` (Prisma).
 
-**Dates are date-only, and local.** Calendar dates are `"YYYY-MM-DD"` keys in code and Postgres
-`date` columns, converted only through `lib/calendar-dates.ts`, which pins everything to
+**Dates are date-only, and local.** Dates are `"YYYY-MM-DD"` keys in code and Postgres
+`date` columns, converted only through `lib/dates.ts`, which pins everything to
 `APP_TIME_ZONE` (`Europe/Istanbul`). The server runs in another zone, so "today" is never
 `new Date()` on the server. Weeks start Monday.
 
@@ -73,20 +73,17 @@ Standalone: `Manga`, `Game`, `Article`, `Garment`.
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
 
-**Calendar.** `EventModule` is a reusable event — a title plus the minutes it occupies. It is
-placed into a `DayPlan` (a named SCHOOL or HOLIDAY template) via `DayPlanModule`, and a plan is
-dealt onto a real date as a `CalendarDay`. `SchoolTerm` and `DayOff` decide whether a date is a
-school day or a holiday. `DayActivity` is legacy, kept as the only surviving copy of the
-pre-module timetables.
+**Study sessions.** A `Module` is a thing you study: a title and the one-to-three `Stat`s it
+trains. It has no hours and no place in a day — you pick one when you start a `StudySession`, and
+stopping pays `XpAward` rows of one XP per whole minute to each of those stats. A session started
+without a module rolls three stats at random instead, for one-off work not worth naming.
 
-**Tasks.** A `Task` is one `EventModule` on one date, **materialised from the calendar** on first
-read rather than created by hand — unique on `(moduleId, date)`, which is what makes that
-idempotent. You work it with `TaskSession`s; clear half the module's booked hours and it
-completes, otherwise it fails. Completion pays `XpAward` rows: one XP per minute worked, to each
-of the up-to-three `Stat`s its module trains. `StudySession` is free study when nothing is
-scheduled — no window, no bar, so it can neither complete nor fail and never moves a day's
-verdict, but it banks time and pays three randomly rolled stats. `XpAward` points at exactly one
-of a task or a study session.
+A session **snapshots** both the stats it pays and the module's title, rather than reading them
+back through the relation. That is what makes the history stable: re-pointing a module's stats
+cannot rewrite what past sessions earned, and deleting a module (`SetNull`) leaves its sessions
+readable by name instead of silently turning them into free ones.
+
+`ApCourse`/`ApUnit` hold the College Board unit lists; ticking a unit sets `completedAt`.
 
 **Study.** `VocabWord` has one or more `VocabMeaning`s, and every meaning becomes one question.
 A `VocabRun` is a sitting of the test, holding a `VocabQuestion` per meaning with its shuffled
@@ -104,13 +101,11 @@ it doubles as "finished on".
 
 ```
 app/
-  (portal)          app/page.tsx — the five section cards
+  (portal)          app/page.tsx — the four section cards
   library/…         eight media types, each list / detail / edit / new
   wardrobe/…        garments and wash loads
   finances/…        month view, plus /log (installable PWA)
-  calendar/…        month, day, day plans, modules, terms
-  tasks/…           today, stats, APs
-  study/…           SAT vocabulary test and its word list
+  study/…           sessions, modules, stats, APs, SAT vocabulary
   api/…             route handlers, grouped by section
 components/<section>/   client components, one folder per section
 lib/                    rules, database access, helpers
@@ -128,9 +123,8 @@ scripts/                node test scripts, graph sealing
 | `session.ts` | HMAC session tokens, shared by middleware and route handlers |
 | `api-errors.ts` | `withErrors`, `readJson` |
 | `derive-status.ts` | Progress counts → status, for every medium |
-| `calendar-dates.ts` | Date keys, the app timezone, `instantAt` |
-| `calendar-shuffle.ts` | Whether a date is a school day, and dealing plans onto dates |
-| `tasks.ts` / `task-service.ts` | Task rules (client-safe) / Prisma side |
+| `dates.ts` | Date keys and the app timezone |
+| `study.ts` / `study-service.ts` | Session and XP rules (client-safe) / Prisma side |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
 | `vocab.ts` / `vocab-service.ts` | Parsing a pasted word list, and building the test / its Prisma side |
 | `stats.ts` | The fourteen stats and their presentation |
@@ -142,8 +136,8 @@ scripts/                node test scripts, graph sealing
 
 ## Testing
 
-`npm test` runs plain node scripts over the pure modules — status derivation, calendar date
-maths, the XP curve, and the vocabulary parser and question builder. There is no browser test suite; UI and schema changes are verified by running the app
+`npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
+XP rule, the level curve, and the vocabulary parser and question builder. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser
 check while writing four rows for three expenses.

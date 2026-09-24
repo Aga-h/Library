@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookMarked, Shirt, Wallet, CalendarDays, Swords, GraduationCap, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Wallet, GraduationCap, ArrowRight } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -30,27 +30,9 @@ const SECTIONS = [
     available: true,
   },
   {
-    href: "/calendar",
-    label: "Calendar",
-    description: "Plan your days — school terms, holidays and shuffled schedules",
-    icon: CalendarDays,
-    color: "from-violet-50 to-purple-50 border-violet-200",
-    iconColor: "text-violet-600",
-    available: true,
-  },
-  {
-    href: "/tasks",
-    label: "Tasks",
-    description: "Work sessions off your calendar, and the stats they level",
-    icon: Swords,
-    color: "from-amber-50 to-orange-50 border-amber-200",
-    iconColor: "text-amber-600",
-    available: true,
-  },
-  {
     href: "/study",
     label: "Study",
-    description: "SAT vocabulary drills, sorted by how well you know them",
+    description: "Study sessions and the stats they level, APs, SAT vocabulary",
     icon: GraduationCap,
     color: "from-sky-50 to-cyan-50 border-sky-200",
     iconColor: "text-sky-600",

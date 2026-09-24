@@ -42,6 +42,8 @@ export const STAT_META: Record<Stat, StatMeta> = {
 };
 
 /** A module trains up to three stats. Zero is allowed — it is then just an event, not a task. */
+/** A module trains between one and three stats. None, and it could never pay anything. */
+export const MIN_STATS_PER_MODULE = 1;
 export const MAX_STATS_PER_MODULE = 3;
 
 export function isStat(value: string): value is Stat {

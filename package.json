@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types scripts/test-derive-status.mjs && node --experimental-strip-types scripts/test-calendar.mjs && node --experimental-strip-types scripts/test-leveling.mjs && node --experimental-strip-types scripts/test-vocab.mjs"
+    "test": "node --experimental-strip-types scripts/test-derive-status.mjs && node --experimental-strip-types scripts/test-dates.mjs && node --experimental-strip-types scripts/test-study.mjs && node --experimental-strip-types scripts/test-leveling.mjs && node --experimental-strip-types scripts/test-vocab.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",

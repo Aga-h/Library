@@ -616,193 +616,61 @@ enum Language {
 // from the terms, days off and the weekend rule — never stored — because terms get edited and
 // a stored kind would quietly disagree with the calendar afterwards.
 
-enum DayKind {
-  SCHOOL
-  HOLIDAY
-}
+/// A thing you study. No hours and no place in a day — you pick one when you start a session,
+/// and the session pays XP to the stats it trains.
+model Module {
+  id        String         @id @default(cuid())
+  title     String         @unique
+  notes     String?
+  /// The stats this module trains, 1-3 of them. The API enforces the range; a module with none
+  /// could never pay anything.
+  stats     Stat[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  sessions  StudySession[]
 
-model DayPlan {
-  id         String          @id @default(cuid())
-  name       String
-  kind       DayKind
-  notes      String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  activities DayActivity[] // legacy, superseded by `modules`; dropped a release later
-  modules    DayPlanModule[]
-  days       CalendarDay[]
-
-  // Two plans of the same kind may not share a name, or the deal is unreadable.
-  @@unique([kind, name])
-  @@index([kind])
-}
-
-/// Legacy. Events used to be owned by one day; they are now reusable EventModules placed into
-/// days. Kept one release as the only surviving copy of the pre-conversion timetables.
-model DayActivity {
-  id          String  @id @default(cuid())
-  planId      String
-  plan        DayPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  // Minutes from midnight. A time of day, not an instant — a DateTime would drag a date and a
-  // timezone along with 09:00.
-  startMinute Int
-  endMinute   Int?
-  title       String
-  notes       String?
-
-  @@index([planId, startMinute])
-}
-
-/// A reusable event: a name and the hours it occupies. Placed into any number of days.
-/// The hours belong to the module — "Sat vocab study 00:00–01:00" is one module, and the same
-/// activity at another time is a different module.
-model EventModule {
-  id          String          @id @default(cuid())
-  title       String
-  startMinute Int
-  endMinute   Int?
-  notes       String?
-  /// The stats this module trains, 0-3 of them. Empty means it earns no XP: a module only
-  /// becomes a task once it has at least one stat and an end time.
-  stats       Stat[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  placements  DayPlanModule[]
-  tasks       Task[]
-
-  // Catches an accidental duplicate of an identical module. Note Postgres treats NULLs as
-  // distinct, so two modules with no end time can still collide here — the API checks for that.
-  @@unique([title, startMinute, endMinute])
-  @@index([startMinute])
-}
-
-/// Which modules a day is built from. Cascade on both sides: a placement is meaningless without
-/// either end, and deleting a module should remove it from the days that used it rather than
-/// leave a dangling row.
-model DayPlanModule {
-  id       String      @id @default(cuid())
-  planId   String
-  plan     DayPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
-  moduleId String
-  module   EventModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-
-  @@unique([planId, moduleId])
-  @@index([planId])
-  @@index([moduleId])
-}
-
-model SchoolTerm {
-  id        String   @id @default(cuid())
-  name      String?
-  startDate DateTime @db.Date
-  endDate   DateTime @db.Date
-  createdAt DateTime @default(now())
-
-  @@index([startDate, endDate])
-}
-
-// A one-off holiday inside a term.
-model DayOff {
-  id        String   @id @default(cuid())
-  date      DateTime @unique @db.Date
-  reason    String?
-  createdAt DateTime @default(now())
-}
-
-model CalendarDay {
-  id        String   @id @default(cuid())
-  date      DateTime @unique @db.Date
-  planId    String?
-  // SetNull, not Cascade: deleting a plan must empty the dates that used it, not delete them.
-  plan      DayPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([planId])
+  @@index([title])
 }
 
 // ─── TASKS & STATS ───────────────────────────────────────────────────────────
 
-/// One module on one real date. Not created by hand: a task is materialised from the calendar
-/// the first time a date is looked at, for every module in that date's day plan that has an end
-/// time. It exists to hold what the calendar cannot — the work done against it.
-model Task {
-  id            String        @id @default(cuid())
-  moduleId      String
-  module        EventModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  /// The calendar date this instance belongs to. Date-only, like the rest of the calendar.
-  date          DateTime      @db.Date
-  /// The module's hours resolved to real instants on `date`, so sessions can be timed against
-  /// them without re-deriving the timezone everywhere.
-  startsAt      DateTime
-  endsAt        DateTime
-  status        TaskStatus    @default(SCHEDULED)
-  workedSeconds Int           @default(0) // accumulated from ended sessions
-  resolvedAt    DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  sessions      TaskSession[]
-  xpAwards      XpAward[]
-
-  // A module appears at most once in a day plan, so at most once on a date.
-  @@unique([moduleId, date])
-  @@index([date])
-  @@index([status])
-}
-
-enum TaskStatus {
-  SCHEDULED
-  ACTIVE
-  COMPLETED
-  FAILED
-}
-
-model TaskSession {
-  id        String    @id @default(cuid())
-  taskId    String
-  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  startedAt DateTime  @default(now())
-  endedAt   DateTime?
-  seconds   Int? // filled in when the session ends
-
-  @@index([taskId])
-}
-
 model XpAward {
-  id             String        @id @default(cuid())
-  /// Set when the XP came from a scheduled task. Exactly one of taskId/studySessionId is set.
-  taskId         String?
-  task           Task?         @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  /// Set when it came from a free study session instead.
-  studySessionId String?
-  studySession   StudySession? @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  studySessionId String
+  studySession   StudySession @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
   stat           Stat
   amount         Int
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime     @default(now())
 
-  // Paying the same work twice is the one thing that must never happen.
-  @@unique([taskId, stat])
+  // Paying the same session twice is the one thing that must never happen.
   @@unique([studySessionId, stat])
   @@index([stat])
 }
 
-/// Studying with nothing scheduled. There is no window and no bar to clear, so it cannot be
-/// completed or failed and never counts toward the day's verdict — it just banks the time and
-/// pays the three stats it rolled when it started.
+/// One sitting of study. With a module, it trains that module's stats; without one, three stats
+/// rolled at random — for one-off work not worth making a module for.
 model StudySession {
-  id        String    @id @default(cuid())
+  id          String    @id @default(cuid())
   /// Local calendar date it belongs to, so it lands in the right day/week/month totals.
-  date      DateTime  @db.Date
-  /// Three stats, rolled at random when the session starts and fixed for its lifetime.
-  stats     Stat[]
-  startedAt DateTime  @default(now())
-  endedAt   DateTime?
+  date        DateTime  @db.Date
+  moduleId    String?
+  /// SetNull, not Cascade: deleting a module must not erase the hours already studied under it.
+  module      Module?   @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  /// The module's name when the session ran. Kept because SetNull would otherwise leave a
+  /// deleted module's sessions looking exactly like free ones. Null means it really was free.
+  moduleTitle String?
+  /// The stats this session pays, fixed when it starts. A snapshot, not a lookup: re-pointing a
+  /// module's stats later must not rewrite what past sessions earned.
+  stats       Stat[]
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
   /// Filled in when the session ends.
-  seconds   Int?
-  createdAt DateTime  @default(now())
-  xpAwards  XpAward[]
+  seconds     Int?
+  createdAt   DateTime  @default(now())
+  xpAwards    XpAward[]
 
   @@index([date])
+  @@index([moduleId])
 }
 
 enum Stat {
