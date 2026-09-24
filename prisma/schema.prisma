@@ -863,3 +863,70 @@ model ApUnit {
   @@unique([courseId, number])
   @@index([courseId])
 }
+
+// ─── STUDY: SAT VOCABULARY ───────────────────────────────────────────────────
+
+model VocabWord {
+  id        String         @id @default(cuid())
+  word      String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  meanings  VocabMeaning[]
+
+  @@index([word])
+}
+
+/// One sense of a word. A word with three senses produces three questions, each asking about
+/// one of them.
+model VocabMeaning {
+  id        String          @id @default(cuid())
+  wordId    String
+  word      VocabWord       @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  text      String
+  /// 1, 2, 3 … within the word, so the list keeps the order it was imported in.
+  position  Int
+  createdAt DateTime        @default(now())
+  questions VocabQuestion[]
+
+  @@unique([wordId, position])
+  @@index([wordId])
+}
+
+/// One sitting of the test. Starting a new run is what resets the three categories: they are
+/// just the verdicts on the current run's questions.
+model VocabRun {
+  id         String          @id @default(cuid())
+  startedAt  DateTime        @default(now())
+  finishedAt DateTime?
+  questions  VocabQuestion[]
+
+  @@index([startedAt])
+}
+
+model VocabQuestion {
+  id         String        @id @default(cuid())
+  runId      String
+  run        VocabRun      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  /// The meaning being asked about — the correct answer.
+  meaningId  String
+  meaning    VocabMeaning  @relation(fields: [meaningId], references: [id], onDelete: Cascade)
+  /// Order within the run. Fixed at generation so refreshing mid-test does not reshuffle.
+  position   Int
+  /// The four options as meaning ids, already shuffled, the correct one among them. Never holds
+  /// another meaning of the same word — that would be a second correct answer.
+  optionIds  String[]
+  /// What was picked. Null until answered.
+  chosenId   String?
+  verdict    VocabVerdict?
+  answeredAt DateTime?
+
+  @@unique([runId, position])
+  @@index([runId])
+  @@index([meaningId])
+}
+
+enum VocabVerdict {
+  DONE
+  AMBIGUOUS
+  TO_REVIEW
+}

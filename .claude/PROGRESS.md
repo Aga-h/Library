@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-23 — XP curve retuned to k = 10; all migrations applied
+**Updated:** 2026-09-24 — Study section (SAT vocabulary); **018 awaiting SQL**
 
 ## Done
 
@@ -27,6 +27,16 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Mobile expense logger (PWA)** — `/finances/log`, installable to the iOS home screen,
       offline queue in IndexedDB, idempotent sync. Verified end-to-end against a real
       Postgres + Chromium: 10/10 browser checks, and duplicate-free in the database.
+
+- [x] **Study section — SAT vocabulary** (`/study/sat-vocab`). One multiple-choice question per
+      *meaning*, so a word with three senses is asked three times. Answer right and file it as
+      Done or Ambiguous; answer wrong and it goes to To Review automatically and cannot be
+      reclassified. The three lists show word + meaning and persist until "Take the test again",
+      which builds and reshuffles a fresh run. The word list is pasted in at
+      `/study/sat-vocab/words` — no migration needed to change it, and re-pasting a word replaces
+      its meanings rather than duplicating. **The rule that makes the test honest:** distractors
+      never include another sense of the same word (a second correct answer), and there is at
+      most one option per word. Verified on real generated runs, not just in unit tests.
 
 - [x] **XP curve retuned** — `k` 5 → 10, with the scale tied to `30k` so level 1 stays at about
       half an hour. Each level now costs +10.5% instead of +22%, and a doubling of hours buys
@@ -221,6 +231,13 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Run `prisma/manual-migrations/018-sat-vocab.sql`** — creates `VocabWord`, `VocabMeaning`,
+  `VocabRun`, `VocabQuestion` and the `VocabVerdict` enum. Additive, RLS on, safe to re-run.
+  `/study/sat-vocab` errors until it runs. No seed data: the word list is pasted in through the UI.
+
+- **Paste the SAT word list** at `/study/sat-vocab/words` once 018 is applied. One word per line,
+  then `—`, `:` or a tab, then the meaning; several meanings separated by `;` or numbered.
 
 - **Run `prisma/manual-migrations/015-ap-courses.sql` then `016-ap-units.sql`** — 015 creates
   `ApCourse`/`ApUnit` (additive, RLS on); 016 loads the 6 courses and 37 units. 016 is an upsert

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookMarked, Shirt, Wallet, CalendarDays, Swords, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Wallet, CalendarDays, Swords, GraduationCap, ArrowRight } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -45,6 +45,15 @@ const SECTIONS = [
     icon: Swords,
     color: "from-amber-50 to-orange-50 border-amber-200",
     iconColor: "text-amber-600",
+    available: true,
+  },
+  {
+    href: "/study",
+    label: "Study",
+    description: "SAT vocabulary drills, sorted by how well you know them",
+    icon: GraduationCap,
+    color: "from-sky-50 to-cyan-50 border-sky-200",
+    iconColor: "text-sky-600",
     available: true,
   },
   {

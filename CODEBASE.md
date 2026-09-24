@@ -88,6 +88,12 @@ scheduled — no window, no bar, so it can neither complete nor fail and never m
 verdict, but it banks time and pays three randomly rolled stats. `XpAward` points at exactly one
 of a task or a study session.
 
+**Study.** `VocabWord` has one or more `VocabMeaning`s, and every meaning becomes one question.
+A `VocabRun` is a sitting of the test, holding a `VocabQuestion` per meaning with its shuffled
+options. The three categories are the verdicts on the current run's questions, so starting a new
+run is what resets them. The rule that keeps the test honest: a question's distractors never
+include another sense of the same word, which would be a second correct answer.
+
 **APs.** `ApCourse` and `ApUnit`, seeded from College Board CEDs. Courses sharing a `series`
 (Physics C) render as one continuously-numbered sequence. Ticking a unit stores a timestamp, so
 it doubles as "finished on".
@@ -104,6 +110,7 @@ app/
   finances/…        month view, plus /log (installable PWA)
   calendar/…        month, day, day plans, modules, terms
   tasks/…           today, stats, APs
+  study/…           SAT vocabulary test and its word list
   api/…             route handlers, grouped by section
 components/<section>/   client components, one folder per section
 lib/                    rules, database access, helpers
@@ -125,6 +132,7 @@ scripts/                node test scripts, graph sealing
 | `calendar-shuffle.ts` | Whether a date is a school day, and dealing plans onto dates |
 | `tasks.ts` / `task-service.ts` | Task rules (client-safe) / Prisma side |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
+| `vocab.ts` / `vocab-service.ts` | Parsing a pasted word list, and building the test / its Prisma side |
 | `stats.ts` | The fourteen stats and their presentation |
 | `wash-calculator.ts` | Care labels → machine settings |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
@@ -134,8 +142,8 @@ scripts/                node test scripts, graph sealing
 
 ## Testing
 
-`npm test` runs plain node scripts over the pure modules — status derivation and calendar date
-maths. There is no browser test suite; UI and schema changes are verified by running the app
+`npm test` runs plain node scripts over the pure modules — status derivation, calendar date
+maths, the XP curve, and the vocabulary parser and question builder. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser
 check while writing four rows for three expenses.
