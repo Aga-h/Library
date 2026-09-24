@@ -80,3 +80,42 @@ export async function verifySessionToken(token: string | undefined, secret: stri
     return false;
   }
 }
+
+// ─── The nightly report's token ──────────────────────────────────────────────
+
+/**
+ * The scheduled review reads exactly one endpoint with its own token, rather than holding the
+ * site password — which would unlock everything, including writes.
+ */
+export const REPORT_PATH = "/api/study/review";
+
+/** Shorter tokens are refused outright, so a weak one cannot be set by accident. */
+export const REPORT_TOKEN_MIN_LENGTH = 32;
+
+/**
+ * Checks an `Authorization: Bearer …` header against REPORT_TOKEN.
+ *
+ * Fails closed: with the token unset or too short nothing matches, so a blank variable can never
+ * turn into `"" === ""`. The comparison is over SHA-256 digests — always 32 bytes — with no early
+ * exit, so it reveals neither the token's length nor where the first wrong character is.
+ */
+export async function verifyReportToken(
+  header: string | null,
+  expected: string | undefined,
+): Promise<boolean> {
+  const want = expected?.trim();
+  if (!want || want.length < REPORT_TOKEN_MIN_LENGTH) return false;
+  if (!header?.startsWith("Bearer ")) return false;
+  const presented = header.slice("Bearer ".length).trim();
+  if (presented === "") return false;
+
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(presented)),
+    crypto.subtle.digest("SHA-256", encoder.encode(want)),
+  ]);
+  const x = new Uint8Array(a);
+  const y = new Uint8Array(b);
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}

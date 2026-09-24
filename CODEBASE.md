@@ -50,6 +50,13 @@ contain `AUTH_SECRET` itself — a leaked cookie would then *be* the environment
 unrevocable and shared by every session. `POST /api/auth` checks the password against
 `AUTH_PASSWORD`, rate-limited; `DELETE /api/auth` logs out.
 
+One exception to "everything needs a session": the nightly review job has none, so it reads
+`GET /api/study/review` with `Authorization: Bearer <REPORT_TOKEN>` instead. The proxy lets that
+through for **that exact path and method only** — any other path, POST, or a sibling like
+`/api/study/review/x` is still a 401. The token is read-only by construction and fails closed:
+unset or under 32 characters, nothing matches, so a missing variable cannot open the endpoint.
+It is compared over SHA-256 digests with no early exit.
+
 ---
 
 ## Data model
@@ -84,6 +91,14 @@ cannot rewrite what past sessions earned, and deleting a module (`SetNull`) leav
 readable by name instead of silently turning them into free ones.
 
 `ApCourse`/`ApUnit` hold the College Board unit lists; ticking a unit sets `completedAt`.
+
+**Daily review.** `/study/review` (and the same thing as JSON at `/api/study/review`) adds up one
+day: time per module, XP and level-ups per stat, the study streak, AP units ticked and SAT
+questions answered. It has no table of its own — it is assembled from the rows above. The rule
+that matters is the day boundary: sessions carry a date, but AP ticks and vocabulary answers are
+instants, and 00:30 in Istanbul is still the previous day in UTC. Everything is bucketed through
+`todayKey`, the same function that defines "today" everywhere else. A 23:15 scheduled Claude
+routine reads the JSON and writes the evening report.
 
 **Study.** `VocabWord` has one or more `VocabMeaning`s, and every meaning becomes one question.
 A `VocabRun` is a sitting of the test, holding a `VocabQuestion` per meaning with its shuffled
@@ -125,6 +140,7 @@ scripts/                node test scripts, graph sealing
 | `derive-status.ts` | Progress counts → status, for every medium |
 | `dates.ts` | Date keys and the app timezone |
 | `study.ts` / `study-service.ts` | Session and XP rules (client-safe) / Prisma side |
+| `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
 | `vocab.ts` / `vocab-service.ts` | Parsing a pasted word list, and building the test / its Prisma side |
 | `stats.ts` | The fourteen stats and their presentation |
@@ -137,7 +153,9 @@ scripts/                node test scripts, graph sealing
 ## Testing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
-XP rule, the level curve, and the vocabulary parser and question builder. There is no browser test suite; UI and schema changes are verified by running the app
+XP rule, the level curve, the vocabulary parser and question builder, the daily review, and the
+report token. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser
 check while writing four rows for three expenses.

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, BookA, GraduationCap, Layers, ListChecks, Timer, TrendingUp } from "lucide-react";
+import { ArrowLeft, BookA, ClipboardList, GraduationCap, Layers, ListChecks, Timer, TrendingUp } from "lucide-react";
 
 const SESSION_ITEMS = [
   { href: "/study", label: "Study", icon: Timer, exact: true },
   { href: "/study/modules", label: "Modules", icon: Layers },
+  { href: "/study/review", label: "Review", icon: ClipboardList },
   { href: "/study/stats", label: "Stats", icon: TrendingUp },
   { href: "/study/ap", label: "APs", icon: GraduationCap },
 ];

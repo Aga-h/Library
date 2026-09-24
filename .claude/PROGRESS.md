@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-24 — calendar removed, study rebuilt around modules; **018 then 019 awaiting SQL**
+**Updated:** 2026-09-24 — daily review + 23:15 routine; **018, 019 and the review setup await the user**
 
 ## Done
 
@@ -178,6 +178,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       task into a study session: **no XP and no study time was lost**, proven by before/after
       totals on a seeded copy of the old schema.
 
+- [x] **Daily review** — `/study/review` (any date, prev/next) and the same as JSON at
+      `GET /api/study/review`: time per module, XP and level-ups, streak, AP units ticked, SAT
+      questions answered with the words that went to To Review. Day boundaries go through
+      `todayKey`, so 00:30 in Istanbul counts for that day, not the previous UTC one — proven by
+      a mutation test that swaps in UTC and fails. The endpoint also accepts
+      `Authorization: Bearer <REPORT_TOKEN>` for exactly that path and GET only; unset or under
+      32 chars it fails closed (verified end to end, including the literal string "undefined").
+- [x] **Nightly review routine** `trig_01CmCeMSpvvCU2xYoyRyNjQy` — `15 20 * * *` UTC = 23:15
+      Istanbul (UTC+3 year-round, no DST). Fresh session per night, push notification on. It
+      curls the JSON and writes the report; if setup is missing it says exactly what, and never
+      invents numbers. No connectors — it needs none. Environment `env_01ChuErCg6LBHyTA3T7HcGXZ`.
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
@@ -195,6 +207,15 @@ Three items were scoped in the audit but not implemented. In rough value order:
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Set up the nightly review** (the routine fires regardless and reports what is missing):
+  1. Vercel → project → Settings → Environment Variables: `REPORT_TOKEN` = 32+ random chars,
+     then **redeploy** (env changes only reach new deployments).
+  2. This Claude cloud environment → Edit → environment variables: the same `REPORT_TOKEN`, and
+     `PORTAL_URL` = the site's address, no trailing slash.
+  3. Same settings → Network access: add the site's host to the allowed domains. The current
+     policy denies `*.vercel.app` (proxy 403, verified) — without this the routine cannot reach
+     the site at all.
 
 - **Set the GitHub repo description.** There is no tool for it here; it is Settings → General.
   Suggested: "Personal hub — media library, wardrobe, finances, calendar and a task tracker that

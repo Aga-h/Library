@@ -23,6 +23,7 @@ Needs a `.env` with at least:
 DATABASE_URL=postgresql://…     # Supabase Postgres
 AUTH_SECRET=…                   # signing key for the session cookie
 AUTH_PASSWORD=…                 # the password you log in with
+REPORT_TOKEN=…                  # optional: 32+ random chars; lets the nightly review read /api/study/review
 ```
 
 Optional, per feature: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (cover uploads),
