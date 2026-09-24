@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-24 — Study section (SAT vocabulary); **018 awaiting SQL**
+**Updated:** 2026-09-24 — SAT vocabulary list built in (991 words); **018 awaiting SQL**
 
 ## Done
 
@@ -33,10 +33,12 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       Done or Ambiguous; answer wrong and it goes to To Review automatically and cannot be
       reclassified. The three lists show word + meaning and persist until "Take the test again",
       which builds and reshuffles a fresh run. The word list is pasted in at
-      `/study/sat-vocab/words` — no migration needed to change it, and re-pasting a word replaces
-      its meanings rather than duplicating. **The rule that makes the test honest:** distractors
-      never include another sense of the same word (a second correct answer), and there is at
-      most one option per word. Verified on real generated runs, not just in unit tests.
+      `/study/sat-vocab/words` — no migration needed to change it, and re-importing a word
+      replaces its meanings rather than duplicating. **The rules that make the test honest:**
+      a distractor is never another sense of the same word (that would be a second correct
+      answer) and never reads the same as the answer (different words share definitions —
+      amiable and amicable are both "friendly"); at most one option per word. Verified on real
+      generated runs, not just in unit tests.
 
 - [x] **XP curve retuned** — `k` 5 → 10, with the scale tied to `30k` so level 1 stays at about
       half an hour. Each level now costs +10.5% instead of +22%, and a doubling of hours buys
@@ -234,10 +236,12 @@ Three items were scoped in the audit but not implemented. In rough value order:
 
 - **Run `prisma/manual-migrations/018-sat-vocab.sql`** — creates `VocabWord`, `VocabMeaning`,
   `VocabRun`, `VocabQuestion` and the `VocabVerdict` enum. Additive, RLS on, safe to re-run.
-  `/study/sat-vocab` errors until it runs. No seed data: the word list is pasted in through the UI.
+  `/study/sat-vocab` errors until it runs. No seed data: the word list is imported through the UI.
 
-- **Paste the SAT word list** at `/study/sat-vocab/words` once 018 is applied. One word per line,
-  then `—`, `:` or a tab, then the meaning; several meanings separated by `;` or numbered.
+- **Load the word list** at `/study/sat-vocab/words` once 018 is applied — one button,
+  "Load the built-in SAT list (991 words)". The list lives in the repo at `lib/sat-vocab-list.ts`,
+  so correcting a definition is an edit there plus pressing the button again; pasting a custom
+  list still works alongside it.
 
 - **Run `prisma/manual-migrations/015-ap-courses.sql` then `016-ap-units.sql`** — 015 creates
   `ApCourse`/`ApUnit` (additive, RLS on); 016 loads the 6 courses and 37 units. 016 is an upsert
@@ -276,6 +280,12 @@ Three items were scoped in the audit but not implemented. In rough value order:
   Postgres *and* prove it can fail before handing it over.
 
 ## Notes for the next session
+
+- **Real data found two defects that 68 unit assertions did not.** The 991-word list contains six
+  pairs of different words sharing one definition verbatim, which the builder happily offered as
+  each other's distractors — 51 of 240 questions broken on that data. And a per-word import loop
+  was 991 round trips, fine against localhost and a timeout against Supabase. Run new code over
+  the actual corpus before believing it.
 
 - The expense logger's duplicate bug was only visible by checking the **database**, not the UI —
   the browser tests all passed while Postgres held 4 rows for 3 expenses. Assert against the data

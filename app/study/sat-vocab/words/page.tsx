@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
+import { SAT_VOCAB_WORD_COUNT } from "@/lib/sat-vocab-list";
 import VocabImport from "@/components/study/VocabImport";
 
 export default async function VocabWordsPage() {
@@ -31,8 +32,8 @@ export default async function VocabWordsPage() {
       </div>
 
       <section className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Paste a list</h3>
-        <VocabImport />
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Add words</h3>
+        <VocabImport builtinSize={SAT_VOCAB_WORD_COUNT} />
       </section>
 
       {words.length > 0 && (

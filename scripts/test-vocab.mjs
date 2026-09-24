@@ -3,6 +3,7 @@
 //
 // Run: node --experimental-strip-types scripts/test-vocab.mjs
 import { parseWordList, buildQuestions, shuffle, OPTIONS_PER_QUESTION } from "../lib/vocab.ts";
+import { SAT_VOCAB_LIST, SAT_VOCAB_WORD_COUNT } from "../lib/sat-vocab-list.ts";
 
 let pass = 0;
 const failures = [];
@@ -61,11 +62,16 @@ eq(dupes.words[0].meanings, ["to lessen", "to reduce in amount"], "…merging se
 // ── building the test ────────────────────────────────────────────────────────
 // Three words: one with three senses, two with one each, plus filler for distractors.
 const meanings = [
-  { id: "m1", wordId: "w1" }, { id: "m2", wordId: "w1" }, { id: "m3", wordId: "w1" },
-  { id: "m4", wordId: "w2" }, { id: "m5", wordId: "w3" }, { id: "m6", wordId: "w4" },
-  { id: "m7", wordId: "w5" }, { id: "m8", wordId: "w6" },
+  { id: "m1", wordId: "w1", text: "to lessen" },
+  { id: "m2", wordId: "w1", text: "to reduce in amount" },
+  { id: "m3", wordId: "w1", text: "to put an end to" },
+  { id: "m4", wordId: "w2", text: "deviating from the norm" },
+  { id: "m5", wordId: "w3", text: "to depart secretly" },
+  { id: "m6", wordId: "w4", text: "an award or honour" },
+  { id: "m7", wordId: "w5", text: "excessively dry" },
+  { id: "m8", wordId: "w6", text: "dull, commonplace" },
 ];
-const questions = buildQuestions(meanings, seededRng(42));
+const questions = buildQuestions(meanings, { random: seededRng(42) });
 
 eq(questions.length, meanings.length, "one question per meaning, not per word");
 eq(questions.map((q) => q.position), [...meanings.keys()], "positions are 0..n-1 in order");
@@ -89,14 +95,58 @@ for (const q of questions) {
   eq(new Set(wordsOnShow).size, wordsOnShow.length, `question ${q.meaningId}: one option per word`);
 }
 
+// ── two words, one definition ────────────────────────────────────────────────
+// Real lists do this: amiable and amicable are both "friendly". Offering one as a distractor for
+// the other marks a correct answer wrong, so an option must never read the same as the answer.
+const clashing = [
+  { id: "c1", wordId: "amiable", text: "friendly" },
+  { id: "c2", wordId: "amicable", text: "  Friendly.  " },
+  { id: "c3", wordId: "cloying", text: "sickeningly sweet" },
+  { id: "c4", wordId: "saccharine", text: "sickeningly sweet" },
+  { id: "c5", wordId: "arid", text: "excessively dry" },
+  { id: "c6", wordId: "banal", text: "dull, commonplace" },
+];
+const byClashId = new Map(clashing.map((m) => [m.id, m]));
+const norm = (t) => t.toLowerCase().replace(/\s+/g, " ").replace(/[.,;:]+$/, "").trim();
+for (let seed = 1; seed <= 40; seed++) {
+  for (const q of buildQuestions(clashing, { random: seededRng(seed) })) {
+    const answer = norm(byClashId.get(q.meaningId).text);
+    const others = q.optionIds.filter((id) => id !== q.meaningId).map((id) => norm(byClashId.get(id).text));
+    ok(!others.includes(answer), `seed ${seed}, ${q.meaningId}: no distractor reading the same as the answer`);
+    eq(new Set(others).size, others.length, `seed ${seed}, ${q.meaningId}: no two distractors reading alike`);
+  }
+}
+
+// ── a short run out of a long list ───────────────────────────────────────────
+const limited = buildQuestions(meanings, { limit: 3, random: seededRng(11) });
+eq(limited.length, 3, "limit caps how many questions are asked");
+eq(limited.map((q) => q.position), [0, 1, 2], "…and they are still positioned 0..n-1");
+eq([...new Set(limited.map((q) => q.meaningId))].length, 3, "…with no meaning asked twice");
+for (const q of limited) ok(q.optionIds.includes(q.meaningId), "short run: answer present");
+
+// Distractors come from the whole list, not just the meanings being asked about — otherwise a
+// 25-question run would show the same 25 options over and over.
+const askedIds = new Set(limited.map((q) => q.meaningId));
+const optionsOutsideTheRun = limited.flatMap((q) => q.optionIds).filter((id) => !askedIds.has(id));
+ok(optionsOutsideTheRun.length > 0, "short run draws distractors from the whole list");
+
+eq(buildQuestions(meanings, { limit: 999, random: seededRng(11) }).length, meanings.length,
+  "a limit above the list size asks the whole list");
+eq(buildQuestions(meanings, { random: seededRng(11) }).length, meanings.length,
+  "no limit asks the whole list");
+eq(buildQuestions(meanings, { limit: 0, random: seededRng(11) }).length, 0, "a limit of zero asks nothing");
+
 // ── a word with few neighbours still gets a question ─────────────────────────
-const tiny = buildQuestions([{ id: "a1", wordId: "x" }, { id: "a2", wordId: "x" }, { id: "b1", wordId: "y" }], seededRng(7));
+const tiny = buildQuestions(
+  [{ id: "a1", wordId: "x", text: "one" }, { id: "a2", wordId: "x", text: "two" }, { id: "b1", wordId: "y", text: "three" }],
+  { random: seededRng(7) },
+);
 eq(tiny.length, 3, "a tiny list still produces every question");
 for (const q of tiny) {
   ok(q.optionIds.includes(q.meaningId), "tiny list: answer still present");
   ok(q.optionIds.length <= OPTIONS_PER_QUESTION, "tiny list: never more options than the cap");
 }
-const onlyOne = buildQuestions([{ id: "s1", wordId: "solo" }], seededRng(3));
+const onlyOne = buildQuestions([{ id: "s1", wordId: "solo", text: "alone" }], { random: seededRng(3) });
 eq(onlyOne.length, 1, "one meaning in the whole list still gives one question");
 eq(onlyOne[0].optionIds, ["s1"], "…with nothing to distract it");
 
@@ -108,9 +158,22 @@ ok(mixed.join() !== items.join(), "shuffle changes the order");
 eq(items, Array.from({ length: 50 }, (_, i) => i), "shuffle does not mutate its input");
 
 // Two runs over the same list differ — otherwise "shuffled again" would be a lie.
-const runA = buildQuestions(meanings, seededRng(1)).map((q) => q.meaningId).join();
-const runB = buildQuestions(meanings, seededRng(2)).map((q) => q.meaningId).join();
+const runA = buildQuestions(meanings, { random: seededRng(1) }).map((q) => q.meaningId).join();
+const runB = buildQuestions(meanings, { random: seededRng(2) }).map((q) => q.meaningId).join();
 ok(runA !== runB, "a fresh run comes out in a different order");
+
+// ── the list that ships with the repo ────────────────────────────────────────
+// Guards the data, not just the code: an edit to sat-vocab-list.ts that breaks the format fails
+// here rather than silently dropping words at import time.
+const builtin = parseWordList(SAT_VOCAB_LIST);
+eq(builtin.skipped, [], "every line of the built-in list parses");
+eq(builtin.words.length, SAT_VOCAB_WORD_COUNT, "…and the advertised word count is the real one");
+ok(builtin.words.length > 900, "the built-in list is the whole list");
+ok(builtin.words.every((w) => w.meanings.length > 0), "every built-in word has at least one meaning");
+ok(builtin.words.every((w) => !/[\s,;]/.test(w.word)), "no built-in word token swallowed its meaning");
+ok(builtin.words.every((w) => w.meanings.every((m) => m.length > 1)), "no built-in meaning is a stray fragment");
+const builtinWords = builtin.words.map((w) => w.word.toLowerCase());
+eq(new Set(builtinWords).size, builtinWords.length, "no word appears twice in the built-in list");
 
 if (failures.length) {
   console.error(`${pass} passed, ${failures.length} failed\n`);

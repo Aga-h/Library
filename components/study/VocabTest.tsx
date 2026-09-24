@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, CircleHelp, RotateCcw, X } from "lucide-react";
+import { DEFAULT_RUN_LENGTH, RUN_LENGTHS } from "@/lib/vocab";
 
 export interface OptionView {
   id: string;
@@ -39,13 +40,14 @@ export default function VocabTest({
   answered,
   total,
   categories,
-  hasWords,
+  meaningCount,
 }: {
   question: QuestionView | null;
   answered: number;
   total: number;
   categories: Categories;
-  hasWords: boolean;
+  /** Every meaning in the list — the longest a run could be. */
+  meaningCount: number;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -53,6 +55,7 @@ export default function VocabTest({
   const [error, setError] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [length, setLength] = useState(Math.min(DEFAULT_RUN_LENGTH, meaningCount));
 
   async function post(url: string, body: unknown) {
     setError(null);
@@ -93,12 +96,15 @@ export default function VocabTest({
     setBusy(true);
     setPicked(null);
     setOutcome(null);
-    await post("/api/study/vocab/run", {});
+    await post("/api/study/vocab/run", { limit: length });
     startTransition(() => router.refresh());
     setBusy(false);
   }
 
   const finished = total > 0 && answered >= total;
+
+  // The offered lengths, capped at the list, with the whole list always last.
+  const lengthChoices = [...new Set([...RUN_LENGTHS.filter((n) => n < meaningCount), meaningCount])];
 
   return (
     <div className="space-y-6">
@@ -121,7 +127,23 @@ export default function VocabTest({
             </div>
           )}
         </div>
-        {hasWords && (
+        <div className="flex items-center gap-2">
+          <label htmlFor="run-length" className="sr-only">
+            Questions per test
+          </label>
+          <select
+            id="run-length"
+            value={length}
+            onChange={(e) => setLength(Number(e.target.value))}
+            disabled={busy}
+            className="border border-gray-200 text-gray-700 rounded-lg px-2.5 py-2 text-sm font-semibold bg-white disabled:opacity-50"
+          >
+            {lengthChoices.map((n) => (
+              <option key={n} value={n}>
+                {n >= meaningCount ? `All ${meaningCount}` : `${n} questions`}
+              </option>
+            ))}
+          </select>
           <button
             onClick={restart}
             disabled={busy}
@@ -130,7 +152,7 @@ export default function VocabTest({
             <RotateCcw className="w-4 h-4" />
             {total === 0 ? "Start the test" : "Take the test again"}
           </button>
-        )}
+        </div>
       </div>
 
       {/* The question */}

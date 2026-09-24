@@ -11,7 +11,11 @@ import VocabTest, {
 } from "@/components/study/VocabTest";
 
 export default async function SatVocabPage() {
-  const [wordCount, run] = await Promise.all([db.vocabWord.count(), currentRun()]);
+  const [wordCount, meaningCount, run] = await Promise.all([
+    db.vocabWord.count(),
+    db.vocabMeaning.count(),
+    currentRun(),
+  ]);
 
   const questions = run?.questions ?? [];
   const answered = questions.filter((q) => q.verdict !== null).length;
@@ -74,7 +78,7 @@ export default async function SatVocabPage() {
           <ListChecks className="w-8 h-8 text-gray-300 mx-auto mb-3" />
           <p className="font-semibold text-gray-700">No words yet</p>
           <p className="text-sm text-gray-500 mt-1">
-            Paste a vocabulary list and the questions build themselves from it.
+            Load the built-in SAT list, or paste your own — the questions build themselves from it.
           </p>
           <Link
             href="/study/sat-vocab/words"
@@ -89,7 +93,7 @@ export default async function SatVocabPage() {
           answered={answered}
           total={questions.length}
           categories={categories}
-          hasWords={wordCount > 0}
+          meaningCount={meaningCount}
         />
       )}
     </div>

@@ -100,9 +100,16 @@ function splitMeanings(rest: string): string[] {
 
 export const OPTIONS_PER_QUESTION = 4;
 
+/** Offered lengths for a run. The whole list is always offered alongside these. */
+export const RUN_LENGTHS = [25, 50, 100, 250] as const;
+
+/** How many questions a run asks when nothing else is chosen. */
+export const DEFAULT_RUN_LENGTH = 50;
+
 export interface MeaningRef {
   id: string;
   wordId: string;
+  text: string;
 }
 
 export interface BuiltQuestion {
@@ -111,34 +118,61 @@ export interface BuiltQuestion {
   optionIds: string[];
 }
 
+export interface BuildOptions {
+  /** How many questions to ask. Left out, it asks about every meaning in the list. */
+  limit?: number;
+  random?: () => number;
+}
+
+/** The same wording, ignoring case, spacing and trailing punctuation. */
+function normalise(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").replace(/[.,;:]+$/, "").trim();
+}
+
 /**
  * One question per meaning, shuffled, each with its distractors.
  *
- * Distractors come only from meanings belonging to *other* words. Another sense of the same word
- * would be a second correct answer to "what does this word mean", which is the one thing that
- * would make the test wrong.
+ * Two rules keep the test honest, and both come from real lists rather than theory:
+ *
+ *  - No distractor from the same word. Another sense of the word being asked about would be a
+ *    second correct answer.
+ *  - No distractor that reads the same as the answer. Different words genuinely share a
+ *    definition -- amiable and amicable are both "friendly" -- and offering one as a wrong
+ *    answer marks a correct answer wrong.
+ *
+ * At most one option per word as well: a second sense of some other word is not incorrect, it
+ * just spends an option on a word already ruled out.
+ *
+ * Distractors are drawn from the whole vocabulary even when only a slice of it is being asked
+ * about, so a short run is not four options deep.
  *
  * `random` is injected so the shuffle can be asserted rather than hoped at.
  */
-export function buildQuestions(meanings: MeaningRef[], random: () => number = Math.random): BuiltQuestion[] {
-  const order = shuffle(meanings, random);
+export function buildQuestions(meanings: MeaningRef[], options: BuildOptions = {}): BuiltQuestion[] {
+  const { limit, random = Math.random } = options;
 
-  return order.map((meaning, index) => {
+  const order = shuffle(meanings, random);
+  const asked = limit === undefined ? order : order.slice(0, Math.max(0, limit));
+
+  return asked.map((meaning, index) => {
     const pool = meanings.filter((m) => m.wordId !== meaning.wordId);
 
-    // One distractor per word. Two senses of the same other word would both be wrong, so they
-    // are not incorrect — they just waste an option on a word you have already ruled out.
     const distractors: MeaningRef[] = [];
     const usedWords = new Set<string>([meaning.wordId]);
+    const usedTexts = new Set<string>([normalise(meaning.text)]);
+
     for (const candidate of shuffle(pool, random)) {
       if (distractors.length >= OPTIONS_PER_QUESTION - 1) break;
       if (usedWords.has(candidate.wordId)) continue;
+      const text = normalise(candidate.text);
+      if (usedTexts.has(text)) continue;
       usedWords.add(candidate.wordId);
+      usedTexts.add(text);
       distractors.push(candidate);
     }
 
-    const options = shuffle([meaning, ...distractors], random).map((m) => m.id);
-    return { meaningId: meaning.id, position: index, optionIds: options };
+    const optionIds = shuffle([meaning, ...distractors], random).map((m) => m.id);
+    return { meaningId: meaning.id, position: index, optionIds };
   });
 }
 
