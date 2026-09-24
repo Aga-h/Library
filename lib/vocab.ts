@@ -100,11 +100,13 @@ function splitMeanings(rest: string): string[] {
 
 export const OPTIONS_PER_QUESTION = 4;
 
-/** Offered lengths for a run. The whole list is always offered alongside these. */
+/**
+ * Shorter runs on offer, for when the whole list is too much in one sitting.
+ *
+ * The whole list is offered alongside these and is what a run defaults to -- leaving `limit`
+ * off `buildQuestions` asks about every meaning.
+ */
 export const RUN_LENGTHS = [25, 50, 100, 250] as const;
-
-/** How many questions a run asks when nothing else is chosen. */
-export const DEFAULT_RUN_LENGTH = 50;
 
 export interface MeaningRef {
   id: string;

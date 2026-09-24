@@ -31,7 +31,9 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 - [x] **Study section — SAT vocabulary** (`/study/sat-vocab`). One multiple-choice question per
       *meaning*, so a word with three senses is asked three times. Answer right and file it as
       Done or Ambiguous; answer wrong and it goes to To Review automatically and cannot be
-      reclassified. The three lists show word + meaning and persist until "Take the test again",
+      reclassified. A run is the **whole list** by default — all 1,068 questions — with 25 / 50 /
+      100 / 250 on offer next to the button for a shorter sitting. Distractors are always drawn
+      from the whole vocabulary, so a short run is not four options deep. The three lists show word + meaning and persist until "Take the test again",
       which builds and reshuffles a fresh run. The word list is pasted in at
       `/study/sat-vocab/words` — no migration needed to change it, and re-importing a word
       replaces its meanings rather than duplicating. **The rules that make the test honest:**

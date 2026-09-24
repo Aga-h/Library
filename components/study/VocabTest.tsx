@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, CircleHelp, RotateCcw, X } from "lucide-react";
-import { DEFAULT_RUN_LENGTH, RUN_LENGTHS } from "@/lib/vocab";
+import { RUN_LENGTHS } from "@/lib/vocab";
 
 export interface OptionView {
   id: string;
@@ -55,7 +55,8 @@ export default function VocabTest({
   const [error, setError] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
-  const [length, setLength] = useState(Math.min(DEFAULT_RUN_LENGTH, meaningCount));
+  // The whole list, unless a shorter run is picked.
+  const [length, setLength] = useState(meaningCount);
 
   async function post(url: string, body: unknown) {
     setError(null);
