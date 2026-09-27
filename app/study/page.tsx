@@ -65,12 +65,14 @@ export default async function StudyPage() {
         today={today}
         weekLabel={weekLabel(weekStartOf(today))}
         overall={{ goalMinutes, doneSeconds: week.week }}
+        // Every module you can study gets a row, goal or not. One with no stats cannot be started,
+        // so a goal for it could never move.
         modules={modules
-          .filter((m) => m.weeklyGoalMinutes !== null)
+          .filter((m) => m.stats.length > 0)
           .map((m) => ({
             id: m.id,
             title: m.title,
-            goalMinutes: m.weeklyGoalMinutes!,
+            goalMinutes: m.weeklyGoalMinutes,
             doneSeconds: byModule[m.id] ?? 0,
           }))}
       />

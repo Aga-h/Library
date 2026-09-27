@@ -70,9 +70,10 @@ export function runningSeconds(session: RunningSessionView, nowMs: number): numb
 
 // ─── Duration formatting ─────────────────────────────────────────────────────
 
-/** "2h 30m" / "45m" / "20s" */
+/** "2h 30m" / "45m" / "20s" / "0m" — nothing at all reads as minutes, not a stray "0s". */
 export function formatDuration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
+  if (total === 0) return "0m";
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;

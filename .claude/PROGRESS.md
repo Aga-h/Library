@@ -197,8 +197,9 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
       `lib/dates.ts`). **Update it whenever a section's behaviour changes.**
 
-- [x] **Weekly study goals** — an overall target in hours (Study page, pencil to edit) and an
-      optional one per module (Modules page). Progress bars on the Study page, a "2h / 5h this
+- [x] **Weekly study goals** — an overall target in hours and one per module, all set inline in
+      the Study page's This week box: every studyable module has its own row there, with "Set goal"
+      when it has none (also editable on the Modules page). Progress bars on the Study page, a "2h / 5h this
       week" line on each module card, and a Weekly goals block in the daily review and the 23:15
       report. Per-day need counts today and rounds up, so it never under-asks — a property test
       checks that over every day of a week. Verified over HTTP against Postgres: every bad input

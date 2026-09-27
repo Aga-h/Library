@@ -51,12 +51,13 @@ eq(runningSeconds(running, Date.parse("2026-09-24T10:02:00Z")), 120, "two minute
 eq(runningSeconds(running, Date.parse("2026-09-24T09:58:00Z")), 0, "…and never negative");
 
 // ── formatting ───────────────────────────────────────────────────────────────
-eq(formatDuration(0), "0s", "zero");
+eq(formatDuration(0), "0m", "nothing reads as 0m, not a stray 0s");
+eq(formatDuration(0.4), "0m", "…including a fraction that rounds to nothing");
 eq(formatDuration(45), "45s", "under a minute");
 eq(formatDuration(60), "1m", "exactly a minute");
 eq(formatDuration(3600), "1h", "a round hour drops the minutes");
 eq(formatDuration(9000), "2h 30m", "hours and minutes");
-eq(formatDuration(-10), "0s", "negatives floor at zero");
+eq(formatDuration(-10), "0m", "negatives floor at zero");
 
 eq(formatStopwatch(0), "00:00", "stopwatch starts at zero");
 eq(formatStopwatch(59), "00:59", "under a minute");
