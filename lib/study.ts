@@ -37,6 +37,8 @@ export interface ModuleView {
   title: string;
   notes: string | null;
   stats: Stat[];
+  /** Weekly goal in minutes, or null for none. */
+  weeklyGoalMinutes: number | null;
 }
 
 export interface RunningSessionView {

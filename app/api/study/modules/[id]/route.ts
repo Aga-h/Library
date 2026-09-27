@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { withErrors } from "@/lib/api-errors";
 import { MAX_STATS_PER_MODULE, MIN_STATS_PER_MODULE, STATS } from "@/lib/stats";
+import { hoursToMinutes } from "@/lib/goals";
+import { weeklyGoalHours } from "@/lib/goal-schema";
 
 const updateSchema = z.object({
   title: z.string().min(1).optional(),
@@ -13,6 +15,8 @@ const updateSchema = z.object({
     .min(MIN_STATS_PER_MODULE, "Pick at least one stat")
     .max(MAX_STATS_PER_MODULE, `At most ${MAX_STATS_PER_MODULE} stats`)
     .optional(),
+  /** Hours a week, or null for no goal. Left out, it is left alone. */
+  weeklyGoalHours: weeklyGoalHours.optional(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -37,6 +41,9 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
         // Explicit null clears the note; undefined leaves it alone.
         ...(d.notes !== undefined ? { notes: d.notes?.trim() || null } : {}),
         ...(d.stats !== undefined ? { stats: [...new Set(d.stats)] } : {}),
+        ...(d.weeklyGoalHours !== undefined
+          ? { weeklyGoalMinutes: d.weeklyGoalHours === null ? null : hoursToMinutes(d.weeklyGoalHours) }
+          : {}),
       },
     });
     return NextResponse.json(updated);

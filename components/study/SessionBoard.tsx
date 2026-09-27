@@ -12,11 +12,14 @@ export default function SessionBoard({
   running,
   modules,
   today,
+  weekSeconds,
   serverNow,
 }: {
   running: RunningSessionView | null;
   modules: ModuleView[];
   today: SessionView[];
+  /** Seconds studied this week per module id, for the goal line on each card. */
+  weekSeconds: Record<string, number>;
   /** The server's clock at render, so the first frame matches and the tick can take over. */
   serverNow: number;
 }) {
@@ -135,6 +138,13 @@ export default function SessionBoard({
                           <span className="min-w-0">
                             <span className="block font-semibold text-gray-900 text-sm truncate">{m.title}</span>
                             <span className="block mt-1.5"><StatBadges stats={m.stats} size="xs" /></span>
+                            {m.weeklyGoalMinutes !== null && (
+                              <span className={`block text-[11px] mt-1.5 tabular-nums ${
+                                (weekSeconds[m.id] ?? 0) >= m.weeklyGoalMinutes * 60 ? "text-emerald-600" : "text-gray-400"
+                              }`}>
+                                {formatDuration(weekSeconds[m.id] ?? 0)} / {formatDuration(m.weeklyGoalMinutes * 60)} this week
+                              </span>
+                            )}
                           </span>
                           <Play className="w-4 h-4 text-gray-300 flex-shrink-0" />
                         </span>

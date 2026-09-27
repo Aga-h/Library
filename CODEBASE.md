@@ -90,6 +90,12 @@ back through the relation. That is what makes the history stable: re-pointing a 
 cannot rewrite what past sessions earned, and deleting a module (`SetNull`) leaves its sessions
 readable by name instead of silently turning them into free ones.
 
+**Weekly goals.** `Module.weeklyGoalMinutes` is a per-module target and `StudyConfig` (one row,
+id `global`, like `FinanceConfig`) holds the overall one; both nullable, both in minutes so 7.5h
+is exact. Progress is not stored — it is this week's session time, Monday to Sunday in Istanbul,
+with a running session added live. Free study counts toward the overall goal only. The per-day
+figure counts today as a day left and rounds up, so it never asks for less than what remains.
+
 `ApCourse`/`ApUnit` hold the College Board unit lists; ticking a unit sets `completedAt`.
 
 **Daily review.** `/study/review` (and the same thing as JSON at `/api/study/review`) adds up one
@@ -140,6 +146,7 @@ scripts/                node test scripts, graph sealing
 | `derive-status.ts` | Progress counts → status, for every medium |
 | `dates.ts` | Date keys and the app timezone |
 | `study.ts` / `study-service.ts` | Session and XP rules (client-safe) / Prisma side |
+| `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
 | `vocab.ts` / `vocab-service.ts` | Parsing a pasted word list, and building the test / its Prisma side |

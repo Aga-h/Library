@@ -38,6 +38,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `017-free-study.sql` | Adds `StudySession` for studying with nothing scheduled, makes `XpAward.taskId` nullable and adds `XpAward.studySessionId` so XP can come from either source, each with its own unique index. Additive, RLS on — run **before** the deploy. |
 | `018-sat-vocab.sql` | Creates `VocabWord`, `VocabMeaning`, `VocabRun`, `VocabQuestion` and the `VocabVerdict` enum for the SAT vocabulary test. Additive, RLS on — run **before** the deploy. |
 | `019-drop-calendar.sql` | **Removes the calendar.** Renames `EventModule` to `Module` and drops its hours, adds `moduleId`/`moduleTitle` to `StudySession`, converts every worked `Task` into a study session carrying its date, seconds and XP, then drops `Task`, `TaskSession`, `CalendarDay`, `DayPlan`, `DayPlanModule`, `DayActivity`, `DayOff`, `SchoolTerm` and the `TaskStatus`/`DayKind` enums. Destructive but **loses no XP and no study time**. The new code needs the new shape, so unlike other removals this runs as soon as the deploy is live. |
+| `020-study-goals.sql` | Adds `Module.weeklyGoalMinutes` and the single-row `StudyConfig` table for weekly study goals. Additive, RLS on — run **before** the deploy. **Requires 019** (the `Module` rename). Verified: the pre-migration drift report listed exactly these two changes, a re-run is a no-op, and `migrate diff` is empty after. |
 
 ## How 019 was verified
 

@@ -4,7 +4,7 @@
 import type { Stat } from "@prisma/client";
 import { db } from "@/lib/db";
 import { STATS } from "@/lib/stats";
-import { addDays, dayOfWeek, fromKey, toKey, type DateKey } from "@/lib/dates";
+import { fromKey, toKey, weekStartOf, type DateKey } from "@/lib/dates";
 import {
   FREE_STUDY_STATS,
   secondsBetween,
@@ -135,7 +135,7 @@ export interface StudyTotals {
  * top by hand. Weeks start Monday.
  */
 export async function studyTotals(today: DateKey, now: Date = new Date()): Promise<StudyTotals> {
-  const weekStart = addDays(today, -((dayOfWeek(today) + 6) % 7));
+  const weekStart = weekStartOf(today);
   const monthStart = `${today.slice(0, 7)}-01` as DateKey;
 
   const banked = async (where: object) =>
@@ -213,4 +213,46 @@ export function toRunningView(
     stats: session.stats,
     moduleTitle: session.module?.title ?? session.moduleTitle,
   };
+}
+
+// ─── Weekly goals ────────────────────────────────────────────────────────────
+
+/** The overall weekly goal in minutes, or null when none is set. */
+export async function weeklyGoalMinutes(): Promise<number | null> {
+  const config = await db.studyConfig.findUnique({ where: { id: "global" } });
+  return config?.weeklyGoalMinutes ?? null;
+}
+
+/**
+ * Seconds studied per module in the week up to and including `today`, a running session added
+ * live. Keyed by module id; free study has no module and is not in here — it counts toward the
+ * overall goal only.
+ */
+export async function weekSecondsByModule(
+  today: DateKey,
+  now: Date = new Date(),
+): Promise<Record<string, number>> {
+  const weekStart = weekStartOf(today);
+  const [rows, running] = await Promise.all([
+    db.studySession.groupBy({
+      by: ["moduleId"],
+      where: {
+        date: { gte: fromKey(weekStart), lte: fromKey(today) },
+        moduleId: { not: null },
+      },
+      _sum: { seconds: true },
+    }),
+    openSession(),
+  ]);
+
+  const out: Record<string, number> = {};
+  for (const row of rows) if (row.moduleId) out[row.moduleId] = row._sum.seconds ?? 0;
+
+  if (running?.moduleId) {
+    const key = toKey(running.date);
+    if (key >= weekStart && key <= today) {
+      out[running.moduleId] = (out[running.moduleId] ?? 0) + secondsBetween(running.startedAt, now);
+    }
+  }
+  return out;
 }

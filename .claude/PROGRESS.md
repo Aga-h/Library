@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-24 — daily review + 23:15 routine; **018, 019 and the review setup await the user**
+**Updated:** 2026-09-27 — weekly study goals; **018, 019, 020 await the user** (in that order)
 
 ## Done
 
@@ -197,6 +197,14 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
       `lib/dates.ts`). **Update it whenever a section's behaviour changes.**
 
+- [x] **Weekly study goals** — an overall target in hours (Study page, pencil to edit) and an
+      optional one per module (Modules page). Progress bars on the Study page, a "2h / 5h this
+      week" line on each module card, and a Weekly goals block in the daily review and the 23:15
+      report. Per-day need counts today and rounds up, so it never under-asks — a property test
+      checks that over every day of a week. Verified over HTTP against Postgres: every bad input
+      refused (0, negative, over 168h, a sliver, a string), clearing works, and progress matched
+      SQL including a running session.
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
@@ -235,6 +243,10 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Run `prisma/manual-migrations/020-study-goals.sql`** after 019 — additive (goal column +
+  `StudyConfig`). The deployed code reads these, so **/study and the nightly report error until it
+  runs.**
 
 - **Run `prisma/manual-migrations/019-drop-calendar.sql`** after 018 — removes the calendar and
   rebuilds study around modules. It is destructive (day plans, terms, days off and task rows are

@@ -14,8 +14,8 @@ export default async function ModulesPage() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Modules</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          The things you study. Each trains one to three stats; pick a module when you start a
-          session and those are the stats it levels.
+          The things you study. Each trains one to three stats, and can have a weekly goal in
+          hours; pick a module when you start a session and those are the stats it levels.
         </p>
       </div>
       <ModulesManager
@@ -24,6 +24,7 @@ export default async function ModulesPage() {
           title: m.title,
           notes: m.notes,
           stats: m.stats,
+          weeklyGoalMinutes: m.weeklyGoalMinutes,
           sessions: m._count.sessions,
         }))}
       />

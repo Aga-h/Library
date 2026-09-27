@@ -59,3 +59,13 @@ export function addDays(key: DateKey, days: number): DateKey {
 export function dayOfWeek(key: DateKey): number {
   return fromKey(key).getUTCDay();
 }
+
+/** Monday of the week `key` falls in. Weeks start Monday for every study total and goal. */
+export function weekStartOf(key: DateKey): DateKey {
+  return addDays(key, -((dayOfWeek(key) + 6) % 7));
+}
+
+/** Days left in the week, today included: 7 on a Monday, 1 on a Sunday. */
+export function daysLeftInWeek(key: DateKey): number {
+  return 7 - ((dayOfWeek(key) + 6) % 7);
+}

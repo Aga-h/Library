@@ -10,6 +10,7 @@
 
 import type { Stat } from "@prisma/client";
 import { levelFromXp } from "@/lib/leveling";
+import type { GoalProgress } from "@/lib/goals";
 import { addDays, fromKey, todayKey, type DateKey } from "@/lib/dates";
 
 // ─── Day boundaries ──────────────────────────────────────────────────────────
@@ -224,6 +225,14 @@ export interface DailyReview {
     totalLevelAfter: number;
   };
   ap: ApDay;
+  /**
+   * Weekly goals as they stood at the end of this date. The goal values are today's — goals have
+   * no history — so an old review is measured against the goal you have now.
+   */
+  goals: {
+    overall: GoalProgress | null;
+    modules: (GoalProgress & { title: string })[];
+  };
   vocab: VocabDay & {
     /** Where the current test stands overall, not just today. */
     run: { answered: number; total: number } | null;

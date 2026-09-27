@@ -2,7 +2,8 @@
 
 import { db } from "@/lib/db";
 import { addDays, fromKey, toKey, type DateKey } from "@/lib/dates";
-import { openSession, studyTotals } from "@/lib/study-service";
+import { openSession, studyTotals, weekSecondsByModule, weeklyGoalMinutes } from "@/lib/study-service";
+import { goalProgress } from "@/lib/goals";
 import { secondsBetween } from "@/lib/study";
 import {
   apForDate,
@@ -32,7 +33,7 @@ async function xpThrough(date: DateKey): Promise<Record<string, number>> {
 const STREAK_LOOKBACK_DAYS = 400;
 
 export async function dailyReview(date: DateKey, now: Date = new Date()): Promise<DailyReview> {
-  const [sessions, running, totals, studiedDays, before, after, units, answers, run] =
+  const [sessions, running, totals, studiedDays, before, after, units, answers, run, goalMinutes, goalModules, byModule] =
     await Promise.all([
       db.studySession.findMany({
         where: { date: fromKey(date), endedAt: { not: null } },
@@ -62,6 +63,13 @@ export async function dailyReview(date: DateKey, now: Date = new Date()): Promis
         orderBy: { startedAt: "desc" },
         select: { _count: { select: { questions: true } }, id: true },
       }),
+      weeklyGoalMinutes(),
+      db.module.findMany({
+        where: { weeklyGoalMinutes: { not: null } },
+        select: { id: true, title: true, weeklyGoalMinutes: true },
+        orderBy: { title: "asc" },
+      }),
+      weekSecondsByModule(date, now),
     ]);
 
   // A session running right now counts as today's study — it just has not been paid yet.
@@ -127,6 +135,13 @@ export async function dailyReview(date: DateKey, now: Date = new Date()): Promis
       })),
       date,
     ),
+    goals: {
+      overall: goalMinutes ? goalProgress(goalMinutes, totals.week, date) : null,
+      modules: goalModules.map((m) => ({
+        title: m.title,
+        ...goalProgress(m.weeklyGoalMinutes!, byModule[m.id] ?? 0, date),
+      })),
+    },
     vocab: {
       ...vocab,
       run: run ? { answered: runAnswered, total: run._count.questions } : null,

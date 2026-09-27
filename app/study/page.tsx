@@ -2,26 +2,45 @@ export const dynamic = "force-dynamic";
 
 import { levelFromXp } from "@/lib/leveling";
 import { STATS } from "@/lib/stats";
-import { todayKey } from "@/lib/dates";
+import { addDays, fromKey, todayKey, weekStartOf, type DateKey } from "@/lib/dates";
 import {
   listModules,
   openSession,
   sessionsForDate,
   statXpTotals,
+  studyTotals,
   toRunningView,
+  weekSecondsByModule,
+  weeklyGoalMinutes,
 } from "@/lib/study-service";
 import SessionBoard from "@/components/study/SessionBoard";
+import WeeklyGoals from "@/components/study/WeeklyGoals";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "22–28 Sep", or "29 Sep – 5 Oct" across a month. */
+function weekLabel(start: DateKey): string {
+  const end = addDays(start, 6);
+  const [s, e] = [fromKey(start), fromKey(end)];
+  const sm = MONTHS[s.getUTCMonth()], em = MONTHS[e.getUTCMonth()];
+  return sm === em
+    ? `${s.getUTCDate()}–${e.getUTCDate()} ${em}`
+    : `${s.getUTCDate()} ${sm} – ${e.getUTCDate()} ${em}`;
+}
 
 export default async function StudyPage() {
   // One clock for the whole render: the board needs the same instant the server used.
   const now = new Date();
   const today = todayKey(now);
 
-  const [running, modules, sessions, totals] = await Promise.all([
+  const [running, modules, sessions, totals, week, byModule, goalMinutes] = await Promise.all([
     openSession(),
     listModules(),
     sessionsForDate(today),
     statXpTotals(),
+    studyTotals(today, now),
+    weekSecondsByModule(today, now),
+    weeklyGoalMinutes(),
   ]);
 
   const totalLevel = STATS.reduce((sum, stat) => sum + levelFromXp(totals[stat] ?? 0), 0);
@@ -42,10 +61,27 @@ export default async function StudyPage() {
         </div>
       </div>
 
+      <WeeklyGoals
+        today={today}
+        weekLabel={weekLabel(weekStartOf(today))}
+        overall={{ goalMinutes, doneSeconds: week.week }}
+        modules={modules
+          .filter((m) => m.weeklyGoalMinutes !== null)
+          .map((m) => ({
+            id: m.id,
+            title: m.title,
+            goalMinutes: m.weeklyGoalMinutes!,
+            doneSeconds: byModule[m.id] ?? 0,
+          }))}
+      />
+
       <SessionBoard
         running={running ? toRunningView(running) : null}
-        modules={modules.map((m) => ({ id: m.id, title: m.title, notes: m.notes, stats: m.stats }))}
+        modules={modules.map((m) => ({
+          id: m.id, title: m.title, notes: m.notes, stats: m.stats, weeklyGoalMinutes: m.weeklyGoalMinutes,
+        }))}
         today={sessions}
+        weekSeconds={byModule}
         serverNow={now.getTime()}
       />
     </div>

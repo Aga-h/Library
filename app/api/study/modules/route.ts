@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { withErrors } from "@/lib/api-errors";
 import { MAX_STATS_PER_MODULE, MIN_STATS_PER_MODULE, STATS } from "@/lib/stats";
+import { hoursToMinutes } from "@/lib/goals";
+import { weeklyGoalHours } from "@/lib/goal-schema";
 
 const createSchema = z.object({
   title: z.string().min(1, "Name is required"),
@@ -12,6 +14,8 @@ const createSchema = z.object({
     .array(z.enum(STATS))
     .min(MIN_STATS_PER_MODULE, "Pick at least one stat")
     .max(MAX_STATS_PER_MODULE, `At most ${MAX_STATS_PER_MODULE} stats`),
+  /** Hours a week, or null for no goal. Left out, it is left alone. */
+  weeklyGoalHours: weeklyGoalHours.optional(),
 });
 
 async function GETHandler() {
@@ -34,7 +38,12 @@ async function POSTHandler(request: NextRequest) {
 
   try {
     const created = await db.module.create({
-      data: { title, notes: result.data.notes?.trim() || null, stats },
+      data: {
+        title,
+        notes: result.data.notes?.trim() || null,
+        stats,
+        weeklyGoalMinutes: result.data.weeklyGoalHours ? hoursToMinutes(result.data.weeklyGoalHours) : null,
+      },
     });
     return NextResponse.json(created, { status: 201 });
   } catch (e) {

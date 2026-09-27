@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookA, ChevronLeft, ChevronRight, Flame, GraduationCap, Timer, TrendingUp } from "lucide-react";
 import { dailyReview } from "@/lib/review-service";
 import { formatDuration } from "@/lib/study";
+import { paceText } from "@/lib/goals";
 import { addDays, fromKey, isDateKey, todayKey, type DateKey } from "@/lib/dates";
 import { STAT_META } from "@/lib/stats";
 import StatBadges from "@/components/study/StatBadges";
@@ -59,7 +60,10 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Tile icon={Timer} label="Studied" value={formatDuration(r.study.seconds)}
           hint={r.study.running ? "incl. a session still running" : `${r.study.sessions} session${r.study.sessions === 1 ? "" : "s"}`} accent />
-        <Tile icon={Timer} label="This week" value={formatDuration(r.study.weekSeconds)} hint={`since Mon ${r.study.weekStart.slice(8)}`} />
+        <Tile icon={Timer} label="This week" value={formatDuration(r.study.weekSeconds)}
+          hint={r.goals.overall
+            ? `of ${formatDuration(r.goals.overall.goalSeconds)} goal${r.goals.overall.met ? " — met" : ""}`
+            : `since Mon ${r.study.weekStart.slice(8)}`} />
         <Tile icon={Flame} label="Streak"
           value={`${r.study.streak.days} day${r.study.streak.days === 1 ? "" : "s"}`}
           hint={r.study.streak.includesToday ? "including today" : r.study.streak.days > 0 ? (isToday ? "study today to keep it" : "ended the day before") : "no streak"}
@@ -67,6 +71,31 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
         <Tile icon={TrendingUp} label="XP earned" value={r.xp.total.toLocaleString()}
           hint={levelsGained > 0 ? `+${levelsGained} level${levelsGained === 1 ? "" : "s"} · total ${r.xp.totalLevelAfter}` : `total level ${r.xp.totalLevelAfter}`} />
       </div>
+
+      {/* Weekly goals */}
+      {(r.goals.overall || r.goals.modules.length > 0) && (
+        <Section title="Weekly goals">
+          <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+            {[...(r.goals.overall ? [{ title: "All study", ...r.goals.overall }] : []), ...r.goals.modules].map((g) => (
+              <div key={g.title} className="px-4 py-3">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="font-semibold text-gray-900 truncate">{g.title}</span>
+                  <span className="text-gray-500 tabular-nums whitespace-nowrap">
+                    {formatDuration(g.doneSeconds)} / {formatDuration(g.goalSeconds)}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1.5">
+                  <div className={`h-full rounded-full ${g.met ? "bg-emerald-500" : "bg-sky-500"}`}
+                    style={{ width: `${Math.round(g.fraction * 100)}%` }} />
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  {paceText(g, formatDuration)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* What was studied */}
       <Section title="What you studied">

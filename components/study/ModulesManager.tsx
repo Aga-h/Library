@@ -6,17 +6,21 @@ import { Layers, Pencil, Plus, Trash2, X } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { MAX_STATS_PER_MODULE, STATS, STAT_META, type Stat } from "@/lib/stats";
 import StatBadges from "@/components/study/StatBadges";
+import { minutesToHours, MAX_WEEKLY_GOAL_HOURS } from "@/lib/goals";
+import { formatDuration } from "@/lib/study";
 
 export interface ModuleRow {
   id: string;
   title: string;
   notes: string | null;
   stats: Stat[];
+  /** Weekly goal in minutes, or null for none. */
+  weeklyGoalMinutes: number | null;
   /** Sessions already studied under it — what a delete would orphan. */
   sessions: number;
 }
 
-const BLANK = { title: "", notes: "" };
+const BLANK = { title: "", notes: "", goal: "" };
 
 export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
   const router = useRouter();
@@ -44,12 +48,22 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
     return true;
   }
 
+  // An empty goal box means no goal; the API validates the number itself.
   const body = (v: typeof BLANK, stats: Stat[]) =>
-    JSON.stringify({ title: v.title, notes: v.notes || null, stats });
+    JSON.stringify({
+      title: v.title,
+      notes: v.notes || null,
+      stats,
+      weeklyGoalHours: v.goal.trim() === "" ? null : Number(v.goal),
+    });
 
   function beginEdit(m: ModuleRow) {
     setEditing(m.id);
-    setEdit({ title: m.title, notes: m.notes ?? "" });
+    setEdit({
+      title: m.title,
+      notes: m.notes ?? "",
+      goal: m.weeklyGoalMinutes === null ? "" : String(minutesToHours(m.weeklyGoalMinutes)),
+    });
     setEditStats(m.stats);
     setError(null);
   }
@@ -91,6 +105,7 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
               </div>
               <input type="text" value={edit.notes} onChange={(e) => setEdit({ ...edit, notes: e.target.value })}
                 placeholder="Note (optional)" aria-label="Note" className={`${inputCls} text-sm`} />
+              <GoalInput id={`goal-${m.id}`} value={edit.goal} onChange={(goal) => setEdit({ ...edit, goal })} />
               <StatPicker picked={editStats} onToggle={setEditStats} />
             </form>
           ) : (
@@ -98,6 +113,9 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
               <div className="min-w-0">
                 <p className="font-semibold text-gray-900 text-sm">{m.title}</p>
                 {m.notes && <p className="text-xs text-gray-500 mt-0.5">{m.notes}</p>}
+                {m.weeklyGoalMinutes !== null && (
+                  <p className="text-xs text-sky-700 mt-0.5">Goal: {formatDuration(m.weeklyGoalMinutes * 60)} a week</p>
+                )}
                 <p className="text-[11px] text-gray-400 mt-0.5">
                   {m.sessions === 0 ? "not studied yet" : `${m.sessions} session${m.sessions === 1 ? "" : "s"}`}
                 </p>
@@ -148,6 +166,7 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
           placeholder="What you study — e.g. AP Physics C" aria-label="Module name" className={inputCls} />
         <input type="text" value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
           placeholder="Note (optional)" aria-label="Note" className={`${inputCls} text-sm`} />
+        <GoalInput id="goal-new" value={draft.goal} onChange={(goal) => setDraft({ ...draft, goal })} />
         <StatPicker picked={draftStats} onToggle={setDraftStats} />
         <button type="submit" disabled={busy || draft.title.trim() === "" || draftStats.length === 0}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
@@ -199,6 +218,18 @@ function StatPicker({ picked, onToggle }: { picked: Stat[]; onToggle: (next: Sta
       {picked.length === 0 && (
         <p className="text-xs text-red-500 mt-2">Pick at least one — a module with no stats pays nothing.</p>
       )}
+    </div>
+  );
+}
+
+function GoalInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor={id} className="text-sm text-gray-600">Weekly goal</label>
+      <input id={id} type="number" inputMode="decimal" min="0.25" max={MAX_WEEKLY_GOAL_HOURS} step="0.25"
+        value={value} onChange={(e) => onChange(e.target.value)} placeholder="none"
+        className={`${inputCls} w-24 text-sm`} />
+      <span className="text-sm text-gray-500">hours</span>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 // six hours puts an evening's work on the wrong day, silently.
 //
 // Run: node --experimental-strip-types scripts/test-dates.mjs
-import { toKey, fromKey, addDays, dayOfWeek, isDateKey, todayKey } from "../lib/dates.ts";
+import { toKey, fromKey, addDays, dayOfWeek, isDateKey, todayKey, weekStartOf, daysLeftInWeek } from "../lib/dates.ts";
 
 let pass = 0;
 const failures = [];
@@ -26,11 +26,14 @@ ok(!isDateKey("not-a-date") && !isDateKey("2026-8-19"), "malformed strings are n
 const sorted = ["2026-12-31", "2026-01-05", "2026-01-15"].sort();
 eq(sorted, ["2026-01-05", "2026-01-15", "2026-12-31"], "keys sort chronologically as strings");
 
-// Monday-start week arithmetic, exactly as studyTotals does it.
-const mondayOf = (key) => addDays(key, -((dayOfWeek(key) + 6) % 7));
-eq(mondayOf("2026-08-19"), "2026-08-17", "Wednesday rolls back to Monday");
-eq(mondayOf("2026-08-17"), "2026-08-17", "Monday is its own week start");
-eq(mondayOf("2026-08-23"), "2026-08-17", "Sunday belongs to the week that began Monday");
+// Weeks start Monday, for every study total and goal.
+eq(weekStartOf("2026-08-19"), "2026-08-17", "Wednesday rolls back to Monday");
+eq(weekStartOf("2026-08-17"), "2026-08-17", "Monday is its own week start");
+eq(weekStartOf("2026-08-23"), "2026-08-17", "Sunday belongs to the week that began Monday");
+eq(weekStartOf("2026-10-01"), "2026-09-28", "a week can start in the previous month");
+eq(weekStartOf("2027-01-01"), "2026-12-28", "…or the previous year");
+eq(["2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-26", "2026-09-27"].map(daysLeftInWeek),
+  [7, 6, 5, 4, 3, 2, 1], "days left, today included: 7 on Monday down to 1 on Sunday");
 
 // today is stable and well-formed regardless of the machine's zone
 ok(isDateKey(todayKey()), "todayKey is a valid key");
