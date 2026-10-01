@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-01 — comics lose writer/artist/release date; **018, 019, 020 await the user** (in order), 021 optional
+**Updated:** 2026-10-01 — Comic Vine import; **018, 019, 020, 022 await the user** (in order), 021 optional
 
 ## Done
 
@@ -214,19 +214,19 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Next
 
-- [ ] **Comics: import a series by search** (user request 2026-10-01). Under a publisher →
-      universe, "Add series" searches a catalogue; picking a result creates the title and loads every
-      issue. Per-issue Read/Owned buttons ALREADY exist (`components/comics/IssueRow.tsx`).
-      **marvelreading.com (CMRO) is OUT — do not retry it.** Checked 2026-10-01 with full network
-      access: every non-browser request gets a Cloudflare JS challenge (`cf-mitigated: challenge`,
-      403 "Just a Moment"), so a Vercel server could not read it either; and its robots.txt names
-      `ClaudeBot` / `anthropic-ai` with `Disallow: /` and disallows its search URLs. Getting past that
-      would mean defeating a deliberate access control — refused.
-      **Proposed instead, awaiting the user's choice:** Comic Vine API — `/search?resources=volume`,
-      `/issues?filter=volume:<id>&sort=issue_number:asc` (100/page, offset paging), fields
-      `issue_number`, `name`, `image`; free key, non-commercial only (fits), 200 req/resource/hour +
-      velocity detection. Key must live in Vercel as `COMICVINE_API_KEY` (server-side only). No-setup
-      alternative offered: bulk-add an issue-number range (#1–#441) with no names/covers.
+- [x] **Comics: import a whole run from Comic Vine** — "Add Comic" searches Comic Vine; Import
+      creates the comic and every issue (names + covers); "Check for new issues" on an imported comic
+      picks up new releases. Read/Owned buttons were already on every issue row. Verified against a
+      local stand-in speaking Comic Vine's documented API, over real HTTP and Postgres: a 446-issue
+      run in 5 pages; importing over a hand-added comic kept read/owned/rating/your own name and only
+      filled blanks; re-import added nothing; a new release was picked up; a double tap made one
+      comic; ½/-1/1.1 placed in order, 1.MU and a 1.1/1.10 collision reported; placeholder covers
+      refused; missing key → 503 with a plain message, wrong key → plain message, rate limit → 429.
+      **Not yet verified against REAL Comic Vine** — this session predates the key. Next session:
+      search a real run, import it, check names/covers/numbers look right (the image object's fields
+      are undocumented — `pickImage` takes any https URL in it, so confirm covers actually show).
+      marvelreading.com is out for good: Cloudflare challenge on every non-browser request, and
+      robots.txt disallows ClaudeBot.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -269,6 +269,10 @@ deleted; `main` is the GitHub default and what Vercel deploys.
   three comic columns. Destructive (their data is deleted) and only AFTER the deploy is live.
   Nothing breaks if it is never run. Verified: drift before it was exactly its three drops,
   re-run is a no-op, `migrate diff` empty after, app still fine with the columns gone.
+
+- **Run `prisma/manual-migrations/022-comicvine.sql`** — additive (`ComicTitle.comicVineId`).
+  The deployed comics pages read it, so **the comics section errors until it runs.**
+  `COMICVINE_API_KEY` must also be in Vercel (user says it is) — redeploy after setting it.
 
 - **Run `prisma/manual-migrations/020-study-goals.sql`** after 019 — additive (goal column +
   `StudyConfig`). The deployed code reads these, so **/study and the nightly report error until it

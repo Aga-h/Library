@@ -11,6 +11,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import LevelStats from "@/components/ui/LevelStats";
 import IssueRow from "@/components/comics/IssueRow";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
+import ComicVineRefresh from "@/components/comics/ComicVineRefresh";
 
 interface PageProps {
   params: Promise<{ publisherId: string; universeId: string; titleId: string }>;
@@ -51,6 +52,11 @@ export default async function TitlePage({ params }: PageProps) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{title.name}</h1>
           {langLabel && <p className="text-sm text-gray-500 mt-1">{langLabel}</p>}
+          {title.comicVineId !== null && (
+            <div className="mt-3">
+              <ComicVineRefresh universeId={title.universeId} volumeId={title.comicVineId} />
+            </div>
+          )}
         </div>
         <div className="flex items-start gap-2 flex-shrink-0">
           <Link

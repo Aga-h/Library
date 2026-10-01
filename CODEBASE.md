@@ -76,6 +76,17 @@ deleting a parent orphans children rather than destroying them:
 
 Standalone: `Manga`, `Game`, `Article`, `Garment`.
 
+**Comics from Comic Vine.** "Add Comic" searches Comic Vine and imports a whole run: the comic, named
+with its start year ("The Amazing Spider-Man (1963)" — Marvel reuses titles), and every issue with its
+name and cover. `ComicTitle.comicVineId` remembers the run, unique per universe, so importing it again
+— "Check for new issues" on the comic's page — only adds what is missing. The merge rule is in
+`planMerge`: an import creates missing issues and fills a blank name or cover, and never writes
+read, owned, rating, rereads, notes or anything you set yourself. Issue numbers arrive as strings;
+"½", "-1" and "1.5" are placed, "1.MU" and collisions like "1.1"/"1.10" are reported, not guessed.
+Covers are hotlinked and rendered `unoptimized`, and excluded from cover mirroring. The key,
+`COMICVINE_API_KEY`, is server-only. (marvelreading.com was the first choice; it blocks automated
+access with a Cloudflare challenge and its robots.txt disallows ClaudeBot, so it is not used.)
+
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
@@ -146,6 +157,7 @@ scripts/                node test scripts, graph sealing
 | `derive-status.ts` | Progress counts → status, for every medium |
 | `dates.ts` | Date keys and the app timezone |
 | `study.ts` / `study-service.ts` | Session and XP rules (client-safe) / Prisma side |
+| `comicvine.ts` / `comicvine-service.ts` / `comicvine-import.ts` | Issue numbers, covers and the merge rule / the API client / landing a run in a universe |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |

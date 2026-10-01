@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 import { withErrors } from "@/lib/api-errors";
 
+const COMIC_VINE_COVER_HOST = "comicvine.gamespot.com";
+
 const MIRROR_BATCH = 10;
 
 // Only issues carry artwork now — publishers, universes and comic titles lost their
@@ -19,9 +21,14 @@ async function POSTHandler() {
 
   // Filter in SQL — reading the whole table to keep 10 rows sent the entire library
   // across the wire on every click.
+  // Comic Vine covers are left where they are: they are shown straight from Comic Vine on purpose,
+  // and copying a run's worth of them into storage would only spend space duplicating them.
   const pendingWhere = {
     coverImage: { not: null },
-    NOT: { coverImage: { contains: SUPABASE_COVER_MARKER } },
+    NOT: [
+      { coverImage: { contains: SUPABASE_COVER_MARKER } },
+      { coverImage: { contains: COMIC_VINE_COVER_HOST } },
+    ],
   };
 
   const [batch, pendingCount] = await Promise.all([

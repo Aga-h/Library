@@ -332,17 +332,23 @@ model ComicUniverse {
 }
 
 model ComicTitle {
-  id         String        @id @default(cuid())
-  name       String
-  universeId String
-  universe   ComicUniverse @relation(fields: [universeId], references: [id], onDelete: Cascade)
-  language   Language      @default(ENGLISH)
-  notes      String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  issues     ComicIssue[]
+  id          String        @id @default(cuid())
+  name        String
+  universeId  String
+  universe    ComicUniverse @relation(fields: [universeId], references: [id], onDelete: Cascade)
+  language    Language      @default(ENGLISH)
+  /// The Comic Vine volume this run was imported from. Importing it again fills in what is
+  /// missing instead of creating a second copy. Null for comics added by hand.
+  comicVineId Int?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  issues      ComicIssue[]
 
   @@unique([universeId, name])
+  // One copy of a Comic Vine run per universe. Postgres treats NULLs as distinct, so any number
+  // of hand-added comics can sit beside it.
+  @@unique([universeId, comicVineId])
 }
 
 model ComicIssue {

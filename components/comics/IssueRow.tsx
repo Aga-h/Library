@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BookOpen, Check, Package, Repeat } from "lucide-react";
 import { formatIssueNumber } from "@/lib/comics";
+import { isComicVineImage } from "@/lib/comicvine";
 
 interface Issue {
   id: string;
@@ -43,7 +44,8 @@ export default function IssueRow({ issue, href }: { issue: Issue; href: string }
     <div className="flex items-center gap-3 py-2 px-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
       <div className="relative flex-shrink-0 w-9 h-12 rounded bg-gray-100 overflow-hidden flex items-center justify-center">
         {issue.coverImage ? (
-          <Image fill src={issue.coverImage} alt={`Issue ${issue.issueNumber}`} className="object-cover" sizes="36px" />
+          <Image fill src={issue.coverImage} alt={`Issue ${issue.issueNumber}`} className="object-cover" sizes="36px"
+            unoptimized={isComicVineImage(issue.coverImage)} />
         ) : (
           <BookOpen className="w-4 h-4 text-gray-300" />
         )}

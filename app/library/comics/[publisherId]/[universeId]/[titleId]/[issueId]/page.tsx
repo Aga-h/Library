@@ -6,6 +6,7 @@ import Image from "next/image";
 import { BookOpen, Pencil, Check, Package, Repeat } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatIssueNumber } from "@/lib/comics";
+import { isComicVineImage } from "@/lib/comicvine";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 
@@ -49,7 +50,8 @@ export default async function IssueDetailPage({ params }: PageProps) {
         <div className="flex gap-6 p-8 pb-6">
           <div className="relative flex-shrink-0 w-28 h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
             {issue.coverImage ? (
-              <Image fill src={issue.coverImage} alt={label} className="object-cover" sizes="112px" />
+              <Image fill src={issue.coverImage} alt={label} className="object-cover" sizes="112px"
+                unoptimized={isComicVineImage(issue.coverImage)} />
             ) : (
               <BookOpen className="w-10 h-10 text-gray-300" />
             )}
