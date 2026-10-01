@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-01 — Comic Vine import; **018, 019, 020, 022 await the user** (in order), 021 optional
+**Updated:** 2026-10-01 — Comic Vine import live and confirmed; 022 applied; **018, 019, 020 still unconfirmed**, 021 optional
 
 ## Done
 
@@ -222,9 +222,8 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       filled blanks; re-import added nothing; a new release was picked up; a double tap made one
       comic; ½/-1/1.1 placed in order, 1.MU and a 1.1/1.10 collision reported; placeholder covers
       refused; missing key → 503 with a plain message, wrong key → plain message, rate limit → 429.
-      **Not yet verified against REAL Comic Vine** — this session predates the key. Next session:
-      search a real run, import it, check names/covers/numbers look right (the image object's fields
-      are undocumented — `pickImage` takes any https URL in it, so confirm covers actually show).
+      **Confirmed working on the live site with real Comic Vine data by the user (2026-10-01)**,
+      covers included — so `pickImage` finds the real image fields.
       marvelreading.com is out for good: Cloudflare challenge on every non-browser request, and
       robots.txt disallows ClaudeBot.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
@@ -270,10 +269,6 @@ deleted; `main` is the GitHub default and what Vercel deploys.
   Nothing breaks if it is never run. Verified: drift before it was exactly its three drops,
   re-run is a no-op, `migrate diff` empty after, app still fine with the columns gone.
 
-- **Run `prisma/manual-migrations/022-comicvine.sql`** — additive (`ComicTitle.comicVineId`).
-  The deployed comics pages read it, so **the comics section errors until it runs.**
-  `COMICVINE_API_KEY` must also be in Vercel (user says it is) — redeploy after setting it.
-
 - **Run `prisma/manual-migrations/020-study-goals.sql`** after 019 — additive (goal column +
   `StudyConfig`). The deployed code reads these, so **/study and the nightly report error until it
   runs.**
@@ -308,6 +303,8 @@ deleted; `main` is the GitHub default and what Vercel deploys.
   `recentRelayFailures` empty, so it is policy). Any future CED data has to come from the user —
   WebSearch summaries of those pages contradicted each other on unit counts.
 
+- Migration `022-comicvine.sql` is **applied** — inferred: the user confirmed the comics import
+  works on the live site, and every comics page reads `comicVineId`. `COMICVINE_API_KEY` is in Vercel.
 - Migrations `014-task-stats.sql` and `017-free-study.sql` are **applied** (user confirmed).
   014 added `stats` to `EventModule` and rebuilt `Task` against the calendar; 017 added
   `StudySession` and the `XpAward` columns for free study.
