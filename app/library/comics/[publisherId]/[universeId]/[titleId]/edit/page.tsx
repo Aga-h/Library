@@ -13,25 +13,7 @@ interface PageProps {
 export default async function EditTitlePage({ params }: PageProps) {
   const { publisherId, universeId, titleId } = await params;
 
-  const [title, authorOpts, artistOpts] = await Promise.all([
-    db.comicTitle.findUnique({ where: { id: titleId }, include: { universe: true } }),
-    db.comicTitle
-      .findMany({
-        where: { author: { not: null } },
-        select: { author: true },
-        distinct: ["author"],
-        orderBy: { author: "asc" },
-      })
-      .then((r) => r.map((x) => x.author).filter((v): v is string => !!v)),
-    db.comicTitle
-      .findMany({
-        where: { artist: { not: null } },
-        select: { artist: true },
-        distinct: ["artist"],
-        orderBy: { artist: "asc" },
-      })
-      .then((r) => r.map((x) => x.artist).filter((v): v is string => !!v)),
-  ]);
+  const title = await db.comicTitle.findUnique({ where: { id: titleId }, include: { universe: true } });
   if (!title || title.universeId !== universeId || title.universe.publisherId !== publisherId) {
     notFound();
   }
@@ -55,12 +37,8 @@ export default async function EditTitlePage({ params }: PageProps) {
           universeId={universeId}
           titleId={title.id}
           redirectTo={base}
-          authorOptions={authorOpts}
-          artistOptions={artistOpts}
           initialData={{
             name: title.name,
-            author: title.author ?? "",
-            artist: title.artist ?? "",
             language: title.language,
             notes: title.notes ?? "",
           }}

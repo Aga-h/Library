@@ -12,7 +12,6 @@ const updateIssueSchema = z.object({
   owned: z.boolean().optional(),
   coverImage: z.string().url().optional().nullable().or(z.literal("")),
   rating: z.number().min(1).max(10).optional().nullable(),
-  releaseDate: z.string().optional().nullable(),
   timesReread: z.number().int().min(0).optional(),
   notes: z.string().optional().nullable(),
 });
@@ -47,14 +46,6 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
 
   const data = result.data;
 
-  let releaseDate: Date | null | undefined;
-  if (data.releaseDate !== undefined) {
-    releaseDate = data.releaseDate ? new Date(data.releaseDate) : null;
-    if (releaseDate && Number.isNaN(releaseDate.getTime())) {
-      return NextResponse.json({ error: "Release date is not a valid date" }, { status: 400 });
-    }
-  }
-
   try {
     const updated = await db.comicIssue.update({
       where: { id },
@@ -65,7 +56,6 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
         ...(data.owned !== undefined ? { owned: data.owned } : {}),
         ...(data.coverImage !== undefined ? { coverImage: data.coverImage || null } : {}),
         ...(data.rating !== undefined ? { rating: data.rating ?? null } : {}),
-        ...(releaseDate !== undefined ? { releaseDate } : {}),
         ...(data.timesReread !== undefined ? { timesReread: data.timesReread } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
       },

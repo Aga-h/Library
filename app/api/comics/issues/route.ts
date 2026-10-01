@@ -13,7 +13,6 @@ const createIssueSchema = z.object({
   owned: z.boolean().default(false),
   coverImage: z.string().url().optional().or(z.literal("")),
   rating: z.number().min(1).max(10).optional(),
-  releaseDate: z.string().optional(),
   timesReread: z.number().int().min(0).default(0),
   notes: z.string().optional(),
 });
@@ -47,11 +46,6 @@ async function POSTHandler(request: NextRequest) {
     return NextResponse.json({ error: "Comic not found" }, { status: 404 });
   }
 
-  const releaseDate = data.releaseDate ? new Date(data.releaseDate) : null;
-  if (releaseDate && Number.isNaN(releaseDate.getTime())) {
-    return NextResponse.json({ error: "Release date is not a valid date" }, { status: 400 });
-  }
-
   try {
     const issue = await db.comicIssue.create({
       data: {
@@ -62,7 +56,6 @@ async function POSTHandler(request: NextRequest) {
         owned: data.owned,
         coverImage: data.coverImage || null,
         rating: data.rating ?? null,
-        releaseDate,
         timesReread: data.timesReread,
         notes: data.notes || null,
       },

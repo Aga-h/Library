@@ -1,10 +1,9 @@
 /**
  * Application dates, kept strictly date-only.
  *
- * A study session belongs to a *date* — "the 19th" — not an instant. The repo's one other
- * date-ish column (`ComicIssue.releaseDate`) is a bare `DateTime` round-tripped through
- * `toISOString().slice(0,10)`, which survives only because both ends happen to use UTC. That is
- * not a foundation to build day/week/month totals on.
+ * A study session belongs to a *date* — "the 19th" — not an instant. A bare `DateTime`
+ * round-tripped through `toISOString().slice(0,10)` only survives while both ends happen to use
+ * UTC, which is not a foundation to build day/week/month totals on.
  *
  * So: dates are carried as `"YYYY-MM-DD"` strings ("keys") in application code, stored as
  * Postgres `date`, and every conversion goes through here using **UTC accessors only**.

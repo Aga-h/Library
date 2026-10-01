@@ -9,8 +9,6 @@ import { withErrors } from "@/lib/api-errors";
 const createTitleSchema = z.object({
   name: z.string().min(1, "Name is required"),
   universeId: z.string().min(1, "Universe is required"),
-  author: z.string().optional(),
-  artist: z.string().optional(),
   language: z.enum(LANGUAGE_VALUES).default("ENGLISH"),
   notes: z.string().optional(),
 });
@@ -50,8 +48,6 @@ async function POSTHandler(request: NextRequest) {
       data: {
         name,
         universeId: data.universeId,
-        author: data.author || null,
-        artist: data.artist || null,
         language: data.language,
         notes: data.notes || null,
       },

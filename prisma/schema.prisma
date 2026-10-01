@@ -336,8 +336,6 @@ model ComicTitle {
   name       String
   universeId String
   universe   ComicUniverse @relation(fields: [universeId], references: [id], onDelete: Cascade)
-  author     String?
-  artist     String?
   language   Language      @default(ENGLISH)
   notes      String?
   createdAt  DateTime      @default(now())
@@ -358,7 +356,6 @@ model ComicIssue {
   owned       Boolean    @default(false)
   coverImage  String?
   rating      Float?
-  releaseDate DateTime?
   timesReread Int        @default(0)
   notes       String?
   createdAt   DateTime   @default(now())

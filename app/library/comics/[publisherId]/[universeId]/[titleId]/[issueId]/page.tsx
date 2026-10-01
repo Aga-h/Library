@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, Pencil, Calendar, Check, Package, Repeat } from "lucide-react";
+import { BookOpen, Pencil, Check, Package, Repeat } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatIssueNumber } from "@/lib/comics";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -99,12 +99,6 @@ export default async function IssueDetailPage({ params }: PageProps) {
               {issue.timesReread > 0 && (
                 <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
                   <Repeat className="w-3 h-3" /> Reread {issue.timesReread}×
-                </span>
-              )}
-              {issue.releaseDate && (
-                <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
-                  <Calendar className="w-3 h-3" />
-                  {issue.releaseDate.toISOString().slice(0, 10)}
                 </span>
               )}
             </div>

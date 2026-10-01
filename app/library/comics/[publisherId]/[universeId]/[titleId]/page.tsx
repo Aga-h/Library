@@ -50,11 +50,7 @@ export default async function TitlePage({ params }: PageProps) {
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{title.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {[title.author, title.artist && title.artist !== title.author ? `Art by ${title.artist}` : null, langLabel]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          {langLabel && <p className="text-sm text-gray-500 mt-1">{langLabel}</p>}
         </div>
         <div className="flex items-start gap-2 flex-shrink-0">
           <Link

@@ -3,19 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
-import ComboboxField from "@/components/ui/ComboboxField";
 import { Field, inputCls } from "@/components/ui/form";
 
 interface TitleFormData {
   name: string;
-  author: string;
-  artist: string;
   language: string;
   notes: string;
 }
 
 const DEFAULT: TitleFormData = {
-  name: "", author: "", artist: "", language: "ENGLISH", notes: "",
+  name: "", language: "ENGLISH", notes: "",
 };
 
 interface Props {
@@ -24,13 +21,11 @@ interface Props {
   titleId?: string;
   /** After save the router goes to `${redirectTo}/${saved.id}`. */
   redirectTo: string;
-  authorOptions?: string[];
-  artistOptions?: string[];
   initialData?: Partial<TitleFormData>;
 }
 
 export default function TitleForm({
-  mode, universeId, titleId, redirectTo, authorOptions, artistOptions, initialData,
+  mode, universeId, titleId, redirectTo, initialData,
 }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<TitleFormData>({ ...DEFAULT, ...initialData });
@@ -50,16 +45,12 @@ export default function TitleForm({
       mode === "edit"
         ? {
             name: form.name,
-            author: form.author || null,
-            artist: form.artist || null,
             language: form.language,
             notes: form.notes || null,
           }
         : {
             universeId,
             name: form.name,
-            author: form.author || undefined,
-            artist: form.artist || undefined,
             language: form.language,
             notes: form.notes || undefined,
           };
@@ -102,23 +93,6 @@ export default function TitleForm({
           className={inputCls}
         />
       </Field>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <ComboboxField
-          label="Writer/Author"
-          value={form.author}
-          onChange={(v) => update("author", v)}
-          options={authorOptions ?? []}
-          placeholder="Writer name"
-        />
-        <ComboboxField
-          label="Artist"
-          value={form.artist}
-          onChange={(v) => update("artist", v)}
-          options={artistOptions ?? []}
-          placeholder="Artist name (if different)"
-        />
-      </div>
 
       <Field label="Language">
         <select

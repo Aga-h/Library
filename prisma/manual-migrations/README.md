@@ -39,6 +39,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `018-sat-vocab.sql` | Creates `VocabWord`, `VocabMeaning`, `VocabRun`, `VocabQuestion` and the `VocabVerdict` enum for the SAT vocabulary test. Additive, RLS on — run **before** the deploy. |
 | `019-drop-calendar.sql` | **Removes the calendar.** Renames `EventModule` to `Module` and drops its hours, adds `moduleId`/`moduleTitle` to `StudySession`, converts every worked `Task` into a study session carrying its date, seconds and XP, then drops `Task`, `TaskSession`, `CalendarDay`, `DayPlan`, `DayPlanModule`, `DayActivity`, `DayOff`, `SchoolTerm` and the `TaskStatus`/`DayKind` enums. Destructive but **loses no XP and no study time**. The new code needs the new shape, so unlike other removals this runs as soon as the deploy is live. |
 | `020-study-goals.sql` | Adds `Module.weeklyGoalMinutes` and the single-row `StudyConfig` table for weekly study goals. Additive, RLS on — run **before** the deploy. **Requires 019** (the `Module` rename). Verified: the pre-migration drift report listed exactly these two changes, a re-run is a no-op, and `migrate diff` is empty after. |
+| `021-drop-comic-credits-and-dates.sql` | Drops `ComicTitle.author`, `ComicTitle.artist` and `ComicIssue.releaseDate` — comics no longer record a writer, artist or release date. **Destructive and optional**: run only **after** the deploy is live (the code before it still reads them); nothing breaks if it is never run, since all three are nullable and unused. |
 
 ## How 019 was verified
 

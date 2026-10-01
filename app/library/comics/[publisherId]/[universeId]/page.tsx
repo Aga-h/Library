@@ -35,7 +35,6 @@ export default async function UniversePage({ params }: PageProps) {
   const rows = universe.titles.map((t) => ({
     id: t.id,
     name: t.name,
-    author: t.author,
     progress: summarizeIssues(t.issues),
   }));
 
@@ -115,7 +114,6 @@ export default async function UniversePage({ params }: PageProps) {
               key={t.id}
               href={`${base}/${t.id}`}
               name={t.name}
-              subtitle={t.author}
               progress={t.progress}
               rating={t.progress.avgRating}
             />

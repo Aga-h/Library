@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-09-27 — weekly study goals; **018, 019, 020 await the user** (in that order)
+**Updated:** 2026-10-01 — comics lose writer/artist/release date; **018, 019, 020 await the user** (in order), 021 optional
 
 ## Done
 
@@ -206,6 +206,12 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       refused (0, negative, over 168h, a sliver, a string), clearing works, and progress matched
       SQL including a running session.
 
+- [x] **Comics: writer, artist and release date removed** — from the forms, the pages, the API and
+      the schema (`ComicTitle.author`/`artist`, `ComicIssue.releaseDate`). All three were nullable,
+      so the new code runs fine against a database that still has them: verified that every comics
+      page renders with none of the old values leaking, and a stale client still sending them is
+      accepted with the fields ignored.
+
 ## Next
 
 Three items were scoped in the audit but not implemented. In rough value order:
@@ -244,6 +250,11 @@ Three items were scoped in the audit but not implemented. In rough value order:
 - **Provide the production URL.** It is recorded nowhere in the repo, so the deploy of the
   hierarchy work has never been checked in the browser — only proven correct locally. It is
   also needed to give exact PWA install instructions.
+
+- **Optional: `prisma/manual-migrations/021-drop-comic-credits-and-dates.sql`** — drops the
+  three comic columns. Destructive (their data is deleted) and only AFTER the deploy is live.
+  Nothing breaks if it is never run. Verified: drift before it was exactly its three drops,
+  re-run is a no-op, `migrate diff` empty after, app still fine with the columns gone.
 
 - **Run `prisma/manual-migrations/020-study-goals.sql`** after 019 — additive (goal column +
   `StudyConfig`). The deployed code reads these, so **/study and the nightly report error until it

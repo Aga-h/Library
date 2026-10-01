@@ -8,8 +8,6 @@ import { withErrors } from "@/lib/api-errors";
 
 const updateTitleSchema = z.object({
   name: z.string().min(1).optional(),
-  author: z.string().optional().nullable(),
-  artist: z.string().optional().nullable(),
   language: z.enum(LANGUAGE_VALUES).optional(),
   notes: z.string().optional().nullable(),
 });
@@ -48,8 +46,6 @@ async function PATCHHandler(request: NextRequest, { params }: RouteContext) {
       where: { id },
       data: {
         ...(data.name !== undefined ? { name: data.name.trim() } : {}),
-        ...(data.author !== undefined ? { author: data.author || null } : {}),
-        ...(data.artist !== undefined ? { artist: data.artist || null } : {}),
         ...(data.language !== undefined ? { language: data.language } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null } : {}),
       },

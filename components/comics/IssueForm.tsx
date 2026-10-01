@@ -11,7 +11,6 @@ interface IssueFormData {
   read: boolean;
   owned: boolean;
   rating: string;
-  releaseDate: string;
   timesReread: string;
   coverImage: string;
   notes: string;
@@ -19,7 +18,7 @@ interface IssueFormData {
 
 const DEFAULT: IssueFormData = {
   issueNumber: "", name: "", read: false, owned: false,
-  rating: "", releaseDate: "", timesReread: "0", coverImage: "", notes: "",
+  rating: "", timesReread: "0", coverImage: "", notes: "",
 };
 
 interface Props {
@@ -69,7 +68,6 @@ export default function IssueForm({
             read: form.read,
             owned: form.owned,
             rating: form.rating ? parseFloat(form.rating) : null,
-            releaseDate: form.releaseDate || null,
             timesReread: parseInt(form.timesReread, 10) || 0,
             coverImage: form.coverImage || null,
             notes: form.notes || null,
@@ -81,7 +79,6 @@ export default function IssueForm({
             read: form.read,
             owned: form.owned,
             rating: form.rating ? parseFloat(form.rating) : undefined,
-            releaseDate: form.releaseDate || undefined,
             timesReread: parseInt(form.timesReread, 10) || 0,
             coverImage: form.coverImage || undefined,
             notes: form.notes || undefined,
@@ -161,7 +158,7 @@ export default function IssueForm({
         </label>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Rating (1–10)">
           <input
             type="number"
@@ -171,14 +168,6 @@ export default function IssueForm({
             value={form.rating}
             onChange={(e) => update("rating", e.target.value)}
             placeholder="e.g. 8"
-            className={inputCls}
-          />
-        </Field>
-        <Field label="Release Date">
-          <input
-            type="date"
-            value={form.releaseDate}
-            onChange={(e) => update("releaseDate", e.target.value)}
             className={inputCls}
           />
         </Field>

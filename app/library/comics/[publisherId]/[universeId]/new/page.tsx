@@ -13,25 +13,7 @@ interface PageProps {
 export default async function NewTitlePage({ params }: PageProps) {
   const { publisherId, universeId } = await params;
 
-  const [universe, authorOpts, artistOpts] = await Promise.all([
-    db.comicUniverse.findUnique({ where: { id: universeId } }),
-    db.comicTitle
-      .findMany({
-        where: { author: { not: null } },
-        select: { author: true },
-        distinct: ["author"],
-        orderBy: { author: "asc" },
-      })
-      .then((r) => r.map((x) => x.author).filter((v): v is string => !!v)),
-    db.comicTitle
-      .findMany({
-        where: { artist: { not: null } },
-        select: { artist: true },
-        distinct: ["artist"],
-        orderBy: { artist: "asc" },
-      })
-      .then((r) => r.map((x) => x.artist).filter((v): v is string => !!v)),
-  ]);
+  const universe = await db.comicUniverse.findUnique({ where: { id: universeId } });
   if (!universe || universe.publisherId !== publisherId) notFound();
 
   const base = `/library/comics/${publisherId}/${universeId}`;
@@ -52,8 +34,6 @@ export default async function NewTitlePage({ params }: PageProps) {
           mode="create"
           universeId={universe.id}
           redirectTo={base}
-          authorOptions={authorOpts}
-          artistOptions={artistOpts}
         />
       </div>
     </div>

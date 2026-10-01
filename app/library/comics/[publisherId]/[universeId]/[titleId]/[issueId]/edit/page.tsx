@@ -55,8 +55,6 @@ export default async function EditIssuePage({ params }: PageProps) {
             read: issue.read,
             owned: issue.owned,
             rating: issue.rating?.toString() ?? "",
-            // <input type="date"> needs a bare YYYY-MM-DD string, not an ISO timestamp.
-            releaseDate: issue.releaseDate ? issue.releaseDate.toISOString().slice(0, 10) : "",
             timesReread: String(issue.timesReread),
             coverImage: issue.coverImage ?? "",
             notes: issue.notes ?? "",
