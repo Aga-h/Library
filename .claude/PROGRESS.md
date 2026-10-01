@@ -214,6 +214,16 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Next
 
+- [ ] **Comics: import a series from marvelreading.com** (user request 2026-10-01). Under a
+      publisher → universe, "Add series" becomes a search of marvelreading.com; picking a result
+      creates the title and loads every issue under it. Per-issue Read/Owned buttons ALREADY exist
+      (`components/comics/IssueRow.tsx`), so only search + import is new. Plan: the import runs
+      server-side on Vercel (which can reach the site); store the source URL/id on the title so a
+      re-import updates instead of duplicating. **Blocked:** this environment cannot reach
+      marvelreading.com (proxy 403, WebFetch EGRESS_BLOCKED) — the site's structure (search, series
+      pages, issue lists, robots.txt/terms) must be inspected before writing a parser. If the site
+      forbids automated access, say so and offer Comic Vine's documented API instead.
+
 Three items were scoped in the audit but not implemented. In rough value order:
 
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
@@ -229,6 +239,11 @@ Three items were scoped in the audit but not implemented. In rough value order:
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Allow `marvelreading.com`** in the Default environment's Network access → Allowed domains
+  (claude.ai/code → "Default" cloud button → gear). Needed only for development — to inspect the
+  site and test the importer against real pages. If the running session still cannot reach it
+  after the change, the policy is fixed at session start: continue in a new session.
 
 - **Set up the nightly review** (the routine fires regardless and reports what is missing):
   1. Vercel → project → Settings → Environment Variables: `REPORT_TOKEN` = 32+ random chars,
