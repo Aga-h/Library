@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — TV shows from TMDB built and pushed; **waiting on the user: 025 then 026** (see Blocked); 018, 019, 020 still unconfirmed, 021 optional
+**Updated:** 2026-10-02 — TV from TMDB confirmed live (025, 026 run); IN PROGRESS: anime from MyAnimeList (see Next); 018, 019, 020 still unconfirmed, 021 optional
 
 ## Done
 
@@ -256,7 +256,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       undated got its year once dated (found and fixed: it took the show's start year); triple tap →
       one series, 3 seasons (advisory lock in an interactive transaction — first use of either here,
       works with the pg adapter); time totals match the DB; 025/026 verified like 023/024.
-      **Not yet run against real TMDB.**
+      **Confirmed working on the live site by the user (2026-10-02)** — 025 and 026 run.
+- [ ] **Anime from MyAnimeList** (asked 2026-10-02: "the same for anime, maybe derive from
+      myanimelist"; IN PROGRESS). Official MAL API v2 only (needs a free Client ID, `MAL_CLIENT_ID`,
+      sent as `X-MAL-CLIENT-ID`; license allows personal non-commercial use with attribution, and
+      forbids altering MAL content — titles are stored as MAL gives them). NOT the website and NOT
+      Jikan: MAL's robots.txt blocks ClaudeBot/anthropic-ai, and Jikan scrapes the site. Plan:
+      `Anime.malId` unique (027, additive); optional guarded wipe (028) — the user said "the same",
+      so offer it, don't assume. Pick an entry → its franchise is walked over sequel/prequel links →
+      preview in watch order → import as a series, each entry a row (seasonNumber = order); one
+      standalone entry stays standalone. English/romaji title toggle. "Check for new seasons" walks
+      again from the series. −/+/All episode buttons (shared with TV); time watched on universe and
+      series headers.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -270,13 +281,6 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
-
-- **TV from TMDB — two scripts, in this order** (the key is already set from movies):
-  1. `prisma/manual-migrations/025-tv-tmdb.sql` **now** — the deployed code reads `TvSeries.tmdbId`,
-     so the TV pages error until it runs. Additive, safe to re-run.
-  2. `026-clear-tv.sql` **before importing anything** — deletes every season, series and TV universe,
-     as asked. Refuses to run once any show is imported. Expected output `0 | 0 | 0 | 0`.
-  Optional: old mirrored TV posters stay in Supabase Storage → `covers` → `tv/`; nothing reads them.
 
 - **Network access is now Full** on the Default environment (user changed it 2026-10-01) — it
   applied to the running session immediately.
