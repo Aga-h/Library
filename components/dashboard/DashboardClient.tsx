@@ -23,14 +23,14 @@ const META: Record<string, {
   iconColor: string;
   chartColor: string;
 }> = {
-  books:    { icon: BookOpen,   color: "from-blue-50 to-indigo-50 border-blue-200",     iconColor: "text-blue-600",   chartColor: "#3b82f6" },
-  anime:    { icon: Layers,     color: "from-pink-50 to-rose-50 border-pink-200",       iconColor: "text-pink-500",   chartColor: "#ec4899" },
-  movies:   { icon: Film,       color: "from-purple-50 to-violet-50 border-purple-200", iconColor: "text-purple-500", chartColor: "#a855f7" },
-  tv:       { icon: Tv2,        color: "from-orange-50 to-amber-50 border-orange-200",  iconColor: "text-orange-500", chartColor: "#f97316" },
-  games:    { icon: Gamepad2,   color: "from-green-50 to-emerald-50 border-green-200",  iconColor: "text-green-500",  chartColor: "#22c55e" },
-  manga:    { icon: BookMarked, color: "from-cyan-50 to-sky-50 border-cyan-200",        iconColor: "text-cyan-500",   chartColor: "#06b6d4" },
-  comics:   { icon: BookMarked, color: "from-yellow-50 to-lime-50 border-yellow-200",   iconColor: "text-yellow-600", chartColor: "#eab308" },
-  articles: { icon: Newspaper,  color: "from-gray-50 to-slate-50 border-gray-200",     iconColor: "text-gray-500",   chartColor: "#6b7280" },
+  books:    { icon: BookOpen,   color: "from-blue-50 to-indigo-50 border-blue-200",     iconColor: "text-blue-600",   chartColor: "var(--color-blue-500)" },
+  anime:    { icon: Layers,     color: "from-pink-50 to-rose-50 border-pink-200",       iconColor: "text-pink-500",   chartColor: "var(--color-pink-500)" },
+  movies:   { icon: Film,       color: "from-purple-50 to-violet-50 border-purple-200", iconColor: "text-purple-500", chartColor: "var(--color-purple-500)" },
+  tv:       { icon: Tv2,        color: "from-orange-50 to-amber-50 border-orange-200",  iconColor: "text-orange-500", chartColor: "var(--color-orange-500)" },
+  games:    { icon: Gamepad2,   color: "from-green-50 to-emerald-50 border-green-200",  iconColor: "text-green-500",  chartColor: "var(--color-green-500)" },
+  manga:    { icon: BookMarked, color: "from-cyan-50 to-sky-50 border-cyan-200",        iconColor: "text-cyan-500",   chartColor: "var(--color-cyan-500)" },
+  comics:   { icon: BookMarked, color: "from-yellow-50 to-lime-50 border-yellow-200",   iconColor: "text-yellow-600", chartColor: "var(--color-yellow-500)" },
+  articles: { icon: Newspaper,  color: "from-gray-50 to-slate-50 border-gray-200",     iconColor: "text-gray-500",   chartColor: "var(--color-gray-500)" },
 };
 
 function polarToCartesian(cx: number, cy: number, r: number, deg: number) {
@@ -187,8 +187,9 @@ function ChartView({
             <path
               key={p.key}
               d={p.d}
-              fill={p.color}
               style={{
+                // A style, not the fill attribute: presentation attributes can't read CSS variables.
+                fill: p.color,
                 opacity: hoveredKey && hoveredKey !== p.key ? 0.35 : 1,
                 transform: hoveredKey === p.key ? `scale(1.04)` : "scale(1)",
                 transformOrigin: `${cx}px ${cy}px`,
@@ -201,14 +202,14 @@ function ChartView({
             />
           ))}
           {/* Center label */}
-          <text x={cx} y={cy - 14} textAnchor="middle" fill="#6b7280" fontSize="12" fontWeight="500">
+          <text x={cx} y={cy - 14} textAnchor="middle" style={{ fill: "var(--color-gray-500)" }} fontSize="12" fontWeight="500">
             {hovered ? hovered.label : "Total time"}
           </text>
-          <text x={cx} y={cy + 10} textAnchor="middle" fill="#111827" fontSize="22" fontWeight="700">
+          <text x={cx} y={cy + 10} textAnchor="middle" style={{ fill: "var(--color-gray-900)" }} fontSize="22" fontWeight="700">
             {formatReadingTime(hovered ? hovered.minutes : chartTotal)}
           </text>
           {hovered && (
-            <text x={cx} y={cy + 30} textAnchor="middle" fill="#9ca3af" fontSize="13">
+            <text x={cx} y={cy + 30} textAnchor="middle" style={{ fill: "var(--color-gray-400)" }} fontSize="13">
               {Math.round((hovered.minutes / chartTotal) * 100)}%
             </text>
           )}

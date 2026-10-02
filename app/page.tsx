@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BookMarked, Shirt, Wallet, GraduationCap, ArrowRight } from "lucide-react";
+import ThemePicker from "@/components/ui/ThemePicker";
 
 const SECTIONS = [
   {
@@ -52,7 +53,7 @@ const SECTIONS = [
 export default function PortalPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="px-8 py-6 border-b border-gray-200 bg-white">
+      <header className="theme-header px-8 py-6 border-b border-gray-200 bg-white">
         <h1 className="text-xl font-bold text-gray-900">My Portal</h1>
         <p className="text-sm text-gray-500 mt-0.5">Your personal hub</p>
       </header>
@@ -63,7 +64,7 @@ export default function PortalPage() {
             const Icon = section.icon;
             return section.available ? (
               <Link key={section.href} href={section.href}
-                className={`group bg-gradient-to-br ${section.color} border rounded-xl p-6 hover:shadow-md transition-all`}>
+                className={`theme-tile group bg-gradient-to-br ${section.color} border rounded-xl p-6 hover:shadow-md transition-all`}>
                 <div className="flex items-center justify-between mb-4">
                   <Icon className={`w-6 h-6 ${section.iconColor}`} />
                   <ArrowRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
@@ -73,7 +74,7 @@ export default function PortalPage() {
               </Link>
             ) : (
               <div key={section.label}
-                className={`bg-gradient-to-br ${section.color} border rounded-xl p-6 opacity-60`}>
+                className={`theme-tile bg-gradient-to-br ${section.color} border rounded-xl p-6 opacity-60`}>
                 <div className="flex items-center justify-between mb-4">
                   <Icon className={`w-6 h-6 ${section.iconColor}`} />
                 </div>
@@ -83,6 +84,15 @@ export default function PortalPage() {
             );
           })}
         </div>
+
+        <section className="max-w-4xl mt-12">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Look</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            How the whole site looks, on this device. Inspired by Gen X Soft Club, Acid Design, Early
+            Cyber and Cyberdelia; Classic is the original.
+          </p>
+          <ThemePicker />
+        </section>
       </main>
     </div>
   );

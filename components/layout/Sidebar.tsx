@@ -6,6 +6,7 @@ import {
   BookOpen, Film, Tv2, Gamepad2, BookMarked, Layers, Newspaper, Library, LayoutDashboard, ArrowLeft,
 } from "lucide-react";
 import LogoutButton from "@/components/layout/LogoutButton";
+import ThemePicker from "@/components/ui/ThemePicker";
 
 const NAV_ITEMS = [
   { href: "/library",          label: "Dashboard", icon: LayoutDashboard },
@@ -23,29 +24,32 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 min-h-screen">
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-gray-200">
+    <aside className="theme-sidebar w-56 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 min-h-screen">
+      <div className="theme-brand flex items-center gap-2.5 px-5 py-5 border-b border-gray-200">
         <Library className="w-6 h-6 text-gray-900" />
         <span className="font-bold text-gray-900 text-lg">MyLibrary</span>
       </div>
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="theme-nav flex-1 px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const isActive = item.href === "/library"
             ? pathname === "/library"
             : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
-            <Link key={item.href} href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            <Link key={item.href} href={item.href} data-active={isActive || undefined}
+              className={`theme-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}>
               <Icon className="w-4 h-4 flex-shrink-0" />
-              {item.label}
+              <span className="theme-nav-label">{item.label}</span>
             </Link>
           );
         })}
       </nav>
-      <div className="px-3 py-4 border-t border-gray-100 flex flex-col gap-1">
+      <div className="pt-4 border-t border-gray-100">
+        <ThemePicker variant="compact" />
+      </div>
+      <div className="px-3 py-4 flex flex-col gap-1">
         <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
           <ArrowLeft className="w-4 h-4 flex-shrink-0" />
           Back to Portal

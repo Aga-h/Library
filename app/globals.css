@@ -1,12 +1,11 @@
 @import "tailwindcss";
+/* The looks: each theme's colour variables (generated), then its type, texture and details. */
+@import "./theme-palettes.css";
+@import "./themes.css";
 
-:root {
-  --background: #f9fafb;
-  --foreground: #111827;
-}
-
+/* Page colour and text follow the theme's palette; the typeface follows the theme. */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+  font-family: var(--theme-font-body);
 }
