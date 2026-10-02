@@ -195,7 +195,9 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       for the current app: Calendar/Tasks/Working a task/Free study sections removed; new Study,
       SAT vocabulary and Daily review sections; Stats, At a glance and environment table corrected
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
-      `lib/dates.ts`). **Update it whenever a section's behaviour changes.**
+      `lib/dates.ts`). 2026-10-02 (rev 28): TMDB movie import paragraphs under Library, and
+      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table.
+      **Update it whenever a section's behaviour changes.**
 
 - [x] **Weekly study goals** — an overall target in hours and one per module, all set inline in
       the Study page's This week box: every studyable module has its own row there, with "Set goal"
