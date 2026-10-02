@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — site themes built and pushed (nothing for the user to run); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-02 — site themes live and verified on the real site (an @import bug kept them out of the first deploy); nightly review fetch fixed; anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -332,6 +332,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
      denies `*.vercel.app` (proxy 403, verified).
   User reported steps 2–3 done on 2026-09-24; a manual test run was fired
   (session `cse_01G3vT8cDNyiXCTVyJFZQUpA`) — its transcript shows which step, if any, still fails.
+
+- **Nightly review: fixed 2026-10-02.** `PORTAL_URL` (Default environment) is the bare domain, which
+  308-redirects to www; the routine's curl didn't follow it, so every run got a 308 instead of the
+  review (and following it drops the Authorization header across hosts → 401). The routine prompt
+  (trig_01CmCeMSpvvCU2xYoyRyNjQy) now resolves the final host without the token, then sends the
+  token there. Verified from this environment: HTTP 200 with the day's JSON. Nothing for the user to
+  do; optionally set `PORTAL_URL` to the www address.
 
 - **Set the GitHub repo description.** There is no tool for it here; it is Settings → General.
   Suggested: "Personal hub — media library, wardrobe, finances, calendar and a task tracker that
