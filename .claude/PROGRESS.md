@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — movies import from TMDB built and pushed; **waiting on the user: TMDB key, 023, 024** (see Blocked); 018, 019, 020 still unconfirmed, 021 optional
+**Updated:** 2026-10-02 — movies TMDB import confirmed live (023, 024, key all done); IN PROGRESS: TV shows from TMDB (see Next); 018, 019, 020 still unconfirmed, 021 optional
 
 ## Done
 
@@ -241,7 +241,16 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       universe page; double tap → one row; v3 key and v4 token both work; no key 503, bad key, rate
       limit 429, TMDB down — all plain messages, key never in them; mirror-covers skips TMDB posters.
       Migrations: 023 idempotent, drift empty; 024 errors (deletes nothing) before 023, wipes after,
-      and skips once anything is imported. **Not yet tried against real TMDB — needs the user's key.**
+      and skips once anything is imported. **Confirmed working on the live site by the user (2026-10-02)** — 023 and 024 run, `TMDB_API_KEY` set.
+- [ ] **TV shows from TMDB** (asked 2026-10-02; IN PROGRESS): "same as movies, first delete everything,
+      then import; also total hours watched like the other sections". Plan: `TvSeries.tmdbId` (unique)
+      + `imdbId` (025, additive); 026 one-time guarded wipe of TvShow/TvSeries/TvUniverse. Search a
+      show → it becomes a series, every season (not specials) a `TvShow` row titled "Name | Season N"
+      with episodes, runtime (average of the season's episodes), year, poster, creator, network;
+      TMDB keyword tags import several shows at once. "Watched" import marks aired episodes watched.
+      Re-import / "Check for new seasons" adds seasons, raises episode counts, fills blanks only.
+      Time watched on TV main page, universe and series headers (the main page showed none —
+      `TvStats` computed it but was never rendered). −/+/All episode buttons on season cards.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -255,18 +264,6 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
-
-- **Movies from TMDB — three steps, in this order:**
-  1. Run `prisma/manual-migrations/023-tmdb.sql` in the Supabase SQL Editor **now** — the deployed code
-     reads `Movie.tmdbId`, so the movie pages error until it runs. Additive, safe to re-run.
-  2. Run `024-clear-movies.sql` **before importing anything** — deletes every movie and movie universe
-     (the user asked for this and noted their list). It refuses to run once any film has been imported
-     from TMDB. Expected output: `0 | 0 | 0`.
-  3. Get a TMDB key: themoviedb.org → sign up → Settings → API → request a Developer key (personal
-     use). Either the "API Key" or the "API Read Access Token" works. Put it in Vercel → Settings →
-     Environment Variables as `TMDB_API_KEY`, then **redeploy**. Never paste it into chat.
-  Optional: the old mirrored movie posters stay in Supabase Storage → `covers` → `movies/`; delete
-  that folder from the Storage page to get the space back. Nothing reads them.
 
 - **Network access is now Full** on the Default environment (user changed it 2026-10-01) — it
   applied to the running session immediately.
