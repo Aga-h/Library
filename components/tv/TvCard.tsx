@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
 import { isTmdbImage } from "@/lib/tmdb";
-import EpisodeButtons from "@/components/tv/EpisodeButtons";
+import EpisodeButtons from "@/components/ui/EpisodeButtons";
 
 interface TvShow {
   seasonNumber: number | null;
@@ -87,7 +87,7 @@ export default function TvCard({ show }: { show: TvShow }) {
           )}
         </div>
       </Link>
-      <EpisodeButtons showId={show.id} title={show.title} episodesWatched={show.episodesWatched} totalEpisodes={show.totalEpisodes} />
+      <EpisodeButtons apiPath={`/api/tv/${show.id}`} title={show.title} episodesWatched={show.episodesWatched} totalEpisodes={show.totalEpisodes} />
     </div>
   );
 }

@@ -153,6 +153,8 @@ const tmdbFirst = planImport([row("hand", { title: "Thor", year: 2011 }), row("i
   [film(2, "Thor", 2011)], null);
 eq(tmdbFirst.report[0].movieId, "imp", "a TMDB id match beats a title match");
 eq(normaliseTitle("Star Wars: Episode IV – A New Hope"), normaliseTitle("star wars episode iv a new hope"), "punctuation does not count");
+eq(normaliseTitle("Ocean's Eleven"), normaliseTitle("oceans eleven"), "an apostrophe is dropped, not spaced");
+eq(normaliseTitle("Frieren: Beyond Journey’s End"), normaliseTitle("frieren beyond journeys end"), "…curly ones too");
 
 eq(planImport([], [], "mcu"), { create: [], update: [], report: [] }, "an empty import changes nothing");
 

@@ -5,12 +5,17 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import HierarchyForm from "@/components/ui/HierarchyForm";
+import MalImport from "@/components/anime/MalImport";
+import { animeUniverseOptions } from "@/lib/hierarchy-options";
 
 interface PageProps { params: Promise<{ universeId: string }> }
 
 export default async function NewSeriesInUniversePage({ params }: PageProps) {
   const { universeId } = await params;
-  const universe = await db.animeUniverse.findUnique({ where: { id: universeId } });
+  const [universe, universeOpts] = await Promise.all([
+    db.animeUniverse.findUnique({ where: { id: universeId } }),
+    animeUniverseOptions(),
+  ]);
   if (!universe) notFound();
 
   return (
@@ -18,9 +23,15 @@ export default async function NewSeriesInUniversePage({ params }: PageProps) {
       <Link href={`/library/anime/u/${universe.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
         <ChevronLeft className="w-4 h-4" /> Back to {universe.name}
       </Link>
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Add Series</h1>
-        <p className="text-sm text-gray-500 mb-6">In {universe.name}</p>
+        <p className="text-sm text-gray-500 mb-6">
+          In {universe.name}. Search MyAnimeList and pick any season — the whole run loads with it.
+        </p>
+        <MalImport universes={universeOpts.map(({ id, name }) => ({ id, name }))} initialUniverseId={universe.id} />
+      </div>
+      <div className="bg-white border border-gray-200 rounded-xl p-8">
+        <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-6">Or make an empty series by hand</h2>
         <HierarchyForm mode="create" apiBase="/api/anime/series"
           extraPayload={{ universeId: universe.id }} redirectTo="/library/anime/s"
           entityLabel="Series" namePlaceholder="e.g. Iron-Blooded Orphans" />

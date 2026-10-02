@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { CheckCheck, Minus, Plus } from "lucide-react";
 
 /**
- * Log episodes from the season card: one more, one fewer, or the whole season. The status follows
- * on its own — the API derives it from the counts.
+ * Log episodes from a season card — TV or anime: one more, one fewer, or the whole season. The
+ * status follows on its own — the API derives it from the counts.
  */
 export default function EpisodeButtons({
-  showId, title, episodesWatched, totalEpisodes,
+  apiPath, title, episodesWatched, totalEpisodes,
 }: {
-  showId: string;
+  /** The entry's PATCH endpoint, e.g. `/api/tv/<id>`; it takes `{ episodesWatched }`. */
+  apiPath: string;
   title: string;
   episodesWatched: number;
   totalEpisodes: number | null;
@@ -25,7 +26,7 @@ export default function EpisodeButtons({
   async function set(next: number) {
     setSaving(true);
     try {
-      await fetch(`/api/tv/${showId}`, {
+      await fetch(apiPath, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ episodesWatched: next }),

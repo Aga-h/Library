@@ -25,7 +25,8 @@ AUTH_SECRET=…                   # signing key for the session cookie
 AUTH_PASSWORD=…                 # the password you log in with
 REPORT_TOKEN=…                  # optional: 32+ random chars; lets the nightly review read /api/study/review
 COMICVINE_API_KEY=…             # optional: comicvine.gamespot.com/api — lets Add Comic import a whole run
-TMDB_API_KEY=…                  # optional: themoviedb.org API key or read token — lets Add Movie search and import films
+TMDB_API_KEY=…                  # optional: themoviedb.org API key or read token — film and TV imports
+MAL_CLIENT_ID=…                 # optional: myanimelist.net/apiconfig Client ID — anime imports
 ```
 
 Optional, per feature: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (cover uploads),

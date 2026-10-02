@@ -9,6 +9,10 @@ import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 import AttachExistingButton from "@/components/ui/AttachExistingButton";
 import { animeTitleOptions } from "@/lib/hierarchy-options";
 import AnimeCard from "@/components/anime/AnimeCard";
+import MalRefresh from "@/components/anime/MalRefresh";
+import { MalNotice } from "@/components/tmdb/TmdbParts";
+import { formatTotalTime } from "@/lib/reading-time";
+import { animeWatchedMinutes } from "@/lib/mal";
 
 interface PageProps { params: Promise<{ seriesId: string }> }
 
@@ -37,19 +41,24 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
     : [{ label: series.name }];
 
   const episodesWatched = series.anime.reduce((s, x) => s + x.episodesWatched, 0);
+  const watchedMinutes = animeWatchedMinutes(series.anime);
+  const fromMal = series.anime.some((a) => a.malId !== null);
 
   return (
     <div>
       <Breadcrumb rootHref="/library/anime" rootLabel="Anime" crumbs={crumbs} />
 
       <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
+        {/* The title keeps room for its line; the buttons wrap instead of squeezing it. */}
+        <div className="min-w-[14rem]">
           <h1 className="text-2xl font-bold text-gray-900">{series.name}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {count(series.anime.length, "season")} · {count(episodesWatched, "episode")} watched
+            {watchedMinutes > 0 && ` · ${formatTotalTime(watchedMinutes)}`}
           </p>
         </div>
-        <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">
+        <div className="flex items-start justify-end flex-wrap gap-2">
+          {fromMal && <MalRefresh seriesId={series.id} />}
           <Link href={`/library/anime/s/${series.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -93,6 +102,8 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
           {series.anime.map((item) => <AnimeCard key={item.id} anime={item} />)}
         </div>
       )}
+
+      {fromMal && <MalNotice className="mt-8" />}
     </div>
   );
 }

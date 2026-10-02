@@ -2,11 +2,12 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Tv2, Clock, Globe, Calendar, Pencil } from "lucide-react";
+import { Tv2, Clock, Globe, Calendar, Pencil, ExternalLink } from "lucide-react";
 import { db } from "@/lib/db";
 import { formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { MalNotice } from "@/components/tmdb/TmdbParts";
 import DeleteAnimeButton from "@/components/anime/DeleteAnimeButton";
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -80,6 +81,12 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               {anime.season && anime.year && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">{SEASON_LABELS[anime.season]} {anime.year}</span>}
               {anime.rating !== null && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">★ {anime.rating}/10</span>}
             </div>
+            {anime.malId && (
+              <a href={`https://myanimelist.net/anime/${anime.malId}`} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-gray-500 hover:text-gray-900">
+                MyAnimeList <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
           </div>
         </div>
 
@@ -97,6 +104,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
           </div>
         )}
       </div>
+      {anime.malId && <MalNotice className="mt-4" />}
     </div>
   );
 }

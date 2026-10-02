@@ -84,6 +84,10 @@ model Anime {
   // Which season of its series this row is. Distinct from `season` above, which is the
   // AIRING season (Winter/Spring/Summer/Fall). Nullable: a standalone entry has none.
   seasonNumber    Int?
+  /// MyAnimeList's id for this entry when it was imported from MyAnimeList; null when added by
+  /// hand. On MAL every season is its own entry, so this is per row. Unique: an entry is in the
+  /// library once, and importing it again lands on the same row.
+  malId           Int?         @unique
   seriesId        String?
   series          AnimeSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())

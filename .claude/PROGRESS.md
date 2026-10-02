@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — TV from TMDB confirmed live (025, 026 run); IN PROGRESS: anime from MyAnimeList (see Next); 018, 019, 020 still unconfirmed, 021 optional
+**Updated:** 2026-10-02 — anime from MyAnimeList built and pushed; **waiting on the user: MAL Client ID, 027, optional 028** (see Blocked); 018, 019, 020 still unconfirmed, 021 optional
 
 ## Done
 
@@ -257,17 +257,22 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       one series, 3 seasons (advisory lock in an interactive transaction — first use of either here,
       works with the pg adapter); time totals match the DB; 025/026 verified like 023/024.
       **Confirmed working on the live site by the user (2026-10-02)** — 025 and 026 run.
-- [ ] **Anime from MyAnimeList** (asked 2026-10-02: "the same for anime, maybe derive from
-      myanimelist"; IN PROGRESS). Official MAL API v2 only (needs a free Client ID, `MAL_CLIENT_ID`,
-      sent as `X-MAL-CLIENT-ID`; license allows personal non-commercial use with attribution, and
-      forbids altering MAL content — titles are stored as MAL gives them). NOT the website and NOT
-      Jikan: MAL's robots.txt blocks ClaudeBot/anthropic-ai, and Jikan scrapes the site. Plan:
-      `Anime.malId` unique (027, additive); optional guarded wipe (028) — the user said "the same",
-      so offer it, don't assume. Pick an entry → its franchise is walked over sequel/prequel links →
-      preview in watch order → import as a series, each entry a row (seasonNumber = order); one
-      standalone entry stays standalone. English/romaji title toggle. "Check for new seasons" walks
-      again from the series. −/+/All episode buttons (shared with TV); time watched on universe and
-      series headers.
+- [x] **Anime from MyAnimeList** (asked 2026-10-02: "the same for anime, maybe derive from
+      myanimelist"). Official MAL API v2 only — not the website (robots.txt blocks ClaudeBot) and not
+      Jikan (scrapes it). Pick any entry → its run (sequel/prequel links, ≤ 40) in watch order →
+      import as a series; one standalone entry stays single; English/romaji title toggle (titles
+      stored as MAL gives them — license forbids altering); "Check for new seasons"; −/+/All episode
+      buttons (now shared with TV in `components/ui/EpisodeButtons.tsx`); time watched on universe
+      and series headers (the Anime page already had it). Verified against a local MAL stand-in over
+      real HTTP + Postgres, with hand-entered anime kept: walk from the middle of AoT finds all 7,
+      skips the side story, tries a broken link once, caps a 45-entry franchise at 40; your S1 linked
+      keeping rating/notes/watched/length; Your Name stayed single; your no-year Frieren moved into a
+      new series; refresh added S3 and raised S2's count; triple tap → 1 row. Found and fixed during
+      testing: a 2nd "Hunter x Hunter" (1999) joined the 2011 one's series (same-named series counted
+      as hand-made — now only if nothing in it is from MAL); refresh pulled in a music clip (now
+      skipped); "Journey's" vs typed "journeys" didn't match (apostrophes now dropped — shared with
+      films/TV). Known limit: a hand entry titled unlike MAL (e.g. "AoT S2 (my name)") is not matched
+      and gets a duplicate — why 028 is recommended. **Not yet run against real MyAnimeList.**
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -281,6 +286,14 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Anime from MyAnimeList — in this order:**
+  1. Get a Client ID: myanimelist.net (logged in) → myanimelist.net/apiconfig → Create ID. App type
+     "web"; the redirect/homepage URL can be the site's address (unused); pick Non-Commercial. Copy
+     the **Client ID** (not the secret) into Vercel as `MAL_CLIENT_ID`, then **redeploy**. Never in chat.
+  2. Run `027-anime-mal.sql` **now** — the anime pages error until it runs. Additive.
+  3. Optional but recommended: `028-clear-anime.sql` **before importing anything** for a clean slate
+     (like TV). Skipping it keeps your entries; ones titled like MAL are matched, others duplicate.
 
 - **Network access is now Full** on the Default environment (user changed it 2026-10-01) — it
   applied to the running session immediately.

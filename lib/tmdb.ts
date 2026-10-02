@@ -258,10 +258,14 @@ export interface ImportPlan {
   report: ReportLine[];
 }
 
-/** Titles compared loosely: case, punctuation, "&" against "and" and spacing don't count. */
+/**
+ * Titles compared loosely: case, punctuation, "&" against "and" and spacing don't count, and an
+ * apostrophe is dropped rather than spaced, so "Journey's" matches a typed "Journeys".
+ */
 export function normaliseTitle(title: string): string {
   return title
     .toLowerCase()
+    .replace(/['’`]/g, "")
     .replace(/&/g, " and ")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();

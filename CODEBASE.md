@@ -122,6 +122,27 @@ transaction holding `pg_advisory_xact_lock(namespace, tmdbId)`, so a double tap 
 Season cards carry −/+/All episode buttons; time watched (episodes × runtime × passes,
 `tvWatchedMinutes`) shows on the TV page, universe and series headers via `formatTotalTime`.
 
+**Anime from MyAnimeList.** "Add Anime" and a universe's "Add Series" search MyAnimeList through its
+official API v2 (`MAL_CLIENT_ID`, sent as `X-MAL-CLIENT-ID`; server-only — the license forbids sharing
+it). Not the website (robots.txt turns away Claude's crawlers) and not Jikan (it scrapes the website).
+On MAL every season, film and special is its own entry, so `Anime.malId` is per row (unique). Picking
+any entry walks its run over sequel/prequel links only (`walkRun`, ≤ 40, nearest first; side stories,
+spin-offs, recaps excluded; a broken link tried once) → a preview in watch order (start date) →
+ticked entries become one series, numbered in order; music/promo entries start unticked. A single
+entry imported standalone stays a single anime. Titles are stored exactly as MAL gives them — English
+or MAL's main (romaji) title by a toggle — since the license forbids altering its content. Matching
+(`matchEntries`): MAL id, else once by any of its titles + year against rows added by hand; titles
+that differ more than punctuation/case are not matched, so a kept hand library can gain duplicates
+(hence the optional 028 clean slate). `chooseSeries`: the series holding most matched rows; else a
+same-named series with nothing from MAL in it; else new (name + year, then MAL id, if taken).
+`planEntries` only adds: fills studio/airing season/year/poster/season number, raises an episode
+count, never touches title, episodes watched, episode length, rating, rewatches, notes, language.
+"Watched" marks finished entries fully; airing ones stay at 0 (MAL has no episode dates). "Check for
+new seasons" (`refreshSeries`) walks again and adds only entries newer than the newest the series has
+(not music/promos), keeping the series' title language. Per-run advisory locks (sorted ids) inside an
+interactive transaction stop a double tap duplicating. Posters hotlinked from cdn.myanimelist.net,
+excluded from mirroring. `normaliseTitle` drops apostrophes ("Journey's" = "Journeys").
+
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
@@ -195,6 +216,7 @@ scripts/                node test scripts, graph sealing
 | `comicvine.ts` / `comicvine-service.ts` / `comicvine-import.ts` | Issue numbers, covers and the merge rule / the API client / landing a run in a universe |
 | `tmdb.ts` / `tmdb-service.ts` / `tmdb-import.ts` | Reading TMDB's answers and the merge rule / the API client / landing films in the library |
 | `tmdb-tv.ts` / `tmdb-tv-import.ts` | Shows: reading seasons, `placeSeries` and `planSeasons` / landing shows as series + seasons |
+| `mal.ts` / `mal-service.ts` / `mal-import.ts` | Anime: reading entries and the merge rules / the MAL API client and run walk / landing runs as series |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
@@ -210,7 +232,7 @@ scripts/                node test scripts, graph sealing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
-report token, and the Comic Vine and TMDB (film and TV) merge rules. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+report token, and the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser
