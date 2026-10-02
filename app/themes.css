@@ -53,12 +53,15 @@ h2.text-2xl,
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
- * SOFT CLUB — Gen X Soft Club, 1997–2003: the CD booklets, club flyers and transit posters of the
- * late-90s city (references: Tresor's Globus Mix sleeve, Ambient Lounge, Kaskade, Sneaker Pimps,
- * Nine Days, Bowienet, Chungking Express). An icy world washed in one photographic cast — electric
- * cyan-blue — lit by fluorescent lime and sodium orange. Commuters blurred into streaks of light;
- * thin, wide, lowercase type against technical microtype; subway roll signs; the Tresor target;
- * graduated dots; grain and scanlines over everything.
+ * SOFT CLUB — Gen X Soft Club, 1997–2003, drawn from the owner's references: Blur's "blur" sleeve,
+ * the "Gen X / contemporary soft club" collage, Tresor's Globus Mix, Ambient Lounge, Kaskade, Nine
+ * Days, Bowienet, Jazzy Chill Out. The city seen from a moving train, in one icy cyan cast.
+ *
+ * Nothing has an outline. A panel is a field of brighter haze that glows out into the haze around
+ * it and smears sideways, as if passed at speed; shapes are told apart by colour and by soft
+ * streaks, never by a border. The lines are the graphics laid over the photograph — glowing
+ * hairline frames, long rules, columns of data text, a subway map — not boxes round things.
+ * Lists of sections read as a CD's tracklist; the open page is a roll sign blurred by speed.
  * ═════════════════════════════════════════════════════════════════════════════ */
 
 :root[data-theme="softclub"] {
@@ -66,38 +69,81 @@ h2.text-2xl,
   --theme-font-display: var(--font-lexend-exa), "Helvetica Neue", Helvetica, sans-serif;
   --theme-font-label: var(--font-share-tech-mono), ui-monospace, monospace;
   --sc-ink: #0e1a24;
-  --sc-sign: linear-gradient(180deg, #1c2a37, #0a131b);
   --sc-cyan: #2a96d4;
   --sc-lime: #a9d22c;
   --sc-orange: #f2902e;
-  --sc-hair: rgb(46 120 170 / 0.26);
-  --sc-glass: rgb(251 253 254 / 0.8);
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
-  --shadow-md: 0 16px 34px -22px rgb(14 33 51 / 0.5), 0 0 0 1px rgb(42 150 212 / 0.28);
-  --shadow-lg: 0 24px 50px -26px rgb(14 33 51 / 0.55), 0 0 0 1px rgb(42 150 212 / 0.28);
   scrollbar-color: #8dbfdc transparent;
 }
 
-/* The city at speed: a cyan haze with train lights smeared across it. Blurred as a whole, and
- * bled past the edges so the blur never shows a border. */
-[data-theme="softclub"] body::after {
-  inset: -80px;
-  filter: blur(12px);
-  background:
-    linear-gradient(90deg, transparent 2%, rgb(255 255 255 / 0.95) 20%, rgb(255 255 255 / 0.95) 78%, transparent 96%) 0 24% / 100% 16px no-repeat,
-    linear-gradient(90deg, transparent 8%, rgb(120 205 248 / 0.95) 34%, rgb(120 205 248 / 0.9) 88%, transparent) 0 29% / 100% 9px no-repeat,
-    linear-gradient(90deg, transparent 28%, rgb(255 255 255 / 0.85) 58%, transparent 92%) 0 61% / 100% 28px no-repeat,
-    linear-gradient(90deg, transparent 0%, rgb(70 165 228 / 0.6) 38%, transparent 80%) 0 67% / 100% 7px no-repeat,
-    linear-gradient(90deg, transparent 46%, rgb(169 210 44 / 0.5) 74%, transparent 98%) 0 83% / 100% 11px no-repeat,
-    radial-gradient(70vw 55vh at 6% 0%, rgb(110 196 244 / 0.8), transparent 70%),
-    radial-gradient(60vw 55vh at 100% 96%, rgb(88 176 234 / 0.6), transparent 70%),
-    radial-gradient(45vw 35vh at 58% 44%, rgb(255 255 255 / 0.9), transparent 70%),
-    linear-gradient(180deg, #d7e9f4, #edf6fb 45%, #d3e7f2);
+/* No outlines anywhere — dividers included. And Tailwind's shadow utilities take their colour
+ * from --tw-shadow-color, so every drop shadow on the site becomes a glow. */
+[data-theme="softclub"] *,
+[data-theme="softclub"] *::before,
+[data-theme="softclub"] *::after {
+  border-color: transparent;
+  background-origin: border-box;
+  --tw-shadow-color: rgb(255 255 255 / 0.9);
 }
 
-/* The Tresor target, cropped by the corner and seen through the frosted header. Only on pages
- * without a sidebar — where there is one, the target sits in it instead, clear of every button. */
+/* The city at speed. Lavender sky to the left, aqua to the right, a column of daylight, train
+ * windows smeared into streaks. Blurred as a whole and bled past the edges so the blur never shows
+ * a border. Below the line art (-1), so it sits at -2. */
+:root[data-theme="softclub"] body::after {
+  inset: -80px;
+  z-index: -2;
+  filter: blur(14px);
+  background:
+    linear-gradient(90deg, transparent 2%, rgb(255 255 255 / 0.95) 20%, rgb(255 255 255 / 0.95) 78%, transparent 96%) 0 21% / 100% 14px no-repeat,
+    linear-gradient(90deg, transparent 8%, rgb(120 205 248 / 0.95) 34%, rgb(120 205 248 / 0.9) 88%, transparent) 0 26% / 100% 8px no-repeat,
+    linear-gradient(90deg, transparent, rgb(46 98 178 / 0.22) 25%, rgb(46 98 178 / 0.2) 75%, transparent) 0 46% / 100% 26px no-repeat,
+    linear-gradient(90deg, transparent 28%, rgb(255 255 255 / 0.85) 58%, transparent 92%) 0 60% / 100% 28px no-repeat,
+    linear-gradient(90deg, transparent 0%, rgb(70 165 228 / 0.6) 38%, transparent 80%) 0 66% / 100% 7px no-repeat,
+    linear-gradient(90deg, transparent 46%, rgb(169 210 44 / 0.5) 74%, transparent 98%) 0 83% / 100% 11px no-repeat,
+    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.6) 50%, transparent) 56% 0 / 16vw 100% no-repeat,
+    radial-gradient(70vw 60vh at 4% 0%, rgb(160 170 236 / 0.9), transparent 70%),
+    radial-gradient(55vw 50vh at 100% 100%, rgb(96 200 190 / 0.75), transparent 70%),
+    radial-gradient(50vw 45vh at 84% 16%, rgb(104 190 240 / 0.75), transparent 70%),
+    radial-gradient(45vw 35vh at 48% 58%, rgb(255 255 255 / 0.8), transparent 70%),
+    linear-gradient(180deg, #c4d3ef, #dcedf8 45%, #c1e2e6);
+  background-origin: border-box;
+}
+
+/* The graphics over the photograph: data text running down the left edge, long rules, a pair
+ * of offset frames, a subway map — thin, glowing, slightly out of focus. */
+:root[data-theme="softclub"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.9;
+  filter: blur(0.35px) drop-shadow(0 0 1.5px rgb(42 130 200 / 0.55)) drop-shadow(0 0 4px rgb(255 255 255 / 0.9));
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='720' font-family='monospace' font-size='8' letter-spacing='0.6'%3E%3Ctext transform='translate(8 0) rotate(90)' fill='rgba(255,255,255,0.9)'%3EREQJQ0X4RQD1ULC1GQWXSDCN4P8QQH8UWG6RCNJCA2DSA6ZS0A30NMQ9X2SBH6VK8Z07YWHT5HKZUY9BUMJF1GX76HQGZEPY1KB71T0XSNCLMPCZA9JFCUVBBDPYZRXT47SQ39BVDBDEBMPSKGJX9E%3C/text%3E%3Ctext transform='translate(22 0) rotate(90)' fill='rgba(40,110,190,0.55)'%3EXLZXH2HXN328K9C6GAU9YF1K5MJUMD1Z5XL8KN30JUBPTYWGXV4TCNSMM7VQUGWJDTNJETRSSCUEZENP6XZZ409PG07Z8R3ZG3JBNFY7K09CCRFVCAGLBHPPZX26NAVAJVKYB8G1SA350FWCC569J1%3C/text%3E%3Ctext transform='translate(36 0) rotate(90)' fill='rgba(255,255,255,0.75)'%3EHWU8NC9JBWYZ4U94K5ZXKAE3J1N06R77E8JCWQXEUSZ7614168V22BCW7221JMGN91Y9BWGH0JAHKB3C5SUTUNR3LW4RPHMH8DJMW1HJ1SJ386V23G7GG6H95EKVNN3BFMUDFDJ7TD0CBQ5TYP10ZL%3C/text%3E%3Ctext transform='translate(50 0) rotate(90)' fill='rgba(255,255,255,0.5)'%3EX5KQBQUUPL9UTVP5QWRY9NYXSMYHP83XUDFGHF403HRUBQGSQ9CB08PUT1THDLFARUMBFEMFLM8ZGMN37WG04J6UHP7W0CK2S0RPR6FBBZH2MRZHN1LW1Y65RM5ZXFHP47CWZN99JM36EY21BJMG54%3C/text%3E%3C/svg%3E") left 6px top 0 / 60px 720px repeat-y,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='360' fill='none'%3E%3Crect x='24.5' y='8.5' width='190' height='300' stroke='white' stroke-opacity='0.9'/%3E%3Crect x='96.5' y='150.5' width='210' height='190' stroke='white' stroke-opacity='0.6'/%3E%3Cpath d='M0 262.5H320' stroke='rgb(42,150,212)' stroke-opacity='0.45'/%3E%3Cpath d='M214.5 0V40M300.5 136V164' stroke='white' stroke-opacity='0.7'/%3E%3C/svg%3E") right 6vw top 22vh / 320px 360px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='260' fill='none' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M0 210H120L170 160H300L340 120H420' stroke='rgb(42,120,200)' stroke-opacity='0.55'/%3E%3Cpath d='M60 260V200L110 150H220L260 110V0' stroke='rgb(40,170,160)' stroke-opacity='0.5'/%3E%3Cpath d='M0 130H90L140 180H280' stroke='rgb(150,200,40)' stroke-opacity='0.55'/%3E%3Cpath d='M170 260L220 210H420' stroke='rgb(242,144,46)' stroke-opacity='0.45'/%3E%3Cg fill='white' stroke='rgb(42,120,200)' stroke-opacity='0.6' stroke-width='1.2'%3E%3Ccircle cx='120' cy='210' r='3.5'/%3E%3Ccircle cx='170' cy='160' r='3.5'/%3E%3Ccircle cx='220' cy='150' r='3.5'/%3E%3Ccircle cx='260' cy='110' r='3.5'/%3E%3Ccircle cx='140' cy='180' r='3.5'/%3E%3Ccircle cx='220' cy='210' r='3.5'/%3E%3Ccircle cx='300' cy='160' r='3.5'/%3E%3C/g%3E%3C/svg%3E") right 1.5vw bottom 2vh / 420px 260px no-repeat,
+    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.95) 6%, rgb(255 255 255 / 0.95) 70%, transparent) 0 31.5% / 74% 1px no-repeat,
+    linear-gradient(90deg, transparent, rgb(42 150 212 / 0.5) 30%, rgb(42 150 212 / 0.5) 90%, transparent) 100% 73% / 58% 1px no-repeat,
+    linear-gradient(180deg, transparent, rgb(255 255 255 / 0.85) 15%, rgb(255 255 255 / 0.85) 80%, transparent) 61% 0 / 1px 100% no-repeat;
+  background-origin: border-box;
+}
+
+/* Beside a sidebar the data text runs down the sidebar's edge instead — the only divider it has. */
+:root[data-theme="softclub"]:has(.theme-sidebar)::before {
+  background-position: left 192px top 0, right 6vw top 22vh, right 1.5vw bottom 2vh, 0 31.5%, 100% 73%, 61% 0;
+}
+
+/* On a phone the content fills the screen; the frames and the map would sit right behind it. */
+@media (max-width: 639px) {
+  :root[data-theme="softclub"]::before {
+    background-size: 60px 720px, 0 0, 0 0, 74% 1px, 58% 1px, 1px 100%;
+  }
+}
+
+/* The Tresor target, cropped by the corner behind the header — out of focus, like everything
+ * else. Only on pages without a sidebar; where there is one, it sits in the sidebar instead. */
 :root[data-theme="softclub"]:not(:has(.theme-sidebar))::after {
   content: "";
   position: fixed;
@@ -108,8 +154,9 @@ h2.text-2xl,
   right: -58px;
   top: -112px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--sc-lime) 0 22%, transparent 22.6% 46%, var(--sc-lime) 46.6% 70%, transparent 70.6%);
-  opacity: 0.92;
+  background: radial-gradient(circle, var(--sc-lime) 0 19%, transparent 25% 43%, var(--sc-lime) 49% 66%, transparent 72%);
+  background-origin: border-box;
+  opacity: 0.85;
 }
 
 /* Grain and scanlines over everything, faint as a camcorder tape. */
@@ -124,9 +171,10 @@ h2.text-2xl,
   background:
     repeating-linear-gradient(0deg, rgb(14 33 51 / 0.55) 0 1px, transparent 1px 3px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-origin: border-box;
 }
 
-/* Type: thin, wide, lowercase titles ending in a lime full stop ("Tresor."); Helvetica for
+/* ── Type ── thin, wide, lowercase titles ending in a lime full stop ("Tresor."); Helvetica for
  * reading; technical mono for labels, set in <brackets> like a software release note. */
 [data-theme="softclub"] :is(h1, h2.text-2xl) {
   font-weight: 300;
@@ -170,42 +218,176 @@ h2.text-2xl,
   letter-spacing: 0.04em;
 }
 
-/* Panels are frosted cases over the haze, with a lit top edge. */
-[data-theme="softclub"] .rounded-xl.bg-white,
-[data-theme="softclub"] .rounded-2xl.bg-white {
-  background-color: var(--sc-glass);
-  border-color: var(--sc-hair);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 18px 40px -30px rgb(14 33 51 / 0.55);
+/* ── Panels ── fields of brighter haze. No edge: the field glows out into the haze around it,
+ * its light dragged sideways, with faint streaks across it like the striations in the blur
+ * sleeve. Inputs, buttons and the menu are styled below; these are the containers. */
+[data-theme="softclub"] :is(div, section, article, form, li, aside, a).bg-white:is(.rounded-xl, .rounded-2xl),
+[data-theme="softclub"] :is(div, section, article, form, li).bg-white.rounded-lg.border {
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 13px, rgb(255 255 255 / 0.5) 13px 14px, transparent 15px 29px, rgb(42 150 212 / 0.05) 29px 31px, transparent 32px 47px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.6));
+  background-origin: border-box;
+  box-shadow:
+    0 0 16px 7px rgb(255 255 255 / 0.56),
+    -40px 0 30px -16px rgb(255 255 255 / 0.5),
+    40px 0 30px -16px rgb(255 255 255 / 0.4);
+}
+[data-theme="softclub"] a.bg-white:is(.rounded-xl, .rounded-2xl) {
+  transition: box-shadow 0.25s, background 0.25s;
+}
+[data-theme="softclub"] a.bg-white:is(.rounded-xl, .rounded-2xl):hover {
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 0.86), rgb(255 255 255 / 0.66));
+  background-origin: border-box;
+  box-shadow:
+    0 0 20px 9px rgb(255 255 255 / 0.62),
+    -60px 0 34px -16px rgb(255 255 255 / 0.62),
+    60px 0 34px -16px rgb(150 214 245 / 0.5);
+}
+/* Tinted shapes — toggle groups, rows, chips — have soft edges too: each glows out in its own tint. */
+[data-theme="softclub"] .bg-gray-50:is(.rounded, .rounded-md, .rounded-lg, .rounded-xl):not(input, select, textarea) {
+  box-shadow: 0 0 6px 3px var(--color-gray-50);
+}
+[data-theme="softclub"] .bg-gray-100:is(.rounded, .rounded-md, .rounded-lg, .rounded-xl):not(input, select, textarea) {
+  box-shadow: 0 0 6px 3px var(--color-gray-100);
 }
 
-/* Primary actions are subway roll signs: black-blue plates, white Helvetica. */
-[data-theme="softclub"] :is(a, button).bg-gray-900:not(.theme-nav-item) {
-  background: var(--sc-sign);
+/* Coloured shapes — tinted boxes and chips, solid coloured buttons — glow out in their own colour
+ * instead of ending at an edge. CSS can't read an element's background, so each tint in use names
+ * its glow; a solid one also trails sideways like the navy plates. */
+[data-theme="softclub"] .bg-red-50 { --sc-glow: var(--color-red-50); }
+[data-theme="softclub"] .bg-red-100 { --sc-glow: var(--color-red-100); }
+[data-theme="softclub"] .bg-red-500 { --sc-glow: var(--color-red-500); }
+[data-theme="softclub"] .bg-red-600 { --sc-glow: var(--color-red-600); }
+[data-theme="softclub"] .bg-red-700 { --sc-glow: var(--color-red-700); }
+[data-theme="softclub"] .bg-orange-50 { --sc-glow: var(--color-orange-50); }
+[data-theme="softclub"] .bg-amber-50 { --sc-glow: var(--color-amber-50); }
+[data-theme="softclub"] .bg-amber-100 { --sc-glow: var(--color-amber-100); }
+[data-theme="softclub"] .bg-amber-500 { --sc-glow: var(--color-amber-500); }
+[data-theme="softclub"] .bg-amber-600 { --sc-glow: var(--color-amber-600); }
+[data-theme="softclub"] .bg-yellow-50 { --sc-glow: var(--color-yellow-50); }
+[data-theme="softclub"] .bg-yellow-500 { --sc-glow: var(--color-yellow-500); }
+[data-theme="softclub"] .bg-green-50 { --sc-glow: var(--color-green-50); }
+[data-theme="softclub"] .bg-green-100 { --sc-glow: var(--color-green-100); }
+[data-theme="softclub"] .bg-green-600 { --sc-glow: var(--color-green-600); }
+[data-theme="softclub"] .bg-green-700 { --sc-glow: var(--color-green-700); }
+[data-theme="softclub"] .bg-emerald-50 { --sc-glow: var(--color-emerald-50); }
+[data-theme="softclub"] .bg-emerald-500 { --sc-glow: var(--color-emerald-500); }
+[data-theme="softclub"] .bg-emerald-600 { --sc-glow: var(--color-emerald-600); }
+[data-theme="softclub"] .bg-emerald-700 { --sc-glow: var(--color-emerald-700); }
+[data-theme="softclub"] .bg-sky-50 { --sc-glow: var(--color-sky-50); }
+[data-theme="softclub"] .bg-sky-100 { --sc-glow: var(--color-sky-100); }
+[data-theme="softclub"] .bg-sky-500 { --sc-glow: var(--color-sky-500); }
+[data-theme="softclub"] .bg-blue-50 { --sc-glow: var(--color-blue-50); }
+[data-theme="softclub"] .bg-blue-100 { --sc-glow: var(--color-blue-100); }
+[data-theme="softclub"] .bg-blue-600 { --sc-glow: var(--color-blue-600); }
+[data-theme="softclub"] .bg-blue-700 { --sc-glow: var(--color-blue-700); }
+[data-theme="softclub"] .bg-purple-50 { --sc-glow: var(--color-purple-50); }
+[data-theme="softclub"] .bg-purple-100 { --sc-glow: var(--color-purple-100); }
+[data-theme="softclub"] :is(.bg-red-50, .bg-red-100, .bg-orange-50, .bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-green-50, .bg-green-100, .bg-emerald-50, .bg-sky-50, .bg-sky-100, .bg-blue-50, .bg-blue-100, .bg-purple-50, .bg-purple-100):is(.rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-full) {
+  box-shadow: 0 0 6px 3px var(--sc-glow);
+}
+[data-theme="softclub"] :is(.bg-red-500, .bg-red-600, .bg-red-700, .bg-amber-500, .bg-amber-600, .bg-yellow-500, .bg-green-600, .bg-green-700, .bg-emerald-500, .bg-emerald-600, .bg-emerald-700, .bg-sky-500, .bg-blue-600, .bg-blue-700):is(.rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-full) {
+  box-shadow: 0 0 6px 3px var(--sc-glow), -12px 0 10px -6px var(--sc-glow), 12px 0 10px -6px var(--sc-glow);
+}
+
+/* Anything that floats over the page — a dialog, a dropdown, the look menu — has to be read over
+ * whatever is beneath, so it is nearly opaque. */
+[data-theme="softclub"] :is(div, section, article, form, li, aside, a):is(.fixed, .absolute, .theme-picker-menu).bg-white,
+[data-theme="softclub"] .fixed :is(div, section, article, form, li, aside, a).bg-white:is(.rounded-xl, .rounded-2xl) {
+  background: rgb(244 250 253 / 0.97);
+  background-origin: border-box;
+}
+
+/* Photographs and covers fade into the haze at their edges, like the layered stills in the
+ * Gen X collage, instead of ending at a hard line. */
+[data-theme="softclub"] img.object-cover {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, transparent, #000 5%, #000 84%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, transparent, #000 5%, #000 84%, transparent);
+  mask-composite: intersect;
+}
+
+/* Rows divided by a streak of light that fades at both ends, not a rule. */
+[data-theme="softclub"] :is(.divide-y) > :not(:last-child) {
+  background-image: linear-gradient(90deg, transparent, rgb(42 150 212 / 0.22) 12%, rgb(255 255 255 / 0.9) 50%, rgb(42 150 212 / 0.22) 88%, transparent);
+  background-size: 100% 1px;
+  background-position: bottom;
+  background-repeat: no-repeat;
+}
+
+/* ── Controls ── a field to type in is a cooler tint with a blurred cyan underline. */
+[data-theme="softclub"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), select, textarea) {
+  border-radius: 3px;
+  background-color: rgb(214 236 249 / 0.6);
+  box-shadow: inset 0 -2px 3px -2px rgb(42 150 212 / 0.85), 0 0 10px 1px rgb(255 255 255 / 0.55);
+}
+[data-theme="softclub"] :is(input, select, textarea):focus {
+  outline: none;
+  background-color: rgb(236 247 253 / 0.85);
+  box-shadow: inset 0 -2px 4px -2px rgb(42 150 212 / 1), 0 0 18px 4px rgb(140 210 246 / 0.6);
+}
+/* Outlined buttons lose the outline and become soft plates of light. */
+[data-theme="softclub"] :is(button, a).border:is(.bg-white, :not([class*=" bg-"], [class^="bg-"])),
+[data-theme="softclub"] :is(button, a).bg-white:is(.rounded-lg, .rounded-md, .rounded-full) {
+  background-color: rgb(214 236 249 / 0.55);
+  box-shadow: 0 0 10px 2px rgb(255 255 255 / 0.65);
+}
+[data-theme="softclub"] :is(button, a).border:is(.bg-white, :not([class*=" bg-"], [class^="bg-"])):hover:not(:disabled),
+[data-theme="softclub"] :is(button, a).bg-white:is(.rounded-lg, .rounded-md, .rounded-full):hover:not(:disabled) {
+  background-color: rgb(236 247 253 / 0.9);
+  box-shadow: 0 0 14px 4px rgb(255 255 255 / 0.85);
+}
+
+/* The dark accent — primary buttons, the total-time and level badges — is a navy roll sign seen
+ * from a moving train: its edges blur out and its ink trails to either side. */
+[data-theme="softclub"] .bg-gray-900:not(.theme-nav-item) {
+  background: rgb(19 40 58 / 0.9);
+  background-origin: border-box;
   color: #f4f8fb;
-  border-radius: 8px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 6px 14px -8px rgb(14 26 36 / 0.7);
+  border-radius: 6px;
+  box-shadow:
+    0 0 7px 5px rgb(19 40 58 / 0.78),
+    -26px 0 18px -8px rgb(19 40 58 / 0.42),
+    26px 0 18px -8px rgb(19 40 58 / 0.42);
 }
 [data-theme="softclub"] :is(a, button).bg-gray-900:not(.theme-nav-item):hover {
-  background: linear-gradient(180deg, #24394b, #0f1e2a);
+  background: #1d3a52;
+  background-origin: border-box;
 }
 [data-theme="softclub"] .focus\:ring-gray-400:focus {
   --tw-ring-color: rgb(42 150 212 / 0.45);
 }
+/* The glows above replace Tailwind's ring shadows, so keyboard focus shows as an outline instead. */
+[data-theme="softclub"] :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid rgb(42 150 212 / 0.7);
+  outline-offset: 3px;
+}
 
-/* The sidebar: frosted glass, the brand on a blue band like a sleeve's title strip, tagged with
- * its version; the menu numbered 01, 02, 03 like Bowienet's tiles, the open page a roll sign. */
+/* ── The sidebar ── not a column: a wash of daylight down the left that fades into the haze.
+ * The brand is a blue smear tagged with its version; the menu is numbered 01, 02, 03 like
+ * Bowienet's tiles, and the open page is the roll sign. */
 [data-theme="softclub"] .theme-sidebar {
-  background: linear-gradient(180deg, rgb(251 253 254 / 0.8), rgb(232 243 250 / 0.62));
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border-right-color: var(--sc-hair);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.3) 70%, transparent);
+  background-origin: border-box;
 }
 [data-theme="softclub"] .theme-brand {
   position: relative;
-  background: linear-gradient(90deg, #17609f, #2a96d4 58%, #86cdf0);
-  border-bottom: 0;
-  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.5), 0 2px 0 var(--sc-lime);
+  background: linear-gradient(90deg, #17609f, #2a96d4 52%, rgb(134 205 240 / 0.55) 82%, transparent);
+  background-origin: border-box;
   color: #fff;
+}
+[data-theme="softclub"] .theme-brand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 18%;
+  bottom: -2px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sc-lime), rgb(169 210 44 / 0.6) 70%, transparent);
+  background-origin: border-box;
+  filter: blur(1.2px);
 }
 [data-theme="softclub"] .theme-brand * {
   color: inherit;
@@ -221,25 +403,32 @@ h2.text-2xl,
   right: 0.7rem;
   top: 0.6rem;
   padding: 3px 5px;
-  border-radius: 3px;
+  border-radius: 2px;
   font: 9px/1 var(--theme-font-label);
   letter-spacing: 0.08em;
   color: var(--sc-ink);
   background: var(--sc-lime);
+  background-origin: border-box;
+  box-shadow: 0 0 7px 1px rgb(169 210 44 / 0.75);
 }
-/* The target sits in the empty space under the menu, like a record label's emblem. Drawn on the
- * menu itself, so on a short screen the menu's edge crops it rather than it running into the footer. */
+/* The target sits in the empty space under the menu, like a record label's emblem, out of focus.
+ * Drawn on the menu itself, so on a short screen the menu's edge crops it rather than it running
+ * into the footer. */
 [data-theme="softclub"] .theme-nav {
   counter-reset: sc-nav;
-  background: radial-gradient(circle at 50% 465px, var(--sc-lime) 0 17px, transparent 17.6px 36px, var(--sc-lime) 36.6px 54px, transparent 54.6px);
+  background: radial-gradient(circle at 50% 465px, var(--sc-lime) 0 14px, transparent 20px 33px, var(--sc-lime) 39px 50px, transparent 56px);
+  background-origin: border-box;
 }
 [data-theme="softclub"] .theme-nav-item {
   counter-increment: sc-nav;
   gap: 0.75rem;
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--color-gray-600);
   text-transform: lowercase;
   letter-spacing: -0.005em;
+  /* Every band in the menu is feathered top and bottom: a streak, not a plate. */
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
 }
 [data-theme="softclub"] .theme-nav-item svg {
   display: none;
@@ -251,27 +440,38 @@ h2.text-2xl,
   color: var(--sc-cyan);
 }
 [data-theme="softclub"] .theme-nav-item:hover {
-  background: rgb(42 150 212 / 0.08);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.5) 60%, transparent);
+  background-origin: border-box;
   color: var(--sc-ink);
 }
 [data-theme="softclub"] .theme-nav-item[data-active] {
-  background: var(--sc-sign);
+  background: linear-gradient(90deg, #13283a, #13283a 55%, rgb(19 40 58 / 0.55) 82%, transparent);
+  background-origin: border-box;
   color: #f4f8fb;
   font-weight: 600;
   text-transform: none;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), inset 0 -1px 0 rgb(0 0 0 / 0.5), 0 5px 12px -6px rgb(14 26 36 / 0.7);
 }
 [data-theme="softclub"] .theme-nav-item[data-active]::before {
   color: var(--sc-lime);
 }
 
-/* Page headers: frosted, with Jazzy Chill Out's row of fading dots. */
+/* ── Page headers ── no bar: a brighter haze at the top, ended by a glowing rule line that runs
+ * off the page like the one under "contemporary soft club", and Jazzy Chill Out's fading dots. */
 [data-theme="softclub"] .theme-header {
   position: relative;
-  background-color: rgb(251 253 254 / 0.62);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border-bottom-color: var(--sc-hair);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.12));
+  background-origin: border-box;
+}
+[data-theme="softclub"] .theme-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.95) 6%, rgb(255 255 255 / 0.95) 52%, rgb(42 150 212 / 0.45) 80%, transparent);
+  background-origin: border-box;
+  box-shadow: 0 0 6px 1px rgb(255 255 255 / 0.8);
 }
 [data-theme="softclub"] .theme-header::after {
   content: "";
@@ -282,13 +482,14 @@ h2.text-2xl,
   height: 14px;
   margin-top: -7px;
   background:
-    radial-gradient(circle 6px at 7px 7px, rgb(242 144 46 / 1) 96%, transparent),
-    radial-gradient(circle 6px at 24px 7px, rgb(242 144 46 / 0.82) 96%, transparent),
-    radial-gradient(circle 6px at 41px 7px, rgb(242 144 46 / 0.66) 96%, transparent),
-    radial-gradient(circle 6px at 58px 7px, rgb(242 144 46 / 0.52) 96%, transparent),
-    radial-gradient(circle 6px at 75px 7px, rgb(242 144 46 / 0.39) 96%, transparent),
-    radial-gradient(circle 6px at 92px 7px, rgb(242 144 46 / 0.27) 96%, transparent),
-    radial-gradient(circle 6px at 109px 7px, rgb(242 144 46 / 0.16) 96%, transparent);
+    radial-gradient(circle 6px at 7px 7px, rgb(242 144 46 / 1) 70%, transparent),
+    radial-gradient(circle 6px at 24px 7px, rgb(242 144 46 / 0.82) 70%, transparent),
+    radial-gradient(circle 6px at 41px 7px, rgb(242 144 46 / 0.66) 70%, transparent),
+    radial-gradient(circle 6px at 58px 7px, rgb(242 144 46 / 0.52) 70%, transparent),
+    radial-gradient(circle 6px at 75px 7px, rgb(242 144 46 / 0.39) 70%, transparent),
+    radial-gradient(circle 6px at 92px 7px, rgb(242 144 46 / 0.27) 70%, transparent),
+    radial-gradient(circle 6px at 109px 7px, rgb(242 144 46 / 0.16) 70%, transparent);
+  background-origin: border-box;
 }
 @media (max-width: 639px) {
   [data-theme="softclub"] .theme-header::after {
@@ -296,53 +497,127 @@ h2.text-2xl,
   }
 }
 
-/* The portal's sections are CD sleeves: a cyan title strip on top, a catalogue number below. */
-[data-theme="softclub"] :has(> .theme-tile) {
-  counter-reset: sc-tile;
+/* ── Tracklists ── the portal's sections and the library dashboard's are not a grid of cards but
+ * a CD's tracklist: one streak of light per track, numbered in LED, washed at its start with the
+ * section's own colour and fading out to the right. The icon gives way to the track number. */
+[data-theme="softclub"] .grid:has(> .theme-tile),
+[data-theme="softclub"] .grid:has(> a.bg-gradient-to-br) {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+  counter-reset: sc-track;
 }
-[data-theme="softclub"] .theme-tile {
-  counter-increment: sc-tile;
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) {
+  --sc-hue: var(--sc-cyan);
+  counter-increment: sc-track;
   position: relative;
-  background-image: none;
-  background-color: var(--sc-glass);
-  border-color: var(--sc-hair);
-  border-top: 6px solid var(--sc-cyan);
-  border-radius: 6px;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 13rem) minmax(0, 1fr) 1.25rem;
+  align-items: center;
+  column-gap: 1.25rem;
+  padding: 1.15rem 1.5rem;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--sc-hue) 50%, transparent) 4%, transparent 26%),
+    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.85) 4%, rgb(255 255 255 / 0.55) 46%, rgb(255 255 255 / 0.14) 80%, transparent);
+  background-origin: border-box;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 24%, #000 76%, transparent);
+  transition: transform 0.25s ease;
 }
-[data-theme="softclub"] .theme-tile::after {
-  content: "cat. " counter(sc-tile, decimal-leading-zero);
-  position: absolute;
-  right: 1rem;
-  bottom: 0.85rem;
-  font: 10px/1 var(--theme-font-label);
-  letter-spacing: 0.1em;
+[data-theme="softclub"] a:is(.theme-tile, .bg-gradient-to-br):hover {
+  transform: translateX(6px);
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--sc-hue) 66%, transparent) 4%, transparent 32%),
+    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.95) 4%, rgb(255 255 255 / 0.7) 55%, rgb(255 255 255 / 0.2) 88%, transparent);
+  background-origin: border-box;
+}
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br)::before {
+  content: counter(sc-track, decimal-leading-zero);
+  grid-column: 1;
+  grid-row: 1;
+  font: 1.45rem/1 var(--font-dotgothic), var(--theme-font-label), monospace;
+  color: var(--sc-ink);
+}
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > div:first-child {
+  display: contents;
+}
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > div:first-child > svg:first-child {
+  display: none;
+}
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > div:first-child > svg:nth-child(2) {
+  grid-column: 4;
+  grid-row: 1;
   color: var(--sc-cyan);
 }
-
-/* The library dashboard's sections: sleeves too, each strip its own cast, like a shelf of singles. */
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border {
-  background-image: none;
-  background-color: var(--sc-glass);
-  border-color: var(--sc-hair);
-  border-top-width: 6px;
-  border-radius: 6px;
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > p:first-of-type {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  font-family: var(--theme-font-display);
+  font-size: 1.3rem;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+  color: var(--sc-ink);
 }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-blue-200 { border-top-color: var(--color-blue-500); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-pink-200 { border-top-color: var(--color-pink-400); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-purple-200 { border-top-color: var(--color-violet-400); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-orange-200 { border-top-color: var(--sc-orange); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-green-200 { border-top-color: var(--sc-lime); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-cyan-200 { border-top-color: var(--color-cyan-400); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-yellow-200 { border-top-color: var(--color-yellow-400); }
-[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-gray-200 { border-top-color: var(--color-gray-400); }
-[data-theme="softclub"] .bg-gradient-to-br p.text-lg.font-bold {
+[data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > :last-child:not(div:first-child) {
+  grid-column: 3;
+  grid-row: 1;
+  margin: 0;
+}
+[data-theme="softclub"] .theme-tile > p:last-child {
+  font-family: var(--theme-font-label);
+  font-size: 0.8rem;
+  color: var(--color-gray-600);
+}
+/* The dashboard's figures: LED numbers with their mono captions alongside. */
+[data-theme="softclub"] a.bg-gradient-to-br > div:last-child {
+  gap: 1.75rem;
+  flex-wrap: wrap;
+}
+[data-theme="softclub"] a.bg-gradient-to-br > div:last-child > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+[data-theme="softclub"] a.bg-gradient-to-br p.text-lg.font-bold {
   font-family: var(--font-dotgothic), var(--theme-font-label), monospace;
   font-weight: 400;
-  font-size: 1.3rem;
+  font-size: 1.35rem;
+}
+[data-theme="softclub"] a.bg-gradient-to-br p.text-xs {
+  font-family: var(--theme-font-label);
+  text-transform: lowercase;
+}
+/* Each track's wash is its section's colour. */
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-blue-200 { --sc-hue: #2f7fd8; }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-pink-200 { --sc-hue: #e0679a; }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-purple-200 { --sc-hue: #8b78d8; }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-orange-200 { --sc-hue: var(--sc-orange); }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-green-200 { --sc-hue: var(--sc-lime); }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-emerald-200 { --sc-hue: #3cbf9a; }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-cyan-200 { --sc-hue: #24b3d6; }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-sky-200 { --sc-hue: var(--sc-cyan); }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-yellow-200 { --sc-hue: #e3c52a; }
+[data-theme="softclub"] :is(.theme-tile, .bg-gradient-to-br).border-gray-200 { --sc-hue: #9fb6c6; }
+@media (max-width: 639px) {
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) {
+    grid-template-columns: 2.25rem minmax(0, 1fr) 1rem;
+    row-gap: 0.35rem;
+    padding: 1.1rem 1rem;
+  }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > div:first-child > svg:nth-child(2) {
+    grid-column: 3;
+  }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) > :last-child:not(div:first-child) {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
 }
 
 [data-theme="softclub"] ::selection {
   background: var(--sc-lime);
+  background-origin: border-box;
   color: var(--sc-ink);
 }
 

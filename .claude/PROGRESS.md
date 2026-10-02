@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — Soft Club theme redone from the user's reference images; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-02 — Soft Club redone a second time (no outlines, blur/Gen X layering, tracklists) and the look picker folded into a menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -296,16 +296,27 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       own stylesheets. Lesson: check the LIVE CSS (`$PORTAL_URL` is set in this environment — it is the
       apex domain and 308-redirects to www, so curl needs -L) rather than trusting a local build.
 - [x] **Soft Club redesign** (user, 2026-10-02: all themes "look like corporate slop with no soul…
-      lets start with gen x soft club", with 24 reference images in a zip: tDR sleeves, Tresor, Y2K
-      transit, CD singles). Redrawn as an icy city in one cyan cast with lime + sodium-orange lights and
-      navy ink. New fonts: Lexend Exa titles (lowercase, light, lime full stop), Share Tech Mono
-      `<labels>` and subtitle readouts, DotGothic16 LED numbers. Light-streak/haze/scanline backdrop,
-      frosted sleeves, roll-sign buttons and active item, numbered menu, a `ver.2` brand band, and tiles
-      as a CD-single shelf with coloured strips. The lime target sits under the sidebar menu (cropped by
-      the menu on short screens) or in the corner on pages without a sidebar. Checked in Chromium on
-      portal, dashboard, series, movies, study, finances, wardrobe and login, plus 390px phone shots.
-      Noticed but pre-existing in every theme: the Library/Study sidebars don't collapse on a phone,
-      so the dashboard is squeezed at 390px.
+      lets start with gen x soft club", with 24 reference images: tDR sleeves, Tresor, Y2K transit, CD
+      singles). Pass 1 (pushed 97122f0): one cyan cast, lime and orange lights, Lexend Exa / Share
+      Tech Mono / DotGothic16, numbered menu, roll signs, CD-shelf tiles. User: "looks really good
+      now", BUT too solid ("in gen x soft club its all blurry and there are no definite lines yet you
+      can distinguish the shapes with the colors and by the blurry lines — look at the blur album
+      cover and the gen x image"), too much like Classic, and the look picker's other colours throw
+      the vibe off. Pass 2:
+      - no borders anywhere; panels are glowing haze fields that smear sideways; per-tint glows;
+        covers fade at their edges
+      - line art behind everything: data text, rules, frames, subway map
+      - portal and dashboard sections are a CD tracklist of colour-washed streaks
+      - the sidebar is a wash of light, not a column
+      - ThemePicker folds into a "Look" menu in every theme: inline on the portal, a popover in
+        the sidebars, closes on Escape and outside click
+      Checked in Chromium across the portal, dashboard, lists, series, detail, add form, study,
+      finances, wardrobe and login, at 1180px and 390px; the production build has no console
+      errors besides Speed Insights, which only exists on Vercel. Dev-only noise: Next 16 dev
+      intermittently logs "Router action dispatched before initialization" and a layout hydration
+      diff on any theme. The same happens without these changes, and the production build is clean.
+      Pre-existing in every theme: the Library/Study sidebars don't collapse on a phone, so the
+      dashboard is squeezed at 390px.
 - [ ] **Redo Acid, then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.

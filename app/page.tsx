@@ -86,11 +86,7 @@ export default function PortalPage() {
         </div>
 
         <section className="max-w-4xl mt-12">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Look</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            How the whole site looks, on this device. Inspired by Gen X Soft Club, Acid Design, Early
-            Cyber and Cyberdelia; Classic is the original.
-          </p>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Look</h2>
           <ThemePicker />
         </section>
       </main>

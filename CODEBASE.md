@@ -187,7 +187,9 @@ it doubles as "finished on".
 
 ## Looks (themes)
 
-Five looks, picked on the portal or at the foot of the Library and Study sidebars: **Soft Club**
+Five looks, picked from a folding "Look" menu on the portal or at the foot of the Library and Study
+sidebars. It stays closed until opened, so the other looks' colours don't clash with the one showing:
+**Soft Club**
 (default), **Acid**, **Early Cyber**, **Cyberdelia** and **Classic** (the original). The choice is a
 `theme` cookie (per device, a year), so the root layout renders `data-theme` on `<html>` and the right
 look paints first — no flash; `generateViewport` sets the matching status-bar colour. Switching is
@@ -209,15 +211,25 @@ presentation attributes can't read CSS variables. Classic has no rules — Tailw
 Inspired by the Aesthetics Wiki's pages (behind a Cloudflare challenge, so researched via web search
 and the CARI / daisyUI trend write-ups); everything is drawn in CSS and inline SVG, no images.
 
-Soft Club was redrawn from the owner's own reference images (Designers Republic sleeves,
-Tresor, Y2K transit and CD-single packaging). It is an icy city in one cyan cast, with fluorescent
-lime and sodium orange as the only lights and navy ink, never black. The backdrop has light streaks,
-haze and scanlines. Titles are lowercase Lexend Exa light with a lime full stop. Labels are Share Tech
-Mono `<bracketed>` readouts, as is the line under each title. Numbers are DotGothic16 LED digits.
-Panels are frosted sleeves, and buttons and the open menu item are subway roll signs. The menu is
-numbered `01`, `02`…, and the brand is a blue band with a `ver.2` tag. Portal and dashboard tiles are a
-shelf of singles with a coloured top strip each. The lime target sits under the sidebar menu, or in
-the corner behind the header on pages without a sidebar, next to a row of fading orange dots.
+Soft Club was redrawn twice from the owner's own reference images. The second pass followed their
+note to look at Blur's "blur" sleeve and the "Gen X / contemporary soft club" collage: there are no
+outlines anywhere. A rule sets every border transparent, divider lines included. Panels are fields of
+brighter haze that glow out into the haze around them and smear sideways. Coloured boxes and buttons
+glow in their own colour, through a `--sc-glow` set per Tailwind tint class. Photos and covers fade at
+their edges (mask-image). Shapes are told apart by colour and by soft streaks, never by a border.
+The lines are graphics laid over the haze on `:root::before`: columns of data text, long rules, two
+offset frames and a subway map, slightly blurred and glowing. The data text runs down the sidebar's
+edge where there is one, and the frames and map are hidden on phones. The portal's and dashboard's
+sections become a CD tracklist: one streak per track, an LED track number, the section's colour
+washed in at the start (`--sc-hue`) and the light fading out to the right. They are laid out by CSS
+grid over the existing markup (`display: contents` on the icon row). Masks clip anything that
+overflows, so they are only used on tracks, menu items and images, never on panels that may hold a
+dropdown or dialog. Floating panels (`.fixed`, `.absolute`, the look menu) are near-opaque. The
+theme's glows replace Tailwind's ring shadows, so keyboard focus is an outline. Type stays as before:
+lowercase Lexend Exa light titles with a lime full stop, Share Tech Mono `<labels>`, DotGothic16 LED
+numbers. The open menu item and the dark badges are navy roll signs, blurred. The lime target sits
+under the sidebar menu, or in the corner on pages without a sidebar, beside a row of fading orange
+dots.
 The other three looks are first drafts and are to be redone the same way, from references.
 
 ## Layout
