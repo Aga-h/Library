@@ -213,10 +213,23 @@ and the CARI / daisyUI trend write-ups); everything is drawn in CSS and inline S
 
 Soft Club was redrawn twice from the owner's own reference images. The second pass followed their
 note to look at Blur's "blur" sleeve and the "Gen X / contemporary soft club" collage: there are no
-outlines anywhere. A rule sets every border transparent, divider lines included. Panels are fields of
-brighter haze that glow out into the haze around them and smear sideways. Coloured boxes and buttons
-glow in their own colour, through a `--sc-glow` set per Tailwind tint class. Photos and covers fade at
-their edges (mask-image). Shapes are told apart by colour and by soft streaks, never by a border.
+outlines anywhere. A rule sets every border transparent. The third pass, prompted by "the white
+backgrounds look cheap", replaced white with the references' own ways of grouping:
+- **Panels** are a band of pale blue film between hairline rules, open at the sides (Ambient
+  Lounge): a doubled cyan-and-white rule on top, a white one at the foot and a short cyan index tab
+  (Bowienet). The film blurs the line art behind it with `backdrop-filter`, except on card links,
+  which can come by the dozen. A panel holding an open dropdown (`ul.absolute`) is lifted above its
+  neighbours, since frosting makes each panel its own stacking context.
+- **Rows and header strips** (`bg-gray-50`, tinted strips) are Junkie XL's light bars: a bright
+  top edge and a streak fading to the right.
+- **Stat boxes** (tinted `.flex-col.items-center.justify-center`) are soft colour blobs, like Kaskade.
+- **Dividers** (`divide-y`) are Bowienet's dotted rules.
+- **Secondary buttons** are GameCube capsules: a faint tint, a thin white edge and a cyan glow.
+  Full-width choices are light bars instead.
+- **Colour:** each Tailwind tint class names `--sc-glow` (its own colour) and `--sc-blob` (its
+  200 shade, to draw with). Chips and solid buttons glow in theirs.
+
+Photos and covers fade at their edges (mask-image).
 The lines are graphics laid over the haze on `:root::before`: columns of data text, long rules, two
 offset frames and a subway map, slightly blurred and glowing. The data text runs down the sidebar's
 edge where there is one, and the frames and map are hidden on phones. The portal's and dashboard's

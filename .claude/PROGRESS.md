@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — Soft Club redone a second time (no outlines, blur/Gen X layering, tracklists) and the look picker folded into a menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-03 — Soft Club pass 3 (white panels replaced: film bands, light bars, colour blobs, capsules) on top of pass 2 (no outlines, tracklists, folding look menu); Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -315,8 +315,19 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       errors besides Speed Insights, which only exists on Vercel. Dev-only noise: Next 16 dev
       intermittently logs "Router action dispatched before initialization" and a layout hydration
       diff on any theme. The same happens without these changes, and the production build is clean.
+      Pass 3, after the user said "really good job… just a few problems left": the white panels
+      "look like a cheaper way of conveying shapes", so get rid of white backgrounds generally,
+      from the images. Replacements:
+      - panels are pale-blue film bands between hairline rules with a cyan tab (Ambient Lounge,
+        Bowienet), frosting the line art behind them
+      - rows and strips are Junkie XL light bars; stat boxes are Kaskade colour blobs
+      - dividers are dotted; secondary buttons are GameCube capsules
+      Bug caught in testing: the capsule rule caught card links (`a.border.bg-white.rounded-xl`)
+      and turned book cards into arches, so card links are now excluded.
+      Checked against seeded books, wardrobe, subscriptions, modules and vocab data in the local
+      test DB.
       Pre-existing in every theme: the Library/Study sidebars don't collapse on a phone, so the
-      dashboard is squeezed at 390px.
+      dashboard is squeezed at 390px; the finances page overflows to the right at 390px.
 - [ ] **Redo Acid, then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.
