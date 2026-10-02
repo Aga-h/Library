@@ -196,7 +196,7 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       SAT vocabulary and Daily review sections; Stats, At a glance and environment table corrected
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
       `lib/dates.ts`). 2026-10-02 (rev 28): TMDB movie import paragraphs under Library, and
-      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table.
+      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs.
       **Update it whenever a section's behaviour changes.**
 
 - [x] **Weekly study goals** — an overall target in hours and one per module, all set inline in
