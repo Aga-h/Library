@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-01 — Comic Vine import live and confirmed; 022 applied; **018, 019, 020 still unconfirmed**, 021 optional
+**Updated:** 2026-10-02 — IN PROGRESS: movies auto-logging from TMDB (see Next); **018, 019, 020 still unconfirmed**, 021 optional
 
 ## Done
 
@@ -226,6 +226,17 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       covers included — so `pickImage` finds the real image fields.
       marvelreading.com is out for good: Cloudflare challenge on every non-browser request, and
       robots.txt disallows ClaudeBot.
+- [ ] **Movies: auto-log from TMDB** (user asked 2026-10-02; IN PROGRESS). User suggested IMDb —
+      ruled out: IMDb's Conditions of Use forbid "robots, screen scraping, or similar data gathering"
+      without written consent, and it has no public API. TMDB instead (free personal-use key,
+      attribution notice + logo required, gives each film's IMDb id so the app links to IMDb).
+      Plan: `Movie.tmdbId Int? @unique` + `imdbId` (migration 023, additive); search films,
+      collections (e.g. "Harry Potter Collection") and keyword tags (e.g. "marvel cinematic
+      universe") → preview with checkboxes → import into the universe with director, studio,
+      runtime, year, language, poster; re-import only fills blanks; Watched toggle on cards;
+      posters hotlinked from image.tmdb.org, excluded from mirror-covers. User also asked to
+      **delete all existing movies and universes** (they noted them) → one-time script 024 that
+      refuses to run once anything has been imported from TMDB.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
