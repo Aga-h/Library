@@ -10,7 +10,9 @@ const updateMovieSchema = z.object({
   director: z.string().optional().nullable(),
   studio: z.string().optional().nullable(),
   status: z.enum(["WATCHED", "WANT_TO_WATCH", "DROPPED"]).optional(),
-  runtime: z.number().int().positive().optional(),
+  // 0 is "not known yet": a film imported from TMDB before its release. Creating by hand still
+  // requires a real runtime; editing one of those must not force a made-up one in.
+  runtime: z.number().int().min(0).optional(),
   year: z.number().int().optional().nullable(),
   language: z.enum(LANGUAGE_VALUES)
     .optional(),

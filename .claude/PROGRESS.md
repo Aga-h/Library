@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — IN PROGRESS: movies auto-logging from TMDB (see Next); **018, 019, 020 still unconfirmed**, 021 optional
+**Updated:** 2026-10-02 — movies import from TMDB built and pushed; **waiting on the user: TMDB key, 023, 024** (see Blocked); 018, 019, 020 still unconfirmed, 021 optional
 
 ## Done
 
@@ -226,17 +226,20 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       covers included — so `pickImage` finds the real image fields.
       marvelreading.com is out for good: Cloudflare challenge on every non-browser request, and
       robots.txt disallows ClaudeBot.
-- [ ] **Movies: auto-log from TMDB** (user asked 2026-10-02; IN PROGRESS). User suggested IMDb —
-      ruled out: IMDb's Conditions of Use forbid "robots, screen scraping, or similar data gathering"
-      without written consent, and it has no public API. TMDB instead (free personal-use key,
-      attribution notice + logo required, gives each film's IMDb id so the app links to IMDb).
-      Plan: `Movie.tmdbId Int? @unique` + `imdbId` (migration 023, additive); search films,
-      collections (e.g. "Harry Potter Collection") and keyword tags (e.g. "marvel cinematic
-      universe") → preview with checkboxes → import into the universe with director, studio,
-      runtime, year, language, poster; re-import only fills blanks; Watched toggle on cards;
-      posters hotlinked from image.tmdb.org, excluded from mirror-covers. User also asked to
-      **delete all existing movies and universes** (they noted them) → one-time script 024 that
-      refuses to run once anything has been imported from TMDB.
+- [x] **Movies: auto-log from TMDB** (asked 2026-10-02). IMDb ruled out — its Conditions of Use forbid
+      "robots, screen scraping, or similar data gathering" without written consent, and it has no public
+      API; TMDB gives each film's IMDb id, so the detail page links to IMDb. "Add Movie" (from a universe
+      it aims at that universe) searches films, collections and keyword tags; a collection/tag opens a
+      preview with checkboxes in release order → import up to 100 with director(s), studio, runtime,
+      year, language, poster. Re-import only fills blanks; standalone films move in; films in another
+      universe stay and are reported. One-tap Watched toggle on every card. TMDB notice + logo shown.
+      Verified against a local stand-in speaking TMDB's documented API, over real HTTP + Postgres and in
+      Chromium: 45-film tag → 44 added + 1 reported, max 6 requests in flight, re-import changed no row;
+      hand-added film linked keeping status/rating/runtime/notes; Thor before Captain America on the
+      universe page; double tap → one row; v3 key and v4 token both work; no key 503, bad key, rate
+      limit 429, TMDB down — all plain messages, key never in them; mirror-covers skips TMDB posters.
+      Migrations: 023 idempotent, drift empty; 024 errors (deletes nothing) before 023, wipes after,
+      and skips once anything is imported. **Not yet tried against real TMDB — needs the user's key.**
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -250,6 +253,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Movies from TMDB — three steps, in this order:**
+  1. Run `prisma/manual-migrations/023-tmdb.sql` in the Supabase SQL Editor **now** — the deployed code
+     reads `Movie.tmdbId`, so the movie pages error until it runs. Additive, safe to re-run.
+  2. Run `024-clear-movies.sql` **before importing anything** — deletes every movie and movie universe
+     (the user asked for this and noted their list). It refuses to run once any film has been imported
+     from TMDB. Expected output: `0 | 0 | 0`.
+  3. Get a TMDB key: themoviedb.org → sign up → Settings → API → request a Developer key (personal
+     use). Either the "API Key" or the "API Read Access Token" works. Put it in Vercel → Settings →
+     Environment Variables as `TMDB_API_KEY`, then **redeploy**. Never paste it into chat.
+  Optional: the old mirrored movie posters stay in Supabase Storage → `covers` → `movies/`; delete
+  that folder from the Storage page to get the space back. Nothing reads them.
 
 - **Network access is now Full** on the Default environment (user changed it 2026-10-01) — it
   applied to the running session immediately.

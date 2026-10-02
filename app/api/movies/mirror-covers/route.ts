@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 import { withErrors } from "@/lib/api-errors";
+import { TMDB_IMAGE_HOST } from "@/lib/tmdb";
 
 const MIRROR_BATCH = 10;
 
@@ -16,10 +17,15 @@ async function POSTHandler() {
   }
 
   // Filter in SQL rather than reading the whole table and discarding all but 10 rows.
+  // TMDB posters are left where they are: TMDB's image CDN is there to be shown from, and its
+  // API terms limit how long its content may be kept — copies in storage would outlive that.
   const pendingWhere = {
     coverImage: { not: null },
-    NOT: { coverImage: { contains: SUPABASE_COVER_MARKER } },
-  } as const;
+    NOT: [
+      { coverImage: { contains: SUPABASE_COVER_MARKER } },
+      { coverImage: { contains: TMDB_IMAGE_HOST } },
+    ],
+  };
 
   const [batch, pendingCount] = await Promise.all([
     db.movie.findMany({ where: pendingWhere, select: { id: true, coverImage: true }, take: MIRROR_BATCH }),

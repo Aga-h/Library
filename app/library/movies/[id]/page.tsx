@@ -9,11 +9,13 @@ import {
   Building2,
   Pencil,
   Calendar,
-  } from "lucide-react";
+  ExternalLink,
+} from "lucide-react";
 import { db } from "@/lib/db";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteMovieButton from "@/components/movies/DeleteMovieButton";
+import { TMDB_NOTICE } from "@/lib/tmdb";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -103,12 +105,34 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 </span>
               )}
             </div>
+
+            {(movie.imdbId || movie.tmdbId) && (
+              <div className="flex flex-wrap gap-3 mt-3 text-xs font-semibold">
+                {movie.imdbId && (
+                  <a href={`https://www.imdb.com/title/${movie.imdbId}/`} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900">
+                    IMDb <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {movie.tmdbId && (
+                  <a href={`https://www.themoviedb.org/movie/${movie.tmdbId}`} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900">
+                    TMDB <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Details grid */}
         <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
-          <DetailCell icon={<Clock className="w-4 h-4" />} label="Runtime" value={formatRuntime(movie.runtime)} sub={`${movie.runtime} min`} />
+          {/* 0 is "not known yet" — a film imported from TMDB before its release. */}
+          {movie.runtime > 0 ? (
+            <DetailCell icon={<Clock className="w-4 h-4" />} label="Runtime" value={formatRuntime(movie.runtime)} sub={`${movie.runtime} min`} />
+          ) : (
+            <DetailCell icon={<Clock className="w-4 h-4" />} label="Runtime" value="—" sub="not known yet" />
+          )}
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
           {movie.year && (
             <DetailCell icon={<Calendar className="w-4 h-4" />} label="Year" value={movie.year.toString()} />
@@ -134,6 +158,14 @@ export default async function MovieDetailPage({ params }: PageProps) {
           </div>
         )}
       </div>
+
+      {movie.tmdbId && (
+        <p className="flex items-start gap-2 mt-4 text-[11px] text-gray-400">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/tmdb-logo.svg" alt="TMDB" className="h-2.5 mt-0.5 flex-shrink-0" />
+          <span>{TMDB_NOTICE}</span>
+        </p>
+      )}
     </div>
   );
 }

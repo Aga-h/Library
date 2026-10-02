@@ -124,6 +124,12 @@ model Movie {
   rating         Float?
   notes          String?
   timesRewatched Int            @default(0)
+  /// TMDB's id for the film when it was imported from TMDB; null for films added by hand.
+  /// Unique because a film is in the library once, in at most one universe — importing it again
+  /// lands on the same row.
+  tmdbId         Int?           @unique
+  /// IMDb's id ("tt0848228"), as TMDB reports it. Only used to link to the film's IMDb page.
+  imdbId         String?
   universeId     String?
   universe       MovieUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
   createdAt      DateTime       @default(now())

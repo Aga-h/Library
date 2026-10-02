@@ -87,6 +87,24 @@ Covers are hotlinked and rendered `unoptimized`, and excluded from cover mirrori
 `COMICVINE_API_KEY`, is server-only. (marvelreading.com was the first choice; it blocks automated
 access with a Cloudflare challenge and its robots.txt disallows ClaudeBot, so it is not used.)
 
+**Movies from TMDB.** "Add Movie" searches TMDB for films, collections ("Harry Potter Collection")
+and keyword tags ("marvel cinematic universe (mcu)" — the MCU has no TMDB collection). A film is
+added in one tap; a collection or tag opens a preview with checkboxes, listed in release order, and
+imports the ticked films — up to 100, six detail requests at a time. Each arrives with director(s),
+lead studio, runtime, year, original language and poster. `Movie.tmdbId` is unique (a film is in the
+library once, in at most one universe); `imdbId` is kept only to link to IMDb. The merge rule is
+`planImport`: match by TMDB id, else once by title + year to a film added by hand (which is then
+linked); fill blanks only — never title, status, rating, rewatches, notes or language; a standalone
+film moves into the universe being imported into, a film in another universe stays and is reported.
+Runtime 0 means "not known yet" (a film imported before release); importing it again fills it.
+New rows are stamped a millisecond apart so a universe page (year, then `createdAt`) keeps release
+order within a year. Posters are hotlinked from image.tmdb.org, rendered `unoptimized`, and excluded
+from cover mirroring — TMDB's terms limit how long its content may be kept. TMDB requires its
+attribution notice and logo wherever its data is used (`TMDB_NOTICE`, `public/tmdb-logo.svg`). The key,
+`TMDB_API_KEY` (a v3 key or a v4 read token — both work), is server-only. Cards carry a one-tap
+Watched toggle. (IMDb was the first choice; its Conditions of Use forbid robots and scraping without
+written consent and it has no public API, so it is not used.)
+
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
@@ -158,6 +176,7 @@ scripts/                node test scripts, graph sealing
 | `dates.ts` | Date keys and the app timezone |
 | `study.ts` / `study-service.ts` | Session and XP rules (client-safe) / Prisma side |
 | `comicvine.ts` / `comicvine-service.ts` / `comicvine-import.ts` | Issue numbers, covers and the merge rule / the API client / landing a run in a universe |
+| `tmdb.ts` / `tmdb-service.ts` / `tmdb-import.ts` | Reading TMDB's answers and the merge rule / the API client / landing films in the library |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
@@ -172,8 +191,8 @@ scripts/                node test scripts, graph sealing
 ## Testing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
-XP rule, the level curve, the vocabulary parser and question builder, the daily review, and the
-report token. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
+report token, and the Comic Vine and TMDB merge rules. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser

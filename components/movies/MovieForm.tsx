@@ -195,7 +195,7 @@ export default function MovieForm({ universeOptions, initialData, mode, director
           <input
             type="number"
             required
-            min={1}
+            min={mode === "edit" ? 0 : 1}
             value={form.runtime}
             onChange={(e) => update("runtime", e.target.value)}
             placeholder="e.g. 135"
