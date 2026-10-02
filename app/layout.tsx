@@ -7,6 +7,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import { THEME_COOKIE, themeColorOf, themeFrom } from "@/lib/themes";
 import "./globals.css";
+// The looks: each theme's colour variables (generated), then its type, texture and details.
+// Imported here as their own stylesheets, after Tailwind's — see the note in globals.css.
+import "./theme-palettes.css";
+import "./themes.css";
 
 // Each theme's typefaces (see app/themes.css). None is preloaded: a font file is only fetched once
 // the active theme's CSS asks for it, so a theme never pays for another's fonts.

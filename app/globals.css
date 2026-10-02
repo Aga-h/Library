@@ -1,9 +1,10 @@
 @import "tailwindcss";
-/* The looks: each theme's colour variables (generated), then its type, texture and details. */
-@import "./theme-palettes.css";
-@import "./themes.css";
 
-/* Page colour and text follow the theme's palette; the typeface follows the theme. */
+/* Page colour and text follow the theme's palette; the typeface follows the theme. The themes
+ * themselves (app/theme-palettes.css, app/themes.css) are imported by app/layout.tsx, not here:
+ * an @import placed after `@import "tailwindcss"` follows the hundreds of rules Tailwind expands
+ * that line into, and CSS ignores an @import that comes after rules — so whether they survived
+ * depended on the build. On Vercel they did not: the deployed stylesheet had no themes at all. */
 body {
   background-color: var(--color-gray-50);
   color: var(--color-gray-900);

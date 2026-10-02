@@ -289,6 +289,12 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       during testing: body background went transparent (wrapper rule caught <body>); Cyberdelia's open
       menu item filled solid; Study/Wardrobe titles are h2s; the 3D-transform floor was invisible
       (perspective() puts the vanishing point at the origin) — redrawn as a flat SVG.
+      **LIVE BUG (2026-10-02, user: "clicking on the themes dont change nothing"), fixed:** the deployed
+      stylesheet had no theme rules at all — Vercel's build dropped the two `@import`s that came after
+      `@import "tailwindcss"` (CSS ignores @import after rules; locally Tailwind inlined them anyway, so
+      every local test passed). Now `app/layout.tsx` imports theme-palettes.css and themes.css as their
+      own stylesheets. Lesson: check the LIVE CSS (`$PORTAL_URL` is set in this environment — it is the
+      apex domain and 308-redirects to www, so curl needs -L) rather than trusting a local build.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
