@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import {
-  Archivo, Audiowide, Exo_2, IBM_Plex_Sans, Pixelify_Sans, Space_Grotesk, Space_Mono, Unbounded,
+  Archivo, Audiowide, DotGothic16, Exo_2, IBM_Plex_Sans, Lexend_Exa, Pixelify_Sans, Share_Tech_Mono,
+  Space_Grotesk, Space_Mono, Unbounded,
 } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
@@ -22,8 +23,13 @@ const pixelify = Pixelify_Sans({ subsets: ["latin"], variable: "--font-pixelify"
 const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex", preload: false });
 const audiowide = Audiowide({ subsets: ["latin"], weight: "400", variable: "--font-audiowide", preload: false });
 const exo2 = Exo_2({ subsets: ["latin"], variable: "--font-exo2", preload: false });
+const lexendExa = Lexend_Exa({ subsets: ["latin"], variable: "--font-lexend-exa", preload: false });
+const shareTechMono = Share_Tech_Mono({ subsets: ["latin"], weight: "400", variable: "--font-share-tech-mono", preload: false });
+const dotGothic = DotGothic16({ subsets: ["latin"], weight: "400", variable: "--font-dotgothic", preload: false });
 
-const FONT_VARIABLES = [archivo, unbounded, spaceGrotesk, spaceMono, pixelify, plexSans, audiowide, exo2]
+const FONT_VARIABLES = [
+  archivo, unbounded, spaceGrotesk, spaceMono, pixelify, plexSans, audiowide, exo2, lexendExa, shareTechMono, dotGothic,
+]
   .map((f) => f.variable)
   .join(" ");
 

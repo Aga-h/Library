@@ -8,9 +8,9 @@ export const THEMES = [
   {
     id: "softclub",
     name: "Soft Club",
-    hint: "Gen X Soft Club — concrete, seafoam and transit blue; a metro line for a menu",
-    swatch: ["#e9ece8", "#7fae9f", "#5d7f99", "#1b2220"],
-    themeColor: "#e9ece8",
+    hint: "Gen X Soft Club — an icy city in cyan haze, lime lights, subway roll signs",
+    swatch: ["#eaf3f8", "#3fa9e0", "#b5dc35", "#0e1a24"],
+    themeColor: "#eaf3f8",
   },
   {
     id: "acid",

@@ -35,15 +35,16 @@ const HUES = [
 // `bg-gray-900 text-white` a light button with dark text — every page flips without being edited.
 const THEMES = {
   softclub: {
-    // Gen X Soft Club: concrete, seafoam, desaturated transit blue, olive, beige. Muted and cool.
+    // Gen X Soft Club: an icy city washed in one photographic cast — electric cyan-blue — with
+    // fluorescent lime and sodium orange as the lights. Ink is deep navy, never black.
     scheme: "light",
-    gray: ["#e9ece8", "#e2e6e1", "#d0d6d0", "#b4bcb6", "#8e9893", "#6a7570", "#535d59", "#3a4441", "#29312f", "#1b2220", "#111614"],
-    white: "#fbfbf8",
+    gray: ["#eaf3f8", "#dfecf4", "#c9dce8", "#a9c3d4", "#7b9bb1", "#58778e", "#436076", "#2e485d", "#1d3446", "#0e2133", "#07131e"],
+    white: "#fbfdfe",
     hues: {
-      red: [28, 0.09], orange: [55, 0.08], amber: [75, 0.07], yellow: [95, 0.07], lime: [115, 0.07],
-      green: [125, 0.065], emerald: [170, 0.06], teal: [185, 0.055], cyan: [205, 0.055], sky: [230, 0.06],
-      blue: [245, 0.07], indigo: [265, 0.06], violet: [290, 0.05], purple: [305, 0.05], fuchsia: [330, 0.05],
-      pink: [350, 0.06], rose: [10, 0.07],
+      red: [25, 0.17], orange: [52, 0.17], amber: [62, 0.16], yellow: [105, 0.16], lime: [122, 0.18],
+      green: [128, 0.17], emerald: [165, 0.12], teal: [195, 0.11], cyan: [215, 0.13], sky: [228, 0.14],
+      blue: [240, 0.15], indigo: [262, 0.13], violet: [282, 0.11], purple: [295, 0.1], fuchsia: [330, 0.12],
+      pink: [350, 0.13], rose: [10, 0.15],
     },
   },
   acid: {

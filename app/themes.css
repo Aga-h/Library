@@ -53,145 +53,296 @@ h2.text-2xl,
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
- * SOFT CLUB — Gen X Soft Club, late 90s: city at dusk through a fogged window. Muted concrete,
- * seafoam and transit blue; neo-grotesque type set like station signage; a metro line for a menu;
- * soft bokeh and film grain.
+ * SOFT CLUB — Gen X Soft Club, 1997–2003: the CD booklets, club flyers and transit posters of the
+ * late-90s city (references: Tresor's Globus Mix sleeve, Ambient Lounge, Kaskade, Sneaker Pimps,
+ * Nine Days, Bowienet, Chungking Express). An icy world washed in one photographic cast — electric
+ * cyan-blue — lit by fluorescent lime and sodium orange. Commuters blurred into streaks of light;
+ * thin, wide, lowercase type against technical microtype; subway roll signs; the Tresor target;
+ * graduated dots; grain and scanlines over everything.
  * ═════════════════════════════════════════════════════════════════════════════ */
 
 :root[data-theme="softclub"] {
-  --theme-font-body: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --theme-font-display: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --theme-font-label: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --sc-line: oklch(0.64 0.075 172);
-  --sc-ink: var(--color-gray-900);
-  --radius-lg: 0.625rem;
-  --radius-xl: 1rem;
-  --shadow-md: 0 10px 30px -14px rgb(27 34 32 / 0.28);
-  --shadow-lg: 0 16px 40px -16px rgb(27 34 32 / 0.32);
+  --theme-font-body: "Helvetica Neue", Helvetica, var(--font-archivo), Arial, sans-serif;
+  --theme-font-display: var(--font-lexend-exa), "Helvetica Neue", Helvetica, sans-serif;
+  --theme-font-label: var(--font-share-tech-mono), ui-monospace, monospace;
+  --sc-ink: #0e1a24;
+  --sc-sign: linear-gradient(180deg, #1c2a37, #0a131b);
+  --sc-cyan: #2a96d4;
+  --sc-lime: #a9d22c;
+  --sc-orange: #f2902e;
+  --sc-hair: rgb(46 120 170 / 0.26);
+  --sc-glass: rgb(251 253 254 / 0.8);
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --shadow-md: 0 16px 34px -22px rgb(14 33 51 / 0.5), 0 0 0 1px rgb(42 150 212 / 0.28);
+  --shadow-lg: 0 24px 50px -26px rgb(14 33 51 / 0.55), 0 0 0 1px rgb(42 150 212 / 0.28);
+  scrollbar-color: #8dbfdc transparent;
 }
 
+/* The city at speed: a cyan haze with train lights smeared across it. Blurred as a whole, and
+ * bled past the edges so the blur never shows a border. */
 [data-theme="softclub"] body::after {
+  inset: -80px;
+  filter: blur(12px);
   background:
-    radial-gradient(55vw 45vh at 92% 4%, oklch(0.85 0.05 175 / 0.85), transparent 70%),
-    radial-gradient(50vw 50vh at 2% 98%, oklch(0.84 0.045 240 / 0.75), transparent 70%),
-    radial-gradient(38vw 36vh at 48% 58%, oklch(0.91 0.035 80 / 0.7), transparent 70%);
+    linear-gradient(90deg, transparent 2%, rgb(255 255 255 / 0.95) 20%, rgb(255 255 255 / 0.95) 78%, transparent 96%) 0 24% / 100% 16px no-repeat,
+    linear-gradient(90deg, transparent 8%, rgb(120 205 248 / 0.95) 34%, rgb(120 205 248 / 0.9) 88%, transparent) 0 29% / 100% 9px no-repeat,
+    linear-gradient(90deg, transparent 28%, rgb(255 255 255 / 0.85) 58%, transparent 92%) 0 61% / 100% 28px no-repeat,
+    linear-gradient(90deg, transparent 0%, rgb(70 165 228 / 0.6) 38%, transparent 80%) 0 67% / 100% 7px no-repeat,
+    linear-gradient(90deg, transparent 46%, rgb(169 210 44 / 0.5) 74%, transparent 98%) 0 83% / 100% 11px no-repeat,
+    radial-gradient(70vw 55vh at 6% 0%, rgb(110 196 244 / 0.8), transparent 70%),
+    radial-gradient(60vw 55vh at 100% 96%, rgb(88 176 234 / 0.6), transparent 70%),
+    radial-gradient(45vw 35vh at 58% 44%, rgb(255 255 255 / 0.9), transparent 70%),
+    linear-gradient(180deg, #d7e9f4, #edf6fb 45%, #d3e7f2);
 }
 
-/* Film grain over everything, as faint as a Lomo print. */
+/* The Tresor target, cropped by the corner and seen through the frosted header. Only on pages
+ * without a sidebar — where there is one, the target sits in it instead, clear of every button. */
+:root[data-theme="softclub"]:not(:has(.theme-sidebar))::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  width: 190px;
+  height: 190px;
+  right: -58px;
+  top: -112px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sc-lime) 0 22%, transparent 22.6% 46%, var(--sc-lime) 46.6% 70%, transparent 70.6%);
+  opacity: 0.92;
+}
+
+/* Grain and scanlines over everything, faint as a camcorder tape. */
 [data-theme="softclub"] body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 70;
   pointer-events: none;
-  opacity: 0.06;
+  opacity: 0.09;
   mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background:
+    repeating-linear-gradient(0deg, rgb(14 33 51 / 0.55) 0 1px, transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Panels are frosted glass over the city haze. */
-[data-theme="softclub"] .rounded-xl.bg-white,
-[data-theme="softclub"] .rounded-2xl.bg-white {
-  background-color: rgb(251 251 248 / 0.74);
-}
-[data-theme="softclub"] .theme-sidebar,
-[data-theme="softclub"] .theme-header {
-  background-color: rgb(251 251 248 / 0.6);
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-}
-
+/* Type: thin, wide, lowercase titles ending in a lime full stop ("Tresor."); Helvetica for
+ * reading; technical mono for labels, set in <brackets> like a software release note. */
 [data-theme="softclub"] :is(h1, h2.text-2xl) {
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-weight: 300;
+  text-transform: lowercase;
+  letter-spacing: -0.045em;
+  color: var(--sc-ink);
+}
+[data-theme="softclub"] :is(h1, h2.text-2xl)::after {
+  content: ".";
+  color: var(--sc-lime);
+  font-weight: 700;
 }
 [data-theme="softclub"] .uppercase.tracking-wide {
-  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  color: var(--sc-cyan);
+}
+[data-theme="softclub"] .uppercase.tracking-wide::before {
+  content: "<";
+  opacity: 0.6;
+}
+[data-theme="softclub"] .uppercase.tracking-wide::after {
+  content: ">";
+  opacity: 0.6;
+}
+[data-theme="softclub"] .uppercase.tracking-wide:has(> svg)::before,
+[data-theme="softclub"] .uppercase.tracking-wide:has(> svg)::after {
+  content: none;
+}
+/* The line under a page title is a technical readout. */
+[data-theme="softclub"] :is(h1, h2.text-2xl) + p {
+  font-family: var(--theme-font-label);
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+  color: var(--color-gray-500);
+}
+/* Big numbers read out in LED dot-matrix, like a platform board. */
+[data-theme="softclub"] :is(span, p).text-2xl.font-bold {
+  font-family: var(--font-dotgothic), var(--theme-font-label), monospace;
+  font-weight: 400;
+  letter-spacing: 0.04em;
 }
 
-/* The brand is a station sign: ink plate, light lettering. */
+/* Panels are frosted cases over the haze, with a lit top edge. */
+[data-theme="softclub"] .rounded-xl.bg-white,
+[data-theme="softclub"] .rounded-2xl.bg-white {
+  background-color: var(--sc-glass);
+  border-color: var(--sc-hair);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 18px 40px -30px rgb(14 33 51 / 0.55);
+}
+
+/* Primary actions are subway roll signs: black-blue plates, white Helvetica. */
+[data-theme="softclub"] :is(a, button).bg-gray-900:not(.theme-nav-item) {
+  background: var(--sc-sign);
+  color: #f4f8fb;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 6px 14px -8px rgb(14 26 36 / 0.7);
+}
+[data-theme="softclub"] :is(a, button).bg-gray-900:not(.theme-nav-item):hover {
+  background: linear-gradient(180deg, #24394b, #0f1e2a);
+}
+[data-theme="softclub"] .focus\:ring-gray-400:focus {
+  --tw-ring-color: rgb(42 150 212 / 0.45);
+}
+
+/* The sidebar: frosted glass, the brand on a blue band like a sleeve's title strip, tagged with
+ * its version; the menu numbered 01, 02, 03 like Bowienet's tiles, the open page a roll sign. */
+[data-theme="softclub"] .theme-sidebar {
+  background: linear-gradient(180deg, rgb(251 253 254 / 0.8), rgb(232 243 250 / 0.62));
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-right-color: var(--sc-hair);
+}
 [data-theme="softclub"] .theme-brand {
-  background: var(--sc-ink);
-  color: var(--color-white);
-  border-bottom-color: var(--sc-ink);
+  position: relative;
+  background: linear-gradient(90deg, #17609f, #2a96d4 58%, #86cdf0);
+  border-bottom: 0;
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.5), 0 2px 0 var(--sc-lime);
+  color: #fff;
 }
 [data-theme="softclub"] .theme-brand * {
   color: inherit;
 }
 [data-theme="softclub"] .theme-brand span {
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 300;
+  text-transform: lowercase;
+  letter-spacing: -0.04em;
 }
-
-/* The menu is a metro line: each section a station, the current one where you are. */
+[data-theme="softclub"] .theme-brand::after {
+  content: "ver.2";
+  position: absolute;
+  right: 0.7rem;
+  top: 0.6rem;
+  padding: 3px 5px;
+  border-radius: 3px;
+  font: 9px/1 var(--theme-font-label);
+  letter-spacing: 0.08em;
+  color: var(--sc-ink);
+  background: var(--sc-lime);
+}
+/* The target sits in the empty space under the menu, like a record label's emblem. Drawn on the
+ * menu itself, so on a short screen the menu's edge crops it rather than it running into the footer. */
+[data-theme="softclub"] .theme-nav {
+  counter-reset: sc-nav;
+  background: radial-gradient(circle at 50% 465px, var(--sc-lime) 0 17px, transparent 17.6px 36px, var(--sc-lime) 36.6px 54px, transparent 54.6px);
+}
 [data-theme="softclub"] .theme-nav-item {
-  position: relative;
-  padding-left: 2.4rem;
-  background: transparent;
+  counter-increment: sc-nav;
+  gap: 0.75rem;
+  border-radius: 6px;
   color: var(--color-gray-600);
+  text-transform: lowercase;
+  letter-spacing: -0.005em;
 }
 [data-theme="softclub"] .theme-nav-item svg {
   display: none;
 }
-[data-theme="softclub"] .theme-nav-item:hover {
-  background: transparent;
-  color: var(--sc-ink);
-}
 [data-theme="softclub"] .theme-nav-item::before {
-  content: "";
-  position: absolute;
-  left: 1.05rem;
-  top: -2px;
-  bottom: -2px;
-  width: 3px;
-  background: var(--sc-line);
+  content: counter(sc-nav, decimal-leading-zero);
+  min-width: 1.5em;
+  font: 10px/1 var(--theme-font-label);
+  color: var(--sc-cyan);
 }
-[data-theme="softclub"] .theme-nav-item:first-of-type::before {
-  top: 50%;
-}
-[data-theme="softclub"] .theme-nav-item:last-of-type::before {
-  bottom: 50%;
-}
-[data-theme="softclub"] .theme-nav-item::after {
-  content: "";
-  position: absolute;
-  left: calc(1.05rem - 4.5px);
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  margin-top: -6px;
-  border-radius: 999px;
-  background: var(--color-white);
-  border: 3px solid var(--sc-line);
-  transition: transform 300ms ease;
-}
-[data-theme="softclub"] .theme-nav-item:hover::after {
-  transform: scale(1.15);
+[data-theme="softclub"] .theme-nav-item:hover {
+  background: rgb(42 150 212 / 0.08);
+  color: var(--sc-ink);
 }
 [data-theme="softclub"] .theme-nav-item[data-active] {
-  color: var(--sc-ink);
-  font-weight: 700;
+  background: var(--sc-sign);
+  color: #f4f8fb;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), inset 0 -1px 0 rgb(0 0 0 / 0.5), 0 5px 12px -6px rgb(14 26 36 / 0.7);
 }
-[data-theme="softclub"] .theme-nav-item[data-active]::after {
-  background: var(--sc-ink);
-  border-color: var(--sc-ink);
-  box-shadow: 0 0 0 3px var(--color-white), 0 0 0 5px var(--sc-line);
-}
-
-/* Primary actions are transit-sign pills. */
-[data-theme="softclub"] a.bg-gray-900,
-[data-theme="softclub"] button.bg-gray-900 {
-  border-radius: 999px;
+[data-theme="softclub"] .theme-nav-item[data-active]::before {
+  color: var(--sc-lime);
 }
 
+/* Page headers: frosted, with Jazzy Chill Out's row of fading dots. */
+[data-theme="softclub"] .theme-header {
+  position: relative;
+  background-color: rgb(251 253 254 / 0.62);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom-color: var(--sc-hair);
+}
+[data-theme="softclub"] .theme-header::after {
+  content: "";
+  position: absolute;
+  right: 11.5rem; /* clear of the target in the corner */
+  top: 50%;
+  width: 116px;
+  height: 14px;
+  margin-top: -7px;
+  background:
+    radial-gradient(circle 6px at 7px 7px, rgb(242 144 46 / 1) 96%, transparent),
+    radial-gradient(circle 6px at 24px 7px, rgb(242 144 46 / 0.82) 96%, transparent),
+    radial-gradient(circle 6px at 41px 7px, rgb(242 144 46 / 0.66) 96%, transparent),
+    radial-gradient(circle 6px at 58px 7px, rgb(242 144 46 / 0.52) 96%, transparent),
+    radial-gradient(circle 6px at 75px 7px, rgb(242 144 46 / 0.39) 96%, transparent),
+    radial-gradient(circle 6px at 92px 7px, rgb(242 144 46 / 0.27) 96%, transparent),
+    radial-gradient(circle 6px at 109px 7px, rgb(242 144 46 / 0.16) 96%, transparent);
+}
+@media (max-width: 639px) {
+  [data-theme="softclub"] .theme-header::after {
+    display: none;
+  }
+}
+
+/* The portal's sections are CD sleeves: a cyan title strip on top, a catalogue number below. */
+[data-theme="softclub"] :has(> .theme-tile) {
+  counter-reset: sc-tile;
+}
 [data-theme="softclub"] .theme-tile {
+  counter-increment: sc-tile;
+  position: relative;
   background-image: none;
-  background-color: rgb(251 251 248 / 0.7);
-  border-color: var(--color-gray-200);
+  background-color: var(--sc-glass);
+  border-color: var(--sc-hair);
+  border-top: 6px solid var(--sc-cyan);
+  border-radius: 6px;
+}
+[data-theme="softclub"] .theme-tile::after {
+  content: "cat. " counter(sc-tile, decimal-leading-zero);
+  position: absolute;
+  right: 1rem;
+  bottom: 0.85rem;
+  font: 10px/1 var(--theme-font-label);
+  letter-spacing: 0.1em;
+  color: var(--sc-cyan);
+}
+
+/* The library dashboard's sections: sleeves too, each strip its own cast, like a shelf of singles. */
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border {
+  background-image: none;
+  background-color: var(--sc-glass);
+  border-color: var(--sc-hair);
+  border-top-width: 6px;
+  border-radius: 6px;
+}
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-blue-200 { border-top-color: var(--color-blue-500); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-pink-200 { border-top-color: var(--color-pink-400); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-purple-200 { border-top-color: var(--color-violet-400); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-orange-200 { border-top-color: var(--sc-orange); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-green-200 { border-top-color: var(--sc-lime); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-cyan-200 { border-top-color: var(--color-cyan-400); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-yellow-200 { border-top-color: var(--color-yellow-400); }
+[data-theme="softclub"] .bg-gradient-to-br.rounded-xl.border-gray-200 { border-top-color: var(--color-gray-400); }
+[data-theme="softclub"] .bg-gradient-to-br p.text-lg.font-bold {
+  font-family: var(--font-dotgothic), var(--theme-font-label), monospace;
+  font-weight: 400;
+  font-size: 1.3rem;
 }
 
 [data-theme="softclub"] ::selection {
-  background: oklch(0.8 0.06 175);
+  background: var(--sc-lime);
   color: var(--sc-ink);
 }
 

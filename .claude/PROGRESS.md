@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — site themes live and verified on the real site (an @import bug kept them out of the first deploy); nightly review fetch fixed; anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-02 — Soft Club theme redone from the user's reference images; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -295,6 +295,20 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       every local test passed). Now `app/layout.tsx` imports theme-palettes.css and themes.css as their
       own stylesheets. Lesson: check the LIVE CSS (`$PORTAL_URL` is set in this environment — it is the
       apex domain and 308-redirects to www, so curl needs -L) rather than trusting a local build.
+- [x] **Soft Club redesign** (user, 2026-10-02: all themes "look like corporate slop with no soul…
+      lets start with gen x soft club", with 24 reference images in a zip: tDR sleeves, Tresor, Y2K
+      transit, CD singles). Redrawn as an icy city in one cyan cast with lime + sodium-orange lights and
+      navy ink. New fonts: Lexend Exa titles (lowercase, light, lime full stop), Share Tech Mono
+      `<labels>` and subtitle readouts, DotGothic16 LED numbers. Light-streak/haze/scanline backdrop,
+      frosted sleeves, roll-sign buttons and active item, numbered menu, a `ver.2` brand band, and tiles
+      as a CD-single shelf with coloured strips. The lime target sits under the sidebar menu (cropped by
+      the menu on short screens) or in the corner on pages without a sidebar. Checked in Chromium on
+      portal, dashboard, series, movies, study, finances, wardrobe and login, plus 390px phone shots.
+      Noticed but pre-existing in every theme: the Library/Study sidebars don't collapse on a phone,
+      so the dashboard is squeezed at 390px.
+- [ ] **Redo Acid, then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
+      the first drafts soulless and wants them redone one at a time, so ask for reference images for
+      each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script

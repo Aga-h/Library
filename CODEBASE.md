@@ -209,6 +209,17 @@ presentation attributes can't read CSS variables. Classic has no rules — Tailw
 Inspired by the Aesthetics Wiki's pages (behind a Cloudflare challenge, so researched via web search
 and the CARI / daisyUI trend write-ups); everything is drawn in CSS and inline SVG, no images.
 
+Soft Club was redrawn from the owner's own reference images (Designers Republic sleeves,
+Tresor, Y2K transit and CD-single packaging). It is an icy city in one cyan cast, with fluorescent
+lime and sodium orange as the only lights and navy ink, never black. The backdrop has light streaks,
+haze and scanlines. Titles are lowercase Lexend Exa light with a lime full stop. Labels are Share Tech
+Mono `<bracketed>` readouts, as is the line under each title. Numbers are DotGothic16 LED digits.
+Panels are frosted sleeves, and buttons and the open menu item are subway roll signs. The menu is
+numbered `01`, `02`…, and the brand is a blue band with a `ver.2` tag. Portal and dashboard tiles are a
+shelf of singles with a coloured top strip each. The lime target sits under the sidebar menu, or in
+the corner behind the header on pages without a sidebar, next to a row of fading orange dots.
+The other three looks are first drafts and are to be redone the same way, from references.
+
 ## Layout
 
 ```
