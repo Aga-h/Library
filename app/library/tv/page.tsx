@@ -1,12 +1,14 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Plus, Tv2, Layers, Globe } from "lucide-react";
+import { Plus, Tv2, Layers, Globe, Clock } from "lucide-react";
 import { db } from "@/lib/db";
 import EntityCard from "@/components/ui/EntityCard";
 import LevelStats from "@/components/ui/LevelStats";
 import TvCard from "@/components/tv/TvCard";
 import MirrorCoversButton from "@/components/ui/MirrorCoversButton";
+import { formatTotalTime } from "@/lib/reading-time";
+import { tvWatchedMinutes } from "@/lib/tmdb-tv";
 
 const GRID = "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4";
 
@@ -17,7 +19,7 @@ function count(n: number, one: string, many = `${one}s`) {
 export default async function TvPage() {
   // Three buckets. A series inside a universe is deliberately absent from this page — you
   // reach it by opening its universe — and likewise a season inside a series.
-  const [universes, looseSeries, looseShows, totals] = await Promise.all([
+  const [universes, looseSeries, looseShows, totals, progress] = await Promise.all([
     db.tvUniverse.findMany({
       orderBy: { name: "asc" },
       include: { series: { select: { id: true, _count: { select: { shows: true } } } } },
@@ -29,6 +31,8 @@ export default async function TvPage() {
     }),
     db.tvShow.findMany({ where: { seriesId: null }, orderBy: { createdAt: "desc" } }),
     db.tvShow.aggregate({ _count: { _all: true }, _sum: { episodesWatched: true } }),
+    // Time is episodes × that season's runtime × passes, so it needs every row, not a sum.
+    db.tvShow.findMany({ select: { episodesWatched: true, episodeRuntime: true, timesRewatched: true } }),
   ]);
 
   const universeRows = universes.map((u) => ({
@@ -40,6 +44,7 @@ export default async function TvPage() {
 
   const totalShows = totals._count._all;
   const episodesWatched = totals._sum.episodesWatched ?? 0;
+  const watchedMinutes = tvWatchedMinutes(progress);
 
   const isEmpty =
     universeRows.length === 0 && looseSeries.length === 0 && looseShows.length === 0;
@@ -76,6 +81,7 @@ export default async function TvPage() {
         ]}
         footer={[
           { icon: <Tv2 className="w-4 h-4" />, label: "Episodes Watched", value: episodesWatched > 0 ? `${episodesWatched} episodes` : "—" },
+          { icon: <Clock className="w-4 h-4" />, label: "Time Watched", value: formatTotalTime(watchedMinutes) },
         ]}
       />
 

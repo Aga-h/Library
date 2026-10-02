@@ -1,13 +1,15 @@
 // Talking to TMDB. Server-only: it reads TMDB_API_KEY, which must never reach a browser. Pure
-// rules live in lib/tmdb.ts.
+// rules live in lib/tmdb.ts (films) and lib/tmdb-tv.ts (shows).
 //
-// Only documented endpoints: /search/{movie,collection,keyword}, /collection/{id}, /keyword/{id},
-// /discover/movie?with_keywords= and /movie/{id}?append_to_response=credits.
+// Only documented endpoints: /search/{movie,tv,collection,keyword}, /collection/{id}, /keyword/{id},
+// /discover/{movie,tv}?with_keywords=, /movie/{id}?append_to_response=credits and
+// /tv/{id}?append_to_response=external_ids | season/1,season/2,…
 
 import {
   byRelease, toCollection, toDetails, toFilm, toKeyword,
-  type TmdbCollection, type TmdbDetails, type TmdbFilm, type TmdbKeyword,
+  type TmdbCollection, type TmdbFilm, type TmdbKeyword,
 } from "@/lib/tmdb";
+import { seasonNumbersOf, toShow, toShowDetails, type TmdbShow, type TmdbShowDetails } from "@/lib/tmdb-tv";
 
 /** Overridable so the importer can be tested against a local stand-in; production never sets it. */
 const BASE_URL = (process.env.TMDB_BASE_URL ?? "https://api.themoviedb.org/3").replace(/\/$/, "");
@@ -17,6 +19,12 @@ const KEYWORD_PAGES = 5;
 
 /** How many films one import may bring in. A preview never offers more than this. */
 export const MAX_IMPORT = 100;
+
+/** How many shows one import may bring in — each is a series and all its seasons. */
+export const MAX_SHOW_IMPORT = 50;
+
+/** TMDB appends at most 20 sub-requests to one call, so seasons are fetched 20 at a time. */
+const APPEND_LIMIT = 20;
 
 /** Detail requests in flight at once — well under TMDB's limit of ~50 a second. */
 const CONCURRENCY = 6;
@@ -127,14 +135,16 @@ export async function keywordFilms(id: number): Promise<FilmList> {
 }
 
 /**
- * Full details for each film, a few requests at a time. A film TMDB cannot answer for is
- * reported rather than failing the whole batch — unless it is the key or the rate limit, which
- * would fail every one of them.
+ * Fetches each id's details, a few requests at a time. One TMDB cannot answer for is reported
+ * rather than failing the whole batch — unless it is the key or the rate limit, which would fail
+ * every one of them.
  */
-export async function filmDetails(
+async function detailsFor<T extends { id: number }>(
   ids: number[],
-): Promise<{ details: TmdbDetails[]; failed: { tmdbId: number; reason: string }[] }> {
-  const details: TmdbDetails[] = [];
+  fetchOne: (id: number) => Promise<T | null>,
+  noun: string,
+): Promise<{ details: T[]; failed: { tmdbId: number; reason: string }[] }> {
+  const details: T[] = [];
   const failed: { tmdbId: number; reason: string }[] = [];
   let next = 0;
 
@@ -142,11 +152,11 @@ export async function filmDetails(
     while (next < ids.length) {
       const id = ids[next++];
       try {
-        const film = toDetails(await get(`/movie/${id}`, { append_to_response: "credits" }));
-        if (film) details.push(film);
-        else failed.push({ tmdbId: id, reason: "TMDB sent it without a title" });
+        const one = await fetchOne(id);
+        if (one) details.push(one);
+        else failed.push({ tmdbId: id, reason: `TMDB sent the ${noun} without a name` });
       } catch (e) {
-        // Only a missing film is one film's problem; anything else would fail every one of them.
+        // Only a missing one is that one's problem; anything else would fail every one of them.
         if (!(e instanceof TmdbError) || e.status !== 404) throw e;
         failed.push({ tmdbId: id, reason: "not found on TMDB" });
       }
@@ -158,4 +168,69 @@ export async function filmDetails(
   const position = new Map(ids.map((id, i) => [id, i]));
   details.sort((a, b) => position.get(a.id)! - position.get(b.id)!);
   return { details, failed };
+}
+
+/** Full details for each film. */
+export async function filmDetails(ids: number[]) {
+  return detailsFor(ids, async (id) => toDetails(await get(`/movie/${id}`, { append_to_response: "credits" })), "film");
+}
+
+// ─── TV ──────────────────────────────────────────────────────────────────────
+
+/** Shows and keyword tags matching a search. TV has no collections on TMDB. */
+export async function searchTv(query: string): Promise<{ shows: TmdbShow[]; keywords: TmdbKeyword[] }> {
+  const [shows, keywords] = await Promise.all([
+    get("/search/tv", { query, include_adult: "false" }),
+    get("/search/keyword", { query }),
+  ]);
+  return {
+    shows: list(shows, "results", toShow).slice(0, 12),
+    keywords: list(keywords, "results", toKeyword).slice(0, 6),
+  };
+}
+
+export interface ShowList {
+  name: string;
+  shows: TmdbShow[];
+  total: number;
+}
+
+/** Every show tagged with a keyword, oldest first, up to MAX_SHOW_IMPORT of them. */
+export async function keywordShows(id: number): Promise<ShowList> {
+  const keyword = toKeyword(await get(`/keyword/${id}`));
+  const shows: TmdbShow[] = [];
+  let total = 0;
+  for (let page = 1; page <= Math.ceil(MAX_SHOW_IMPORT / 20); page++) {
+    const body = await get("/discover/tv", {
+      with_keywords: String(id),
+      sort_by: "first_air_date.asc",
+      include_adult: "false",
+      page: String(page),
+    });
+    total = Number(body.total_results) || 0;
+    shows.push(...list(body, "results", toShow));
+    if (page >= (Number(body.total_pages) || 0)) break;
+  }
+  // Discover sorts undated shows first; release order with them last reads better.
+  const ordered = shows.slice(0, MAX_SHOW_IMPORT)
+    .sort((a, b) => byRelease({ ...a, title: a.name }, { ...b, title: b.name }));
+  return { name: keyword?.name ?? "Keyword", shows: ordered, total };
+}
+
+/**
+ * A show with every season's episodes: one call for the show and its IMDb id, then the seasons
+ * appended 20 to a call. `today` ("YYYY-MM-DD", the app's own zone) decides what has aired.
+ */
+export async function showDetails(ids: number[], today: string) {
+  return detailsFor<TmdbShowDetails>(ids, async (id) => {
+    const head = await get(`/tv/${id}`, { append_to_response: "external_ids" });
+    const numbers = seasonNumbersOf(head);
+    const seasons: Record<number, Raw | undefined> = {};
+    for (let i = 0; i < numbers.length; i += APPEND_LIMIT) {
+      const chunk = numbers.slice(i, i + APPEND_LIMIT);
+      const body = await get(`/tv/${id}`, { append_to_response: chunk.map((n) => `season/${n}`).join(",") });
+      for (const n of chunk) seasons[n] = body[`season/${n}`] as Raw | undefined;
+    }
+    return toShowDetails(head, seasons, today);
+  }, "show");
 }

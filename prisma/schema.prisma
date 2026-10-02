@@ -581,6 +581,12 @@ model AnimeUniverse {
 model TvSeries {
   id         String      @id @default(cuid())
   name       String
+  /// TMDB's id for the show when it was imported from TMDB; null for a series made by hand.
+  /// Unique because a show is in the library once — importing it again (or "Check for new
+  /// seasons") lands on the same series.
+  tmdbId     Int?        @unique
+  /// IMDb's id ("tt0903747"), as TMDB reports it. Only used to link to the show's IMDb page.
+  imdbId     String?
   universeId String?
   universe   TvUniverse? @relation(fields: [universeId], references: [id], onDelete: SetNull)
   notes      String?

@@ -1,4 +1,4 @@
-import { LANGUAGE_CONFIG, type LanguageKey } from "./constants/languages";
+import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 
 export interface ReadingTime {
   minutes: number;
@@ -11,6 +11,17 @@ export interface ReadingTime {
  * Format a duration in minutes into a human-readable string.
  * e.g. 378 → "6h 18m", 1500 → "1d 1h", 45 → "45m"
  */
+/**
+ * A running total for a stats box: "—" for nothing, "3h 20m" under a day, and past a day the
+ * days-and-hours form with the plain hour count beside it ("4d 6h · 102h"), which is the number
+ * people actually compare.
+ */
+export function formatTotalTime(totalMinutes: number): string {
+  if (totalMinutes <= 0) return "—";
+  const short = formatReadingTime(totalMinutes);
+  return totalMinutes >= 24 * 60 ? `${short} · ${Math.round(totalMinutes / 60)}h` : short;
+}
+
 export function formatReadingTime(totalMinutes: number): string {
   if (totalMinutes < 60) {
     return `${totalMinutes}m`;

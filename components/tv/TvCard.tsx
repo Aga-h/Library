@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Tv2, Clock } from "lucide-react";
 import { formatReadingTime } from "@/lib/reading-time";
+import { isTmdbImage } from "@/lib/tmdb";
+import EpisodeButtons from "@/components/tv/EpisodeButtons";
 
 interface TvShow {
   seasonNumber: number | null;
@@ -32,57 +34,60 @@ export default function TvCard({ show }: { show: TvShow }) {
     ? `${show.episodesWatched}/${show.totalEpisodes} ep`
     : `${show.episodesWatched} ep`;
 
+  // The episode buttons sit below the link, not inside it: a button nested in an <a> is invalid,
+  // and a tap on one would open the season as well.
   return (
-    <Link
-      href={`/library/tv/${show.id}`}
-      className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all"
-    >
-      {/* Cover */}
-      <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
-        {show.coverImage ? (
-          <Image fill src={show.coverImage} alt={show.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
-        ) : (
-          <Tv2 className="w-12 h-12 text-gray-300" />
-        )}
-        {show.seasonNumber !== null && (
-          <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900/80 text-white">
-            S{show.seasonNumber}
-          </span>
-        )}
-        <span
-          className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}
-        >
-          {status.label}
-        </span>
-      </div>
-
-      {/* Info */}
-      <div className="flex flex-col gap-1 p-4 flex-1">
-        <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">
-          {show.title}
-        </h3>
-        {show.creator && (
-          <p className="text-xs text-gray-500">{show.creator}</p>
-        )}
-
-        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto pt-3 text-xs text-gray-400">
-          <span>{episodeProgress}</span>
-          {timeWatched && (
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" /> {timeWatched}
+    <div className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
+      <Link href={`/library/tv/${show.id}`} className="flex flex-col flex-1">
+        {/* Cover */}
+        <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
+          {show.coverImage ? (
+            <Image fill src={show.coverImage} alt={show.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw"
+              unoptimized={isTmdbImage(show.coverImage)} />
+          ) : (
+            <Tv2 className="w-12 h-12 text-gray-300" />
+          )}
+          {show.seasonNumber !== null && (
+            <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900/80 text-white">
+              S{show.seasonNumber}
             </span>
           )}
+          <span
+            className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}
+          >
+            {status.label}
+          </span>
         </div>
 
-        {show.rating !== null && (
-          <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">
-            ★ {show.rating}/10
+        {/* Info */}
+        <div className="flex flex-col gap-1 p-4 flex-1">
+          <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">
+            {show.title}
+          </h3>
+          {show.creator && (
+            <p className="text-xs text-gray-500">{show.creator}</p>
+          )}
+
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto pt-3 text-xs text-gray-400">
+            <span>{episodeProgress}</span>
+            {timeWatched && (
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" /> {timeWatched}
+              </span>
+            )}
           </div>
-        )}
-        {show.timesRewatched > 0 && (
-          <p className="text-xs text-gray-400 mt-0.5">Rewatched ×{show.timesRewatched}</p>
-        )}
-      </div>
-    </Link>
+
+          {show.rating !== null && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-amber-500 font-semibold">
+              ★ {show.rating}/10
+            </div>
+          )}
+          {show.timesRewatched > 0 && (
+            <p className="text-xs text-gray-400 mt-0.5">Rewatched ×{show.timesRewatched}</p>
+          )}
+        </div>
+      </Link>
+      <EpisodeButtons showId={show.id} title={show.title} episodesWatched={show.episodesWatched} totalEpisodes={show.totalEpisodes} />
+    </div>
   );
 }

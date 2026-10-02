@@ -15,7 +15,7 @@ import { db } from "@/lib/db";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteMovieButton from "@/components/movies/DeleteMovieButton";
-import { TMDB_NOTICE } from "@/lib/tmdb";
+import { TmdbNotice } from "@/components/tmdb/TmdbParts";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -159,13 +159,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
         )}
       </div>
 
-      {movie.tmdbId && (
-        <p className="flex items-start gap-2 mt-4 text-[11px] text-gray-400">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/tmdb-logo.svg" alt="TMDB" className="h-2.5 mt-0.5 flex-shrink-0" />
-          <span>{TMDB_NOTICE}</span>
-        </p>
-      )}
+      {movie.tmdbId && <TmdbNotice className="mt-4" />}
     </div>
   );
 }

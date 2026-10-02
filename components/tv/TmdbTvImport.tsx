@@ -3,51 +3,44 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, Download, Film, Layers, Loader2, Plus, Search, Tag } from "lucide-react";
+import { ArrowLeft, Check, Download, Loader2, Plus, Search, Tag, Tv2 } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { Poster, TmdbNotice } from "@/components/tmdb/TmdbParts";
 
 interface Place {
-  movieId: string;
+  seriesId: string;
   universeId: string | null;
   universeName: string | null;
 }
 
-interface Film {
+interface Show {
   id: number;
-  title: string;
+  name: string;
   year: number | null;
   poster: string | null;
   place: Place | null;
 }
 
-interface Group {
+interface Keyword {
   id: number;
   name: string;
-  poster?: string | null;
-}
-
-interface Results {
-  films: Film[];
-  collections: Group[];
-  keywords: Group[];
 }
 
 interface Preview {
-  kind: "collection" | "keyword";
   id: number;
   name: string;
   total: number;
-  films: Film[];
+  shows: Show[];
 }
 
 interface ReportLine {
   tmdbId: number;
-  title: string;
-  year: number | null;
+  name: string;
   outcome: "added" | "linked" | "moved" | "already" | "elsewhere";
   where?: string;
-  movieId?: string;
+  seriesId: string;
+  seasonsAdded: number[];
+  seasonsUpdated: number[];
 }
 
 interface Summary {
@@ -55,9 +48,7 @@ interface Summary {
   failed: { tmdbId: number; reason: string }[];
 }
 
-type Status = "WANT_TO_WATCH" | "WATCHED";
-
-/** Where a film already is, put relative to where it is being imported. */
+/** Where a show already is, put relative to where it is being imported. */
 function placeLabel(place: Place | null, target: string | null): { text: string; importable: boolean } | null {
   if (!place) return null;
   if (place.universeId === target) return { text: target ? "Already here" : "In your library", importable: false };
@@ -69,12 +60,30 @@ function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+/** What follows the show's name: " — 5 seasons added", " — season 3 added, 1 updated", " — up to date". */
+function lineDetail(line: ReportLine): string {
+  const parts: string[] = [];
+  if (line.seasonsAdded.length > 0) {
+    parts.push(line.seasonsAdded.length === 1 ? `season ${line.seasonsAdded[0]} added` : `${plural(line.seasonsAdded.length, "season")} added`);
+  }
+  if (line.seasonsUpdated.length > 0) parts.push(`${line.seasonsUpdated.length} updated`);
+  const what = parts.join(", ") || "up to date";
+  const how = {
+    added: "",
+    moved: " (moved here)",
+    linked: " (matched to the series you made)",
+    already: "",
+    elsewhere: ` (in ${line.where} — left there)`,
+  }[line.outcome];
+  return ` — ${what}${how}`;
+}
+
 /**
- * Find films on TMDB and log them with their details filled in: one at a time, or a whole
- * collection ("Harry Potter Collection") or keyword tag ("marvel cinematic universe") at once,
- * picked from a preview. Search runs on submit, not on every keystroke.
+ * Find shows on TMDB and log them: each becomes a series with a season row for every season,
+ * episodes, runtime and poster included. One at a time, or every show under a keyword tag
+ * ("marvel cinematic universe") picked from a preview. Search runs on submit, not per keystroke.
  */
-export default function TmdbImport({
+export default function TmdbTvImport({
   universes,
   initialUniverseId,
 }: {
@@ -83,19 +92,20 @@ export default function TmdbImport({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Results | null>(null);
+  const [results, setResults] = useState<{ shows: Show[]; keywords: Keyword[] } | null>(null);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [target, setTarget] = useState<string>(initialUniverseId ?? "");
-  const [status, setStatus] = useState<Status>("WANT_TO_WATCH");
+  const [watched, setWatched] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
-  const [opening, setOpening] = useState<string | null>(null);
+  const [opening, setOpening] = useState<number | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState<number | "bulk" | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
 
   const targetId = target || null;
   const targetName = universes.find((u) => u.id === target)?.name ?? null;
+  const targetHref = targetId ? `/library/tv/u/${targetId}` : "/library/tv";
 
   async function runSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -104,7 +114,7 @@ export default function TmdbImport({
     setError(null);
     setSummary(null);
     setPreview(null);
-    const res = await fetch(`/api/movies/tmdb/search?${new URLSearchParams({ q: query.trim() })}`);
+    const res = await fetch(`/api/tv/tmdb/search?${new URLSearchParams({ q: query.trim() })}`);
     const data = await res.json().catch(() => ({}));
     setSearching(false);
     if (!res.ok) {
@@ -115,39 +125,37 @@ export default function TmdbImport({
     setResults(data);
   }
 
-  async function openList(kind: Preview["kind"], group: Group) {
-    setOpening(`${kind}:${group.id}`);
+  async function openKeyword(keyword: Keyword) {
+    setOpening(keyword.id);
     setError(null);
     setSummary(null);
-    const res = await fetch(`/api/movies/tmdb/list?${new URLSearchParams({ [kind]: String(group.id) })}`);
+    const res = await fetch(`/api/tv/tmdb/list?${new URLSearchParams({ keyword: String(keyword.id) })}`);
     const data = await res.json().catch(() => ({}));
     setOpening(null);
     if (!res.ok) {
       setError(data.error ?? "Couldn't load that list");
       return;
     }
-    const films: Film[] = data.films;
-    setPreview({ kind, id: group.id, name: data.name, total: data.total, films });
-    setSelected(new Set(films.filter((f) => placeLabel(f.place, targetId)?.importable ?? true).map((f) => f.id)));
+    const shows: Show[] = data.shows;
+    setPreview({ id: keyword.id, name: data.name, total: data.total, shows });
+    setSelected(new Set(shows.filter((s) => placeLabel(s.place, targetId)?.importable ?? true).map((s) => s.id)));
   }
 
-  /** Every film that now sits where it was imported to gets that as its place. */
-  function placed(films: Film[], report: ReportLine[]): Film[] {
-    const landed = new Map(
-      report.filter((r) => r.outcome !== "elsewhere" && r.movieId).map((r) => [r.tmdbId, r.movieId!]),
-    );
-    return films.map((f) =>
-      landed.has(f.id)
-        ? { ...f, place: { movieId: landed.get(f.id)!, universeId: targetId, universeName: targetName } }
-        : f,
+  /** Every show that now sits where it was imported to gets that as its place. */
+  function placed(shows: Show[], report: ReportLine[]): Show[] {
+    const landed = new Map(report.filter((r) => r.outcome !== "elsewhere").map((r) => [r.tmdbId, r.seriesId]));
+    return shows.map((s) =>
+      landed.has(s.id)
+        ? { ...s, place: { seriesId: landed.get(s.id)!, universeId: targetId, universeName: targetName } }
+        : s,
     );
   }
 
   async function importIds(tmdbIds: number[]): Promise<Summary | null> {
-    const res = await fetch("/api/movies/tmdb/import", {
+    const res = await fetch("/api/tv/tmdb/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ universeId: targetId, tmdbIds, status }),
+      body: JSON.stringify({ universeId: targetId, tmdbIds, watched }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -157,15 +165,16 @@ export default function TmdbImport({
     return data as Summary;
   }
 
-  async function addOne(film: Film) {
-    setBusy(film.id);
+  async function addOne(show: Show) {
+    setBusy(show.id);
     setError(null);
     setSummary(null);
-    const done = await importIds([film.id]);
+    const done = await importIds([show.id]);
     setBusy(null);
     if (!done) return;
-    setResults((r) => (r ? { ...r, films: placed(r.films, done.report) } : r));
-    if (done.failed.length > 0 || done.report.some((line) => line.outcome === "elsewhere")) setSummary(done);
+    setResults((r) => (r ? { ...r, shows: placed(r.shows, done.report) } : r));
+    // Always said, even when all went well: how many seasons came in is the useful part.
+    setSummary(done);
     router.refresh();
   }
 
@@ -174,16 +183,16 @@ export default function TmdbImport({
     setBusy("bulk");
     setError(null);
     setSummary(null);
-    const done = await importIds(preview.films.filter((f) => selected.has(f.id)).map((f) => f.id));
+    const done = await importIds(preview.shows.filter((s) => selected.has(s.id)).map((s) => s.id));
     setBusy(null);
     if (!done) return;
     // Nothing to report → straight to where they landed. Anything left behind is shown first.
     if (done.failed.length === 0 && !done.report.some((line) => line.outcome === "elsewhere")) {
-      router.push(targetId ? `/library/movies/u/${targetId}` : "/library/movies");
+      router.push(targetHref);
       router.refresh();
       return;
     }
-    setPreview((p) => (p ? { ...p, films: placed(p.films, done.report) } : p));
+    setPreview((p) => (p ? { ...p, shows: placed(p.shows, done.report) } : p));
     setSelected(new Set());
     setSummary(done);
     router.refresh();
@@ -198,42 +207,42 @@ export default function TmdbImport({
     });
   }
 
-  const count = (outcome: ReportLine["outcome"]) => summary?.report.filter((r) => r.outcome === outcome).length ?? 0;
-  // A film TMDB had no details for is known here only by the list that offered it.
+  // A show TMDB had no details for is known here only by the list that offered it.
   const nameOf = (tmdbId: number) => {
-    const film = preview?.films.find((f) => f.id === tmdbId) ?? results?.films.find((f) => f.id === tmdbId);
-    return film ? `${film.title}${film.year ? ` (${film.year})` : ""}` : `TMDB film ${tmdbId}`;
+    const show = preview?.shows.find((s) => s.id === tmdbId) ?? results?.shows.find((s) => s.id === tmdbId);
+    return show ? `${show.name}${show.year ? ` (${show.year})` : ""}` : `TMDB show ${tmdbId}`;
   };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label htmlFor="tmdb-target" className="block text-xs font-semibold text-gray-500 mb-1">Add to</label>
-          <select id="tmdb-target" value={target} onChange={(e) => setTarget(e.target.value)} className={inputCls}>
+          <label htmlFor="tmdb-tv-target" className="block text-xs font-semibold text-gray-500 mb-1">Add to</label>
+          <select id="tmdb-tv-target" value={target} onChange={(e) => setTarget(e.target.value)} className={inputCls}>
             <option value="">Standalone (no universe)</option>
             {universes.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
         <div>
-          <span className="block text-xs font-semibold text-gray-500 mb-1">New films are marked</span>
-          <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg" role="group" aria-label="New films are marked">
-            {(["WANT_TO_WATCH", "WATCHED"] as const).map((s) => (
-              <button key={s} type="button" onClick={() => setStatus(s)} aria-pressed={status === s}
+          <span className="block text-xs font-semibold text-gray-500 mb-1">New seasons are marked</span>
+          <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg" role="group" aria-label="New seasons are marked">
+            {([false, true] as const).map((w) => (
+              <button key={String(w)} type="button" onClick={() => setWatched(w)} aria-pressed={watched === w}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-                  status === s ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"
+                  watched === w ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"
                 }`}>
-                {s === "WATCHED" ? "Watched" : "Want to watch"}
+                {w ? "Watched" : "To watch"}
               </button>
             ))}
           </div>
+          {watched && <p className="text-[11px] text-gray-500 mt-1">Every aired episode counts as watched; ones still to air don&apos;t.</p>}
         </div>
       </div>
 
       <form onSubmit={runSearch} className="flex gap-2">
-        <label htmlFor="tmdb-query" className="sr-only">Search TMDB</label>
-        <input id="tmdb-query" type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoFocus
-          placeholder="A film, a franchise, or a tag like “marvel cinematic”" className={`${inputCls} flex-1`} />
+        <label htmlFor="tmdb-tv-query" className="sr-only">Search TMDB</label>
+        <input id="tmdb-tv-query" type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoFocus
+          placeholder="A show, or a tag like “star trek”" className={`${inputCls} flex-1`} />
         <button type="submit" disabled={searching || query.trim().length < 2}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Search
@@ -244,23 +253,15 @@ export default function TmdbImport({
 
       {summary && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1">
-          <p>
-            {[
-              count("added") && `${plural(count("added"), "film")} added`,
-              count("moved") && `${count("moved")} moved here`,
-              count("linked") && `${count("linked")} matched to films you'd added by hand`,
-              count("already") && `${count("already")} already here`,
-            ].filter(Boolean).join(" · ") || "Nothing new to add."}
-          </p>
-          {count("elsewhere") > 0 && (
-            <>
-              <p className="text-emerald-800">Left where they are — move them from the film&apos;s Edit page if you want:</p>
-              <ul className="text-xs text-emerald-800 list-disc pl-5">
-                {summary.report.filter((r) => r.outcome === "elsewhere").map((r) => (
-                  <li key={r.tmdbId}>{r.title}{r.year && ` (${r.year})`} — in {r.where}</li>
-                ))}
-              </ul>
-            </>
+          {summary.report.length > 0 && (
+            <ul className="space-y-0.5">
+              {summary.report.map((line) => (
+                <li key={line.tmdbId}>
+                  <Link href={`/library/tv/s/${line.seriesId}`} className="font-semibold underline">{line.name}</Link>
+                  {lineDetail(line)}
+                </li>
+              ))}
+            </ul>
           )}
           {summary.failed.length > 0 && (
             <>
@@ -270,9 +271,7 @@ export default function TmdbImport({
               </ul>
             </>
           )}
-          <Link href={targetId ? `/library/movies/u/${targetId}` : "/library/movies"} className="inline-block font-semibold underline">
-            Open {targetName ?? "Movies"} →
-          </Link>
+          <Link href={targetHref} className="inline-block font-semibold underline">Open {targetName ?? "TV Shows"} →</Link>
         </div>
       )}
 
@@ -286,38 +285,38 @@ export default function TmdbImport({
             <div className="min-w-0 text-right">
               <p className="text-sm font-semibold text-gray-900 truncate">{preview.name}</p>
               <p className="text-xs text-gray-500">
-                {preview.total > preview.films.length
-                  ? `The first ${preview.films.length} of ${preview.total} — a broad tag; a collection or a narrower tag may fit better`
-                  : plural(preview.films.length, "film")}
+                {preview.total > preview.shows.length
+                  ? `The first ${preview.shows.length} of ${preview.total} — a broad tag; a narrower one may fit better`
+                  : plural(preview.shows.length, "show")}
               </p>
             </div>
           </div>
 
-          {preview.films.length === 0 ? (
-            <p className="px-3 py-6 text-sm text-gray-500 text-center">TMDB lists no films here.</p>
+          {preview.shows.length === 0 ? (
+            <p className="px-3 py-6 text-sm text-gray-500 text-center">TMDB lists no shows here.</p>
           ) : (
             <>
               <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 text-xs">
                 <span className="text-gray-500">{selected.size} selected</span>
                 <span className="flex gap-3">
-                  <button type="button" onClick={() => setSelected(new Set(preview.films.map((f) => f.id)))}
+                  <button type="button" onClick={() => setSelected(new Set(preview.shows.map((s) => s.id)))}
                     className="font-semibold text-gray-600 hover:text-gray-900">All</button>
                   <button type="button" onClick={() => setSelected(new Set())}
                     className="font-semibold text-gray-600 hover:text-gray-900">None</button>
                 </span>
               </div>
               <ul className="divide-y divide-gray-100 max-h-[28rem] overflow-y-auto">
-                {preview.films.map((f) => {
-                  const where = placeLabel(f.place, targetId);
+                {preview.shows.map((s) => {
+                  const where = placeLabel(s.place, targetId);
                   return (
-                    <li key={f.id}>
+                    <li key={s.id}>
                       <label className="flex items-center gap-3 px-3 py-2 bg-white cursor-pointer hover:bg-gray-50">
-                        <input type="checkbox" checked={selected.has(f.id)} onChange={() => toggle(f.id)}
+                        <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)}
                           className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
-                        <Poster src={f.poster} />
+                        <Poster src={s.poster} />
                         <span className="flex-1 min-w-0">
-                          <span className="block text-sm font-semibold text-gray-900 truncate">{f.title}</span>
-                          <span className="block text-xs text-gray-500">{f.year ?? "No date yet"}</span>
+                          <span className="block text-sm font-semibold text-gray-900 truncate">{s.name}</span>
+                          <span className="block text-xs text-gray-500">{s.year ?? "Not aired yet"}</span>
                         </span>
                         {where && (
                           <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
@@ -330,12 +329,12 @@ export default function TmdbImport({
                 })}
               </ul>
               <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between gap-3">
-                <p className="text-[11px] text-gray-500">Films you already have only get their blanks filled in.</p>
+                <p className="text-[11px] text-gray-500">Every season comes in. Shows you have only get new seasons and blanks filled.</p>
                 <button type="button" onClick={importSelected} disabled={busy !== null || selected.size === 0}
                   className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
                   {busy === "bulk"
-                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing {plural(selected.size, "film")}…</>
-                    : <><Download className="w-3.5 h-3.5" /> Import {plural(selected.size, "film")}</>}
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing {plural(selected.size, "show")}…</>
+                    : <><Download className="w-3.5 h-3.5" /> Import {plural(selected.size, "show")}</>}
                 </button>
               </div>
             </>
@@ -343,51 +342,56 @@ export default function TmdbImport({
         </div>
       ) : results && (
         <div className="space-y-4">
-          {results.films.length + results.collections.length + results.keywords.length === 0 && (
+          {results.shows.length + results.keywords.length === 0 && (
             <p className="text-sm text-gray-500">Nothing on TMDB matches that. Try fewer words.</p>
           )}
 
-          {(results.collections.length > 0 || results.keywords.length > 0) && (
+          {results.keywords.length > 0 && (
             <section>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Whole franchises</h3>
               <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
-                {results.collections.map((c) => (
-                  <GroupRow key={`c${c.id}`} icon={Layers} name={c.name} hint="Collection" poster={c.poster ?? null}
-                    loading={opening === `collection:${c.id}`} disabled={opening !== null}
-                    onOpen={() => openList("collection", c)} />
-                ))}
                 {results.keywords.map((k) => (
-                  <GroupRow key={`k${k.id}`} icon={Tag} name={k.name} hint="Every film with this tag" poster={null}
-                    loading={opening === `keyword:${k.id}`} disabled={opening !== null}
-                    onOpen={() => openList("keyword", k)} />
+                  <li key={k.id} className="flex items-center gap-3 px-3 py-2 bg-white">
+                    <div className="flex-shrink-0 w-9 h-[54px] rounded bg-gray-50 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{k.name}</p>
+                      <p className="text-xs text-gray-500">Every show with this tag</p>
+                    </div>
+                    <button type="button" onClick={() => openKeyword(k)} disabled={opening !== null}
+                      className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                      {opening === k.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Tv2 className="w-3.5 h-3.5" />} See shows
+                    </button>
+                  </li>
                 ))}
               </ul>
             </section>
           )}
 
-          {results.films.length > 0 && (
+          {results.shows.length > 0 && (
             <section>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Films</h3>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Shows</h3>
               <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
-                {results.films.map((f) => {
-                  const where = placeLabel(f.place, targetId);
+                {results.shows.map((s) => {
+                  const where = placeLabel(s.place, targetId);
                   return (
-                    <li key={f.id} className="flex items-center gap-3 px-3 py-2 bg-white">
-                      <Poster src={f.poster} />
+                    <li key={s.id} className="flex items-center gap-3 px-3 py-2 bg-white">
+                      <Poster src={s.poster} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{f.title}</p>
-                        <p className="text-xs text-gray-500">{f.year ?? "No date yet"}</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{s.name}</p>
+                        <p className="text-xs text-gray-500">{s.year ?? "Not aired yet"}</p>
                       </div>
                       {where && !where.importable ? (
-                        <Link href={`/library/movies/${f.place!.movieId}`}
+                        <Link href={`/library/tv/s/${s.place!.seriesId}`}
                           className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex-shrink-0">
-                          {where.text === "Already here" || where.text === "In your library" ? <Check className="w-3 h-3" /> : null}
+                          {s.place!.universeId === targetId ? <Check className="w-3 h-3" /> : null}
                           {where.text}
                         </Link>
                       ) : (
-                        <button type="button" onClick={() => addOne(f)} disabled={busy !== null}
+                        <button type="button" onClick={() => addOne(s)} disabled={busy !== null}
                           className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
-                          {busy === f.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                          {busy === s.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                           {where ? "Move here" : "Add"}
                         </button>
                       )}
@@ -402,35 +406,5 @@ export default function TmdbImport({
 
       <TmdbNotice />
     </div>
-  );
-}
-
-function GroupRow({
-  icon: Icon, name, hint, poster, loading, disabled, onOpen,
-}: {
-  icon: typeof Layers;
-  name: string;
-  hint: string;
-  poster: string | null;
-  loading: boolean;
-  disabled: boolean;
-  onOpen: () => void;
-}) {
-  return (
-    <li className="flex items-center gap-3 px-3 py-2 bg-white">
-      {poster ? <Poster src={poster} /> : (
-        <div className="flex-shrink-0 w-9 h-[54px] rounded bg-gray-50 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-gray-400" />
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
-        <p className="text-xs text-gray-500">{hint}</p>
-      </div>
-      <button type="button" onClick={onOpen} disabled={disabled}
-        className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
-        {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Film className="w-3.5 h-3.5" />} See films
-      </button>
-    </li>
   );
 }

@@ -9,6 +9,8 @@ import EntityCard from "@/components/ui/EntityCard";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 import AttachExistingButton from "@/components/ui/AttachExistingButton";
 import { tvSeriesOptions } from "@/lib/hierarchy-options";
+import { formatTotalTime } from "@/lib/reading-time";
+import { tvWatchedMinutes } from "@/lib/tmdb-tv";
 
 interface PageProps { params: Promise<{ universeId: string }> }
 
@@ -19,7 +21,7 @@ function count(n: number, one: string, many = `${one}s`) {
 export default async function TvUniversePage({ params }: PageProps) {
   const { universeId } = await params;
 
-  const [universe, allSeries] = await Promise.all([
+  const [universe, allSeries, progress] = await Promise.all([
     db.tvUniverse.findUnique({
       where: { id: universeId },
       include: {
@@ -27,6 +29,10 @@ export default async function TvUniversePage({ params }: PageProps) {
       },
     }),
     tvSeriesOptions(),
+    db.tvShow.findMany({
+      where: { series: { universeId } },
+      select: { episodesWatched: true, episodeRuntime: true, timesRewatched: true },
+    }),
   ]);
   if (!universe) notFound();
 
@@ -35,6 +41,7 @@ export default async function TvUniversePage({ params }: PageProps) {
   const candidates = allSeries.filter((o) => o.parentId !== universeId);
 
   const seasonCount = universe.series.reduce((s, x) => s + x._count.shows, 0);
+  const watchedMinutes = tvWatchedMinutes(progress);
 
   return (
     <div>
@@ -45,6 +52,7 @@ export default async function TvUniversePage({ params }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">{universe.name}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {count(universe.series.length, "series", "series")} · {count(seasonCount, "season")}
+            {watchedMinutes > 0 && ` · ${formatTotalTime(watchedMinutes)} watched`}
           </p>
         </div>
         <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">

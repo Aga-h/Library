@@ -2,13 +2,17 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, ExternalLink } from "lucide-react";
 import { db } from "@/lib/db";
 import Breadcrumb, { type Crumb } from "@/components/ui/Breadcrumb";
 import DeleteEntityButton from "@/components/ui/DeleteEntityButton";
 import AttachExistingButton from "@/components/ui/AttachExistingButton";
 import { tvShowOptions } from "@/lib/hierarchy-options";
 import TvCard from "@/components/tv/TvCard";
+import TmdbTvRefresh from "@/components/tv/TmdbTvRefresh";
+import { TmdbNotice } from "@/components/tmdb/TmdbParts";
+import { formatTotalTime } from "@/lib/reading-time";
+import { tvWatchedMinutes } from "@/lib/tmdb-tv";
 
 interface PageProps { params: Promise<{ seriesId: string }> }
 
@@ -37,19 +41,39 @@ export default async function TvSeriesPage({ params }: PageProps) {
     : [{ label: series.name }];
 
   const episodesWatched = series.shows.reduce((s, x) => s + x.episodesWatched, 0);
+  const watchedMinutes = tvWatchedMinutes(series.shows);
 
   return (
     <div>
       <Breadcrumb rootHref="/library/tv" rootLabel="TV Shows" crumbs={crumbs} />
 
       <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
+        {/* The title keeps room for its line; the buttons wrap instead of squeezing it. */}
+        <div className="min-w-[14rem]">
           <h1 className="text-2xl font-bold text-gray-900">{series.name}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {count(series.shows.length, "season")} · {count(episodesWatched, "episode")} watched
+            {watchedMinutes > 0 && ` · ${formatTotalTime(watchedMinutes)}`}
           </p>
+          {(series.imdbId || series.tmdbId) && (
+            <div className="flex flex-wrap gap-3 mt-2 text-xs font-semibold">
+              {series.imdbId && (
+                <a href={`https://www.imdb.com/title/${series.imdbId}/`} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900">
+                  IMDb <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+              {series.tmdbId && (
+                <a href={`https://www.themoviedb.org/tv/${series.tmdbId}`} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900">
+                  TMDB <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
-        <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">
+        <div className="flex items-start justify-end flex-wrap gap-2">
+          {series.tmdbId && <TmdbTvRefresh universeId={series.universeId} tmdbId={series.tmdbId} />}
           <Link href={`/library/tv/s/${series.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -93,6 +117,8 @@ export default async function TvSeriesPage({ params }: PageProps) {
           {series.shows.map((show) => <TvCard key={show.id} show={show} />)}
         </div>
       )}
+
+      {series.tmdbId && <TmdbNotice className="mt-8" />}
     </div>
   );
 }

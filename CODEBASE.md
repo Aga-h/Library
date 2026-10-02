@@ -105,6 +105,23 @@ attribution notice and logo wherever its data is used (`TMDB_NOTICE`, `public/tm
 Watched toggle. (IMDb was the first choice; its Conditions of Use forbid robots and scraping without
 written consent and it has no public API, so it is not used.)
 
+**TV shows from TMDB.** "Add Show" (main page) and "Add Series" (in a universe) search TMDB for
+shows and keyword tags (TV has no TMDB collections). A show becomes a `TvSeries` (`tmdbId` unique,
+`imdbId` for the link) and every numbered season a `TvShow` row titled "Name | Season N" — specials
+(season 0) are left out. Each season's runtime is the average of its episodes' runtimes (falling back
+to the show's average, its listed runtime, then 45); its episode count is the episodes TMDB lists.
+Seasons are fetched by appending `season/N` to `/tv/{id}`, 20 per call (TMDB's limit). "Watched"
+imports mark only aired episodes (air date ≤ today in the app's zone), so an airing season lands as
+Watching. Re-importing — "Check for new seasons" on a series — runs `placeSeries` + `planSeasons`:
+adds missing seasons, raises an episode count TMDB has grown (never lowers it; status re-derived),
+fills blank year/poster/creator/network, and never touches episodes watched, title, runtime,
+rating, rewatches, notes or language. A season's year stays blank until TMDB dates it, since a stored
+year is never overwritten. Placement follows films (moved/linked/already/elsewhere); a name clash in
+a universe gets the start year ("The Office (2005)"). Each show lands in its own interactive
+transaction holding `pg_advisory_xact_lock(namespace, tmdbId)`, so a double tap makes one series.
+Season cards carry −/+/All episode buttons; time watched (episodes × runtime × passes,
+`tvWatchedMinutes`) shows on the TV page, universe and series headers via `formatTotalTime`.
+
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
@@ -177,6 +194,7 @@ scripts/                node test scripts, graph sealing
 | `study.ts` / `study-service.ts` | Session and XP rules (client-safe) / Prisma side |
 | `comicvine.ts` / `comicvine-service.ts` / `comicvine-import.ts` | Issue numbers, covers and the merge rule / the API client / landing a run in a universe |
 | `tmdb.ts` / `tmdb-service.ts` / `tmdb-import.ts` | Reading TMDB's answers and the merge rule / the API client / landing films in the library |
+| `tmdb-tv.ts` / `tmdb-tv-import.ts` | Shows: reading seasons, `placeSeries` and `planSeasons` / landing shows as series + seasons |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
@@ -192,7 +210,7 @@ scripts/                node test scripts, graph sealing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
-report token, and the Comic Vine and TMDB merge rules. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+report token, and the Comic Vine and TMDB (film and TV) merge rules. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser

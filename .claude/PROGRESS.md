@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-02 — movies TMDB import confirmed live (023, 024, key all done); IN PROGRESS: TV shows from TMDB (see Next); 018, 019, 020 still unconfirmed, 021 optional
+**Updated:** 2026-10-02 — TV shows from TMDB built and pushed; **waiting on the user: 025 then 026** (see Blocked); 018, 019, 020 still unconfirmed, 021 optional
 
 ## Done
 
@@ -242,15 +242,21 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       limit 429, TMDB down — all plain messages, key never in them; mirror-covers skips TMDB posters.
       Migrations: 023 idempotent, drift empty; 024 errors (deletes nothing) before 023, wipes after,
       and skips once anything is imported. **Confirmed working on the live site by the user (2026-10-02)** — 023 and 024 run, `TMDB_API_KEY` set.
-- [ ] **TV shows from TMDB** (asked 2026-10-02; IN PROGRESS): "same as movies, first delete everything,
-      then import; also total hours watched like the other sections". Plan: `TvSeries.tmdbId` (unique)
-      + `imdbId` (025, additive); 026 one-time guarded wipe of TvShow/TvSeries/TvUniverse. Search a
-      show → it becomes a series, every season (not specials) a `TvShow` row titled "Name | Season N"
-      with episodes, runtime (average of the season's episodes), year, poster, creator, network;
-      TMDB keyword tags import several shows at once. "Watched" import marks aired episodes watched.
-      Re-import / "Check for new seasons" adds seasons, raises episode counts, fills blanks only.
-      Time watched on TV main page, universe and series headers (the main page showed none —
-      `TvStats` computed it but was never rendered). −/+/All episode buttons on season cards.
+- [x] **TV shows from TMDB** (asked 2026-10-02: "same as movies, first delete everything, then
+      import; also total hours watched like the other sections"). A show → a series, every numbered
+      season → a row ("Name | Season N") with episodes, runtime (average of its episodes), year,
+      poster, creator, network; keyword tags import several shows at once; "Watched" marks aired
+      episodes only. Re-import / "Check for new seasons" adds seasons, raises episode counts, fills
+      blanks. −/+/All episode buttons on season cards. Time watched on the TV page (the old `TvStats`
+      that computed it was never rendered — deleted), universe and series headers.
+      Verified against a local TMDB stand-in, over real HTTP + Postgres and in Chromium: specials
+      skipped; 36-season show fetched in 3 calls (1 + 20 + 16 appended); two "The Office" told apart
+      by year; hand-made series linked keeping your title/watched/runtime; standalone moved in, other
+      universe left; airing season gained an episode and went Completed → Watching; a season announced
+      undated got its year once dated (found and fixed: it took the show's start year); triple tap →
+      one series, 3 seasons (advisory lock in an interactive transaction — first use of either here,
+      works with the pg adapter); time totals match the DB; 025/026 verified like 023/024.
+      **Not yet run against real TMDB.**
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -264,6 +270,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **TV from TMDB — two scripts, in this order** (the key is already set from movies):
+  1. `prisma/manual-migrations/025-tv-tmdb.sql` **now** — the deployed code reads `TvSeries.tmdbId`,
+     so the TV pages error until it runs. Additive, safe to re-run.
+  2. `026-clear-tv.sql` **before importing anything** — deletes every season, series and TV universe,
+     as asked. Refuses to run once any show is imported. Expected output `0 | 0 | 0 | 0`.
+  Optional: old mirrored TV posters stay in Supabase Storage → `covers` → `tv/`; nothing reads them.
 
 - **Network access is now Full** on the Default environment (user changed it 2026-10-01) — it
   applied to the running session immediately.
