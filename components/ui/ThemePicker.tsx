@@ -94,7 +94,7 @@ export default function ThemePicker({ variant = "full" }: { variant?: "full" | "
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" role="radiogroup" aria-label="Look">
             {THEMES.map((t) => (
               <button key={t.id} type="button" role="radio" aria-checked={current === t.id} onClick={() => choose(t.id)}
-                className={`theme-swatch-card text-left bg-white border rounded-xl p-3 transition-all hover:shadow-md ${
+                className={`theme-swatch-card flex flex-col text-left bg-white border rounded-xl p-3 transition-all hover:shadow-md ${
                   current === t.id ? "border-gray-900 ring-2 ring-gray-900" : "border-gray-200"
                 }`}>
                 <div className="relative h-12 rounded-lg overflow-hidden border border-gray-200 mb-2">

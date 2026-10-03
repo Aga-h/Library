@@ -279,6 +279,24 @@ loyalty to the material over general design guidance.
   - a focused field gets a blinking acid cursor block
   - loading is a scanline
   - all of it sits inside `prefers-reduced-motion: no-preference`
+
+Acid's second pass answered the owner's note that it was "not hallucinatory and ethereal enough"
+and too much like the original. It adds the liquid half of the posters to the HUD half:
+- **Liquid:** marbled liquid, an SVG of the posters' inks warped by `feDisplacementMap`, fills the
+  edge word and pours into the right half of the first module.
+- **Layout:** that first module is twice the size; the others sit at slight angles, like a collage.
+- **Titles:** large, holographic chrome that shifts, split into lavender and orange, and melting
+  through the live `#ac-melt` filter.
+- **Menu:** outlined extended caps; the open page is solid acid.
+- **Effects:**
+  - drips hang from the header and the brand, slowly stretching
+  - iridescent auras drift behind everything
+  - hovering a card leaves outlined tracers in acid, lavender and orange
+  - covers are mapped to thermal colour (`#ac-thermal`)
+
+The SVG filters live in `components/ThemeFilters.tsx`, rendered by the root layout, because Chrome
+only applies `filter: url(#id)` to a filter in the same document. Under reduced motion, titles use
+`#ac-melt-still`.
 The lines are graphics laid over the haze on `:root::before`: columns of data text, long rules, two
 offset frames and a subway map, slightly blurred and glowing. The data text runs down the sidebar's
 edge where there is one, and the frames and map are hidden on phones. The portal's and dashboard's

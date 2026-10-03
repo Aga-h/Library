@@ -6,6 +6,7 @@ import {
 } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+import ThemeFilters from "@/components/ThemeFilters";
 import { THEME_COOKIE, themeColorOf, themeFrom } from "@/lib/themes";
 import "./globals.css";
 // The looks: each theme's colour variables (generated), then its type, texture and details.
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" data-theme={theme} className={`${FONT_VARIABLES} h-full antialiased`}>
       <body className="min-h-screen bg-gray-50">
+        <ThemeFilters />
         {children}
         <ServiceWorkerRegistrar />
         <SpeedInsights />

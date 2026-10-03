@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-03 — Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-03 — Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -359,6 +359,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       so "Dark colours" showed light on dark looks; they now use fixed colours.
       Checked in Chromium on portal, dashboard, books, series, finances, study, vocab, wardrobe and
       login at 1180px and 390px; reduced motion leaves 0 animations.
+      Pass 2 (user: "love the animations… but it looks too much like the original site… acid is
+      based on what people see when they take drugs so it does not look hallucinatory and
+      ethereal enough"):
+      - liquid: SVG marble fills the edge word and the first module's right half
+      - layout: a collage, with the first module double-size and the others tilted
+      - titles: holographic, melting through a live SVG displacement filter
+      - menu: outlined extended caps
+      - effects: drips, drifting auras, hover tracers, thermal-mapped covers
+      - filters: in components/ThemeFilters.tsx
+      Also fixed the look picker in every theme (user screenshot): the
+      capsule rule for outlined buttons turned the picker cards into ovals, so the cards are excluded and
+      get their own styling in Soft Club and Acid; card content is top-aligned.
 - [ ] **Then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.
