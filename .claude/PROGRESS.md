@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-03 — Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-03 — Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -371,6 +371,19 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       Also fixed the look picker in every theme (user screenshot): the
       capsule rule for outlined buttons turned the picker cards into ovals, so the cards are excluded and
       get their own styling in Soft Club and Acid; card content is top-aligned.
+      Pass 3 (user: the feature module's liquid "is supposed to be moving" and "the site works
+      really slow" on Acid). Measured on the production build: Acid ran at 31fps vs 60 for the
+      other looks. Causes:
+      - drifting auras with blur(28px) + a screen blend (the biggest cost)
+      - a full-screen screen-blend grain overlay
+      - repaint-through-filter animations: holo titles, the flowing edge word, the twinkling
+        sparkle inside the filtered title, and an animated feTurbulence
+      Fixed:
+      - the liquid is a pre-rendered seamless tile, app/acid-marble.webp, made by
+        scripts/acid-marble.mjs
+      - the feature module pours it down on its own transform-only layer
+      - auras without blur or blend, grain without blend, melt static
+      Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.

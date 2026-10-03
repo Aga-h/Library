@@ -947,8 +947,7 @@ h2.text-2xl,
   inset: 0;
   z-index: 70;
   pointer-events: none;
-  opacity: 0.07;
-  mix-blend-mode: screen;
+  opacity: 0.045;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 /* The section's name runs up the right edge in huge outlined caps, like VISION and FESTIVAL. */
@@ -966,7 +965,7 @@ h2.text-2xl,
   font-stretch: 125%;
   letter-spacing: -0.02em;
   color: transparent;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='1500'%3E%3Cdefs%3E%3Cpattern id='s' width='600' height='104' patternUnits='userSpaceOnUse'%3E%3Crect width='600' height='104' fill='%23050505'/%3E%3Crect y='0' width='600' height='22' fill='%238cff3a'/%3E%3Crect y='30' width='600' height='5' fill='%23f2f2ee'/%3E%3Crect y='42' width='600' height='12' fill='%23a18bff'/%3E%3Crect y='62' width='600' height='14' fill='%238cff3a'/%3E%3Crect y='84' width='600' height='4' fill='%23ff7a2e'/%3E%3Crect y='92' width='600' height='3' fill='%23f2f2ee'/%3E%3C/pattern%3E%3Cfilter id='w' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0024' numOctaves='2' seed='7' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='620' xChannelSelector='R' yChannelSelector='G' result='a'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.007' numOctaves='1' seed='3' result='m'/%3E%3CfeDisplacementMap in='a' in2='m' scale='70' xChannelSelector='G' yChannelSelector='R' result='b'/%3E%3CfeGaussianBlur in='b' stdDeviation='0.7'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-200' y='-200' width='1000' height='1900' fill='url(%23s)' filter='url(%23w)'/%3E%3C/svg%3E") 0 0 / 600px auto;
+  background: url("./acid-marble.webp") 0 0 / 600px 1248px;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-stroke: 1px rgb(242 242 238 / 0.45);
@@ -983,7 +982,7 @@ h2.text-2xl,
 :root[data-theme="acid"]::after {
   content: "";
   position: fixed;
-  inset: -15vmax;
+  inset: -10vmax;
   z-index: -1;
   pointer-events: none;
   background:
@@ -991,8 +990,7 @@ h2.text-2xl,
     radial-gradient(22vmax 18vmax at 72% 58%, rgb(140 255 58 / 0.16), transparent 70%),
     radial-gradient(20vmax 16vmax at 58% 18%, rgb(255 122 217 / 0.14), transparent 70%),
     radial-gradient(18vmax 14vmax at 36% 82%, rgb(255 122 46 / 0.12), transparent 70%);
-  filter: blur(28px);
-  mix-blend-mode: screen;
+  will-change: transform;
 }
 :root[data-theme="acid"]:has(a.theme-nav-item[href="/library/books"])::before { content: "LIBRARY"; }
 :root[data-theme="acid"]:has(a.theme-nav-item[href="/study/modules"])::before { content: "STUDY"; }
@@ -1015,7 +1013,7 @@ h2.text-2xl,
   -webkit-background-clip: text;
   background-clip: text;
   text-shadow: none;
-  filter: url(#ac-melt-still) drop-shadow(-2px 0 0 rgb(161 139 255 / 0.8)) drop-shadow(2px 0 0 rgb(255 122 46 / 0.65));
+  filter: url(#ac-melt) drop-shadow(-2px 0 0 rgb(161 139 255 / 0.8)) drop-shadow(2px 0 0 rgb(255 122 46 / 0.65));
 }
 [data-theme="acid"] .theme-header :is(h1, h2.text-2xl) {
   font-size: 1.9rem;
@@ -1422,11 +1420,27 @@ h2.text-2xl,
   [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):first-child {
     grid-column: span 2;
     grid-row: span 2;
-    background:
-      linear-gradient(var(--ac-ink), var(--ac-ink)) 58% 0 / 1px 100% no-repeat,
-      linear-gradient(90deg, #050505 58%, transparent 58%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='1500'%3E%3Cdefs%3E%3Cpattern id='s' width='600' height='104' patternUnits='userSpaceOnUse'%3E%3Crect width='600' height='104' fill='%23050505'/%3E%3Crect y='0' width='600' height='22' fill='%238cff3a'/%3E%3Crect y='30' width='600' height='5' fill='%23f2f2ee'/%3E%3Crect y='42' width='600' height='12' fill='%23a18bff'/%3E%3Crect y='62' width='600' height='14' fill='%238cff3a'/%3E%3Crect y='84' width='600' height='4' fill='%23ff7a2e'/%3E%3Crect y='92' width='600' height='3' fill='%23f2f2ee'/%3E%3C/pattern%3E%3Cfilter id='w' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0024' numOctaves='2' seed='7' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='620' xChannelSelector='R' yChannelSelector='G' result='a'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.007' numOctaves='1' seed='3' result='m'/%3E%3CfeDisplacementMap in='a' in2='m' scale='70' xChannelSelector='G' yChannelSelector='R' result='b'/%3E%3CfeGaussianBlur in='b' stdDeviation='0.7'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-200' y='-200' width='1000' height='1900' fill='url(%23s)' filter='url(%23w)'/%3E%3C/svg%3E") right -120px top -200px / 600px auto no-repeat,
-      #050505;
+    overflow: hidden;
+    isolation: isolate;
+    background: #050505;
+  }
+  /* The liquid pours down through the right half, behind a rule: a layer of its own, tiled,
+   * which slides down by exactly one tile and starts again — so it flows forever without a seam,
+   * and the browser only moves it rather than redrawing it. */
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):first-child::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 58%;
+    right: 0;
+    bottom: auto;
+    width: auto;
+    height: calc(100% + 1248px);
+    transform: translateY(-1248px);
+    opacity: 1;
+    background: url("./acid-marble.webp") 0 0 / 600px 1248px;
+    box-shadow: -1px 0 0 var(--ac-ink);
   }
   [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):first-child > p:first-of-type {
     font-size: 2rem;
@@ -1572,11 +1586,9 @@ h2.text-2xl,
   75% { filter: none; transform: translateX(1px); }
   100% { filter: none; transform: none; }
 }
-@keyframes ac-holo {
-  to { background-position: 100% 0; }
-}
-@keyframes ac-flow {
-  to { background-position: 0 -900px; }
+@keyframes ac-pour {
+  from { transform: translateY(-1248px); }
+  to { transform: translateY(0); }
 }
 @keyframes ac-drift {
   0% { transform: rotate(0deg) scale(1); }
@@ -1586,11 +1598,6 @@ h2.text-2xl,
 @keyframes ac-drip {
   from { transform: scaleY(0.65); }
   to { transform: scaleY(1.3); }
-}
-@keyframes ac-twinkle {
-  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  45% { transform: scale(0.35) rotate(45deg); opacity: 0.4; }
-  55% { transform: scale(1.25) rotate(90deg); opacity: 1; }
 }
 @keyframes ac-spin {
   to { transform: rotate(360deg); }
@@ -1631,19 +1638,13 @@ h2.text-2xl,
   /* Titles glitch in, splitting into the posters' inks for a few frames, then keep melting
    * and their chrome keeps shifting. */
   [data-theme="acid"] :is(h1, h2.text-2xl) {
-    filter: url(#ac-melt) drop-shadow(-2px 0 0 rgb(161 139 255 / 0.8)) drop-shadow(2px 0 0 rgb(255 122 46 / 0.65));
-    animation: ac-glitch 0.4s steps(1, end) backwards, ac-holo 9s ease-in-out infinite alternate;
+    animation: ac-glitch 0.4s steps(1, end) backwards;
   }
   [data-theme="acid"] :is(h1, h2.text-2xl):hover {
-    animation: ac-glitch 0.4s steps(1, end), ac-holo 9s ease-in-out infinite alternate;
+    animation: ac-glitch 0.4s steps(1, end);
   }
-  [data-theme="acid"] :is(h1, h2.text-2xl)::after {
-    animation: ac-twinkle 3.2s ease-in-out infinite;
-  }
-  /* The liquid in the edge word flows; the auras drift; the drips stretch and draw back. */
-  :root[data-theme="acid"]::before {
-    animation: ac-flow 70s ease-in-out infinite alternate;
-  }
+  /* The liquid pours; the auras drift; the drips stretch and draw back. All of these only move
+   * a layer, so they cost next to nothing. */
   :root[data-theme="acid"]::after {
     animation: ac-drift 38s ease-in-out infinite alternate;
   }
@@ -1690,6 +1691,12 @@ h2.text-2xl,
     background-size: 6px 100%;
     background-position: right 0 top 0;
     animation: ac-cursor 1s steps(1, end) infinite;
+  }
+  /* The feature module's liquid pours on — after the chevron rules, since it is the same ::after. */
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):first-child::after,
+  [data-theme="acid"] a:is(.theme-tile, .bg-gradient-to-br):first-child:hover::after {
+    animation: ac-pour 30s linear infinite;
+    will-change: transform;
   }
   /* Loading: a scanline runs down the placeholders. */
   [data-theme="acid"] .animate-pulse {

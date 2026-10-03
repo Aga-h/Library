@@ -295,8 +295,22 @@ and too much like the original. It adds the liquid half of the posters to the HU
   - covers are mapped to thermal colour (`#ac-thermal`)
 
 The SVG filters live in `components/ThemeFilters.tsx`, rendered by the root layout, because Chrome
-only applies `filter: url(#id)` to a filter in the same document. Under reduced motion, titles use
-`#ac-melt-still`.
+only applies `filter: url(#id)` to a filter in the same document.
+
+**Performance rule for the looks, learned the hard way:** Acid ran at 31fps against 60 for the
+others. The things to avoid in a look:
+- a large blurred layer that moves (`filter: blur` + transform)
+- a full-screen `mix-blend-mode` layer
+- animating anything that has to be repainted through an SVG filter: `background-position` on
+  `background-clip: text`, an animated `feTurbulence`, or a child animating inside a filtered
+  element
+
+What moves should be a layer that only changes `transform` or `opacity`. The marbled liquid is
+therefore a pre-rendered, seamlessly tiling bitmap, `app/acid-marble.webp`, made by
+`scripts/acid-marble.mjs` with stitched noise. The feature module's liquid is a `::after` of its
+own that slides down by exactly one tile and loops (`ac-pour`), and the melt filter is static.
+After the fix, Acid runs at 60fps on the portal, dashboard, series and study pages. To check a
+look, measure frames with `requestAnimationFrame` on a production build, not the dev server.
 The lines are graphics laid over the haze on `:root::before`: columns of data text, long rules, two
 offset frames and a subway map, slightly blurred and glowing. The data text runs down the sidebar's
 edge where there is one, and the frames and map are hidden on phones. The portal's and dashboard's

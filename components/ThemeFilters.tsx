@@ -7,16 +7,9 @@ export default function ThemeFilters() {
   return (
     <svg aria-hidden="true" focusable="false" width="0" height="0" style={{ position: "absolute" }}>
       <defs>
-        {/* Acid: type that melts and breathes, the ripple drifting as the noise's scale shifts. */}
+        {/* Acid: type that melts, as if seen through heat. Still: an animated filter has to be
+            recomputed every frame, which made the whole look slow. */}
         <filter id="ac-melt" x="-5%" y="-25%" width="110%" height="150%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.011 0.045" numOctaves={2} seed={3} result="n">
-            <animate attributeName="baseFrequency" dur="11s" repeatCount="indefinite"
-              values="0.011 0.045;0.016 0.07;0.009 0.05;0.011 0.045" />
-          </feTurbulence>
-          <feDisplacementMap in="SourceGraphic" in2="n" scale={7} xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-        {/* The same melt, held still, for anyone who asks for reduced motion. */}
-        <filter id="ac-melt-still" x="-5%" y="-25%" width="110%" height="150%">
           <feTurbulence type="fractalNoise" baseFrequency="0.011 0.045" numOctaves={2} seed={3} result="n" />
           <feDisplacementMap in="SourceGraphic" in2="n" scale={6} xChannelSelector="R" yChannelSelector="G" />
         </filter>
