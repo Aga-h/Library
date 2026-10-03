@@ -12,12 +12,14 @@ const METHOD_LABELS: Record<string, string> = {
 };
 const CYCLE_LABELS: Record<string, string> = { NORMAL: "Normal cycle", GENTLE: "Gentle cycle" };
 
+// The garments' real colours, so fixed values rather than the theme's grays: on a dark look
+// "gray-700" is a light gray, which would show dark clothes as light.
 const COLOR_SWATCH: Record<string, string> = {
-  WHITE: "bg-white border-2 border-gray-300",
-  LIGHT: "bg-gray-200",
-  DARK: "bg-gray-700",
-  VIVID: "bg-gradient-to-br from-pink-400 via-yellow-400 to-blue-400",
-  MIXED: "bg-gradient-to-r from-gray-700 via-gray-300 to-white",
+  WHITE: "bg-[#ffffff] border-2 border-[#d1d5db]",
+  LIGHT: "bg-[#e5e7eb]",
+  DARK: "bg-[#374151]",
+  VIVID: "bg-gradient-to-br from-[#f472b6] via-[#facc15] to-[#60a5fa]",
+  MIXED: "bg-gradient-to-r from-[#374151] via-[#d1d5db] to-[#ffffff]",
 };
 
 const TYPE_LABELS: Record<string, string> = {

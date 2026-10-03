@@ -885,130 +885,640 @@ h2.text-2xl,
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
- * ACID — Acid Design: black, liquid chrome and fluorescent acid green; wide display type, a
- * technical grid, checkerboard rave-flyer bands and mono micro-labels.
+ * ACID — drawn from the owner's references: the new-acid streetwear and rave posters
+ * (Worldwide / Super Racks, Hachiroku AE86, Isolation, Sanctuary., Parkineos, James Blake's
+ * Before EP, Vision, Overthinking Kills, Acid Rave, Global Warming, Creativa, Humanity).
+ *
+ * A poster printed on creased black paper. White line work does all the structure: HUD
+ * frames with cut corners, OS windows with "– □ ×" bars, rails with tick marks. One loud accent,
+ * acid green, with lavender and red-orange as the posters' other inks. Extended heavy caps for
+ * titles, echoing downwards like VISION; blackletter for the brand; mono caps for the small
+ * print; capsule tags like SUPER RACKS; crosshairs, chevrons, barcodes, serials. Pictures are
+ * duotone in the accent until you reach for them.
  * ═════════════════════════════════════════════════════════════════════════════ */
 
 :root[data-theme="acid"] {
   --theme-font-body: var(--font-space-grotesk), system-ui, sans-serif;
-  --theme-font-display: var(--font-unbounded), var(--font-space-grotesk), sans-serif;
+  --theme-font-display: var(--font-archivo), "Arial Black", sans-serif;
   --theme-font-label: var(--font-space-mono), ui-monospace, monospace;
-  --acid: #c6ff1a;
-  --acid-ink: #0a0a0a;
-  --chrome: linear-gradient(180deg, #ffffff 0%, #d4d4d4 36%, #6c6c6c 50%, #f4f4f4 64%, #a8a8a8 100%);
-  --checker: repeating-conic-gradient(var(--acid) 0 25%, var(--acid-ink) 0 50%);
+  --ac-black: #050505;
+  --ac-ink: #f2f2ee;
+  --ac-acid: #8cff3a;
+  --ac-violet: #a18bff;
+  --ac-red: #ff4a2e;
+  --ac-line: rgb(242 242 238 / 0.3);
+  --ac-ease: steps(6, end);
   --radius-sm: 0;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 4px;
-  --radius-2xl: 6px;
-  --shadow-md: 0 0 0 1px #2a2a2a, 0 12px 30px -12px rgb(198 255 26 / 0.18);
-  scrollbar-color: var(--acid) #0a0a0a;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  scrollbar-color: var(--ac-acid) #000;
 }
 
-[data-theme="acid"] body::after {
+/* The ground: a poster printed on creased black paper. */
+:root[data-theme="acid"] body::after {
+  z-index: -2;
   background:
-    radial-gradient(45vw 35vh at 100% 0%, rgb(198 255 26 / 0.1), transparent 70%),
-    radial-gradient(40vw 40vh at 0% 100%, rgb(255 63 164 / 0.07), transparent 70%),
-    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 40px 40px,
-    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 40px 40px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='c' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.009' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='white' surfaceScale='9'%3E%3CfeDistantLight azimuth='225' elevation='38'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)' opacity='0.075'/%3E%3C/svg%3E") 0 0 / 700px 700px,
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.7)),
+    var(--ac-black);
+}
+/* Print grain over everything. */
+[data-theme="acid"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: screen;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* The section's name runs up the right edge in huge outlined caps, like VISION and FESTIVAL. */
+:root[data-theme="acid"]::before {
+  content: "MY PORTAL";
+  position: fixed;
+  z-index: -1;
+  right: -0.08em;
+  top: 50%;
+  pointer-events: none;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%) rotate(180deg);
+  white-space: nowrap;
+  font: 900 min(17vh, 160px) / 0.8 var(--theme-font-display);
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(242 242 238 / 0.17);
+}
+:root[data-theme="acid"]:has(a.theme-nav-item[href="/library/books"])::before { content: "LIBRARY"; }
+:root[data-theme="acid"]:has(a.theme-nav-item[href="/study/modules"])::before { content: "STUDY"; }
+:root[data-theme="acid"]:has(input[type="password"])::before { content: "SIGN IN"; }
+
+/* ── Type ── */
+[data-theme="acid"] :is(h1, h2.text-2xl) {
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  color: var(--ac-ink);
+  /* The title is extruded in the accent, fading as it goes back, like the 3D title of VISION. */
+  text-shadow:
+    0 0.05em 0 var(--ac-acid),
+    0 0.1em 0 rgb(140 255 58 / 0.6),
+    0 0.15em 0 rgb(140 255 58 / 0.3);
+  padding-bottom: 0.15em;
+}
+[data-theme="acid"] :is(h1, h2.text-2xl) svg {
+  color: var(--ac-acid);
+}
+/* The line under a title is the small print: mono caps after a sparkle. */
+[data-theme="acid"] :is(h1, h2.text-2xl) + p {
+  font-family: var(--theme-font-label);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgb(242 242 238 / 0.6);
+}
+[data-theme="acid"] :is(h1, h2.text-2xl) + p::before {
+  content: "✦\00a0\00a0";
+  color: var(--ac-acid);
+}
+/* Section labels are capsule tags, like SUPER RACKS. */
+[data-theme="acid"] .uppercase.tracking-wide:not(th, td, .theme-picker-toggle *) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.2rem 0.75rem;
+  border: 1.5px solid var(--ac-ink);
+  border-radius: 999px;
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--ac-ink);
+}
+[data-theme="acid"] .uppercase.tracking-wide svg {
+  color: var(--ac-acid);
+}
+/* Figures are set big and wide, like 34:12. */
+[data-theme="acid"] :is(span, p).text-2xl.font-bold:not(.theme-brand *),
+[data-theme="acid"] :is(span, p).text-lg.font-bold:not(.theme-brand *) {
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
-/* Headlines are liquid chrome. */
-[data-theme="acid"] :is(h1, h2.text-2xl) {
+/* ── Lines ── white, and bright enough to be the structure. */
+[data-theme="acid"] :is(.border-gray-100, .border-gray-200, .border-gray-300),
+[data-theme="acid"] :is(.divide-gray-50, .divide-gray-100, .divide-gray-200) > :not(:last-child) {
+  border-color: var(--ac-line);
+}
+
+/* ── Panels ── every container is a window from Isolation: a cut-corner frame with a title bar
+ * and its minimise, maximise and close at the right. Cards that are links are plain HUD frames,
+ * which light up acid when you reach for them. */
+[data-theme="acid"] :is(div, section, article, form, li, aside).bg-white:is(.rounded-xl, .rounded-2xl),
+[data-theme="acid"] :is(div, section, article, form, li).bg-white.rounded-lg.border {
+  background-color: rgb(5 5 5 / 0.88);
+  border-style: solid;
+  border-color: transparent;
+  border-width: 25px 1px 1px 1px;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='60' fill='none' stroke='%23f2f2ee' stroke-width='1.5'%3E%3Cpath d='M8 0.75H99.25V52L91.25 59.25H0.75V8Z'/%3E%3Cpath d='M0.75 24.75H99.25'/%3E%3Cpath d='M58 12.5H65'/%3E%3Crect x='70.75' y='8.75' width='7.5' height='7.5'/%3E%3Cpath d='M84 8.5L91 15.5M91 8.5L84 15.5'/%3E%3C/svg%3E") 30 60 12 12 / 30px 60px 12px 12px / 0 stretch;
+  box-shadow: none;
+}
+[data-theme="acid"] a.bg-white:is(.rounded-xl, .rounded-2xl) {
+  background-color: rgb(5 5 5 / 0.88);
+  border: 1px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%23f2f2ee' stroke-width='1.5'%3E%3Cpath d='M8 0.75H35.25V28L28 35.25H0.75V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+  box-shadow: none;
+}
+[data-theme="acid"] a.bg-white:is(.rounded-xl, .rounded-2xl):hover {
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%238cff3a' stroke-width='2'%3E%3Cpath d='M8 1.0H35.0V28L28 35.0H1.0V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+}
+/* Anything floating — the look menu, a dropdown — is a plain frame on solid black. */
+[data-theme="acid"] :is(div, ul):is(.absolute, .theme-picker-menu).bg-white {
+  background-color: #000;
+  border: 1px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%23f2f2ee' stroke-width='1.5'%3E%3Cpath d='M8 0.75H35.25V28L28 35.25H0.75V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+}
+
+/* Pictures are duotone in the accent, like the green statue of Sanctuary; reaching for one
+ * brings its real colour back. */
+[data-theme="acid"] img.object-cover {
+  filter: grayscale(1) contrast(1.35) brightness(0.9) sepia(1) hue-rotate(52deg) saturate(4.2);
+}
+[data-theme="acid"] :is(a, .group):hover img.object-cover {
+  filter: none;
+}
+
+/* Stat boxes are 34:12: an outlined box in its colour, the figure big and wide, the caption in
+ * small caps under it. */
+[data-theme="acid"] [class*="bg-"].flex-col.items-center.justify-center.rounded-lg {
+  background: transparent;
+  border: 1.5px solid currentColor;
+}
+[data-theme="acid"] .flex-col.items-center.justify-center.rounded-lg > :last-child {
+  font-family: var(--theme-font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6rem;
+}
+/* Chips and status pills are capsule tags in their colour. */
+[data-theme="acid"] .rounded-full[class*="bg-"][class*="-100"],
+[data-theme="acid"] .rounded-full[class*="bg-"][class*="-50"] {
+  background: #000;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.58rem;
+}
+/* Rows are slabs with a rule on top. */
+[data-theme="acid"] .bg-gray-50:not(body, .min-h-screen, input, select, textarea) {
+  box-shadow: inset 0 1px 0 rgb(242 242 238 / 0.14);
+}
+
+/* ── Controls ── */
+[data-theme="acid"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), select, textarea) {
+  border-radius: 0;
+  background-color: #000;
+  border-color: rgb(242 242 238 / 0.55);
+  caret-color: var(--ac-acid);
+}
+[data-theme="acid"] :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--ac-acid);
+  box-shadow: 0 0 0 1px var(--ac-acid), 4px 4px 0 0 rgb(140 255 58 / 0.35);
+}
+[data-theme="acid"] ::placeholder {
+  font-family: var(--theme-font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.78em;
+}
+/* The main action is an acid slab with its corners cut, black wide caps on it. */
+[data-theme="acid"] :is(a, button).bg-gray-900:not(.theme-nav-item),
+[data-theme="acid"] :is(a, button):is(.bg-emerald-500, .bg-emerald-600, .bg-green-600, .bg-sky-500, .bg-blue-600) {
+  background-color: var(--ac-acid);
+  background-image: repeating-linear-gradient(-45deg, rgb(0 0 0 / 0.16) 0 5px, transparent 5px 10px);
+  background-size: 14.14px 14.14px;
+  background-blend-mode: normal;
+  color: #000;
+  border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+}
+[data-theme="acid"] :is(a, button).bg-gray-900:not(.theme-nav-item) *,
+[data-theme="acid"] :is(a, button):is(.bg-emerald-500, .bg-emerald-600, .bg-green-600, .bg-sky-500, .bg-blue-600) * {
+  color: inherit;
+}
+[data-theme="acid"] :is(a, button).bg-gray-900:not(.theme-nav-item):active,
+[data-theme="acid"] :is(a, button):is(.bg-emerald-500, .bg-emerald-600, .bg-green-600, .bg-sky-500, .bg-blue-600):active {
+  background-color: #000;
+  color: var(--ac-acid);
+  box-shadow: inset 0 0 0 2px var(--ac-acid);
+}
+/* Destructive solid buttons print in the red-orange ink. */
+[data-theme="acid"] :is(a, button):is(.bg-red-500, .bg-red-600, .bg-red-700) {
+  background-color: var(--ac-red);
+  color: #000;
+  border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  text-transform: uppercase;
+}
+/* The dark badges (total time, total level) are 34:12 boxes in acid. */
+[data-theme="acid"] div.bg-gray-900 {
+  background: #000;
+  color: var(--ac-acid);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1.5px var(--ac-acid);
+}
+[data-theme="acid"] div.bg-gray-900 * {
+  color: inherit;
+}
+/* Outlined buttons are capsule tags; they take the acid when you reach for them. */
+[data-theme="acid"] :is(button, a:not(.rounded-xl, .rounded-2xl)).border:is(.bg-white, :not([class*=" bg-"], [class^="bg-"])),
+[data-theme="acid"] :is(button, a).bg-white:is(.rounded-lg, .rounded-md, .rounded-full) {
+  background-color: #000;
+  border: 1.5px solid var(--ac-ink);
+  border-radius: 999px;
+  color: var(--ac-ink);
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+}
+[data-theme="acid"] :is(button, a:not(.rounded-xl, .rounded-2xl)).border:is(.bg-white, :not([class*=" bg-"], [class^="bg-"])):hover:not(:disabled),
+[data-theme="acid"] :is(button, a).bg-white:is(.rounded-lg, .rounded-md, .rounded-full):hover:not(:disabled) {
+  border-color: var(--ac-acid);
+  color: var(--ac-acid);
+}
+/* A full-width choice (a quiz answer) is a framed row, not a capsule. */
+[data-theme="acid"] button.w-full.text-left.border:not([class*=" bg-"], [class^="bg-"]) {
+  border-radius: 0;
+  font-family: var(--theme-font-body);
+  font-stretch: 100%;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.875rem;
+  border-color: rgb(242 242 238 / 0.45);
+}
+/* The chosen tab of a toggle group is the acid slab. */
+[data-theme="acid"] .bg-gray-100 > :is(button, a).bg-white {
+  background: var(--ac-acid);
+  color: #000;
+  border-color: var(--ac-acid);
+}
+[data-theme="acid"] .bg-gray-100 > :is(button, a).bg-white * {
+  color: inherit;
+}
+[data-theme="acid"] :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--ac-acid);
+  outline-offset: 3px;
+}
+
+/* ── Sidebar ── a rail down the right edge with tick marks; the brand in blackletter over its
+ * established-date tag; the menu a list like Parkineos', the open page marked with a crosshair
+ * and acid chevrons; Worldwide's globe and its ring of text in the empty space below. */
+[data-theme="acid"] .theme-sidebar {
+  position: relative;
+  border-right: 1px solid var(--ac-ink);
+  background:
+    repeating-linear-gradient(180deg, var(--ac-ink) 0 1px, transparent 1px 26px) right 0 top 0 / 7px 100% no-repeat,
+    rgb(0 0 0 / 0.82);
+}
+[data-theme="acid"] .theme-brand {
+  position: relative;
+  flex-wrap: wrap;
+  row-gap: 0.15rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--ac-ink);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='18' fill='%23f2f2ee'%3E%3Crect x='0' width='2' height='18'/%3E%3Crect x='5' width='1' height='18'/%3E%3Crect x='7' width='3' height='18'/%3E%3Crect x='11' width='2' height='18'/%3E%3Crect x='15' width='2' height='18'/%3E%3Crect x='18' width='1' height='18'/%3E%3Crect x='21' width='1' height='18'/%3E%3Crect x='24' width='1' height='18'/%3E%3Crect x='26' width='1' height='18'/%3E%3Crect x='28' width='3' height='18'/%3E%3Crect x='32' width='3' height='18'/%3E%3Crect x='38' width='1' height='18'/%3E%3Crect x='40' width='2' height='18'/%3E%3Crect x='44' width='1' height='18'/%3E%3Crect x='46' width='2' height='18'/%3E%3Crect x='50' width='3' height='18'/%3E%3Crect x='55' width='2' height='18'/%3E%3Crect x='59' width='3' height='18'/%3E%3Crect x='64' width='2' height='18'/%3E%3Crect x='67' width='1' height='18'/%3E%3Crect x='69' width='2' height='18'/%3E%3Crect x='73' width='2' height='18'/%3E%3Crect x='76' width='3' height='18'/%3E%3Crect x='82' width='1' height='18'/%3E%3Crect x='85' width='2' height='18'/%3E%3Crect x='89' width='1' height='18'/%3E%3Crect x='92' width='1' height='18'/%3E%3Crect x='94' width='2' height='18'/%3E%3Crect x='97' width='1' height='18'/%3E%3Crect x='99' width='1' height='18'/%3E%3Crect x='102' width='2' height='18'/%3E%3Crect x='107' width='3' height='18'/%3E%3Crect x='112' width='3' height='18'/%3E%3Crect x='117' width='1' height='18'/%3E%3C/svg%3E") left 1.25rem bottom 0.55rem / 72px 9px no-repeat;
+}
+[data-theme="acid"] .theme-brand svg {
+  color: #000;
+  background: var(--ac-acid);
+  padding: 3px;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+[data-theme="acid"] .theme-brand span {
+  font-family: var(--font-pirata), serif;
+  font-weight: 400;
+  font-size: 1.85rem;
+  line-height: 1;
+  text-transform: lowercase;
+  color: var(--ac-ink);
+  letter-spacing: 0;
+}
+[data-theme="acid"] .theme-brand::after {
+  content: "EST. MMXXVI —";
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.45rem;
+  font: 700 8px/1 var(--theme-font-label);
+  letter-spacing: 0.08em;
+  color: rgb(242 242 238 / 0.7);
+}
+[data-theme="acid"] .theme-nav {
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="acid"] .theme-nav-item {
+  border-radius: 0;
+  font-family: var(--theme-font-label);
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: rgb(242 242 238 / 0.78);
+}
+[data-theme="acid"] .theme-nav-item:hover {
+  background: transparent;
+  color: var(--ac-acid);
+}
+[data-theme="acid"] .theme-nav-item[data-active] {
+  position: relative;
+  background: transparent;
+  color: var(--ac-acid);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px var(--ac-acid);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+[data-theme="acid"] .theme-nav-item[data-active] svg {
+  visibility: hidden;
+}
+[data-theme="acid"] .theme-nav-item[data-active]::before {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238cff3a' stroke-width='1.6'%3E%3Cpath d='M0.8 4.5V0.8H4.5M9.5 0.8H13.2V4.5M13.2 9.5V13.2H9.5M4.5 13.2H0.8V9.5M7 4V10M4 7H10'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="acid"] .theme-nav-item[data-active]::after {
+  content: "";
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 33px;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238cff3a' stroke-width='2.2'%3E%3Cpath d='M2 1.5L7 6L2 10.5'/%3E%3C/svg%3E") 0 0 / 11px 10px repeat-x;
+}
+/* Worldwide's globe with its ring of text, in the space under the menu. */
+[data-theme="acid"] .theme-nav::before,
+[data-theme="acid"] .theme-nav::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+}
+[data-theme="acid"] .theme-nav::before {
+  top: 418px;
+  width: 104px;
+  height: 104px;
+  margin-left: -52px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='none' stroke='%238cff3a' stroke-width='1.3'%3E%3Ccircle cx='60' cy='60' r='46'/%3E%3Cellipse cx='60' cy='29.33' rx='34.29' ry='6.17'/%3E%3Cellipse cx='60' cy='44.67' rx='43.37' ry='7.81'/%3E%3Cellipse cx='60' cy='75.33' rx='43.37' ry='7.81'/%3E%3Cellipse cx='60' cy='90.67' rx='34.29' ry='6.17'/%3E%3Cpath d='M14 60H106'/%3E%3Cellipse cx='60' cy='60' rx='11.50' ry='46'/%3E%3Cellipse cx='60' cy='60' rx='27.60' ry='46'/%3E%3Cellipse cx='60' cy='60' rx='41.40' ry='46'/%3E%3Cpath d='M60 14V106'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="acid"] .theme-nav::after {
+  top: 385px;
+  width: 170px;
+  height: 170px;
+  margin-left: -85px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cdefs%3E%3Cpath id='r' d='M85 85m-68 0a68 68 0 1 1 136 0a68 68 0 1 1 -136 0'/%3E%3C/defs%3E%3Ctext fill='%23f2f2ee' font-family='Arial Black, Arial, sans-serif' font-weight='900' font-size='11' letter-spacing='1.2'%3E%3CtextPath href='%23r' textLength='424' lengthAdjust='spacing'%3EMY LIBRARY %E2%9C%B6 READ %E2%9C%B6 WATCH %E2%9C%B6 PLAY %E2%9C%B6 %3C/textPath%3E%3C/text%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="acid"] .theme-nav:has(a[href="/study/modules"])::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cdefs%3E%3Cpath id='r' d='M85 85m-68 0a68 68 0 1 1 136 0a68 68 0 1 1 -136 0'/%3E%3C/defs%3E%3Ctext fill='%23f2f2ee' font-family='Arial Black, Arial, sans-serif' font-weight='900' font-size='11' letter-spacing='1.2'%3E%3CtextPath href='%23r' textLength='424' lengthAdjust='spacing'%3ESTUDY %E2%9C%B6 EVERY MINUTE PAYS %E2%9C%B6 LEVEL UP %E2%9C%B6 %3C/textPath%3E%3C/text%3E%3C/svg%3E");
+}
+
+/* ── Page headers ── a white rule, a barcode and the established date at the right. */
+[data-theme="acid"] .theme-header {
+  position: relative;
+  background-color: rgb(0 0 0 / 0.75);
+  border-bottom: 1px solid var(--ac-ink);
+}
+[data-theme="acid"] .theme-header::after {
+  content: "EST. MMXXVI —";
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-right: 128px;
+  font: 700 9px/18px var(--theme-font-label);
+  letter-spacing: 0.08em;
+  color: var(--ac-ink);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='18' fill='%23f2f2ee'%3E%3Crect x='0' width='2' height='18'/%3E%3Crect x='5' width='1' height='18'/%3E%3Crect x='7' width='3' height='18'/%3E%3Crect x='11' width='2' height='18'/%3E%3Crect x='15' width='2' height='18'/%3E%3Crect x='18' width='1' height='18'/%3E%3Crect x='21' width='1' height='18'/%3E%3Crect x='24' width='1' height='18'/%3E%3Crect x='26' width='1' height='18'/%3E%3Crect x='28' width='3' height='18'/%3E%3Crect x='32' width='3' height='18'/%3E%3Crect x='38' width='1' height='18'/%3E%3Crect x='40' width='2' height='18'/%3E%3Crect x='44' width='1' height='18'/%3E%3Crect x='46' width='2' height='18'/%3E%3Crect x='50' width='3' height='18'/%3E%3Crect x='55' width='2' height='18'/%3E%3Crect x='59' width='3' height='18'/%3E%3Crect x='64' width='2' height='18'/%3E%3Crect x='67' width='1' height='18'/%3E%3Crect x='69' width='2' height='18'/%3E%3Crect x='73' width='2' height='18'/%3E%3Crect x='76' width='3' height='18'/%3E%3Crect x='82' width='1' height='18'/%3E%3Crect x='85' width='2' height='18'/%3E%3Crect x='89' width='1' height='18'/%3E%3Crect x='92' width='1' height='18'/%3E%3Crect x='94' width='2' height='18'/%3E%3Crect x='97' width='1' height='18'/%3E%3Crect x='99' width='1' height='18'/%3E%3Crect x='102' width='2' height='18'/%3E%3Crect x='107' width='3' height='18'/%3E%3Crect x='112' width='3' height='18'/%3E%3Crect x='117' width='1' height='18'/%3E%3C/svg%3E") right center / 120px 18px no-repeat;
+}
+@media (max-width: 639px) {
+  [data-theme="acid"] .theme-header::after {
+    display: none;
+  }
+}
+
+/* ── Modules ── the portal's sections and the library dashboard's are HUD modules: a cut-corner
+ * frame, the name in wide caps, a serial at the top right, the figures big, and a run of acid
+ * chevrons pointing on. */
+[data-theme="acid"] :has(> .theme-tile),
+[data-theme="acid"] :has(> a.bg-gradient-to-br) {
+  counter-reset: ac-mod;
+}
+[data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br) {
+  counter-increment: ac-mod;
+  position: relative;
+  background: rgb(5 5 5 / 0.88);
+  border: 1px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%23f2f2ee' stroke-width='1.5'%3E%3Cpath d='M8 0.75H35.25V28L28 35.25H0.75V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-theme="acid"] a:is(.theme-tile, .bg-gradient-to-br):hover {
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%238cff3a' stroke-width='2'%3E%3Cpath d='M8 1.0H35.0V28L28 35.0H1.0V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+}
+[data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br) > div:first-child svg:first-child {
+  color: var(--ac-acid);
+}
+[data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br) > div:first-child svg:nth-child(2) {
+  visibility: hidden;
+}
+[data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br)::before {
+  content: "NO." counter(ac-mod, decimal-leading-zero);
+  position: absolute;
+  top: 1.2rem;
+  right: 1.25rem;
+  font: 700 9px/1 var(--theme-font-label);
+  letter-spacing: 0.1em;
+  color: rgb(242 242 238 / 0.6);
+}
+[data-theme="acid"] a:is(.theme-tile, .bg-gradient-to-br)::after {
+  content: "";
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1rem;
+  width: 55px;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238cff3a' stroke-width='2.2'%3E%3Cpath d='M2 1.5L7 6L2 10.5'/%3E%3C/svg%3E") 0 0 / 11px 10px repeat-x;
+  opacity: 0.85;
+}
+[data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br) > p:first-of-type {
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  background: var(--chrome);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 14px rgb(198 255 26 / 0.18));
+  font-size: 1.05rem;
+  color: var(--ac-ink);
 }
-[data-theme="acid"] :is(h1, h2.text-2xl) svg {
-  color: var(--acid);
-}
-
-/* Section labels are mono, flagged like a spec sheet. */
-[data-theme="acid"] .uppercase.tracking-wide::before {
-  content: "//\00a0" / "";
-  color: var(--acid);
-}
-
-/* The highlight colour: anything that was the dark accent is acid green with black ink. */
-[data-theme="acid"] .bg-gray-900 {
-  background-color: var(--acid);
-  color: var(--acid-ink);
-}
-[data-theme="acid"] .bg-gray-900 * {
-  color: inherit;
-}
-[data-theme="acid"] .hover\:bg-gray-700:hover {
-  background-color: #dbff6a;
-}
-
-[data-theme="acid"] .rounded-xl.bg-white.border,
-[data-theme="acid"] .rounded-lg.bg-white.border {
-  transition: border-color 150ms ease;
-}
-[data-theme="acid"] .hover\:border-gray-400:hover {
-  border-color: var(--acid);
-}
-
-/* The brand sits on a checkerboard band, flyer-style. */
-[data-theme="acid"] .theme-brand {
-  background: var(--checker) 0 0 / 14px 14px;
-  border-bottom: 0;
-}
-[data-theme="acid"] .theme-brand > * {
-  background: var(--acid-ink);
-  color: var(--acid);
-}
-[data-theme="acid"] .theme-brand svg {
-  padding: 3px;
-  width: 1.9rem;
-  height: 1.9rem;
-}
-[data-theme="acid"] .theme-brand span {
-  padding: 0.15rem 0.5rem;
-  text-transform: uppercase;
-  font-size: 0.95rem;
-}
-
-[data-theme="acid"] .theme-header {
-  position: relative;
-  border-bottom: 0;
-}
-[data-theme="acid"] .theme-header::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -8px;
-  height: 8px;
-  background: var(--checker) 0 0 / 8px 8px;
-}
-
-[data-theme="acid"] .theme-nav-item {
+[data-theme="acid"] .theme-tile > p:last-child {
   font-family: var(--theme-font-label);
   text-transform: uppercase;
-  font-size: 0.78rem;
+  font-size: 0.66rem;
   letter-spacing: 0.04em;
+  color: rgb(242 242 238 / 0.6);
+  padding-right: 4rem;
 }
-
-[data-theme="acid"] .theme-tile {
-  background-image: none;
-  background-color: var(--color-white);
-}
-
-/* The chosen half of a toggle is underlined, so it reads as chosen on black. */
-[data-theme="acid"] [aria-pressed="true"] {
-  box-shadow: inset 0 -2px 0 var(--acid);
+[data-theme="acid"] a.bg-gradient-to-br p.text-xs {
+  font-family: var(--theme-font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.6rem;
 }
 
 [data-theme="acid"] ::selection {
-  background: var(--acid);
-  color: var(--acid-ink);
+  background: var(--ac-acid);
+  color: #000;
+}
+
+/* ── Motion ── the posters' motion-graphic cousins: digital, stepped, never eased. Windows boot
+ * open in stepped wipes; titles glitch in, splitting into colour for a few frames; the ring of
+ * text round the globe spins; chevrons march; hatch stripes slide across the main action; a
+ * cover glitches into its real colour; loading is a scanline. */
+@keyframes ac-boot {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes ac-glitch {
+  0% { opacity: 0; transform: translateX(-6px); text-shadow: -4px 0 var(--ac-red), 4px 0 var(--ac-violet); }
+  20% { opacity: 1; transform: translateX(5px); text-shadow: 3px 0 var(--ac-red), -3px 0 var(--ac-acid); }
+  40% { transform: translateX(-2px); text-shadow: -2px 0 var(--ac-violet), 2px 0 var(--ac-acid); }
+  60% { transform: translateX(1px); }
+}
+@keyframes ac-cover {
+  0% { filter: grayscale(1) contrast(1.35) brightness(0.9) sepia(1) hue-rotate(52deg) saturate(4.2); transform: translateX(0); }
+  25% { filter: drop-shadow(-4px 0 0 #ff2bd6) drop-shadow(4px 0 0 #2bfff2) saturate(1.6); transform: translateX(3px); }
+  50% { filter: drop-shadow(3px 0 0 #ff2bd6) drop-shadow(-3px 0 0 #2bfff2); transform: translateX(-2px); }
+  75% { filter: none; transform: translateX(1px); }
+  100% { filter: none; transform: none; }
+}
+@keyframes ac-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ac-march {
+  to { background-position: 11px 0; }
+}
+@keyframes ac-hatch {
+  to { background-position: 14.14px 0; }
+}
+@keyframes ac-scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(2400%); }
+}
+@keyframes ac-cursor {
+  50% { background-size: 0 100%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Pulling a page up: its blocks boot open one after another, left to right in steps. */
+  [data-theme="acid"] :is(main > :only-child:not(.animate-pulse) > *, main > :not(:only-child)):not([class*="animate-"]) {
+    animation: ac-boot 0.42s steps(7, end) var(--ac-delay, 0ms) backwards;
+  }
+  [data-theme="acid"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(2) { --ac-delay: 90ms; }
+  [data-theme="acid"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(3) { --ac-delay: 180ms; }
+  [data-theme="acid"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(4) { --ac-delay: 270ms; }
+  [data-theme="acid"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(n + 5) { --ac-delay: 360ms; }
+  /* Modules boot one by one. */
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br) {
+    animation: ac-boot 0.36s steps(6, end) var(--ac-delay, 0ms) backwards;
+  }
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(2) { --ac-delay: 70ms; }
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(3) { --ac-delay: 140ms; }
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(4) { --ac-delay: 210ms; }
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(5) { --ac-delay: 280ms; }
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(6) { --ac-delay: 350ms; }
+  [data-theme="acid"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(n + 7) { --ac-delay: 420ms; }
+  /* Titles glitch in, splitting into the posters' inks for a few frames. */
+  [data-theme="acid"] :is(h1, h2.text-2xl) {
+    animation: ac-glitch 0.4s steps(1, end) backwards;
+  }
+  [data-theme="acid"] :is(h1, h2.text-2xl):hover {
+    animation: ac-glitch 0.4s steps(1, end);
+  }
+  /* The ring of text round the globe turns, slowly. */
+  [data-theme="acid"] .theme-nav::after {
+    animation: ac-spin 28s linear infinite;
+  }
+  /* Chevrons march on the open page, and on a module you reach for. */
+  [data-theme="acid"] .theme-nav-item[data-active]::after,
+  [data-theme="acid"] a:is(.theme-tile, .bg-gradient-to-br):hover::after {
+    animation: ac-march 0.5s steps(4, end) infinite;
+  }
+  [data-theme="acid"] .theme-nav-item[data-active] {
+    animation: ac-boot 0.25s steps(5, end);
+  }
+  /* Hatch stripes slide across the main action under the pointer. */
+  [data-theme="acid"] :is(a, button).bg-gray-900:not(.theme-nav-item):hover,
+  [data-theme="acid"] :is(a, button):is(.bg-emerald-500, .bg-emerald-600, .bg-green-600, .bg-sky-500, .bg-blue-600):hover {
+    animation: ac-hatch 0.45s linear infinite;
+  }
+  /* A cover glitches into its real colour. */
+  [data-theme="acid"] :is(a, .group):hover img.object-cover {
+    animation: ac-cover 0.32s steps(1, end);
+  }
+  /* Opening a menu boots it open. */
+  [data-theme="acid"] :is(.theme-picker-menu, .theme-picker-panel, ul.absolute) {
+    animation: ac-boot 0.2s steps(5, end) backwards;
+  }
+  /* A field you're typing in keeps a blinking acid block at its edge. */
+  [data-theme="acid"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea):focus {
+    background-image: linear-gradient(var(--ac-acid), var(--ac-acid));
+    background-repeat: no-repeat;
+    background-size: 6px 100%;
+    background-position: right 0 top 0;
+    animation: ac-cursor 1s steps(1, end) infinite;
+  }
+  /* Loading: a scanline runs down the placeholders. */
+  [data-theme="acid"] .animate-pulse {
+    position: relative;
+    overflow: hidden;
+    animation: none;
+  }
+  [data-theme="acid"] .animate-pulse::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 4%;
+    pointer-events: none;
+    background: linear-gradient(transparent, rgb(140 255 58 / 0.35), transparent);
+    animation: ac-scan 1.3s steps(24, end) infinite;
+  }
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════

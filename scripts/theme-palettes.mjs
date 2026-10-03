@@ -48,15 +48,17 @@ const THEMES = {
     },
   },
   acid: {
-    // Acid Design: black, chrome, fluorescent acid green, ultraviolet, hot pink.
+    // Acid Design, after the owner's rave and streetwear posters: black print, white ink, acid
+    // green as the loud ink, with the posters' other inks — lavender, red-orange, magenta.
+    // Blue and indigo lean lavender (Worldwide, Hachiroku); red leans red-orange (Isolation).
     scheme: "dark",
-    gray: ["#0a0a0a", "#1c1c1c", "#2a2a2a", "#3d3d3d", "#6f6f6f", "#9a9a9a", "#b5b5b5", "#d0d0d0", "#e6e6e6", "#f5f5f5", "#ffffff"],
-    white: "#121212",
+    gray: ["#050505", "#161616", "#262626", "#3a3a3a", "#6c6c6a", "#999996", "#b6b6b2", "#d2d2ce", "#e6e6e2", "#f2f2ee", "#ffffff"],
+    white: "#070707",
     hues: {
-      red: [25, 0.25], orange: [50, 0.22], amber: [80, 0.2], yellow: [105, 0.22], lime: [125, 0.3],
-      green: [130, 0.3], emerald: [150, 0.26], teal: [175, 0.2], cyan: [200, 0.18], sky: [220, 0.18],
-      blue: [255, 0.22], indigo: [275, 0.24], violet: [295, 0.27], purple: [305, 0.28], fuchsia: [325, 0.3],
-      pink: [345, 0.28], rose: [10, 0.25],
+      red: [33, 0.24], orange: [45, 0.22], amber: [75, 0.19], yellow: [105, 0.22], lime: [135, 0.3],
+      green: [138, 0.3], emerald: [150, 0.27], teal: [170, 0.2], cyan: [200, 0.16], sky: [265, 0.17],
+      blue: [278, 0.19], indigo: [285, 0.2], violet: [290, 0.21], purple: [298, 0.22], fuchsia: [330, 0.28],
+      pink: [340, 0.25], rose: [15, 0.24],
     },
   },
   earlycyber: {

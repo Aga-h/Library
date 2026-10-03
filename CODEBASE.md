@@ -248,6 +248,37 @@ Everything else answers an action:
 All of it is inside `prefers-reduced-motion: no-preference`; the press and focus states still
 show, just without movement. Because CSS animations start when a rule starts applying, switching
 the look to Soft Club plays the arrival once.
+
+**Acid** was redrawn from the owner's 14 reference posters: new-acid streetwear and rave prints
+such as Worldwide, Hachiroku, Isolation, Sanctuary, Parkineos and Before EP. The owner asked for
+loyalty to the material over general design guidance.
+- **Ground:** creased black paper, an SVG `feTurbulence` + `feDiffuseLighting` tile, with print
+  grain on top.
+- **Structure:** white line work. Every container is an OS window from Isolation: a cut-corner
+  frame with a title bar and "– □ ×", drawn as an SVG `border-image` sliced 30/60/12/12, so it
+  needs no markup. Card links are plain cut-corner HUD frames that switch to acid on hover.
+- **Colour:** one loud ink, `--ac-acid` #8cff3a; the palette also leans blue toward lavender
+  and red toward red-orange, the posters' other inks.
+- **Type:** titles are extended Archivo (`font-stretch: 125%`, 900) with an acid extrusion. The
+  brand is blackletter (Pirata One) over a barcode and "EST. MMXXVI —". Section labels are
+  capsule tags, like SUPER RACKS, and the small print is mono caps after a ✦.
+- **Furniture:**
+  - the sidebar has a ruled rail with tick marks
+  - the open page is marked with a crosshair and marching chevrons
+  - Worldwide's globe sits under the menu inside a ring of text that turns
+  - the section's name runs up the right edge in huge outlined caps (`:root::before`, chosen
+    by `:has()`)
+  - portal and dashboard sections are HUD modules with a serial (NO.01) and chevrons
+  - main actions are hatched acid slabs with cut corners
+- **Pictures:** duotone acid until hovered, like Sanctuary's statue.
+- **Motion:** stepped, never eased.
+  - blocks and modules boot open in stepped wipes, one after another
+  - titles glitch in, splitting into red, lavender and acid
+  - chevrons march; hatch stripes slide on a hovered action
+  - a cover glitches into its real colour
+  - a focused field gets a blinking acid cursor block
+  - loading is a scanline
+  - all of it sits inside `prefers-reduced-motion: no-preference`
 The lines are graphics laid over the haze on `:root::before`: columns of data text, long rules, two
 offset frames and a subway map, slightly blurred and glowing. The data text runs down the sidebar's
 edge where there is one, and the frames and map are hidden on phones. The portal's and dashboard's

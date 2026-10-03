@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-03 — Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-03 — Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -339,7 +339,7 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       on client-side navigation, and reduced motion leaves 0 running animations.
       Pre-existing in every theme: the Library/Study sidebars don't collapse on a phone, so the
       dashboard is squeezed at 390px; the finances page overflows to the right at 390px.
-- [ ] **Acid redesign — IN PROGRESS** (user, 2026-10-03, 14 reference posters in a zip: "be loyal to
+- [x] **Acid redesign** (user, 2026-10-03, 14 reference posters in a zip: "be loyal to
       the design material more than your skills guidelines… I again expect animations"). What the
       references share:
       - ground: black, often on creased paper
@@ -351,6 +351,14 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - type: extended heavy caps, blackletter accents, mono small caps, stacked echo words,
         vertical outlined words
       - images: duotone in the accent
+      Built: Isolation windows (SVG border-image) on every panel, HUD modules, capsule tags,
+      extended-caps titles with acid extrusion, blackletter brand, globe with turning text ring,
+      ruled sidebar rail, vertical outlined section word, duotone covers, hatched acid slabs.
+      Motion: stepped boots, glitch titles, marching chevrons, cover glitch to colour, blinking
+      cursor, scanline. Fixed along the way: the wardrobe's colour swatches used theme grays,
+      so "Dark colours" showed light on dark looks; they now use fixed colours.
+      Checked in Chromium on portal, dashboard, books, series, finances, study, vocab, wardrobe and
+      login at 1180px and 390px; reduced motion leaves 0 animations.
 - [ ] **Then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.

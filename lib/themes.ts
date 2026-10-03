@@ -15,9 +15,9 @@ export const THEMES = [
   {
     id: "acid",
     name: "Acid",
-    hint: "Acid Design — black, chrome and fluorescent acid green",
-    swatch: ["#0a0a0a", "#c6ff1a", "#d6d6d6", "#ff3fa4"],
-    themeColor: "#0a0a0a",
+    hint: "Acid Design — rave posters on creased black paper: white HUD frames, one acid green",
+    swatch: ["#050505", "#8cff3a", "#f2f2ee", "#a18bff"],
+    themeColor: "#050505",
   },
   {
     id: "earlycyber",
