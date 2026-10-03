@@ -86,7 +86,7 @@ export default function ThemePicker({ variant = "full" }: { variant?: "full" | "
         <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div id={panelId} className="mt-4">
+        <div id={panelId} className="theme-picker-panel mt-4">
           <p className="text-sm text-gray-500 mb-4">
             How the whole site looks, on this device. Inspired by Gen X Soft Club, Acid Design, Early
             Cyber and Cyberdelia; Classic is the original.

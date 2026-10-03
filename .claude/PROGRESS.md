@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-03 — Soft Club pass 3 (white panels replaced: film bands, light bars, colour blobs, capsules) on top of pass 2 (no outlines, tracklists, folding look menu); Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-03 — Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -326,6 +326,17 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       and turned book cards into arches, so card links are now excluded.
       Checked against seeded books, wardrobe, subscriptions, modules and vocab data in the local
       test DB.
+      Pass 4 (2026-10-03, user: "the design looks really good now totally on vibe… add animations
+      that'll fit the vibe to smoothen the user process"). Planned with the frontend-design skill:
+      one orchestrated arrival, everything else answering an action, reduced motion respected.
+      - arrival: the page pulls in like carriages, sideways from a blur, and the LED figures
+        flicker on
+      - actions: the menu sign rolls on navigation; a light passes along a hovered track; a press
+        lights up and fades; a field's underline scans in; menus pull into focus; loading
+        placeholders get a light scan
+      - cut on review: progress bars filling on load, as the stock dashboard move
+      Verified with the Web Animations API in Chromium: delays stagger as planned, the roll fires
+      on client-side navigation, and reduced motion leaves 0 running animations.
       Pre-existing in every theme: the Library/Study sidebars don't collapse on a phone, so the
       dashboard is squeezed at 390px; the finances page overflows to the right at 390px.
 - [ ] **Redo Acid, then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called

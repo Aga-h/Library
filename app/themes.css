@@ -688,6 +688,196 @@ h2.text-2xl,
   }
 }
 
+/* ── Motion ── the city seen from a moving train. Things travel sideways, never up; they arrive
+ * smeared and resolve into focus, like the blur sleeve; light passes along them, like Jazzy Chill
+ * Out's trails; signs roll to a new destination; numbers warm up like a dot-matrix platform board.
+ * One curve throughout: fast, then settling, like a train braking into a platform.
+ *
+ * Only one thing moves unasked: the page pulling into the station. Its blocks arrive one after
+ * another like passing carriages, and the LED figures flicker on as it stops. Everything else
+ * answers something the person did. All of it is off for anyone who asks for reduced motion. */
+:root[data-theme="softclub"] {
+  --sc-ease: cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+@keyframes sc-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+    filter: blur(6px);
+  }
+}
+@keyframes sc-focus-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+    filter: blur(4px);
+  }
+}
+@keyframes sc-led {
+  0% { opacity: 0; }
+  14% { opacity: 0.85; }
+  22% { opacity: 0.1; }
+  34% { opacity: 1; }
+  44% { opacity: 0.4; }
+  56%, 100% { opacity: 1; }
+}
+@keyframes sc-roll {
+  from { background-position: 0 2.6rem; }
+}
+@keyframes sc-roll-label {
+  from {
+    opacity: 0;
+    transform: translateY(85%);
+  }
+}
+@keyframes sc-pass {
+  from { transform: translateX(-100%); opacity: 1; }
+  45% { opacity: 1; }
+  80%, to { opacity: 0; }
+  to { transform: translateX(330%); }
+}
+@keyframes sc-scan {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Pulling in: the page's blocks — the children of its root, or of <main> where a page has
+   * several roots — arrive carriage by carriage. A delay is kept in --sc-delay so the LED figures
+   * inside a block can light up as that block stops. Tracklists arrive track by track instead. */
+  [data-theme="softclub"] :is(.theme-header, main > :only-child:not(.animate-pulse) > *, main > :not(:only-child)):not([class*="animate-"], :has(> .theme-tile, > a.bg-gradient-to-br)) {
+    animation: sc-arrive 0.52s var(--sc-ease) var(--sc-delay, 0ms) backwards;
+  }
+  [data-theme="softclub"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(2) { --sc-delay: 60ms; }
+  [data-theme="softclub"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(3) { --sc-delay: 120ms; }
+  [data-theme="softclub"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(4) { --sc-delay: 180ms; }
+  [data-theme="softclub"] :is(main > :only-child > *, main > :not(:only-child)):nth-child(n + 5) { --sc-delay: 240ms; }
+
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br) {
+    animation: sc-arrive 0.56s var(--sc-ease) var(--sc-delay, 0ms) backwards;
+    transition: transform 0.35s var(--sc-ease);
+  }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(1) { --sc-delay: 80ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(2) { --sc-delay: 135ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(3) { --sc-delay: 190ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(4) { --sc-delay: 245ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(5) { --sc-delay: 300ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(6) { --sc-delay: 355ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(7) { --sc-delay: 410ms; }
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(n + 8) { --sc-delay: 465ms; }
+
+  /* The LED figures warm up as their carriage stops. */
+  [data-theme="softclub"] :is(:is(span, p).text-2xl.font-bold, a.bg-gradient-to-br p.text-lg.font-bold),
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br)::before {
+    animation: sc-led 0.7s linear calc(var(--sc-delay, 0ms) + 260ms) backwards;
+  }
+
+  /* Hovering a track: one light passes along it, the way a train's lights pass along a platform. */
+  [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br)::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1; /* behind the words, over the track's own light */
+    width: 28%;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.8) 50%, transparent);
+    transform: translateX(-100%);
+  }
+  [data-theme="softclub"] a:is(.theme-tile, .bg-gradient-to-br):is(:hover, :focus-visible)::after {
+    animation: sc-pass 0.75s var(--sc-ease);
+  }
+
+  /* Changing page: the sign rolls to the new destination — the band scrolls up into place and
+   * the name rolls in behind it. */
+  [data-theme="softclub"] .theme-nav-item[data-active] {
+    background-repeat: no-repeat;
+    animation: sc-roll 0.42s var(--sc-ease) backwards;
+  }
+  [data-theme="softclub"] .theme-nav-item[data-active] .theme-nav-label {
+    display: inline-block;
+    animation: sc-roll-label 0.42s var(--sc-ease) 40ms backwards;
+  }
+  [data-theme="softclub"] .theme-nav-item[data-active]::before {
+    animation: sc-roll-label 0.42s var(--sc-ease) backwards;
+  }
+  [data-theme="softclub"] .theme-nav-item {
+    transition: background-color 0.25s, color 0.25s;
+  }
+
+  /* Opening something — the look menu, a list of suggestions — pulls it into focus. */
+  [data-theme="softclub"] :is(.theme-picker-menu, .theme-picker-panel, ul.absolute) {
+    animation: sc-focus-in 0.24s var(--sc-ease) backwards;
+  }
+
+  /* Lights fade out after a press; they come on at once (below). */
+  [data-theme="softclub"] :is(button, a) {
+    transition: color 0.25s, background-color 0.3s, box-shadow 0.45s var(--sc-ease), transform 0.35s var(--sc-ease);
+  }
+
+  /* Focusing a field: its underline scans across from the left. */
+  [data-theme="softclub"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea) {
+    transition: background-size 0.4s var(--sc-ease), background-color 0.25s, box-shadow 0.35s;
+  }
+
+  /* Waiting: a light scans across the placeholders instead of the generic pulse. */
+  [data-theme="softclub"] .animate-pulse {
+    position: relative;
+    overflow: hidden;
+    animation: none;
+  }
+  [data-theme="softclub"] .animate-pulse::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 25%;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7) 50%, transparent);
+    animation: sc-scan 1.6s var(--sc-ease) infinite;
+  }
+}
+[data-theme="softclub"] .animate-pulse .bg-gray-200 {
+  background-color: rgb(255 255 255 / 0.45);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="softclub"] .animate-pulse {
+    animation: none;
+  }
+}
+
+/* A press lights the control up at once — the fade back out is the transition above. */
+[data-theme="softclub"] :is(a, button).bg-gray-900:not(.theme-nav-item):active:not(:disabled) {
+  transition-duration: 0s;
+  background-color: #2c5a7e;
+  box-shadow:
+    0 0 9px 6px rgb(42 150 212 / 0.55),
+    -26px 0 18px -8px rgb(42 150 212 / 0.4),
+    26px 0 18px -8px rgb(42 150 212 / 0.4);
+}
+[data-theme="softclub"] :is(button, a:not(.rounded-xl, .rounded-2xl)).border:is(.bg-white, :not([class*=" bg-"], [class^="bg-"])):active:not(:disabled),
+[data-theme="softclub"] :is(button, a).bg-white:is(.rounded-lg, .rounded-md, .rounded-full):active:not(:disabled) {
+  transition-duration: 0s;
+  background-color: rgb(42 150 212 / 0.32);
+  box-shadow: inset 0 0 0 1px #fff, 0 0 22px rgb(42 150 212 / 0.75);
+}
+[data-theme="softclub"] :is(.bg-red-500, .bg-red-600, .bg-red-700, .bg-amber-500, .bg-amber-600, .bg-yellow-500, .bg-green-600, .bg-green-700, .bg-emerald-500, .bg-emerald-600, .bg-emerald-700, .bg-sky-500, .bg-blue-600, .bg-blue-700):active:not(:disabled) {
+  transition-duration: 0s;
+  box-shadow: 0 0 10px 7px var(--sc-glow), -18px 0 14px -6px var(--sc-glow), 18px 0 14px -6px var(--sc-glow);
+}
+/* The field's scanning underline: drawn at full width only while the field has focus. */
+[data-theme="softclub"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea) {
+  background-image: linear-gradient(var(--sc-cyan), var(--sc-cyan));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 2px;
+}
+[data-theme="softclub"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea):focus {
+  background-size: 100% 2px;
+}
+
 [data-theme="softclub"] ::selection {
   background: var(--sc-lime);
   background-origin: border-box;

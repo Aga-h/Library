@@ -230,6 +230,24 @@ backgrounds look cheap", replaced white with the references' own ways of groupin
   200 shade, to draw with). Chips and solid buttons glow in theirs.
 
 Photos and covers fade at their edges (mask-image).
+
+**Motion** (the end of the Soft Club section in `app/themes.css`). The idea is a city seen from a
+train: things travel sideways and arrive smeared, resolving into focus, all on one easing curve
+(`--sc-ease`). Only the page's arrival plays unasked: its blocks, the children of the page root
+(or of `<main>` when it has several), come in one by one, and tracklists come in track by track.
+Each block's stagger is kept in `--sc-delay`, so the LED figures inside it flicker on as it stops.
+Everything else answers an action:
+- **Navigating:** the active menu item's sign rolls up to the new page. CSS animations start when
+  `[data-active]` is applied, so this needs no JS.
+- **Hovering a track:** a light passes along it, behind the words.
+- **Pressing:** a light comes on at once and fades out (`transition-duration: 0s` on `:active`).
+- **Focusing a field:** its cyan underline scans across.
+- **Opening a menu:** the look menu and dropdowns pull into focus.
+- **Loading:** placeholders get a scanning light instead of Tailwind's pulse.
+
+All of it is inside `prefers-reduced-motion: no-preference`; the press and focus states still
+show, just without movement. Because CSS animations start when a rule starts applying, switching
+the look to Soft Club plays the arrival once.
 The lines are graphics laid over the haze on `:root::before`: columns of data text, long rules, two
 offset frames and a subway map, slightly blurred and glowing. The data text runs down the sidebar's
 edge where there is one, and the frames and map are hidden on phones. The portal's and dashboard's
