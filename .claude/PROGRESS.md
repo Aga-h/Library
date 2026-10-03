@@ -339,7 +339,19 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       on client-side navigation, and reduced motion leaves 0 running animations.
       Pre-existing in every theme: the Library/Study sidebars don't collapse on a phone, so the
       dashboard is squeezed at 390px; the finances page overflows to the right at 390px.
-- [ ] **Redo Acid, then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
+- [ ] **Acid redesign — IN PROGRESS** (user, 2026-10-03, 14 reference posters in a zip: "be loyal to
+      the design material more than your skills guidelines… I again expect animations"). What the
+      references share:
+      - ground: black, often on creased paper
+      - ink: white line work plus ONE loud accent — acid green mostly, lavender or red-orange
+        sometimes
+      - structure: chamfered HUD frames, OS windows with "– □ ×", modular outlined grids
+      - small marks: capsule tags, >>>> chevrons, barcodes, serials and coordinates, hatch bars,
+        crosshairs, ✦ sparkles, the R/RESTRICTED box
+      - type: extended heavy caps, blackletter accents, mono small caps, stacked echo words,
+        vertical outlined words
+      - images: duotone in the accent
+- [ ] **Then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
