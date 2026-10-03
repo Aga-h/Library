@@ -449,6 +449,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Notes for the next session
 
+- **`.claude/skills/frontend-design/`** is Anthropic's frontend-design skill, copied unmodified
+  from anthropics/claude-plugins-official (commit d182ca4; `/plugin install` isn't available in
+  these cloud sessions). It is Apache-2.0, so its `LICENSE.txt` must stay beside it. Use it for UI
+  and theme work. Where it warns against a device the user asked for (Soft Club's numbered menu,
+  mono labels, middle-dot meta lines), the user's brief wins, as the skill itself says.
 - **Real data found two defects that 68 unit assertions did not.** The 991-word list contains six
   pairs of different words sharing one definition verbatim, which the builder happily offered as
   each other's distractors — 51 of 240 questions broken on that data. And a per-word import loop
