@@ -384,7 +384,20 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - the feature module pours it down on its own transform-only layer
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
-- [ ] **Then Early Cyber, then Cyberdelia** the way Soft Club was redone. The user called
+- [ ] **Then Early Cyber, then Cyberdelia**
+- [ ] **Shopping section — IN PROGRESS** (user, 2026-10-07: "add sites of these businesses… write
+      what I liked, what I didn't… categorize them like clothing, tech etc… design with just soft
+      club rn, acid later"). Plan:
+      - model: `Shop` (name, url, category as free text, liked, disliked) via migration 029
+        (RLS on)
+      - pages `/shopping` (grouped by category, filter chips, search), `/new`, `/[id]/edit`; API
+        `/api/shopping`
+      - pure helpers in `lib/shopping.ts` (url normalise and refuse non-http, name from domain,
+        category canonicalise, line codes) with `scripts/test-shopping.mjs`
+      - a portal tile
+      - Soft Club look: each category is a transit line, each shop a station (strip map like a
+        train door's), coded C01, C02
+      - Acid styling comes later the way Soft Club was redone. The user called
       the first drafts soulless and wants them redone one at a time, so ask for reference images for
       each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
