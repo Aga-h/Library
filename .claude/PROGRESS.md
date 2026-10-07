@@ -385,6 +385,17 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
+- [ ] **Finances: money sources — IN PROGRESS** (user, 2026-10-07: "when I am logging expenses I need
+      to select the income source too, my base or extra, and it says to me how many TL is left in
+      which, to see in which card I should do my shopping"). Plan:
+      - `FundSource` enum (BASE / EXTRA) on Expense and Subscription, default BASE, via 031
+      - two pots carried over separately: base = budget − base spending, extra = additional
+        income − extra spending; base + extra = today's total
+      - pure rules in `lib/fund-sources.ts`, with tests
+      - quick log: pick the card, see what's left on each, warn when over (offline: last known
+        minus what's queued)
+      - month page: Base / Extra cards; tap an expense's tag to move it
+      - the carryover cache key changes, since the cached value's shape changes
 - [x] **Shopping: products** (user, 2026-10-07: "keep the what I liked and what I didn't section but
       allow me to add a product, their name and comment on that specifically"):
       - `ShopProduct` + `030-shop-products.sql` (cascade with the shop, RLS on, verified)
