@@ -12,6 +12,9 @@ const expenseSchema = z.object({
   category: z.enum(["FOOD", "BOOKS", "EDUCATION", "ENTERTAINMENT", "CLOTHING", "SUBSCRIPTIONS", "SELF_CARE", "TRANSPORTATION", "OTHER", "CASH"]),
   amount: z.number().positive(),
   description: z.string().optional(),
+  // Which pot paid. Optional so expenses queued on a phone before sources existed still upload
+  // (they are filed under Base, the column default).
+  source: z.enum(["BASE", "EXTRA"]).optional(),
 });
 
 async function POSTHandler(
@@ -37,6 +40,7 @@ async function POSTHandler(
     amount: result.data.amount,
     description: result.data.description ?? null,
     clientId: result.data.clientId ?? null,
+    ...(result.data.source && { source: result.data.source }),
   };
 
   // Idempotent when a clientId is supplied: a replayed POST returns the row that already
@@ -50,7 +54,7 @@ async function POSTHandler(
       })
     : await db.expense.create({ data });
 
-  revalidateTag("finance-stats", "max");
+  revalidateTag("finance-stats", { expire: 0 });
   return NextResponse.json(expense, { status: 201 });
 }
 

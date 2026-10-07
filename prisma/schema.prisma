@@ -512,6 +512,8 @@ model Expense {
   category    ExpenseCategory
   amount      Float
   description String?
+  // Which pot paid: the monthly budget or additional income — which card to use.
+  source      FundSource      @default(BASE)
   createdAt   DateTime        @default(now())
 
   @@index([year, month, createdAt(sort: Desc)])
@@ -549,7 +551,14 @@ model Subscription {
   startMonth     Int
   cancelledYear  Int?
   cancelledMonth Int?
+  source         FundSource @default(BASE)
   createdAt      DateTime @default(now())
+}
+
+// The two pots money is spent from, like two cards: the monthly budget, and additional income.
+enum FundSource {
+  BASE
+  EXTRA
 }
 
 // ─── SHOPPING ────────────────────────────────────────────────────────────────

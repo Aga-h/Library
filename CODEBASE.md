@@ -147,6 +147,24 @@ excluded from mirroring. `normaliseTitle` drops apostrophes ("Journey's" = "Jour
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
 
+**Two pots (money sources).** Every expense and subscription has a `source` (`FundSource`:
+`BASE` or `EXTRA`, default `BASE`). It says which card paid: the monthly budget or additional
+income. Each pot carries over on its own. Base gains the budget and Extra gains the additional
+income, and each pays what was charged to it (`rollCarryover` and `monthBalances` in
+`lib/fund-sources.ts`, tested). Base + Extra always equals the single carryover and remaining the
+page showed before, including the old rule that only a month with something recorded gets the
+budget. `loadMonth` in `lib/finances.ts` feeds both the month page and `GET /api/finances/[y]/[m]`,
+which returns `balances` per pot. The quick log (`/finances/log`) reads them to show what's left on
+each card as you pick one, and warns when an amount is more than that card has. It keeps the last
+figures in localStorage for offline use, minus whatever is still queued (`leftAfterPending`). The
+last-used card is remembered (`useStoredSource`). On the month page, tapping an entry's
+Base/Extra tag moves it (`PATCH` expenses or subscriptions `{ source }`).
+
+The carryover cache key is `finance-carryover-by-source`, because the value changed from a number
+to an object. Writes expire the `finance-stats` tag with `{ expire: 0 }`, not `"max"`: "max"
+serves the stale carryover once more, which showed the wrong balance right after moving or
+deleting an earlier month's expense.
+
 **Shopping.** `Shop`: a website, a name, a free-text `category`, and what you `liked` and
 `disliked`. A category is made by filing a shop under it. The API files a typed category with an
 existing one whatever the case ("clothing" → "Clothing", via `canonicalCategory`), so near-duplicates
@@ -386,6 +404,7 @@ scripts/                node test scripts, graph sealing
 | `shopping.ts` / `shopping-service.ts` | Shop addresses, names from domains, categories, line codes and colours / categories in use |
 | `wash-calculator.ts` | Care labels → machine settings |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
+| `fund-sources.ts` / `fund-source-client.ts` | The Base / Extra pots: carryover, balances, queued-expense adjustment / the remembered card |
 | `expense-queue.ts` | The offline logger's IndexedDB queue |
 
 ---
@@ -394,8 +413,8 @@ scripts/                node test scripts, graph sealing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
-report token, the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules, and the shopping
-rules (addresses, categories, line codes). `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+report token, the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules, the shopping
+rules (addresses, categories, line codes), and the finance pots (carryover per source, balances). `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser

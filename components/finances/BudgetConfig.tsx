@@ -34,6 +34,7 @@ export default function BudgetConfig({ currentBudget }: { currentBudget: number 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <h2 className="font-semibold text-gray-900 mb-1">Monthly Budget</h2>
+      <p className="text-xs text-gray-500 mb-2">Goes onto your Base card each month.</p>
       <p className="text-2xl font-bold text-gray-900 mb-4">{fmt(currentBudget)}</p>
 
       <form onSubmit={handleSubmit} className="flex gap-2">

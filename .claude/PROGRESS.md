@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-07 — Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-07 — Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -385,17 +385,24 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
-- [ ] **Finances: money sources — IN PROGRESS** (user, 2026-10-07: "when I am logging expenses I need
-      to select the income source too, my base or extra, and it says to me how many TL is left in
-      which, to see in which card I should do my shopping"). Plan:
-      - `FundSource` enum (BASE / EXTRA) on Expense and Subscription, default BASE, via 031
-      - two pots carried over separately: base = budget − base spending, extra = additional
-        income − extra spending; base + extra = today's total
-      - pure rules in `lib/fund-sources.ts`, with tests
-      - quick log: pick the card, see what's left on each, warn when over (offline: last known
-        minus what's queued)
-      - month page: Base / Extra cards; tap an expense's tag to move it
-      - the carryover cache key changes, since the cached value's shape changes
+- [x] **Finances: money sources** (user, 2026-10-07: "when I am logging expenses I need to select the
+      income source too, my base or extra, and it says how many TL is left in which, to see which
+      card I should shop with"):
+      - `FundSource` on Expense/Subscription via `031-fund-source.sql` (verified)
+      - pots carried over separately, Base + Extra = the old total (`lib/fund-sources.ts`, 16
+        tests)
+      - quick log: "Pay with" picker showing what's left on each card, the last card remembered,
+        a warning when the amount is over and the other card has enough, offline = last figures
+        minus queued
+      - month page: a Base and an Extra card with left / budget-or-income / carried / spent;
+        expense and subscription pickers; tap a row's tag to move it
+      - fixed on the way: finance writes used `revalidateTag(…, "max")`, which serves stale
+        carryover once (wrong balance right after editing an earlier month); now `{ expire: 0 }`
+      - verified with hand-worked figures (Base 42,470 / Extra 1,780 / 44,250), moving past and
+        present expenses, old queued items (no source → Base), and the browser flow (pick, warn,
+        log, offline −40 locally, upload, figures match)
+      - **The user must run 031** (see Blocked). Existing expenses and subscriptions all start on
+        Base; anything really paid from extra income needs a tap to move it
 - [x] **Shopping: products** (user, 2026-10-07: "keep the what I liked and what I didn't section but
       allow me to add a product, their name and comment on that specifically"):
       - `ShopProduct` + `030-shop-products.sql` (cascade with the shop, RLS on, verified)
@@ -439,6 +446,9 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Blocked / needs the user
 
+- **Finances: run `031-fund-source.sql`** in the Supabase SQL Editor NOW — the finance pages error
+  until it has run (phone-logged expenses wait safely on the device). Additive, safe to re-run.
+  Then move any past expense that was paid from extra income to Extra (tap its tag).
 - **Shopping: run `029-shopping.sql`, then `030-shop-products.sql`** in the Supabase SQL Editor —
   the Shopping pages error until both have run (nothing else is affected). Additive, safe to re-run.
   (029 was handed over 2026-10-07; whether it ran is unconfirmed.)

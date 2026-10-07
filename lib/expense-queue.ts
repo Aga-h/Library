@@ -10,6 +10,9 @@ export interface QueuedExpense {
   category: string;
   amount: number;
   description?: string;
+  /** Which pot paid. Missing on anything queued before sources existed — the server files those
+   *  under Base. */
+  source?: "BASE" | "EXTRA";
   /** When the user actually entered it, which may be long before it uploads. */
   createdAt: string;
   attempts: number;
@@ -126,6 +129,7 @@ async function postExpense(item: QueuedExpense): Promise<Response> {
       category: item.category,
       amount: item.amount,
       ...(item.description ? { description: item.description } : {}),
+      ...(item.source ? { source: item.source } : {}),
     }),
   });
 }

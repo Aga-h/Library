@@ -28,7 +28,7 @@ async function POSTHandler(request: NextRequest) {
     update: { monthlyBudget: { increment: result.data.delta } },
   });
 
-  revalidateTag("finance-stats", "max");
+  revalidateTag("finance-stats", { expire: 0 });
   return NextResponse.json(config);
 }
 

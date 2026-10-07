@@ -9,6 +9,27 @@ import {
   type QueuedExpense,
   type SyncResult,
 } from "@/lib/expense-queue";
+import { leftAfterPending, SOURCE_LABELS, type FundSource, type SourceSplit } from "@/lib/fund-sources";
+import { useStoredSource } from "@/lib/fund-source-client";
+import { SOURCE_TAG_CLS, SourcePicker } from "@/components/finances/SourceTag";
+
+/** What the server last said is left on each card, kept on the device for when it's offline. */
+interface KnownBalances extends SourceSplit {
+  year: number;
+  month: number;
+  /** When the server said so (ISO). */
+  at: string;
+}
+const BALANCES_KEY = "finance-balances";
+
+function readCachedBalances(): KnownBalances | null {
+  try {
+    const raw = localStorage.getItem(BALANCES_KEY);
+    return raw ? (JSON.parse(raw) as KnownBalances) : null;
+  } catch {
+    return null;
+  }
+}
 
 // Full list, ordered so the ones used most often sit under the thumb.
 const CATEGORY_OPTIONS: { value: string; label: string }[] = [
@@ -33,6 +54,7 @@ function fmt(n: number) {
 interface Logged {
   amount: number;
   category: string;
+  source: FundSource;
   pending: boolean;
 }
 
@@ -41,6 +63,9 @@ export default function QuickExpenseForm() {
   const [category, setCategory] = useState<string>("FOOD");
   const [description, setDescription] = useState("");
   const [showDescription, setShowDescription] = useState(false);
+  const [source, setSource] = useStoredSource();
+  const [known, setKnown] = useState<KnownBalances | null>(null);
+  const [fresh, setFresh] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [pending, setPending] = useState<QueuedExpense[]>([]);
@@ -70,6 +95,29 @@ export default function QuickExpenseForm() {
     }
   }, []);
 
+  // What's left on each card, from the server; on failure (offline, signed out) the last known
+  // figures stay, marked as not fresh.
+  const refreshBalances = useCallback(async () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    try {
+      const res = await fetch(`/api/finances/${year}/${month}`, { credentials: "same-origin" });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      const next: KnownBalances = {
+        year, month, at: new Date().toISOString(),
+        base: data.balances.base.left, extra: data.balances.extra.left,
+      };
+      setKnown(next);
+      setFresh(true);
+      try { localStorage.setItem(BALANCES_KEY, JSON.stringify(next)); } catch { /* not cached */ }
+    } catch {
+      setFresh(false);
+      setKnown((k) => k ?? readCachedBalances());
+    }
+  }, []);
+
   const runSync = useCallback(async () => {
     setSyncing(true);
     try {
@@ -79,8 +127,9 @@ export default function QuickExpenseForm() {
     } finally {
       setSyncing(false);
       await refreshPending();
+      await refreshBalances();
     }
-  }, [applySync, refreshPending]);
+  }, [applySync, refreshPending, refreshBalances]);
 
   // iOS has no Background Sync, so flush on every foreground signal instead.
   useEffect(() => {
@@ -125,10 +174,11 @@ export default function QuickExpenseForm() {
         month: now.getMonth() + 1,
         category,
         amount: value,
+        source,
         ...(description.trim() ? { description: description.trim() } : {}),
       });
 
-      setSession((prev) => [{ amount: value, category, pending: true }, ...prev].slice(0, 8));
+      setSession((prev) => [{ amount: value, category, source, pending: true }, ...prev].slice(0, 8));
       setAmount("");
       setDescription("");
       setShowDescription(false);
@@ -147,9 +197,20 @@ export default function QuickExpenseForm() {
     } finally {
       setSaving(false);
       await refreshPending();
+      await refreshBalances();
       amountRef.current?.focus();
     }
   }
+
+  // What's left on each card right now: the server's figure for this month, less anything still
+  // waiting on this device (the server hasn't counted those yet).
+  const now = new Date();
+  const thisMonth = known && known.year === now.getFullYear() && known.month === now.getMonth() + 1;
+  const left = thisMonth ? leftAfterPending(known, pending, known.year, known.month) : null;
+  const typed = parseFloat(amount.replace(",", "."));
+  const chosenLeft = left ? (source === "BASE" ? left.base : left.extra) : null;
+  const otherLeft = left ? (source === "BASE" ? left.extra : left.base) : null;
+  const over = chosenLeft !== null && Number.isFinite(typed) && typed > 0 && typed > chosenLeft;
 
   return (
     <div className="flex flex-col gap-5">
@@ -170,6 +231,25 @@ export default function QuickExpenseForm() {
               className="w-full bg-transparent py-2 text-4xl font-bold text-gray-900 tabular-nums placeholder:text-gray-200 focus:outline-none"
             />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Pay with</p>
+          <SourcePicker size="lg" value={source} onChange={setSource}
+            left={left ? { BASE: left.base, EXTRA: left.extra } : null} />
+          {over && (
+            <p role="status" className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+              That&apos;s more than the {fmt(chosenLeft!)} left on {SOURCE_LABELS[source]}
+              {otherLeft !== null && otherLeft >= typed
+                ? <> — {SOURCE_LABELS[source === "BASE" ? "EXTRA" : "BASE"]} has {fmt(otherLeft)}.</>
+                : "."}
+            </p>
+          )}
+          {left && !fresh && known && (
+            <p className="px-1 text-xs text-gray-400">
+              Balances as of {new Date(known.at).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}, less what&apos;s waiting to upload.
+            </p>
+          )}
         </div>
 
         <fieldset>
@@ -246,7 +326,10 @@ export default function QuickExpenseForm() {
                 key={i}
                 className="flex items-center justify-between px-4 py-2.5 text-sm border-b border-gray-50 last:border-0"
               >
-                <span className="text-gray-600">{CATEGORY_LABEL.get(s.category) ?? s.category}</span>
+                <span className="flex items-center gap-2 text-gray-600">
+                  {CATEGORY_LABEL.get(s.category) ?? s.category}
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${SOURCE_TAG_CLS[s.source]}`}>{SOURCE_LABELS[s.source]}</span>
+                </span>
                 <span className="flex items-center gap-2">
                   {s.pending && <CloudOff className="h-3.5 w-3.5 text-amber-500" aria-label="Waiting to upload" />}
                   <span className="font-semibold text-gray-900 tabular-nums">{fmt(s.amount)}</span>

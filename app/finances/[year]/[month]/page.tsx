@@ -1,6 +1,6 @@
-import { db } from "@/lib/db";
-import { getCarryover } from "@/lib/finances";
+import { loadMonth } from "@/lib/finances";
 import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
+import { monthBalances } from "@/lib/fund-sources";
 import MonthNav from "@/components/finances/MonthNav";
 import BudgetSummary from "@/components/finances/BudgetSummary";
 import ExpenseSection from "@/components/finances/ExpenseSection";
@@ -21,26 +21,14 @@ export default async function FinancesMonthPage({ params }: PageProps) {
   if (!parsed) notFound();
   const { year, month } = parsed;
 
-  const [config, expenses, income, subscriptions] = await Promise.all([
-    db.financeConfig.upsert({
-      where: { id: "global" },
-      create: { id: "global", monthlyBudget: 0 },
-      update: {},
-    }),
-    db.expense.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
-    db.additionalIncome.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
-    db.subscription.findMany({ orderBy: { createdAt: "asc" } }),
-  ]);
-  const carryover = await getCarryover(year, month, config.monthlyBudget);
-
-  const subscriptionTotal = subscriptions
-    .filter((s) => isSubscriptionActiveInMonth(s, year, month))
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0) + subscriptionTotal;
-  const totalIncome = income.reduce((s, i) => s + i.amount, 0);
-  const available = config.monthlyBudget + carryover + totalIncome;
-  const remaining = available - totalExpenses;
+  const { config, expenses, income, subscriptions, carryover } = await loadMonth(year, month);
+  const active = subscriptions.filter((s) => isSubscriptionActiveInMonth(s, year, month));
+  const balances = monthBalances({
+    budget: config.monthlyBudget,
+    carryover,
+    income: income.reduce((s, i) => s + i.amount, 0),
+    charges: [...expenses, ...active],
+  });
 
   return (
     <div>
@@ -53,16 +41,10 @@ export default async function FinancesMonthPage({ params }: PageProps) {
           <Plus className="h-4 w-4" /> Quick log
         </Link>
       </div>
-      <BudgetSummary
-        budget={config.monthlyBudget}
-        carryover={carryover}
-        totalIncome={totalIncome}
-        available={available}
-        totalExpenses={totalExpenses}
-        remaining={remaining}
-      />
+      <BudgetSummary balances={balances} />
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        <ExpenseSection expenses={expenses} year={year} month={month} />
+        <ExpenseSection expenses={expenses} year={year} month={month}
+          left={{ BASE: balances.base.left, EXTRA: balances.extra.left }} />
         <div className="flex flex-col gap-6">
           <IncomeSection income={income} year={year} month={month} />
           <SubscriptionSection subscriptions={subscriptions} year={year} month={month} />

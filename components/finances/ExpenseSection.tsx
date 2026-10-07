@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus } from "lucide-react";
 import type { Expense, ExpenseCategory } from "@prisma/client";
+import type { FundSource } from "@/lib/fund-sources";
+import { useStoredSource } from "@/lib/fund-source-client";
+import { SourcePicker, SourceToggle } from "@/components/finances/SourceTag";
 
 const CATEGORIES: ExpenseCategory[] = [
   "FOOD", "BOOKS", "EDUCATION", "ENTERTAINMENT", "CLOTHING",
@@ -31,14 +34,17 @@ interface Props {
   expenses: Expense[];
   year: number;
   month: number;
+  /** What's left on each card this month, shown on the picker. */
+  left: Record<FundSource, number>;
 }
 
-export default function ExpenseSection({ expenses, year, month }: Props) {
+export default function ExpenseSection({ expenses, year, month, left }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [category, setCategory] = useState<ExpenseCategory>("FOOD");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [source, setSource] = useStoredSource();
   const [adding, setAdding] = useState(false);
 
   async function handleAdd(e: React.FormEvent) {
@@ -50,7 +56,7 @@ export default function ExpenseSection({ expenses, year, month }: Props) {
       await fetch(`/api/finances/${year}/${month}/expenses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, amount: amt, description: description || undefined }),
+        body: JSON.stringify({ category, amount: amt, description: description || undefined, source }),
       });
       setAmount("");
       setDescription("");
@@ -112,6 +118,7 @@ export default function ExpenseSection({ expenses, year, month }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
+        <SourcePicker value={source} onChange={setSource} left={left} />
       </form>
 
       {grouped.length === 0 ? (
@@ -130,9 +137,11 @@ export default function ExpenseSection({ expenses, year, month }: Props) {
                     <span className="text-gray-600 flex-1 truncate">
                       {expense.description || CATEGORY_LABELS[expense.category]}
                     </span>
+                    <SourceToggle source={expense.source} apiPath={`/api/finances/expenses/${expense.id}`} />
                     <span className="text-gray-900 font-medium ml-3">{fmt(expense.amount)}</span>
                     <button
                       onClick={() => handleDelete(expense.id)}
+                      aria-label={`Delete ${expense.description || CATEGORY_LABELS[expense.category]}`}
                       className="ml-3 text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

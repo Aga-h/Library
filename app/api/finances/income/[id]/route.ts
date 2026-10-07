@@ -9,7 +9,7 @@ async function DELETEHandler(
 ) {
   const { id } = await params;
   await db.additionalIncome.delete({ where: { id } });
-  revalidateTag("finance-stats", "max");
+  revalidateTag("finance-stats", { expire: 0 });
   return NextResponse.json({ success: true });
 }
 

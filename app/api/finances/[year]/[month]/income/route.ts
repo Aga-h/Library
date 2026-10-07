@@ -30,7 +30,7 @@ async function POSTHandler(
     data: { year, month, ...result.data, description: result.data.description ?? null },
   });
 
-  revalidateTag("finance-stats", "max");
+  revalidateTag("finance-stats", { expire: 0 });
   return NextResponse.json(income, { status: 201 });
 }
 

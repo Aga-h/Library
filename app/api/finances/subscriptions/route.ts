@@ -14,6 +14,7 @@ const createSchema = z.object({
   amount: z.number().positive(),
   startYear: z.number().int(),
   startMonth: z.number().int().min(1).max(12),
+  source: z.enum(["BASE", "EXTRA"]).optional(),
 });
 
 async function POSTHandler(request: NextRequest) {
@@ -23,7 +24,7 @@ async function POSTHandler(request: NextRequest) {
     return NextResponse.json({ error: "Validation failed", issues: result.error.issues }, { status: 400 });
   }
   const subscription = await db.subscription.create({ data: result.data });
-  revalidateTag("finance-stats", "max");
+  revalidateTag("finance-stats", { expire: 0 });
   return NextResponse.json(subscription, { status: 201 });
 }
 

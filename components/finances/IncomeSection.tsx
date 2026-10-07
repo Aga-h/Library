@@ -48,7 +48,8 @@ export default function IncomeSection({ income, year, month }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="font-semibold text-gray-900 mb-4">Additional Income</h2>
+      <h2 className="font-semibold text-gray-900 mb-1">Additional Income</h2>
+      <p className="text-xs text-gray-500 mb-4">Goes onto your Extra card.</p>
 
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-4">
         <div className="flex gap-2">

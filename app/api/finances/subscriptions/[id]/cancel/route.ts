@@ -17,7 +17,7 @@ async function POSTHandler(
     where: { id },
     data: { cancelledYear, cancelledMonth },
   });
-  revalidateTag("finance-stats", "max");
+  revalidateTag("finance-stats", { expire: 0 });
   return NextResponse.json(subscription);
 }
 

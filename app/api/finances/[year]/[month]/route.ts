@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getCarryover } from "@/lib/finances";
+import { loadMonth } from "@/lib/finances";
 import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
+import { monthBalances } from "@/lib/fund-sources";
 import { parseMonthParams } from "@/lib/month-params";
 import { withErrors } from "@/lib/api-errors";
 
@@ -15,37 +15,29 @@ async function GETHandler(
   }
   const { year, month } = parsed;
 
-  const [config, expenses, income, subscriptions] = await Promise.all([
-    db.financeConfig.upsert({
-      where: { id: "global" },
-      create: { id: "global", monthlyBudget: 0 },
-      update: {},
-    }),
-    db.expense.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
-    db.additionalIncome.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
-    db.subscription.findMany({ orderBy: { createdAt: "asc" } }),
-  ]);
-  const carryover = await getCarryover(year, month, config.monthlyBudget);
-
-  const subscriptionTotal = subscriptions
-    .filter((s) => isSubscriptionActiveInMonth(s, year, month))
-    .reduce((sum, s) => sum + s.amount, 0);
-
-  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0) + subscriptionTotal;
+  const { config, expenses, income, subscriptions, carryover } = await loadMonth(year, month);
+  const active = subscriptions.filter((s) => isSubscriptionActiveInMonth(s, year, month));
   const totalIncome = income.reduce((s, i) => s + i.amount, 0);
-  const available = config.monthlyBudget + carryover + totalIncome;
-  const remaining = available - totalExpenses;
+  const balances = monthBalances({
+    budget: config.monthlyBudget,
+    carryover,
+    income: totalIncome,
+    charges: [...expenses, ...active],
+  });
 
   return NextResponse.json({
     config: { monthlyBudget: config.monthlyBudget },
     expenses,
     income,
     subscriptions,
-    carryover,
-    totalExpenses,
+    // Kept as one number for anything reading the old shape; per pot below.
+    carryover: carryover.base + carryover.extra,
+    totalExpenses: balances.total.spent,
     totalIncome,
-    available,
-    remaining,
+    available: balances.total.available,
+    remaining: balances.total.left,
+    // What is left on each card: Base (the budget) and Extra (additional income).
+    balances,
   });
 }
 

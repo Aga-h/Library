@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Trash2, X, Plus } from "lucide-react";
 import type { Subscription } from "@prisma/client";
 import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
+import type { FundSource } from "@/lib/fund-sources";
+import { SourcePicker, SourceToggle } from "@/components/finances/SourceTag";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(n);
@@ -21,6 +23,8 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
+  // Subscriptions start on Base, the usual card for a regular bill; pick Extra if it isn't.
+  const [source, setSource] = useState<FundSource>("BASE");
   const [adding, setAdding] = useState(false);
 
   const active = subscriptions.filter((s) => isSubscriptionActiveInMonth(s, year, month));
@@ -41,6 +45,7 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
           amount: amt,
           startYear: now.getFullYear(),
           startMonth: now.getMonth() + 1,
+          source,
         }),
       });
       setName("");
@@ -94,6 +99,7 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
             Add
           </button>
         </div>
+        <SourcePicker value={source} onChange={setSource} />
       </form>
 
       {active.length === 0 && inactive.length === 0 ? (
@@ -103,6 +109,7 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
           {active.map((sub) => (
             <div key={sub.id} className="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded-lg text-sm">
               <span className="text-gray-700 flex-1 truncate font-medium">{sub.name}</span>
+              <SourceToggle source={sub.source} apiPath={`/api/finances/subscriptions/${sub.id}`} />
               <span className="text-gray-900 font-medium ml-3">{fmt(sub.amount)}</span>
               <button
                 onClick={() => handleCancel(sub.id)}
