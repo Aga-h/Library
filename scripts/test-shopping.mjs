@@ -66,6 +66,14 @@ eq(filterShops(shops, { q: "zara.com" }).map((s) => s.id), ["1"], "…and the ad
 eq(filterShops(shops, { q: "tech" }).map((s) => s.id), ["2"], "…and the category");
 eq(filterShops(shops, { q: "  " }).length, 4, "a blank search matches everything");
 eq(filterShops(shops, { q: "zara", category: "Tech" }).length, 0, "both filters apply");
+const withProducts = [
+  { ...shop("5", "Uniqlo", "Clothing"), products: [{ name: "Heattech crew neck", comment: "Warm, but pills after a month" }] },
+  { ...shop("6", "IKEA", "Home"), products: [{ name: "Kallax shelf", comment: null }] },
+];
+eq(filterShops(withProducts, { q: "heattech" }).map((s) => s.id), ["5"], "finds a shop by its product");
+eq(filterShops(withProducts, { q: "pills" }).map((s) => s.id), ["5"], "…and by what you said about it");
+eq(filterShops(withProducts, { q: "kallax" }).map((s) => s.id), ["6"], "a product with no comment still matches by name");
+eq(filterShops(withProducts, { q: "sofa" }).length, 0, "no match");
 
 // ── line codes ───────────────────────────────────────────────────────────────
 eq([...lineCodes(["Clothing", "Tech", "Gaming"])], [["Clothing", "C"], ["Tech", "T"], ["Gaming", "G"]], "first letters");

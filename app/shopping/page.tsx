@@ -13,7 +13,9 @@ export default async function ShoppingPage({
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
   const { category, q = "" } = await searchParams;
-  const shops = await db.shop.findMany();
+  const shops = await db.shop.findMany({
+    include: { products: { orderBy: { createdAt: "asc" }, select: { id: true, name: true, comment: true } } },
+  });
 
   // Codes come from the whole map, not the filtered view, so a shop keeps its station code
   // (C03) however the list is searched.

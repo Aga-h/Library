@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, Pencil } from "lucide-react";
+import { ArrowRight, ExternalLink, Plus } from "lucide-react";
 import { hostOf } from "@/lib/shopping";
 
 export interface ShopLine {
@@ -14,6 +14,7 @@ export interface ShopLine {
     url: string;
     liked: string | null;
     disliked: string | null;
+    products: { id: string; name: string; comment: string | null }[];
     /** The shop's code on its line: "C03". */
     station: string;
   }[];
@@ -56,19 +57,36 @@ export default function ShopLines({ lines }: { lines: ShopLine[] }) {
                     </div>
                     <p className="shop-host text-xs text-gray-500 truncate">{hostOf(shop.url)}</p>
                   </div>
-                  <Link href={`/shopping/${shop.id}/edit`} aria-label={`Edit ${shop.name}`}
-                    className="shop-edit p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-                    <Pencil className="w-4 h-4" />
+                  <Link href={`/shopping/${shop.id}`} aria-label={`Open ${shop.name}`}
+                    className="shop-open p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                    <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
                 {shop.liked || shop.disliked ? (
                   <div className="grid sm:grid-cols-2 gap-4 mt-3">
-                    {shop.liked && <Note kind="liked" text={shop.liked} />}
-                    {shop.disliked && <Note kind="disliked" text={shop.disliked} />}
+                    {shop.liked && <ShopNote kind="liked" text={shop.liked} />}
+                    {shop.disliked && <ShopNote kind="disliked" text={shop.disliked} />}
                   </div>
                 ) : (
                   <p className="text-xs text-gray-400 mt-2">No notes yet.</p>
                 )}
+                {shop.products.length > 0 && (
+                  <div className="shop-products mt-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Products</p>
+                    <ul className="space-y-1">
+                      {shop.products.map((p) => (
+                        <li key={p.id} className="shop-products-item text-sm line-clamp-2 break-words">
+                          <span className="font-medium text-gray-900">{p.name}</span>
+                          {p.comment && <span className="text-gray-500"> — {p.comment}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <Link href={`/shopping/${shop.id}#add-product`}
+                  className="shop-add-product inline-flex items-center gap-1 mt-3 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+                  <Plus aria-hidden className="w-3.5 h-3.5" /> Add a product
+                </Link>
               </li>
             ))}
           </ol>
@@ -78,7 +96,8 @@ export default function ShopLines({ lines }: { lines: ShopLine[] }) {
   );
 }
 
-function Note({ kind, text }: { kind: "liked" | "disliked"; text: string }) {
+/** What you liked or didn't, under its label — on the map and on the shop's page. */
+export function ShopNote({ kind, text }: { kind: "liked" | "disliked"; text: string }) {
   const liked = kind === "liked";
   return (
     <div className={`shop-note shop-note-${kind}`}>

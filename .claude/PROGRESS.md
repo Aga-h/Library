@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-07 — Shopping section built (Soft Club metro-map look; needs 029 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-07 — Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -385,13 +385,19 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
-- [ ] **Shopping: products — IN PROGRESS** (user, 2026-10-07: "keep the what I liked and what I didn't
-      section but allow me to add a product, their name and comment on that specifically"). Plan:
-      - `ShopProduct` (shopId FK cascade, name, comment) via 030 (RLS on)
-      - API `/api/shopping/[id]/products[/productId]`
-      - a shop page `/shopping/[id]` (notes, Edit, products add/edit/delete inline); the map card
-        lists its products and links "Add a product"
-      - search covers products; after add/edit the form lands on the shop page
+- [x] **Shopping: products** (user, 2026-10-07: "keep the what I liked and what I didn't section but
+      allow me to add a product, their name and comment on that specifically"):
+      - `ShopProduct` + `030-shop-products.sql` (cascade with the shop, RLS on, verified)
+      - API `/api/shopping/[id]/products[/productId]`, writes scoped to the shop
+      - shop page `/shopping/[id]`: notes + Edit + products added, edited and deleted in place
+      - map cards list products and link "add a product"; search covers products; saving a shop
+        lands on its page; deleting a shop warns how many products go with it
+      - Soft Club: products numbered 01, 02 in LED digits in the line's colour, small rings on the
+        map
+      - verified: API (refusals, cross-shop edit/delete → 404 and unchanged, 401) and a browser
+        flow (card → form, add, clear a comment, delete, search, new shop → its page, cascade
+        delete leaves 0 rows)
+      - **The user must run 030** (see Blocked)
 - [x] **Shopping section** (user, 2026-10-07: "add sites of these businesses… write what I liked,
       what I didn't… categorize them like clothing, tech etc… design with just soft club rn, acid
       later"):
@@ -422,8 +428,9 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Blocked / needs the user
 
-- **Shopping: run `029-shopping.sql`** in the Supabase SQL Editor — the Shopping pages error until
-  it has run (nothing else is affected). Additive, safe to re-run.
+- **Shopping: run `029-shopping.sql`, then `030-shop-products.sql`** in the Supabase SQL Editor —
+  the Shopping pages error until both have run (nothing else is affected). Additive, safe to re-run.
+  (029 was handed over 2026-10-07; whether it ran is unconfirmed.)
 - **Anime from MyAnimeList — in this order:**
   1. Get a Client ID: myanimelist.net (logged in) → myanimelist.net/apiconfig → Create ID. App type
      "web"; the redirect/homepage URL can be the site's address (unused); pick Non-Commercial. Copy

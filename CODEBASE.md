@@ -157,7 +157,13 @@ category as a line and every shop as a station on it (`ShopLines`). The line's c
 palette hue (`lineHue`) passed as `--line`, so each look recolours it. Each line has a letter code
 (`lineCodes`: first letter, more letters if taken), and stations are numbered along it (C01, C02).
 Codes come from the whole map, not the filtered view, so a shop keeps its code while searching.
-Filtering by category and search (name, address, category, notes) is done in memory over one query.
+Filtering by category and search (name, address, category, notes, products) is done in memory over
+one query. **Products** (`ShopProduct`: name and a comment of its own; cascade-deleted with the
+shop) sit under a shop, beside its own liked / didn't-like notes. They are managed on the shop's
+page `/shopping/[id]` (`ProductList`: add, edit and delete in place) and listed on its card on the
+map. Product writes go through `/api/shopping/[id]/products/[productId]` and are scoped to that shop
+(`where: { id, shopId }`), so a product can't be changed through another shop's address. Saving a
+new or edited shop lands on its page.
 
 **Study sessions.** A `Module` is a thing you study: a title and the one-to-three `Stat`s it
 trains. It has no hours and no place in a day — you pick one when you start a `StudySession`, and
@@ -347,7 +353,7 @@ app/
   wardrobe/…        garments and wash loads
   finances/…        month view, plus /log (installable PWA)
   study/…           sessions, modules, stats, APs, SAT vocabulary
-  shopping/…        shops by category (a metro map), new / edit
+  shopping/…        shops by category (a metro map); a shop's page with its products; new / edit
   api/…             route handlers, grouped by section
 components/<section>/   client components, one folder per section
 lib/                    rules, database access, helpers

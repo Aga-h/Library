@@ -563,10 +563,24 @@ model Shop {
   category  String
   liked     String?
   disliked  String?
+  products  ShopProduct[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([category])
+}
+
+// Something bought (or looked at) from a shop, with what you thought of that thing in particular.
+model ShopProduct {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name      String
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shopId])
 }
 
 // ─── SERIES ──────────────────────────────────────────────────────────────────

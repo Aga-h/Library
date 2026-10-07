@@ -18,3 +18,13 @@ export function isNotFound(e: unknown): boolean {
     (e as { code?: unknown }).code === "P2025"
   );
 }
+
+/** A row pointed at a parent that isn't there (P2003) — say, a shop deleted a moment earlier. */
+export function isForeignKeyViolation(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code?: unknown }).code === "P2003"
+  );
+}

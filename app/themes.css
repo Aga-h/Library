@@ -790,6 +790,54 @@ h2.text-2xl,
 [data-theme="softclub"] .shop-note-disliked > .uppercase.tracking-wide {
   color: #c25e10;
 }
+/* Products: on the map, each is a minor stop — a small ring in the line's colour; on the shop's
+ * page they are numbered down the line like a tracklist (01, 02). */
+[data-theme="softclub"] .shop-products-item::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.5rem;
+  vertical-align: 1px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--line), 0 0 5px rgb(255 255 255 / 0.9);
+}
+[data-theme="softclub"] .shop-add-product {
+  font-family: var(--theme-font-label);
+  font-weight: 400;
+  text-transform: lowercase;
+  color: var(--sc-cyan);
+}
+[data-theme="softclub"] .shop-page-line {
+  font-family: var(--theme-font-label);
+  font-weight: 400;
+  color: var(--line);
+}
+[data-theme="softclub"] .shop-page-line > span:first-child {
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--line) 70%, transparent);
+}
+[data-theme="softclub"] .shop-product-list {
+  counter-reset: sc-product;
+}
+[data-theme="softclub"] .shop-product-list > .shop-product {
+  counter-increment: sc-product;
+  position: relative;
+  padding-left: 2.6rem;
+}
+[data-theme="softclub"] .shop-product-list > .shop-product::before {
+  content: counter(sc-product, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 1.05rem;
+  font: 1.15rem/1 var(--font-dotgothic), var(--theme-font-label), monospace;
+  color: var(--line);
+}
+[data-theme="softclub"] .shop-product-name {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--sc-ink);
+}
+
 /* The category filter: each chip carries its line's colour as a lit dot. */
 [data-theme="softclub"] .shop-chip-dot {
   box-shadow: 0 0 6px 1px color-mix(in srgb, var(--line) 70%, transparent);

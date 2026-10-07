@@ -59,7 +59,9 @@ export default function ShopForm({ mode, categories, initialData }: Props) {
       setSaving(false);
       return;
     }
-    router.push("/shopping");
+    // Land on the shop's page — straight to adding its products after creating it.
+    const shop = await res.json();
+    router.push(`/shopping/${shop.id}`);
     router.refresh();
   }
 

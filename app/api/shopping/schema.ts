@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATEGORY_MAX, NAME_MAX, NOTE_MAX, cleanCategory, normaliseShopUrl } from "@/lib/shopping";
+import { CATEGORY_MAX, NAME_MAX, NOTE_MAX, PRODUCT_NAME_MAX, cleanCategory, normaliseShopUrl } from "@/lib/shopping";
 
 /** An address as typed, made a full https URL; anything that is not a web page is refused. */
 const url = z.string().transform((v, ctx) => {
@@ -28,6 +28,13 @@ export const createShopSchema = z.object({
 });
 
 export const updateShopSchema = createShopSchema.partial();
+
+export const createProductSchema = z.object({
+  name: z.string().trim().min(1, "Give the product a name").max(PRODUCT_NAME_MAX),
+  comment: note,
+});
+
+export const updateProductSchema = createProductSchema.partial();
 
 /** The first problem with a request body, worded for the form. */
 export function firstIssue(error: z.ZodError): string {

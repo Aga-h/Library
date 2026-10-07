@@ -7,6 +7,7 @@ export const DEFAULT_CATEGORIES = [
 ];
 
 export const NAME_MAX = 120;
+export const PRODUCT_NAME_MAX = 160;
 export const CATEGORY_MAX = 60;
 export const NOTE_MAX = 4000;
 
@@ -94,6 +95,8 @@ export interface ShopLike {
   category: string;
   liked: string | null;
   disliked: string | null;
+  /** The things bought there, each with its own comment. */
+  products?: readonly { name: string; comment: string | null }[];
 }
 
 /** Shops filed by category: categories A–Z, and shops A–Z within each. */
@@ -109,13 +112,16 @@ export function groupByCategory<T extends ShopLike>(shops: readonly T[]): { cate
     .map(([category, list]) => ({ category, shops: [...list].sort((a, b) => a.name.localeCompare(b.name)) }));
 }
 
-/** The shops matching a search — any of the name, address, category or notes — in one category or all. */
+/** The shops matching a search — name, address, category, notes, or a product and its comment —
+ *  in one category or all. */
 export function filterShops<T extends ShopLike>(shops: readonly T[], { q, category }: { q?: string; category?: string }): T[] {
   const needle = (q ?? "").trim().toLowerCase();
   return shops.filter((s) => {
     if (category && s.category !== category) return false;
     if (!needle) return true;
-    return [s.name, hostOf(s.url), s.category, s.liked ?? "", s.disliked ?? ""].some((f) => f.toLowerCase().includes(needle));
+    const fields = [s.name, hostOf(s.url), s.category, s.liked ?? "", s.disliked ?? ""];
+    for (const p of s.products ?? []) fields.push(p.name, p.comment ?? "");
+    return fields.some((f) => f.toLowerCase().includes(needle));
   });
 }
 
