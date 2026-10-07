@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-03 — Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-07 — Shopping section built (Soft Club metro-map look; needs 029 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -385,21 +385,22 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
-- [ ] **Shopping section — IN PROGRESS** (user, 2026-10-07: "add sites of these businesses… write
-      what I liked, what I didn't… categorize them like clothing, tech etc… design with just soft
-      club rn, acid later"). Plan:
-      - model: `Shop` (name, url, category as free text, liked, disliked) via migration 029
-        (RLS on)
-      - pages `/shopping` (grouped by category, filter chips, search), `/new`, `/[id]/edit`; API
-        `/api/shopping`
-      - pure helpers in `lib/shopping.ts` (url normalise and refuse non-http, name from domain,
-        category canonicalise, line codes) with `scripts/test-shopping.mjs`
-      - a portal tile
-      - Soft Club look: each category is a transit line, each shop a station (strip map like a
-        train door's), coded C01, C02
-      - Acid styling comes later the way Soft Club was redone. The user called
-      the first drafts soulless and wants them redone one at a time, so ask for reference images for
-      each before starting. Check every redesign in Chromium with `themeshots.mjs`, then on the LIVE CSS.
+- [x] **Shopping section** (user, 2026-10-07: "add sites of these businesses… write what I liked,
+      what I didn't… categorize them like clothing, tech etc… design with just soft club rn, acid
+      later"):
+      - `Shop` model + `029-shopping.sql` (RLS on), API `/api/shopping`, pages `/shopping`,
+        `/new` and `/[id]/edit`, and a portal tile
+      - `lib/shopping.ts` with 46 tests: https added, non-http refused, names from domains
+        (incl. com.tr / co.uk), categories filed case-insensitively, line codes and colours
+      - Soft Club look: a metro map. Categories are glowing lines with ring badges, shops are
+        lit stations coded C01, liked in lime and didn't-like in orange; on arrival the line
+        draws in and the stations light up in turn
+      - verified against local Postgres: the API (create, merge, refuse, edit, clear a note,
+        delete twice → 404, 401 without login) and the browser flow (portal → add with
+        auto-name → filed under the existing category → edit → delete)
+      - 60fps in all looks; reduced motion leaves it still
+      - **Acid styling still to do** (the user said later); for now it gets Acid's generic windows
+      - **The user must run 029 first** (see Blocked)
 - [ ] **Trigram search indexes.** Every list page searches with `contains` → `ILIKE '%q%'`,
       which no btree can serve, so each search is a full sequential scan. Needs
       `CREATE EXTENSION pg_trgm` plus a GIN index per searched column. Requires a SQL script
@@ -414,6 +415,8 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Blocked / needs the user
 
+- **Shopping: run `029-shopping.sql`** in the Supabase SQL Editor — the Shopping pages error until
+  it has run (nothing else is affected). Additive, safe to re-run.
 - **Anime from MyAnimeList — in this order:**
   1. Get a Client ID: myanimelist.net (logged in) → myanimelist.net/apiconfig → Create ID. App type
      "web"; the redirect/homepage URL can be the site's address (unused); pick Non-Commercial. Copy

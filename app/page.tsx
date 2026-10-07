@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookMarked, Shirt, Wallet, GraduationCap, ArrowRight } from "lucide-react";
+import { BookMarked, Shirt, Wallet, GraduationCap, ShoppingBag, ArrowRight } from "lucide-react";
 import ThemePicker from "@/components/ui/ThemePicker";
 
 const SECTIONS = [
@@ -37,6 +37,15 @@ const SECTIONS = [
     icon: GraduationCap,
     color: "from-sky-50 to-cyan-50 border-sky-200",
     iconColor: "text-sky-600",
+    available: true,
+  },
+  {
+    href: "/shopping",
+    label: "Shopping",
+    description: "Shops you've tried, by category — what was good and what wasn't",
+    icon: ShoppingBag,
+    color: "from-pink-50 to-rose-50 border-pink-200",
+    iconColor: "text-pink-600",
     available: true,
   },
   {

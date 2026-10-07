@@ -8,3 +8,13 @@ export function isUniqueViolation(e: unknown): boolean {
     (e as { code?: unknown }).code === "P2002"
   );
 }
+
+/** The row to update or delete wasn't there (P2025) — someone deleted it first. */
+export function isNotFound(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code?: unknown }).code === "P2025"
+  );
+}

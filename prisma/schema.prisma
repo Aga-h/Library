@@ -552,6 +552,23 @@ model Subscription {
   createdAt      DateTime @default(now())
 }
 
+// ─── SHOPPING ────────────────────────────────────────────────────────────────
+
+// A shop you have tried, filed by category, with what you liked and what you didn't.
+model Shop {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  // Free text, so any category can be made; typing an existing one in another case files with it.
+  category  String
+  liked     String?
+  disliked  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
 // ─── SERIES ──────────────────────────────────────────────────────────────────
 
 // Groups seasons of an anime. Universe is optional — a series with no universe shows on

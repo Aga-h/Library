@@ -1,6 +1,6 @@
 # MyPortal — architecture
 
-A personal hub: **Library**, **Wardrobe**, **Finances** and **Study**, behind one
+A personal hub: **Library**, **Wardrobe**, **Finances**, **Study** and **Shopping**, behind one
 password. Next.js App Router on Vercel, Prisma against Supabase Postgres, Tailwind.
 
 This file covers how the pieces fit and the conventions that hold across them. For what is done
@@ -146,6 +146,18 @@ excluded from mirroring. `normaliseTitle` drops apostrophes ("Journey's" = "Jour
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
+
+**Shopping.** `Shop`: a website, a name, a free-text `category`, and what you `liked` and
+`disliked`. A category is made by filing a shop under it. The API files a typed category with an
+existing one whatever the case ("clothing" → "Clothing", via `canonicalCategory`), so near-duplicates
+never split a line. Addresses go through `normaliseShopUrl`, which adds https when missing and
+**refuses anything that is not http(s)**, since the address becomes a link: a `javascript:` URL
+would run on click. Links open in a new tab with `noopener noreferrer`. The page draws every
+category as a line and every shop as a station on it (`ShopLines`). The line's colour is a
+palette hue (`lineHue`) passed as `--line`, so each look recolours it. Each line has a letter code
+(`lineCodes`: first letter, more letters if taken), and stations are numbered along it (C01, C02).
+Codes come from the whole map, not the filtered view, so a shop keeps its code while searching.
+Filtering by category and search (name, address, category, notes) is done in memory over one query.
 
 **Study sessions.** A `Module` is a thing you study: a title and the one-to-three `Stat`s it
 trains. It has no hours and no place in a day — you pick one when you start a `StudySession`, and
@@ -335,6 +347,7 @@ app/
   wardrobe/…        garments and wash loads
   finances/…        month view, plus /log (installable PWA)
   study/…           sessions, modules, stats, APs, SAT vocabulary
+  shopping/…        shops by category (a metro map), new / edit
   api/…             route handlers, grouped by section
 components/<section>/   client components, one folder per section
 lib/                    rules, database access, helpers
@@ -364,6 +377,7 @@ scripts/                node test scripts, graph sealing
 | `leveling.ts` | The XP curve: `level = floor(k · ln(1 + xp/30k))`, k = 10 |
 | `vocab.ts` / `vocab-service.ts` | Parsing a pasted word list, and building the test / its Prisma side |
 | `stats.ts` | The fourteen stats and their presentation |
+| `shopping.ts` / `shopping-service.ts` | Shop addresses, names from domains, categories, line codes and colours / categories in use |
 | `wash-calculator.ts` | Care labels → machine settings |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
 | `expense-queue.ts` | The offline logger's IndexedDB queue |
@@ -374,7 +388,8 @@ scripts/                node test scripts, graph sealing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
-report token, and the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+report token, the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules, and the shopping
+rules (addresses, categories, line codes). `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser
