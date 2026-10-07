@@ -385,6 +385,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
+- [ ] **Shopping: products — IN PROGRESS** (user, 2026-10-07: "keep the what I liked and what I didn't
+      section but allow me to add a product, their name and comment on that specifically"). Plan:
+      - `ShopProduct` (shopId FK cascade, name, comment) via 030 (RLS on)
+      - API `/api/shopping/[id]/products[/productId]`
+      - a shop page `/shopping/[id]` (notes, Edit, products add/edit/delete inline); the map card
+        lists its products and links "Add a product"
+      - search covers products; after add/edit the form lands on the shop page
 - [x] **Shopping section** (user, 2026-10-07: "add sites of these businesses… write what I liked,
       what I didn't… categorize them like clothing, tech etc… design with just soft club rn, acid
       later"):
