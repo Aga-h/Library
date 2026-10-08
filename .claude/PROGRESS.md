@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-07 — Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-08 — Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -385,18 +385,21 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
-- [ ] **Manga from MyAnimeList — IN PROGRESS** (user, 2026-10-08: "use the myanimelist api for manga too
-      to derive mangas books from"). Plan:
-      - `Manga.malId` (unique) via 032; pure rules in `lib/mal-manga.ts` + tests (format from
-        media_type, author/artist from roles, ongoing from status, title match and fill-blanks
-        merge)
-      - API `/api/manga/mal/{search,import,refresh}`
-      - "Add Manga" page searches MAL first: pick → import with language, mark-as-read and
-        English-title options; a hand-added manga with the same title is linked, never
-        duplicated
-      - "Check MyAnimeList" on a manga page fills totals when it finishes
-      - MAL covers shown from MAL's CDN (unoptimized), excluded from mirroring
-      - needs MAL_CLIENT_ID (same as anime)
+- [x] **Manga from MyAnimeList** (user, 2026-10-08: "use the myanimelist api for manga too to derive
+      mangas books from"):
+      - `Manga.malId` (unique) via `032-manga-mal.sql` (verified: twice, `migrate diff` empty)
+      - rules in `lib/mal-manga.ts` (38 tests): format from media type, author/artist from credit
+        roles, ongoing from publishing status, 0 = unknown count, title match, fill-blanks merge;
+        light novels/novels listed but not imported (Books)
+      - `/api/manga/mal/{search,import,refresh}`; "Add Manga" searches MAL first (To read / Read,
+        Japanese / English title, reading language); a hand-added manga with the same title is
+        linked, never duplicated; "Find on MyAnimeList" links a hand-added one from its page;
+        "Check MyAnimeList" fills final counts once a series ends
+      - covers from MAL's CDN (unoptimized), excluded from manga mirroring
+      - verified against a local MAL stand-in: API cases (link, already, add, read, ongoing,
+        manhwa, novel 400, 404, concurrent ×3 → one row, refresh after ending, 409s) and browser
+        flows (add, link yours, link from page, check) in Soft Club/Classic/Acid
+      - **needs 032 run + MAL_CLIENT_ID** (see Blocked)
 - [x] **Finances: money sources** (user, 2026-10-07: "when I am logging expenses I need to select the
       income source too, my base or extra, and it says how many TL is left in which, to see which
       card I should shop with"):
@@ -458,6 +461,8 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Blocked / needs the user
 
+- **Manga: run `032-manga-mal.sql`** in the Supabase SQL Editor NOW — the manga pages error until it
+  has run. Additive, safe to re-run. Importing also needs `MAL_CLIENT_ID` (same as anime, below).
 - **Finances: run `031-fund-source.sql`** in the Supabase SQL Editor NOW — the finance pages error
   until it has run (phone-logged expenses wait safely on the device). Additive, safe to re-run.
   Then move any past expense that was paid from extra income to Extra (tap its tag).

@@ -23,10 +23,10 @@ export function TmdbNotice({ className = "" }: { className?: string }) {
 }
 
 /** MyAnimeList's attribution: its API license asks that it be credited as the source. */
-export function MalNotice({ className = "" }: { className?: string }) {
+export function MalNotice({ className = "", kind = "Anime" }: { className?: string; kind?: "Anime" | "Manga" }) {
   return (
     <p className={`text-[11px] text-gray-400 ${className}`}>
-      Anime data from{" "}
+      {kind} data from{" "}
       <a href="https://myanimelist.net" target="_blank" rel="noreferrer" className="underline">MyAnimeList</a>,
       through the official MyAnimeList API.
     </p>

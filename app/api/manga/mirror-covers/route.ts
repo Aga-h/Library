@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 import { withErrors } from "@/lib/api-errors";
+import { MAL_IMAGE_HOST } from "@/lib/mal";
 
 const MIRROR_BATCH = 10;
 
@@ -16,10 +17,15 @@ async function POSTHandler() {
   }
 
   // Filter in SQL rather than reading the whole table and discarding all but 10 rows.
+  // MyAnimeList covers are left where they are: they are shown straight from its CDN, and the
+  // API license forbids copying or altering its content.
   const pendingWhere = {
     coverImage: { not: null },
-    NOT: { coverImage: { contains: SUPABASE_COVER_MARKER } },
-  } as const;
+    NOT: [
+      { coverImage: { contains: SUPABASE_COVER_MARKER } },
+      { coverImage: { contains: MAL_IMAGE_HOST } },
+    ],
+  };
 
   const [batch, pendingCount] = await Promise.all([
     db.manga.findMany({ where: pendingWhere, select: { id: true, coverImage: true }, take: MIRROR_BATCH }),

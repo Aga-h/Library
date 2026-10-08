@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { isMalImage } from "@/lib/mal";
 import { BookMarked, Clock } from "lucide-react";
 import { calculateMangaTime } from "@/lib/reading-time";
 import type { LanguageKey } from "@/lib/constants/languages";
@@ -27,7 +28,8 @@ export default function MangaCard({ manga }: { manga: Manga }) {
     <Link href={`/library/manga/${manga.id}`} className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 hover:shadow-md transition-all">
       <div className="relative bg-gray-100 aspect-[2/3] flex items-center justify-center overflow-hidden">
         {manga.coverImage ? (
-          <Image fill src={manga.coverImage} alt={manga.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw" />
+          <Image fill src={manga.coverImage} alt={manga.title} className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,(max-width:1280px) 25vw,20vw"
+            unoptimized={isMalImage(manga.coverImage)} />
         ) : (
           <BookMarked className="w-12 h-12 text-gray-300" />
         )}

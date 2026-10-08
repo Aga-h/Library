@@ -1,10 +1,12 @@
 // Talking to MyAnimeList's official API (v2). Server-only: it reads MAL_CLIENT_ID, which must
 // never reach a browser — the API license forbids sharing it. Pure rules live in lib/mal.ts.
 //
-// Only documented endpoints: /anime?q= (search) and /anime/{id} (one entry, with its related
-// entries). Public data needs only the Client ID, sent as X-MAL-CLIENT-ID — no user login.
+// Only documented endpoints: /anime?q= and /manga?q= (search), /anime/{id} (one entry, with its
+// related entries) and /manga/{id}. Public data needs only the Client ID, sent as X-MAL-CLIENT-ID —
+// no user login.
 
 import { byAiring, toEntry, type MalEntry } from "@/lib/mal";
+import { toManga, type MalManga } from "@/lib/mal-manga";
 
 /** Overridable so the importer can be tested against a local stand-in; production never sets it. */
 const BASE_URL = (process.env.MAL_BASE_URL ?? "https://api.myanimelist.net/v2").replace(/\/$/, "");
@@ -17,6 +19,8 @@ const CONCURRENCY = 3;
 
 const LIST_FIELDS = "id,title,main_picture,alternative_titles,start_date,media_type,num_episodes,status";
 const DETAIL_FIELDS = `${LIST_FIELDS},start_season,average_episode_duration,studios,related_anime`;
+const MANGA_FIELDS =
+  "id,title,main_picture,alternative_titles,start_date,media_type,status,num_volumes,num_chapters,authors{first_name,last_name}";
 
 export class MalError extends Error {
   constructor(message: string, readonly status: number) {
@@ -131,4 +135,18 @@ export async function walkRun(startId: number): Promise<{ entries: MalEntry[]; t
     for (const id of frontier) tried.add(id);
   }
   return { entries: [...found.values()].sort(byAiring), truncated };
+}
+
+/** Manga matching a search, in MyAnimeList's relevance order. MAL wants at least 3 letters. */
+export async function searchManga(query: string): Promise<MalManga[]> {
+  const body = await get("/manga", { q: query, limit: "15", fields: MANGA_FIELDS });
+  const rows = Array.isArray(body.data) ? (body.data as Raw[]) : [];
+  return rows.map((row) => toManga(row?.node as Raw | undefined)).filter((m): m is MalManga => m !== null);
+}
+
+/** One manga — the whole series, volumes and chapters counted inside it. */
+export async function mangaEntry(id: number): Promise<MalManga> {
+  const found = toManga(await get(`/manga/${id}`, { fields: MANGA_FIELDS }));
+  if (!found) throw new MalError("MyAnimeList sent that manga without a title.", 502);
+  return found;
 }

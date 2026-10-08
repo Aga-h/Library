@@ -347,7 +347,7 @@ export default function MalImport({
   );
 }
 
-function Toggle({ label, value, onChange, off, on }: {
+export function Toggle({ label, value, onChange, off, on }: {
   label: string; value: boolean; onChange: (v: boolean) => void; off: string; on: string;
 }) {
   return (

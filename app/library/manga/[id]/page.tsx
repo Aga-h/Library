@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { calculateMangaTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import DeleteMangaButton from "@/components/manga/DeleteMangaButton";
+import MangaMalPanel from "@/components/manga/MangaMalPanel";
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -69,6 +70,9 @@ export default async function MangaDetailPage({ params }: PageProps) {
           <DetailCell icon={<BookMarked className="w-4 h-4" />} label="Volumes" value={`${manga.volumesRead}${manga.totalVolumes ? `/${manga.totalVolumes}` : ""}`} />
           <DetailCell icon={<Clock className="w-4 h-4" />} label="Time Read" value={timeReadFormatted ?? "—"} />
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
+        </div>
+        <div className="px-8 py-4 border-t border-gray-100">
+          <MangaMalPanel mangaId={manga.id} title={manga.title} malId={manga.malId} language={manga.language as LanguageKey} />
         </div>
         {manga.notes && (
           <div className="p-8 pt-6 border-t border-gray-100">

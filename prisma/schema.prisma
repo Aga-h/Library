@@ -293,6 +293,8 @@ model Manga {
   rating        Float?
   notes         String?
   timesReread   Int         @default(0)
+  // Imported from MyAnimeList (one entry = the whole series); null when added by hand.
+  malId         Int?        @unique
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 

@@ -143,6 +143,24 @@ new seasons" (`refreshSeries`) walks again and adds only entries newer than the 
 interactive transaction stop a double tap duplicating. Posters hotlinked from cdn.myanimelist.net,
 excluded from mirroring. `normaliseTitle` drops apostrophes ("Journey's" = "Journeys").
 
+**Manga from MyAnimeList.** Same API and Client ID (`/manga?q=`, `/manga/{id}` with
+`authors{first_name,last_name}`). On MAL a manga is one entry for the whole series, so there is no
+run to walk: one entry, one row, linked by `Manga.malId` (unique, 032). "Add Manga" searches MAL
+first (`MangaMalImport`): format from `media_type` (manhwa/manhua, else manga); author from the
+Story / Story & Art credits, artist from Art when it is someone else ("Unknown" if nobody is
+credited — the column is required); MAL's 0 volumes/chapters = unknown; publishing, on hiatus or
+not yet published = `ongoing`. Publisher isn't filled (MAL gives the magazine, not the publisher).
+Options: To read / Read (finished series only — counts set to the totals, status derived as
+usual), Japanese / English title, and the reading language (starts on the library's most common
+one). Light novels and novels are listed but not imported — they belong in Books. `matchExisting`:
+MAL id, else an unlinked row whose normalised title equals any of the entry's titles → that row is
+linked instead of a duplicate; a unique-index clash from a concurrent import reads as "already".
+A hand-added manga's page has "Find on MyAnimeList" (links that row whatever its title); a linked
+one has "Check MyAnimeList" (`refreshManga`). Linking and checking only fill blanks and grow counts
+(`updatesFromManga`) — title, progress, rating, notes, language and publisher are never touched;
+status is re-derived so a series that just ended can complete. Covers hotlinked and excluded from
+manga mirroring, like anime.
+
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
@@ -395,6 +413,7 @@ scripts/                node test scripts, graph sealing
 | `tmdb.ts` / `tmdb-service.ts` / `tmdb-import.ts` | Reading TMDB's answers and the merge rule / the API client / landing films in the library |
 | `tmdb-tv.ts` / `tmdb-tv-import.ts` | Shows: reading seasons, `placeSeries` and `planSeasons` / landing shows as series + seasons |
 | `mal.ts` / `mal-service.ts` / `mal-import.ts` | Anime: reading entries and the merge rules / the MAL API client and run walk / landing runs as series |
+| `mal-manga.ts` / `mal-manga-import.ts` | Manga: reading MAL entries, format/credits/ongoing and the fill-blanks rules / landing, linking and checking one in the database |
 | `themes.ts` / `theme-client.ts` | The looks and the cookie that picks one / applying a look in the browser |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
@@ -413,7 +432,7 @@ scripts/                node test scripts, graph sealing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
-report token, the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules, the shopping
+report token, the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules (anime and manga), the shopping
 rules (addresses, categories, line codes), and the finance pots (carryover per source, balances). `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
