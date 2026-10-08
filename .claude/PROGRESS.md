@@ -385,6 +385,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
+- [ ] **Manga from MyAnimeList — IN PROGRESS** (user, 2026-10-08: "use the myanimelist api for manga too
+      to derive mangas books from"). Plan:
+      - `Manga.malId` (unique) via 032; pure rules in `lib/mal-manga.ts` + tests (format from
+        media_type, author/artist from roles, ongoing from status, title match and fill-blanks
+        merge)
+      - API `/api/manga/mal/{search,import,refresh}`
+      - "Add Manga" page searches MAL first: pick → import with language, mark-as-read and
+        English-title options; a hand-added manga with the same title is linked, never
+        duplicated
+      - "Check MyAnimeList" on a manga page fills totals when it finishes
+      - MAL covers shown from MAL's CDN (unoptimized), excluded from mirroring
+      - needs MAL_CLIENT_ID (same as anime)
 - [x] **Finances: money sources** (user, 2026-10-07: "when I am logging expenses I need to select the
       income source too, my base or extra, and it says how many TL is left in which, to see which
       card I should shop with"):
