@@ -1,11 +1,13 @@
 import { loadMonth } from "@/lib/finances";
 import { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 import { monthBalances } from "@/lib/fund-sources";
+import { chargesInMonth } from "@/lib/installments";
 import MonthNav from "@/components/finances/MonthNav";
 import BudgetSummary from "@/components/finances/BudgetSummary";
 import ExpenseSection from "@/components/finances/ExpenseSection";
 import IncomeSection from "@/components/finances/IncomeSection";
 import SubscriptionSection from "@/components/finances/SubscriptionSection";
+import InstallmentSection from "@/components/finances/InstallmentSection";
 import BudgetConfig from "@/components/finances/BudgetConfig";
 import { notFound } from "next/navigation";
 import { parseMonthParams } from "@/lib/month-params";
@@ -21,13 +23,13 @@ export default async function FinancesMonthPage({ params }: PageProps) {
   if (!parsed) notFound();
   const { year, month } = parsed;
 
-  const { config, expenses, income, subscriptions, carryover } = await loadMonth(year, month);
+  const { config, expenses, income, subscriptions, installments, carryover } = await loadMonth(year, month);
   const active = subscriptions.filter((s) => isSubscriptionActiveInMonth(s, year, month));
   const balances = monthBalances({
     budget: config.monthlyBudget,
     carryover,
     income: income.reduce((s, i) => s + i.amount, 0),
-    charges: [...expenses, ...active],
+    charges: [...expenses, ...active, ...chargesInMonth(installments, year, month)],
   });
 
   return (
@@ -48,6 +50,7 @@ export default async function FinancesMonthPage({ params }: PageProps) {
         <div className="flex flex-col gap-6">
           <IncomeSection income={income} year={year} month={month} />
           <SubscriptionSection subscriptions={subscriptions} year={year} month={month} />
+          <InstallmentSection key={`${year}-${month}`} installments={installments} year={year} month={month} />
           <BudgetConfig currentBudget={config.monthlyBudget} />
         </div>
       </div>

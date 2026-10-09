@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-08 — Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-09 — Finances: installment purchases (needs 033 run); Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -385,17 +385,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
-- [ ] **Finances: installment purchases — IN PROGRESS** (user, 2026-10-09: "like subscriptions but for
-      a limited time as there are limited installments"). Plan:
-      - `Installment` model (name, total, count, first year/month, source) via `033-installments.sql`
-        (creates FundSource too if 031 hasn't run)
-      - pure rules in `lib/installments.ts` + tests: per-month amounts in kuruş, rounding
-        difference on the first one, so they always add up to the total; which installment a month
-        is; paid / left
-      - counted in carryover, month balances, the month API (quick log's "left on each card")
-      - month page "Installments" section: name, k of N, this month's amount, progress, card tag,
-        delete (confirm: it rewrites past months); add form with total or per-installment amount,
-        count, first month, card; upcoming and paid-off ones listed apart
+- [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
+      as there are limited installments"):
+      - `Installment` via `033-installments.sql` (verified twice + on a DB without 031)
+      - `lib/installments.ts` (33 tests): split to the kuruş, rounding on the first, always adds up
+      - counted in carryover, month balances and the month API (so quick log's card balances too)
+      - month page "Installments": k/N, this month's share, progress, left + last month, card tag,
+        delete with confirm; upcoming "from <month>"; paid off folded away; add form with
+        Total/Each, count 2–60, first month 36 back–3 ahead, preview "N × X · until <month>"
+      - verified: balances in 5 months match hand-worked deltas to the kuruş (incl. a 333,34
+        first installment and an Extra plan running the card negative), move card, delete, 404s,
+        7 validation cases; browser flow; Soft Club/Classic/Acid + 390px
+      - **needs 033 run** (see Blocked)
 - [x] **Manga from MyAnimeList** (user, 2026-10-08: "use the myanimelist api for manga too to derive
       mangas books from"):
       - `Manga.malId` (unique) via `032-manga-mal.sql` (verified: twice, `migrate diff` empty)
@@ -472,6 +473,8 @@ deleted; `main` is the GitHub default and what Vercel deploys.
 
 ## Blocked / needs the user
 
+- **Finances: run `033-installments.sql`** in the Supabase SQL Editor NOW — the finance pages error
+  until it has run. Additive, safe to re-run; works before or after 031 (run 031 too).
 - **Manga: run `032-manga-mal.sql`** in the Supabase SQL Editor NOW — the manga pages error until it
   has run. Additive, safe to re-run. Importing also needs `MAL_CLIENT_ID` (same as anime, below).
 - **Finances: run `031-fund-source.sql`** in the Supabase SQL Editor NOW — the finance pages error

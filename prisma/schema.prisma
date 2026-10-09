@@ -557,6 +557,21 @@ model Subscription {
   createdAt      DateTime @default(now())
 }
 
+// A purchase paid in a fixed number of monthly installments (taksit) — a subscription that ends by
+// itself. The price is stored; each month's share is derived (lib/installments.ts), to the kuruş,
+// so the installments always add up to it.
+model Installment {
+  id         String     @id @default(cuid())
+  name       String
+  total      Float
+  // How many monthly installments, the first in startYear/startMonth.
+  count      Int
+  startYear  Int
+  startMonth Int
+  source     FundSource @default(BASE)
+  createdAt  DateTime   @default(now())
+}
+
 // The two pots money is spent from, like two cards: the monthly budget, and additional income.
 enum FundSource {
   BASE

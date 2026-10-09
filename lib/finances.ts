@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { compareMonths, padKey, isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 import { emptyFlow, rollCarryover, type MonthFlow, type SourceSplit } from "@/lib/fund-sources";
+import { schedule } from "@/lib/installments";
 
 export { isSubscriptionActiveInMonth } from "@/lib/finances-utils";
 
@@ -24,10 +25,11 @@ export async function computeCarryover(
       { year: targetYear, month: { lt: targetMonth } },
     ],
   };
-  const [expenseGroups, incomeGroups, subscriptions] = await Promise.all([
+  const [expenseGroups, incomeGroups, subscriptions, installments] = await Promise.all([
     db.expense.groupBy({ by: ["year", "month", "source"], _sum: { amount: true }, where: before }),
     db.additionalIncome.groupBy({ by: ["year", "month"], _sum: { amount: true }, where: before }),
     db.subscription.findMany(),
+    db.installment.findMany(),
   ]);
 
   const monthMap = new Map<string, MonthFlow>();
@@ -49,6 +51,14 @@ export async function computeCarryover(
       flowOf(y, m).spent[sub.source] += sub.amount;
       m++;
       if (m > 12) { m = 1; y++; }
+    }
+  }
+
+  // Each installment lands in its own month, until the last.
+  for (const plan of installments) {
+    for (const due of schedule(plan)) {
+      if (compareMonths(due.year, due.month, targetYear, targetMonth) >= 0) break;
+      flowOf(due.year, due.month).spent[plan.source] += due.amount;
     }
   }
 
@@ -81,7 +91,7 @@ export function getCarryover(year: number, month: number, budget: number): Promi
 
 /** The month's records and money per pot — shared by the month page and its API. */
 export async function loadMonth(year: number, month: number) {
-  const [config, expenses, income, subscriptions] = await Promise.all([
+  const [config, expenses, income, subscriptions, installments] = await Promise.all([
     db.financeConfig.upsert({
       where: { id: "global" },
       create: { id: "global", monthlyBudget: 0 },
@@ -90,7 +100,8 @@ export async function loadMonth(year: number, month: number) {
     db.expense.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
     db.additionalIncome.findMany({ where: { year, month }, orderBy: { createdAt: "desc" } }),
     db.subscription.findMany({ orderBy: { createdAt: "asc" } }),
+    db.installment.findMany({ orderBy: [{ startYear: "asc" }, { startMonth: "asc" }, { createdAt: "asc" }] }),
   ]);
   const carryover = await getCarryover(year, month, config.monthlyBudget);
-  return { config, expenses, income, subscriptions, carryover };
+  return { config, expenses, income, subscriptions, installments, carryover };
 }

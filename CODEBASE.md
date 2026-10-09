@@ -183,6 +183,20 @@ to an object. Writes expire the `finance-stats` tag with `{ expire: 0 }`, not `"
 serves the stale carryover once more, which showed the wrong balance right after moving or
 deleting an earlier month's expense.
 
+**Installment purchases (taksit).** `Installment` (name, `total`, `count` 2–60, first
+`startYear`/`startMonth`, `source`; 033) is a subscription that ends by itself. Only the price is
+stored. `lib/installments.ts` (tested) derives each month's share in kuruş, with the rounding
+difference on the first, as banks do: 1.000 ₺ in 3 is 333,34 + 333,33 + 333,33. So the
+installments always add up to the price. `schedule` feeds `computeCarryover`, and `chargesInMonth`
+adds this month's installments to the month page's and the month API's charges, so the
+quick log's "left on each card" includes them. On the month page, the "Installments" section
+shows each purchase being paid with k/N, this month's share, a progress bar, what's left and
+the last month. Upcoming ones show as "from <month>"; paid-off ones are folded under a
+`<details>`. The add form takes a total or a per-installment amount (`totalFromEach`), the
+count, a first month (36 back to 3 ahead, for one already being paid), and a card. The form
+previews "N × X · until <month>". Tapping the tag moves every installment, past ones too
+(`PATCH { source }`). Delete asks first, since it rewrites past months' balances.
+
 **Shopping.** `Shop`: a website, a name, a free-text `category`, and what you `liked` and
 `disliked`. A category is made by filing a shop under it. The API files a typed category with an
 existing one whatever the case ("clothing" → "Clothing", via `canonicalCategory`), so near-duplicates
@@ -424,6 +438,7 @@ scripts/                node test scripts, graph sealing
 | `wash-calculator.ts` | Care labels → machine settings |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
 | `fund-sources.ts` / `fund-source-client.ts` | The Base / Extra pots: carryover, balances, queued-expense adjustment / the remembered card |
+| `installments.ts` | Installment purchases: the per-month split to the kuruş, which installment a month is, paid / left |
 | `expense-queue.ts` | The offline logger's IndexedDB queue |
 
 ---
@@ -433,7 +448,7 @@ scripts/                node test scripts, graph sealing
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
 report token, the Comic Vine, TMDB (film and TV) and MyAnimeList merge rules (anime and manga), the shopping
-rules (addresses, categories, line codes), and the finance pots (carryover per source, balances). `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+rules (addresses, categories, line codes), the finance pots (carryover per source, balances), and installment splits. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser
