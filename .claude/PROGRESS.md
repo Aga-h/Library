@@ -385,6 +385,17 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
+- [ ] **Finances: installment purchases — IN PROGRESS** (user, 2026-10-09: "like subscriptions but for
+      a limited time as there are limited installments"). Plan:
+      - `Installment` model (name, total, count, first year/month, source) via `033-installments.sql`
+        (creates FundSource too if 031 hasn't run)
+      - pure rules in `lib/installments.ts` + tests: per-month amounts in kuruş, rounding
+        difference on the first one, so they always add up to the total; which installment a month
+        is; paid / left
+      - counted in carryover, month balances, the month API (quick log's "left on each card")
+      - month page "Installments" section: name, k of N, this month's amount, progress, card tag,
+        delete (confirm: it rewrites past months); add form with total or per-installment amount,
+        count, first month, card; upcoming and paid-off ones listed apart
 - [x] **Manga from MyAnimeList** (user, 2026-10-08: "use the myanimelist api for manga too to derive
       mangas books from"):
       - `Manga.malId` (unique) via `032-manga-mal.sql` (verified: twice, `migrate diff` empty)
