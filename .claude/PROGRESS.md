@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-09 — Finances: installment purchases (needs 033 run); Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-14 — Anime: whole-list MyAnimeList import; Finances: installment purchases (needs 033 run); Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); whole-list anime import built (/library/anime/import), waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -385,22 +385,17 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
-- [ ] **Anime: import a whole MyAnimeList list — IN PROGRESS** (user, 2026-10-14, Turkish: log every
-      anime in their list with the auto import, all watched, only complete seasons — no films,
-      OVAs, specials, recaps). I can't log into the site from here (no session; the report token
-      only reads the study review), so: a page the user runs once, logged in.
-      - sources: MyAnimeList username (official `/users/{name}/animelist?status=completed` with the
-        Client ID — unverified whether MAL allows that without OAuth, so a clear error if not),
-        or a file: the user's xlsx (copy of their MAL "Completed" page: #, title, score, type,
-        progress — no ids) or MAL's own export (.xml/.xml.gz, has ids)
-      - rules in a pure lib + tests: season = TV/ONA, ≥2 episodes, episodes ≥10 min when known;
-        everything else listed under "left out" with the reason, tickable by hand; title-only
-        rows matched via MAL search (normalised title + type + episode count)
-      - then the existing run walk groups seasons into series, and the existing import adds
-        them as watched (English titles default); already-imported ones unticked, so a re-run
-        is safe
-      - the user's file: 269 rows (135 TV, 24 ONA, 37 Movie, 26 OVA, 28 Special, 14 TV Special,
-        1 CM, 1 PV); their MAL username is in its header. Not committed.
+- [x] **Anime: import a whole MyAnimeList list** (user, 2026-10-14, Turkish: log every anime in their
+      list with the auto import, all watched, only complete seasons — no films, OVAs, specials, recaps).
+      Page `/library/anime/import` ("Import list" on the Anime page). Sources: MAL username (public
+      Completed list), MAL export .xml/.xml.gz, or an .xlsx copy of a list page — the user's file's title
+      cells link to MAL, so all 266 lines have ids (not committed). Rules in `lib/mal-list.ts` (25 tests);
+      on the user's file 153 lines pass the list rules (113 films/OVAs/specials/TV specials/single
+      episodes/ad/promo); MAL's details then also drop shorts (< 60 min in all) and airing ones.
+      Verified locally (Postgres + MAL stand-in + Chromium): film between seasons bridged into one
+      series, hand-added entry linked keeping rating/notes, re-run adds nothing, a season added later
+      joins its series, private/unknown username messages. **Needs `MAL_CLIENT_ID` + 027 (see Blocked);
+      then the user uploads their .xlsx there and presses Import.** Not yet run against real MAL.
 - [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
       as there are limited installments"):
       - `Installment` via `033-installments.sql` (verified twice + on a DB without 031)
@@ -506,6 +501,8 @@ deleted; `main` is the GitHub default and what Vercel deploys.
   2. Run `027-anime-mal.sql` **now** — the anime pages error until it runs. Additive.
   3. Optional but recommended: `028-clear-anime.sql` **before importing anything** for a clean slate
      (like TV). Skipping it keeps your entries; ones titled like MAL are matched, others duplicate.
+  4. Then Anime → **Import list** → pick the MyAnimeList_Logs.xlsx → Read the list → check the
+     preview → Import. Safe to run again.
 
 - **Network access is now Full** on the Default environment (user changed it 2026-10-01) — it
   applied to the running session immediately.

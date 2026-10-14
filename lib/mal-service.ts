@@ -2,11 +2,12 @@
 // never reach a browser — the API license forbids sharing it. Pure rules live in lib/mal.ts.
 //
 // Only documented endpoints: /anime?q= and /manga?q= (search), /anime/{id} (one entry, with its
-// related entries) and /manga/{id}. Public data needs only the Client ID, sent as X-MAL-CLIENT-ID —
-// no user login.
+// related entries), /manga/{id} and /users/{name}/animelist (a public list). Public data needs
+// only the Client ID, sent as X-MAL-CLIENT-ID — no user login.
 
 import { byAiring, toEntry, type MalEntry } from "@/lib/mal";
 import { toManga, type MalManga } from "@/lib/mal-manga";
+import { rowsFromApiList, type ListRow } from "@/lib/mal-list";
 
 /** Overridable so the importer can be tested against a local stand-in; production never sets it. */
 const BASE_URL = (process.env.MAL_BASE_URL ?? "https://api.myanimelist.net/v2").replace(/\/$/, "");
@@ -36,7 +37,11 @@ function clientId(): string {
 
 type Raw = Record<string, unknown>;
 
-async function get(path: string, params: Record<string, string>): Promise<Raw> {
+async function get(
+  path: string,
+  params: Record<string, string>,
+  { refused = "MyAnimeList refused the Client ID — check MAL_CLIENT_ID.", missing = "That isn't on MyAnimeList." } = {},
+): Promise<Raw> {
   const id = clientId();
   const url = new URL(`${BASE_URL}${path}`);
   url.search = new URLSearchParams(params).toString();
@@ -53,9 +58,9 @@ async function get(path: string, params: Record<string, string>): Promise<Raw> {
   }
 
   if (res.status === 401 || res.status === 403) {
-    throw new MalError("MyAnimeList refused the Client ID — check MAL_CLIENT_ID.", 502);
+    throw new MalError(refused, 502);
   }
-  if (res.status === 404) throw new MalError("That isn't on MyAnimeList.", 404);
+  if (res.status === 404) throw new MalError(missing, 404);
   if (res.status === 429) throw new MalError("MyAnimeList is rate-limiting requests — wait a moment and try again.", 429);
   const body = (await res.json().catch(() => null)) as Raw | null;
   if (res.status === 400) {
@@ -65,9 +70,12 @@ async function get(path: string, params: Record<string, string>): Promise<Raw> {
   return body;
 }
 
-/** Entries matching a search, in MyAnimeList's relevance order. MAL wants at least 3 letters. */
-export async function searchAnime(query: string): Promise<MalEntry[]> {
-  const body = await get("/anime", { q: query, limit: "15", fields: LIST_FIELDS });
+/**
+ * Entries matching a search, in MyAnimeList's relevance order. MAL wants at least 3 letters.
+ * `nsfw` includes the entries MAL hides from searches by default — for finding a list's lines.
+ */
+export async function searchAnime(query: string, { nsfw = false } = {}): Promise<MalEntry[]> {
+  const body = await get("/anime", { q: query, limit: "15", fields: LIST_FIELDS, ...(nsfw ? { nsfw: "true" } : {}) });
   const rows = Array.isArray(body.data) ? (body.data as Raw[]) : [];
   return rows.map((row) => toEntry(row?.node as Raw | undefined)).filter((e): e is MalEntry => e !== null);
 }
@@ -135,6 +143,29 @@ export async function walkRun(startId: number): Promise<{ entries: MalEntry[]; t
     for (const id of frontier) tried.add(id);
   }
   return { entries: [...found.values()].sort(byAiring), truncated };
+}
+
+/** How many lines one page of a user's list holds — MAL's own maximum. */
+const LIST_PAGE = 1000;
+
+/**
+ * Everything on a user's Completed list (/users/{name}/animelist), page by page. Public lists are
+ * readable with the Client ID alone; a private one is refused.
+ */
+export async function completedList(userName: string): Promise<ListRow[]> {
+  const rows: ListRow[] = [];
+  for (let offset = 0; offset < 20 * LIST_PAGE; offset += LIST_PAGE) {
+    const body = await get(`/users/${encodeURIComponent(userName)}/animelist`, {
+      status: "completed", limit: String(LIST_PAGE), offset: String(offset), nsfw: "true",
+      fields: "list_status,media_type,num_episodes,alternative_titles",
+    }, {
+      refused: "MyAnimeList won't share that list — it may be private. Use a file instead.",
+      missing: "There's no MyAnimeList user by that name.",
+    });
+    rows.push(...rowsFromApiList(body));
+    if (!(body.paging as Raw | undefined)?.next) break;
+  }
+  return rows;
 }
 
 /** Manga matching a search, in MyAnimeList's relevance order. MAL wants at least 3 letters. */

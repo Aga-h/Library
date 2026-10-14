@@ -143,6 +143,19 @@ new seasons" (`refreshSeries`) walks again and adds only entries newer than the 
 interactive transaction stop a double tap duplicating. Posters hotlinked from cdn.myanimelist.net,
 excluded from mirroring. `normaliseTitle` drops apostrophes ("Journey's" = "Journeys").
 
+**Importing a whole MyAnimeList list** (`/library/anime/import`, "Import list" on the Anime page). Reads
+a public user's Completed list (`/users/{name}/animelist`, Client ID only), MAL's own export
+(.xml/.xml.gz) or a spreadsheet copy of a list page (.xlsx, read by `lib/xlsx-lite.ts`; each title
+cell's hyperlink gives the MAL id, a line without one is found by search in `pickMatch`). Rules in
+`lib/mal-list.ts`: only complete seasons go in — TV/ONA, ≥ 2 episodes, finished airing, all watched,
+not a recap, ≥ 60 min in all (so "shorts" are out, but Saiki K.'s 120 × 4 min is a season). Films,
+OVAs, specials etc. are never even looked up; those found to fail a rule are listed and can be ticked.
+`/api/anime/mal/lookup` fetches details 15 lines a batch, then one step along each season's links
+("bridges"), and `groupSeries` joins seasons linked directly or through one bridge (a film between
+two seasons). Each series then goes through the ordinary `/api/anime/mal/import` as watched, with the
+series' seasons already in the library sent along so new ones join that series. A re-run adds nothing
+already there.
+
 **Manga from MyAnimeList.** Same API and Client ID (`/manga?q=`, `/manga/{id}` with
 `authors{first_name,last_name}`). On MAL a manga is one entry for the whole series, so there is no
 run to walk: one entry, one row, linked by `Manga.malId` (unique, 032). "Add Manga" searches MAL

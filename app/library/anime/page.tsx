@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { Plus, Tv2, Layers, Globe } from "lucide-react";
+import { Plus, Tv2, Layers, Globe, Upload } from "lucide-react";
 import { db } from "@/lib/db";
 import AnimeStats from "@/components/anime/AnimeStats";
 import AnimeCard from "@/components/anime/AnimeCard";
@@ -47,6 +47,9 @@ export default async function AnimePage({ searchParams }: PageProps) {
           </Link>
           <Link href="/library/anime/s/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Series
+          </Link>
+          <Link href="/library/anime/import" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+            <Upload className="w-4 h-4" /> Import list
           </Link>
           <Link href="/library/anime/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Anime
