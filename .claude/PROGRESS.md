@@ -405,6 +405,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - the user's file had 266 rows (135 TV, 24 ONA, 37 Movie, 26 OVA, 28 Special, 14 TV
         Special, 1 CM, 1 PV); not committed. The container was reset mid-task and the upload
         was lost with it — they'd upload it again on the page
+      - **LIVE BUG (2026-10-14, user): "after some point it errors; what was done stays, the rest needs a
+        restart from scratch"** (no screenshot; Vercel showed no runtime logs). Cause: the page retried
+        a 429 once and stopped the whole import on any 502/503; a dropped connection threw out of the
+        loop. Fixed: up to 5 tries with 5–45 s pauses on 429/5xx/connection loss, keeps going past a
+        failed series, and the result offers "Try the N not imported again" (no re-reading the list).
+        Verified with a stand-in refusing 10% of requests at random + a mid-import Stop → retry: all
+        imported, no duplicates, one series.
       - **needs MAL_CLIENT_ID + 027** (see Blocked, anime)
 - [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
       as there are limited installments"):

@@ -38,6 +38,8 @@ interface Outcome {
   already: number;
   series: number;
   problems: string[];
+  /** Seasons not imported — offered to try again, without reading the list again. */
+  failed: number[];
 }
 
 const MEDIA: Record<string, string> = {
@@ -56,13 +58,29 @@ function meta(e: MalEntry): string {
 
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Worth asking again after a pause: rate-limited, MyAnimeList or the site briefly down, timed out. */
+const PASSING = new Set([0, 429, 500, 502, 503, 504]);
+/** Pauses between tries — a long list is hundreds of requests, and MyAnimeList rate-limits them. */
+const BACKOFF = [5_000, 10_000, 20_000, 30_000, 45_000];
+
 async function getJson(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
-  // One retry after a pause when MyAnimeList is rate-limiting: a long list is many requests.
   for (let attempt = 0; ; attempt++) {
-    const res = await fetch(url, init);
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 429 && attempt === 0) { await pause(6000); continue; }
-    return { ok: res.ok, status: res.status, data };
+    let status = 0;
+    let data: Record<string, unknown> = {};
+    try {
+      const res = await fetch(url, init);
+      status = res.status;
+      data = await res.json().catch(() => ({}));
+      if (res.ok) return { ok: true, status, data };
+    } catch {
+      // The connection dropped: status 0, tried again like a timeout.
+    }
+    // 503 with a message is MyAnimeList not being set up on the site — waiting won't fix that.
+    const notSetUp = status === 503 && typeof data.error === "string" && data.error.includes("MAL_CLIENT_ID");
+    if (!PASSING.has(status) || notSetUp || attempt >= BACKOFF.length) {
+      return { ok: false, status, data: status === 0 ? { error: "Lost the connection to the site." } : data };
+    }
+    await pause(BACKOFF[attempt]);
   }
 }
 
@@ -165,7 +183,7 @@ export default function MalListImport() {
         const at = next++;
         const row = lookUp[at];
         const { ok, status, data } = await getJson(`/api/anime/mal/search?${new URLSearchParams({ q: searchQuery(row.title) })}`);
-        if (!ok && (status === 503 || status === 502)) fatal = String(data.error ?? "MyAnimeList isn't reachable");
+        if (!ok && status === 503) fatal = String(data.error ?? "MyAnimeList isn't set up on the site");
         const entry = ok ? pickEntry(row, data.entries as Entry[]) as Entry | null : null;
         if (entry) found.push({ entry, reason: leftOutReason(entry), at });
         else if (!fatal) notFound.push({ ...row, at });
@@ -196,13 +214,14 @@ export default function MalListImport() {
     });
   }
 
-  async function importChecked() {
-    const order = items.map((i) => i.entry.id).filter((id) => checked.has(id));
+  async function importChecked(only?: number[]) {
+    const wanted = new Set(only ?? checked);
+    const order = items.map((i) => i.entry.id).filter((id) => wanted.has(id));
     if (order.length === 0) return;
     setPhase("importing");
     setError(null);
     stop.current = false;
-    const result: Outcome = { added: 0, linked: 0, already: 0, series: 0, problems: [] };
+    const result: Outcome = { added: 0, linked: 0, already: 0, series: 0, problems: [], failed: [] };
     const doneIds = new Set<number>();
     const title = (id: number) => {
       const e = items.find((i) => i.entry.id === id)?.entry;
@@ -216,8 +235,10 @@ export default function MalListImport() {
 
       // Which of the ticked seasons belong with this one: its run of sequels and prequels.
       const run = await getJson(`/api/anime/mal/run?${new URLSearchParams({ id: String(id) })}`);
-      if (!run.ok && (run.status === 503 || run.status === 502)) {
-        result.problems.push(String(run.data.error ?? "MyAnimeList isn't reachable"));
+      if (!run.ok && run.status === 503) {
+        // MyAnimeList isn't set up on the site: nothing further can work.
+        result.problems.push(String(run.data.error ?? "MyAnimeList isn't set up on the site"));
+        result.failed.push(...order.filter((x) => !doneIds.has(x)));
         break;
       }
       const inRun = new Set(run.ok ? (run.data.entries as { id: number }[]).map((e) => e.id) : [id]);
@@ -230,8 +251,9 @@ export default function MalListImport() {
       });
       for (const x of group) doneIds.add(x);
       if (!res.ok) {
+        // Kept going: the rest still import, and these can be tried again from the result.
         result.problems.push(`${title(id)}: ${String(res.data.error ?? "import failed")}`);
-        if (res.status === 503) break;
+        result.failed.push(...group);
         continue;
       }
       const lines = (res.data.entries ?? []) as { outcome: string; title: string; where?: string }[];
@@ -246,7 +268,10 @@ export default function MalListImport() {
         result.problems.push(`${title(f.malId)}: ${f.reason}`);
       }
     }
-    if (stop.current) result.problems.unshift(`Stopped after ${doneIds.size} of ${order.length}. Run it again for the rest — what's in is left as it is.`);
+    if (stop.current) {
+      result.failed.push(...order.filter((x) => !doneIds.has(x)));
+      result.problems.unshift(`Stopped after ${doneIds.size} of ${order.length}.`);
+    }
     setProgress({ done: doneIds.size, total: order.length, label: "" });
     setOutcome(result);
     setPhase("done");
@@ -342,9 +367,17 @@ export default function MalListImport() {
             <ul className="text-xs list-disc pl-5 space-y-0.5">{outcome.problems.map((p, i) => <li key={i}>{p}</li>)}</ul>
           </div>
         )}
-        <Link href="/library/anime" className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700">
-          <Check className="w-4 h-4" /> See your anime
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {outcome.failed.length > 0 && (
+            <button type="button" onClick={() => importChecked(outcome.failed)}
+              className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700">
+              <Download className="w-4 h-4" /> Try the {outcome.failed.length} not imported again
+            </button>
+          )}
+          <Link href="/library/anime" className="inline-flex items-center gap-1.5 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50">
+            <Check className="w-4 h-4" /> See your anime
+          </Link>
+        </div>
       </div>
     );
   }
@@ -408,7 +441,7 @@ export default function MalListImport() {
         <button type="button" onClick={() => { setPhase("start"); setItems([]); }} className="text-xs font-semibold text-gray-500 hover:text-gray-800">
           Start over
         </button>
-        <button type="button" onClick={importChecked} disabled={checked.size === 0}
+        <button type="button" onClick={() => importChecked()} disabled={checked.size === 0}
           className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           <Download className="w-4 h-4" /> Import {checked.size} as watched
         </button>
