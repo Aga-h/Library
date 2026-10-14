@@ -143,6 +143,27 @@ new seasons" (`refreshSeries`) walks again and adds only entries newer than the 
 interactive transaction stop a double tap duplicating. Posters hotlinked from cdn.myanimelist.net,
 excluded from mirroring. `normaliseTitle` drops apostrophes ("Journey's" = "Journeys").
 
+**A whole MyAnimeList list at once** (`/library/anime/import`, linked from Add Anime;
+`MalListImport`). There are three ways in:
+- a username: `GET /api/anime/mal/list` → MAL's `/users/{name}/animelist?status=completed`, with
+  only the Client ID. Unverified whether MAL serves another user's list without OAuth; a 401/403
+  says so and points to the file.
+- a copy of the list page saved as .xlsx: titles only, no ids. It is read in the browser by
+  `lib/xlsx-lite.ts`, a ~120-line zip+XML reader on `DecompressionStream`, so no new dependency.
+- MAL's own export (.xml or .xml.gz): has ids.
+
+`lib/mal-list.ts` (tested) decides what is a season: TV, or ONA, with ≥2 episodes, and for ONA
+episodes ≥10 minutes. TV keeps short-episode seasons (Saiki K. season 1 is 120 × 5 min).
+Everything else is left out with a reason (film, OVA, special, TV special/recap, music, promo,
+web short, one-off), and is listed and tickable if MAL data is known. Title-only rows are found
+through the existing search route, 3 at a time: `pickEntry` needs an exact normalised title (main,
+English or synonym), then same type and episode count decide between same-named entries. There is
+no fuzzy guess; unmatched rows are listed as "not found". `LIST_FIELDS` now carries
+`average_episode_duration` for this. Importing walks each ticked season's run (existing run
+route) to group the ticked seasons of one show, then posts them to the existing import as
+watched. So series, matching and fill-blanks all behave as in the single import. Already-imported
+seasons start unticked, so a re-run is a no-op.
+
 **Manga from MyAnimeList.** Same API and Client ID (`/manga?q=`, `/manga/{id}` with
 `authors{first_name,last_name}`). On MAL a manga is one entry for the whole series, so there is no
 run to walk: one entry, one row, linked by `Manga.malId` (unique, 032). "Add Manga" searches MAL
@@ -427,6 +448,7 @@ scripts/                node test scripts, graph sealing
 | `tmdb.ts` / `tmdb-service.ts` / `tmdb-import.ts` | Reading TMDB's answers and the merge rule / the API client / landing films in the library |
 | `tmdb-tv.ts` / `tmdb-tv-import.ts` | Shows: reading seasons, `placeSeries` and `planSeasons` / landing shows as series + seasons |
 | `mal.ts` / `mal-service.ts` / `mal-import.ts` | Anime: reading entries and the merge rules / the MAL API client and run walk / landing runs as series |
+| `mal-list.ts` / `xlsx-lite.ts` | Whole-list import: what counts as a season, reading list files, matching title-only rows / reading an .xlsx without a dependency |
 | `mal-manga.ts` / `mal-manga-import.ts` | Manga: reading MAL entries, format/credits/ongoing and the fill-blanks rules / landing, linking and checking one in the database |
 | `themes.ts` / `theme-client.ts` | The looks and the cookie that picks one / applying a look in the browser |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
