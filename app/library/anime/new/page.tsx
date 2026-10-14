@@ -59,6 +59,9 @@ export default async function NewAnimePage({ searchParams }: PageProps) {
             episodes, episode length, studio and poster, to import as a series.
           </p>
           <MalImport universes={universeOpts.map(({ id, name }) => ({ id, name }))} initialUniverseId={null} />
+          <Link href="/library/anime/import" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 underline underline-offset-2 hover:text-gray-900">
+            Import your whole MyAnimeList list at once
+          </Link>
         </div>
       )}
       <div className="bg-white border border-gray-200 rounded-xl p-8">

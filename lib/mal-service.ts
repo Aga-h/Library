@@ -17,7 +17,8 @@ export const MAX_RUN = 40;
 /** Requests in flight at once. MyAnimeList does not publish a rate limit, so this stays gentle. */
 const CONCURRENCY = 3;
 
-const LIST_FIELDS = "id,title,main_picture,alternative_titles,start_date,media_type,num_episodes,status";
+// Episode length too: a whole-list import tells web shorts from seasons by it.
+const LIST_FIELDS = "id,title,main_picture,alternative_titles,start_date,media_type,num_episodes,status,average_episode_duration";
 const DETAIL_FIELDS = `${LIST_FIELDS},start_season,average_episode_duration,studios,related_anime`;
 const MANGA_FIELDS =
   "id,title,main_picture,alternative_titles,start_date,media_type,status,num_volumes,num_chapters,authors{first_name,last_name}";
@@ -36,7 +37,7 @@ function clientId(): string {
 
 type Raw = Record<string, unknown>;
 
-async function get(path: string, params: Record<string, string>): Promise<Raw> {
+async function get(path: string, params: Record<string, string>, refused?: string): Promise<Raw> {
   const id = clientId();
   const url = new URL(`${BASE_URL}${path}`);
   url.search = new URLSearchParams(params).toString();
@@ -53,7 +54,7 @@ async function get(path: string, params: Record<string, string>): Promise<Raw> {
   }
 
   if (res.status === 401 || res.status === 403) {
-    throw new MalError("MyAnimeList refused the Client ID — check MAL_CLIENT_ID.", 502);
+    throw new MalError(refused ?? "MyAnimeList refused the Client ID — check MAL_CLIENT_ID.", 502);
   }
   if (res.status === 404) throw new MalError("That isn't on MyAnimeList.", 404);
   if (res.status === 429) throw new MalError("MyAnimeList is rate-limiting requests — wait a moment and try again.", 429);
@@ -149,4 +150,34 @@ export async function mangaEntry(id: number): Promise<MalManga> {
   const found = toManga(await get(`/manga/${id}`, { fields: MANGA_FIELDS }));
   if (!found) throw new MalError("MyAnimeList sent that manga without a title.", 502);
   return found;
+}
+
+/** What a whole-list import needs per entry: the entry, and your score for it. */
+export interface ListedEntry {
+  entry: MalEntry;
+  score: number | null;
+}
+
+/**
+ * Everything on a user's public list with the status "completed", a thousand at a time. Only the
+ * Client ID is sent — MyAnimeList may answer that a list needs its owner signed in, or is private;
+ * then the list file is the way in.
+ */
+export async function userCompleted(user: string): Promise<ListedEntry[]> {
+  const out: ListedEntry[] = [];
+  for (let offset = 0; offset < 20_000; offset += 1000) {
+    const body = await get(
+      `/users/${encodeURIComponent(user)}/animelist`,
+      { status: "completed", limit: "1000", offset: String(offset), fields: `${LIST_FIELDS},list_status`, nsfw: "true" },
+      "MyAnimeList wouldn't share that list with the site — it may be private, or need you signed in. Upload your list file instead.",
+    );
+    const rows = Array.isArray(body.data) ? (body.data as Raw[]) : [];
+    for (const row of rows) {
+      const entry = toEntry(row?.node as Raw | undefined);
+      const score = Number((row?.list_status as Raw | undefined)?.score);
+      if (entry) out.push({ entry, score: Number.isInteger(score) && score >= 1 && score <= 10 ? score : null });
+    }
+    if (rows.length < 1000) break;
+  }
+  return out;
 }
