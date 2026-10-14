@@ -385,6 +385,22 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       - auras without blur or blend, grain without blend, melt static
       Now 60fps on all four pages; reduced motion leaves it still.
 - [ ] **Then Early Cyber, then Cyberdelia**
+- [ ] **Anime: import a whole MyAnimeList list — IN PROGRESS** (user, 2026-10-14, Turkish: log every
+      anime in their list with the auto import, all watched, only complete seasons — no films,
+      OVAs, specials, recaps). I can't log into the site from here (no session; the report token
+      only reads the study review), so: a page the user runs once, logged in.
+      - sources: MyAnimeList username (official `/users/{name}/animelist?status=completed` with the
+        Client ID — unverified whether MAL allows that without OAuth, so a clear error if not),
+        or a file: the user's xlsx (copy of their MAL "Completed" page: #, title, score, type,
+        progress — no ids) or MAL's own export (.xml/.xml.gz, has ids)
+      - rules in a pure lib + tests: season = TV/ONA, ≥2 episodes, episodes ≥10 min when known;
+        everything else listed under "left out" with the reason, tickable by hand; title-only
+        rows matched via MAL search (normalised title + type + episode count)
+      - then the existing run walk groups seasons into series, and the existing import adds
+        them as watched (English titles default); already-imported ones unticked, so a re-run
+        is safe
+      - the user's file: 269 rows (135 TV, 24 ONA, 37 Movie, 26 OVA, 28 Special, 14 TV Special,
+        1 CM, 1 PV); their MAL username is in its header. Not committed.
 - [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
       as there are limited installments"):
       - `Installment` via `033-installments.sql` (verified twice + on a DB without 031)
