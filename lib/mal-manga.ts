@@ -150,15 +150,16 @@ function upTo(read: number | null, total: number | null): number {
 
 /**
  * A new library row for a MyAnimeList manga. "Read it" only applies to a series with an end: it
- * marks every chapter and volume read. `progress` (what you're reading) sets where you are instead.
- * Status is left to deriveStatus, from these counts.
+ * marks every chapter and volume read. Otherwise `progress` — from your list — sets where you are:
+ * one you're reading, or one you finished that MyAnimeList still lists as running. Status is left
+ * to deriveStatus, from these counts.
  */
 export function rowFromManga(
   m: MalManga,
   { english, read, progress }: { english: boolean; read: boolean; progress?: MangaProgressIn | null },
 ): NewMangaRow {
   const ongoing = isOngoing(m.publishing);
-  const finishedRead = read && !ongoing && !progress;
+  const finishedRead = read && !ongoing;
   return {
     malId: m.id,
     title: titleOf(m, english),
@@ -166,8 +167,8 @@ export function rowFromManga(
     format: formatOf(m.mediaType),
     totalVolumes: m.volumes,
     totalChapters: m.chapters,
-    volumesRead: progress ? upTo(progress.volumes, m.volumes) : finishedRead ? m.volumes ?? 0 : 0,
-    chaptersRead: progress ? upTo(progress.chapters, m.chapters) : finishedRead ? m.chapters ?? 0 : 0,
+    volumesRead: finishedRead ? m.volumes ?? 0 : progress ? upTo(progress.volumes, m.volumes) : 0,
+    chaptersRead: finishedRead ? m.chapters ?? 0 : progress ? upTo(progress.chapters, m.chapters) : 0,
     ongoing,
     coverImage: m.cover,
   };

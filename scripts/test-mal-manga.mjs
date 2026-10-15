@@ -77,8 +77,12 @@ const opmRow = rowFromManga(opm, { english: false, read: true });
 eq([opmRow.ongoing, opmRow.totalChapters, opmRow.chaptersRead], [true, null, 0], "an ongoing series can't be marked finished");
 const reading = rowFromManga(opm, { english: false, read: false, progress: { chapters: 189, volumes: null } });
 eq([reading.chaptersRead, reading.volumesRead], [189, 0], "reading an ongoing one: at your chapter, no cap");
-const midway = rowFromManga(aot, { english: false, read: true, progress: { chapters: 23, volumes: 2 } });
-eq([midway.chaptersRead, midway.volumesRead], [23, 2], "progress wins over \"read\"");
+const midway = rowFromManga(aot, { english: false, read: false, progress: { chapters: 23, volumes: 2 } });
+eq([midway.chaptersRead, midway.volumesRead], [23, 2], "reading a finished series: at your chapter");
+const done = rowFromManga(aot, { english: false, read: true, progress: { chapters: 139, volumes: null } });
+eq([done.chaptersRead, done.volumesRead], [141, 34], "finished and read: every chapter, whatever your list's count");
+const doneRunning = rowFromManga(opm, { english: false, read: true, progress: { chapters: 162, volumes: 18 } });
+eq([doneRunning.chaptersRead, doneRunning.volumesRead], [162, 18], "read but MyAnimeList says running: your list's count");
 const past = rowFromManga(aot, { english: false, read: false, progress: { chapters: 500, volumes: 99 } });
 eq([past.chaptersRead, past.volumesRead], [141, 34], "never past the series' own total");
 

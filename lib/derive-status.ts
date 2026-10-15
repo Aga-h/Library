@@ -89,7 +89,10 @@ export function mangaProgress(m: {
   if (m.ongoing) {
     return { progress: chaptersRead || volumesRead, total: null };
   }
-  if (m.totalChapters != null && m.totalChapters > 0) {
+  // Counted in chapters when chapters are being logged; someone logging only volumes is counted
+  // in volumes, rather than as not started.
+  const byVolumes = chaptersRead === 0 && volumesRead > 0 && m.totalVolumes != null && m.totalVolumes > 0;
+  if (m.totalChapters != null && m.totalChapters > 0 && !byVolumes) {
     return { progress: chaptersRead, total: m.totalChapters };
   }
   if (m.totalVolumes != null && m.totalVolumes > 0) {

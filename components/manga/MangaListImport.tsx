@@ -160,10 +160,11 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
       const res = await getJson("/api/manga/mal/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Finished: fully read. Reading: at your chapter (volume), status follows from that.
+        // Finished: fully read (or, if MyAnimeList says it's still running, your list's count).
+        // Reading: at your chapter (volume). Status follows from the counts.
         body: JSON.stringify({
           malId, read: row.status !== "reading", english, language,
-          progress: row.status === "reading" ? { chapters: row.chaptersRead, volumes: row.volumesRead } : null,
+          progress: { chapters: row.chaptersRead, volumes: row.volumesRead },
         }),
       });
       if (!res.ok) {

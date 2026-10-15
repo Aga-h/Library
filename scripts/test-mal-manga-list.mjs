@@ -35,9 +35,9 @@ eq(rowsFromMangaSheet(all.rows, all.links).map((r) => [r.malId, r.title, r.media
   [114745, "Blue Lock", "unknown", "reading", 339, null],
   [145, "BECK: Mongolian Chop Squad", "unknown", "reading", 23, 2],
   [1, "I Got a Cheat Skill, Too", "unknown", "reading", 50, null],
-  [656, "Vagabond", "unknown", "completed", null, null],
-  [138673, "Look Back", "unknown", "completed", null, null],
-  [111996, "The God of High School", "unknown", "completed", null, null],
+  [656, "Vagabond", "unknown", "completed", 327, 37],
+  [138673, "Look Back", "unknown", "completed", null, 1],
+  [111996, "The God of High School", "unknown", "completed", 569, null],
 ], "All Manga page: no Type column, status stripped from titles (with or without a space), ids from the cover link, reading vs finished from Chapters, the footer ignored");
 eq([cleanMangaTitle("Bakuman。Add - More"), cleanMangaTitle("Akame ga Kill! \nAdd - More"), cleanMangaTitle("Title Not Yet PublishedAdd - More")],
   ["Bakuman。", "Akame ga Kill!", "Title"], "titles cleaned");
@@ -73,7 +73,7 @@ eq(rowsFromApiManga([
   { manga: manga({ titleEn: "Attack on Titan" }), status: "completed", chaptersRead: 139, volumesRead: 34 },
   { manga: manga({ id: 2, title: "X" }), status: "reading", chaptersRead: 12, volumesRead: null },
 ]).map((r) => [r.key, r.title, r.status, r.chaptersRead]),
-  [["mal:1", "Attack on Titan", "completed", null], ["mal:2", "X", "reading", 12]], "the API list: English title preferred, progress only for reading");
+  [["mal:1", "Attack on Titan", "completed", 139], ["mal:2", "X", "reading", 12]], "the API list: English title preferred, progress kept");
 
 // ── what comes in ────────────────────────────────────────────────────────────
 eq([

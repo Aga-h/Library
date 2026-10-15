@@ -431,6 +431,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       imported as Reading at their chapter (`progress` on /api/manga/mal/import, capped at the total);
       only on hold/dropped/planned and novels left out; username/export read progress too. Their
       file: 180 rows (93 reading, 87 completed), all with ids (not committed).
+      Also: a finished line keeps its list count, used when MAL still calls the series running; and
+      `mangaProgress` now counts in volumes when only volumes are logged (chapters 0) — before, "1 of
+      6 volumes" with a known chapter total read as not started. Verified with their real file in
+      Chromium (stand-in MAL refusing 10%): 179 added, 1 light novel reported, re-run adds nothing;
+      only the 4 "Reading" lines with nothing logged stay Plan to read.
       **Needs 032 run + `MAL_CLIENT_ID`** (see Blocked).
 - [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
       as there are limited installments"):

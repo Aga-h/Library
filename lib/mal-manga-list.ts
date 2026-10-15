@@ -19,7 +19,7 @@ export interface MangaListRow {
   mediaType: string;
   /** "completed", "reading", … — null when the list doesn't say (a copy of one list page). */
   status: string | null;
-  /** How far you are, for one you're reading; null when the list doesn't say. */
+  /** How far you are — for a finished one, its count on your list; null when the list doesn't say. */
   chaptersRead: number | null;
   volumesRead: number | null;
 }
@@ -109,13 +109,14 @@ export function rowsFromMangaSheet(rows: readonly Cell[][], links: readonly (str
     const chapters = chaptersCol >= 0 ? progressCell(rows[i][chaptersCol]) : null;
     const volumes = volumesCol >= 0 ? progressCell(rows[i][volumesCol]) : null;
     const reading = chapters?.reading ?? false;
+    // A finished line shows its whole count ("162"); kept, for a series MyAnimeList calls running.
     out.push({
       malId,
       title,
       mediaType: typeCol >= 0 ? mangaTypeKey(rows[i][typeCol]) : "unknown",
       status: chapters ? (reading ? "reading" : "completed") : null,
-      chaptersRead: reading ? chapters!.read : null,
-      volumesRead: reading ? volumes?.read ?? null : null,
+      chaptersRead: chapters?.read ?? null,
+      volumesRead: volumes?.read ?? null,
     });
   }
   return keyed(out, headerAt + 2);
@@ -166,8 +167,8 @@ export function rowsFromApiManga(entries: readonly ListedManga[]): MangaListRow[
     title: m.titleEn ?? m.title,
     mediaType: m.mediaType,
     status,
-    chaptersRead: status === "reading" ? chaptersRead : null,
-    volumesRead: status === "reading" ? volumesRead : null,
+    chaptersRead,
+    volumesRead,
   })));
 }
 

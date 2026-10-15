@@ -59,6 +59,12 @@ eq(deriveStatus(mangaProgress({ chaptersRead: 90, totalChapters: 120, volumesRea
    "READING", "manga stale volume count does not complete it");
 eq(deriveStatus(mangaProgress({ volumesRead: 12, totalVolumes: 12 }), READ_STATUS),
    "COMPLETED", "manga falls back to volumes when chapters absent");
+eq(deriveStatus(mangaProgress({ chaptersRead: 0, totalChapters: 120, volumesRead: 1, totalVolumes: 6 }), READ_STATUS),
+   "READING", "manga logged in volumes only: counted in volumes, not as not started");
+eq(deriveStatus(mangaProgress({ chaptersRead: 0, totalChapters: 120, volumesRead: 6, totalVolumes: 6 }), READ_STATUS),
+   "COMPLETED", "manga logged in volumes only: every volume read completes it");
+eq(deriveStatus(mangaProgress({ chaptersRead: 0, totalChapters: 120, volumesRead: 0, totalVolumes: 6 }), READ_STATUS),
+   "PLAN_TO_READ", "nothing logged at all: not started");
 eq(deriveStatus(mangaProgress({ chaptersRead: 40 }), READ_STATUS),
    "READING", "manga with no totals at all");
 eq(deriveStatus(mangaProgress({ chaptersRead: 500, totalChapters: 500, ongoing: true }), READ_STATUS),
