@@ -418,6 +418,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       Wardrobe headers and mains use desktop padding. Plan: a harness (local DB seeded with realistic
       data, all 90 routes at 390px in all 5 looks, automatic overflow detection) → shared shell first
       (phone nav for both sidebars, layouts, theme CSS) → per-section page fixes → re-run until clean.
+      Baseline (Soft Club, 390px): all 72 Library + 9 Study pages squeezed to a 166px main by the
+      sidebar (Study also spills to ~500px); Finances month pages 807px wide; 59/90 pages have fields
+      under 16px (iOS zoom on focus); portal/shopping/wardrobe/log mostly fine. Harness + seed live in
+      the session scratchpad only (not committed); local DB `lib_phone`.
+      - [ ] phase 1: phone nav (top bar + drawer) for Library/Study, layouts, looks; 16px fields; ui/*
+      - [ ] phase 2: per-section pages (portal/login, library ×3 groups, study, finances, shopping+wardrobe)
+      - [ ] phase 3: all 90 pages × 5 looks clean; desktop unchanged
 - [x] **Study: flashcards (Anki-style) + quick tests** (user, 2026-10-15: "aside from the full question
       tab, build a flashcard system like anki's, and smaller question pool tests beside that (the full
       question test should stay)"). Full test untouched (only links added to its header).
