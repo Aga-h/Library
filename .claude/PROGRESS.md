@@ -413,6 +413,16 @@ deleted; `main` is the GitHub default and what Vercel deploys.
         Verified with a stand-in refusing 10% of requests at random + a mid-import Stop → retry: all
         imported, no duplicates, one series.
       - **needs MAL_CLIENT_ID + 027** (see Blocked, anime)
+- [ ] **Study: flashcards (Anki-style) + quick tests — IN PROGRESS** (user, 2026-10-15: "we have the
+      full question tab, aside from that build a flashcard system like anki's, and smaller question
+      pool tests beside that (the full question test should stay)"). Plan:
+      - flashcards: one card per SAT word (front word, back all meanings), Again/Hard/Good/Easy,
+        SM-2 like Anki (learning steps 1m/10m, graduate 1d, easy 4d, ease 2.5 ±, lapse → relearn
+        10m), intervals on buttons, new/day limit, day starts 4am Europe/Istanbul; pure
+        `lib/flashcards.ts` + tests; `VocabCard` + `VocabReview` tables
+      - quick tests: `VocabRun.kind` FULL/QUICK; pool all / To Review / Ambiguous / not yet asked,
+        10–50 questions; never touches the full run (currentRun → FULL only)
+      - migration 034 (additive); pages /study/sat-vocab/flashcards and /quick; sidebar links
 - [x] **Manga: import a whole MyAnimeList list** (user, 2026-10-15: "can you make this for manga as
       well"). Page `/library/manga/import` ("Import list" on the Manga page). Sources: MAL username
       (`/users/{name}/mangalist?status=completed`), MAL's manga export (.xml/.gz), or an .xlsx copy of
