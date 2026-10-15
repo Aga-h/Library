@@ -108,6 +108,21 @@ export const OPTIONS_PER_QUESTION = 4;
  */
 export const RUN_LENGTHS = [25, 50, 100, 250] as const;
 
+/** Quick test sizes. */
+export const QUICK_SIZES = [10, 20, 30, 50] as const;
+
+/** Where a quick test's questions come from. */
+export const QUICK_POOLS = ["all", "to_review", "ambiguous", "unasked", "flashcards_missed"] as const;
+export type QuickPool = (typeof QUICK_POOLS)[number];
+
+export const QUICK_POOL_LABELS: Record<QuickPool, string> = {
+  all: "All words",
+  to_review: "Your To Review",
+  ambiguous: "Your Ambiguous",
+  unasked: "Not asked yet in the full test",
+  flashcards_missed: "Flashcards you've forgotten",
+};
+
 export interface MeaningRef {
   id: string;
   wordId: string;
@@ -123,6 +138,9 @@ export interface BuiltQuestion {
 export interface BuildOptions {
   /** How many questions to ask. Left out, it asks about every meaning in the list. */
   limit?: number;
+  /** Which meanings may be asked about — a quick test's pool. Every meaning still serves as a
+   *  wrong answer, so a small pool is not four options deep. */
+  ask?: (meaning: MeaningRef) => boolean;
   random?: () => number;
 }
 
@@ -151,9 +169,9 @@ function normalise(text: string): string {
  * `random` is injected so the shuffle can be asserted rather than hoped at.
  */
 export function buildQuestions(meanings: MeaningRef[], options: BuildOptions = {}): BuiltQuestion[] {
-  const { limit, random = Math.random } = options;
+  const { limit, ask, random = Math.random } = options;
 
-  const order = shuffle(meanings, random);
+  const order = shuffle(ask ? meanings.filter(ask) : meanings, random);
   const asked = limit === undefined ? order : order.slice(0, Math.max(0, limit));
 
   return asked.map((meaning, index) => {

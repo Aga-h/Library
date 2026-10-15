@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { ListChecks } from "lucide-react";
+import { GalleryHorizontalEnd, ListChecks, Zap } from "lucide-react";
 import { db } from "@/lib/db";
 import { currentRun } from "@/lib/vocab-service";
 import VocabTest, {
@@ -65,12 +65,26 @@ export default async function SatVocabPage() {
             and it goes to To Review by itself.
           </p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+        <Link
+          href="/study/sat-vocab/flashcards"
+          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+        >
+          <GalleryHorizontalEnd className="w-4 h-4" /> Flashcards
+        </Link>
+        <Link
+          href="/study/sat-vocab/quick"
+          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+        >
+          <Zap className="w-4 h-4" /> Quick test
+        </Link>
         <Link
           href="/study/sat-vocab/words"
           className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
         >
           <ListChecks className="w-4 h-4" /> {wordCount} word{wordCount === 1 ? "" : "s"}
         </Link>
+        </div>
       </div>
 
       {wordCount === 0 ? (

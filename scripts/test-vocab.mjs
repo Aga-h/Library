@@ -78,6 +78,13 @@ eq(questions.map((q) => q.position), [...meanings.keys()], "positions are 0..n-1
 eq([...new Set(questions.map((q) => q.meaningId))].length, meanings.length, "every meaning asked exactly once");
 
 const byId = new Map(meanings.map((m) => [m.id, m]));
+
+// A quick test asks about a pool only, but draws wrong answers from every word.
+const pooled = buildQuestions(meanings, { ask: (m) => m.id === "m4" || m.id === "m5", random: seededRng(7) });
+eq(pooled.map((q) => q.meaningId).sort(), ["m4", "m5"], "a pool: only its meanings are asked about");
+ok(pooled.every((q) => q.optionIds.length === OPTIONS_PER_QUESTION), "…each still with four options");
+ok(pooled.some((q) => q.optionIds.some((id) => !["m4", "m5"].includes(id))), "…wrong answers drawn from outside the pool");
+eq(buildQuestions(meanings, { ask: (m) => m.wordId === "w1", limit: 2, random: seededRng(3) }).length, 2, "a pool with a size: at most that many");
 for (const q of questions) {
   ok(q.optionIds.length === OPTIONS_PER_QUESTION, `question ${q.meaningId} has ${OPTIONS_PER_QUESTION} options`);
   ok(q.optionIds.includes(q.meaningId), `question ${q.meaningId} includes its own answer`);

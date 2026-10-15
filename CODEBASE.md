@@ -279,6 +279,21 @@ options. The three categories are the verdicts on the current run's questions, s
 run is what resets them. The rule that keeps the test honest: a question's distractors never
 include another sense of the same word, which would be a second correct answer.
 
+**Quick tests** (`/study/sat-vocab/quick`) are `VocabRun`s with `kind = QUICK`: up to 10–50 questions
+from one pool — all words, the full run's To Review or Ambiguous, meanings the full run hasn't asked
+yet, or words whose flashcard was forgotten (`lapses > 0`). Wrong answers still come from the whole
+list (`buildQuestions`' `ask`). `currentRun()` and the daily review only ever read `kind = FULL`, so a
+quick test never moves the full test or its three lists.
+
+**Flashcards** (`/study/sat-vocab/flashcards`): one `VocabCard` per word, made on first visit
+(`ensureCards`, new cards in a random fixed order). Scheduling is Anki's classic SM-2 with its
+defaults, pure in `lib/flashcards.ts`: learning steps 1m/10m, graduate at 1 day (Easy 4), Hard ×1.2,
+Good ×ease (half the lateness counted), Easy ×ease×1.3; Again on a review → relearn 10m, ease −0.2
+(min 1.3), interval back to 1 day. Study days start at 4am Istanbul. Queue: due learning cards, then
+reviews, then new cards (daily limits in `StudyConfig`), then learning cards due within 20 minutes.
+Each answer writes a `VocabReview` with the card as it was — for the daily counts and for Undo. An
+answer carries the card's `reps`, so a double tap is refused (counted once).
+
 **APs.** `ApCourse` and `ApUnit`, seeded from College Board CEDs. Courses sharing a `series`
 (Physics C) render as one continuously-numbered sequence. Ticking a unit stores a timestamp, so
 it doubles as "finished on".

@@ -3,7 +3,7 @@
 import type { VocabVerdict } from "@prisma/client";
 import { db } from "@/lib/db";
 import { SAT_VOCAB_LIST } from "@/lib/sat-vocab-list";
-import { buildQuestions, parseWordList } from "@/lib/vocab";
+import { buildQuestions, parseWordList, type QuickPool } from "@/lib/vocab";
 
 export interface ImportSummary {
   wordsAdded: number;
@@ -85,9 +85,11 @@ export async function importWordList(input: string): Promise<ImportSummary> {
   };
 }
 
-/** The run in progress, with everything the page needs to render it. */
+/** The full test's run in progress, with everything the page needs to render it. Quick tests are
+ *  runs too, but never this one. */
 export async function currentRun() {
   return db.vocabRun.findFirst({
+    where: { kind: "FULL" },
     orderBy: { startedAt: "desc" },
     include: {
       questions: {
@@ -159,4 +161,72 @@ export async function setVerdict(questionId: string, verdict: "DONE" | "AMBIGUOU
 
   await db.vocabQuestion.update({ where: { id: questionId }, data: { verdict } });
   return true;
+}
+
+// ─── Quick tests ─────────────────────────────────────────────────────────────
+
+/** The latest quick test, finished or not, with its questions. */
+export async function currentQuickRun() {
+  return db.vocabRun.findFirst({
+    where: { kind: "QUICK" },
+    orderBy: { startedAt: "desc" },
+    include: {
+      questions: {
+        orderBy: { position: "asc" },
+        include: { meaning: { include: { word: true } } },
+      },
+    },
+  });
+}
+
+/** The meanings a pool holds — what a quick test may ask about. */
+export async function poolMeaningIds(pool: QuickPool): Promise<Set<string> | null> {
+  if (pool === "all") return null;
+  if (pool === "flashcards_missed") {
+    const meanings = await db.vocabMeaning.findMany({
+      where: { word: { card: { lapses: { gt: 0 } } } },
+      select: { id: true },
+    });
+    return new Set(meanings.map((m) => m.id));
+  }
+  const run = await db.vocabRun.findFirst({ where: { kind: "FULL" }, orderBy: { startedAt: "desc" }, select: { id: true } });
+  if (pool === "unasked") {
+    // Everything, until a full test has been started; then what it hasn't asked yet.
+    if (!run) return null;
+    const asked = await db.vocabQuestion.findMany({
+      where: { runId: run.id, chosenId: { not: null } },
+      select: { meaningId: true },
+    });
+    const done = new Set(asked.map((q) => q.meaningId));
+    const all = await db.vocabMeaning.findMany({ select: { id: true } });
+    return new Set(all.map((m) => m.id).filter((id) => !done.has(id)));
+  }
+  if (!run) return new Set();
+  const filed = await db.vocabQuestion.findMany({
+    where: { runId: run.id, verdict: pool === "to_review" ? "TO_REVIEW" : "AMBIGUOUS" },
+    select: { meaningId: true },
+  });
+  return new Set(filed.map((q) => q.meaningId));
+}
+
+/**
+ * Starts a quick test: up to `size` questions from one pool, wrong answers from the whole list.
+ * It is a run of its own — the full test, its current run and its three lists are left alone.
+ * Null when the pool is empty.
+ */
+export async function startQuickRun(pool: QuickPool, size: number) {
+  const [meanings, allowed] = await Promise.all([
+    db.vocabMeaning.findMany({ select: { id: true, wordId: true, text: true } }),
+    poolMeaningIds(pool),
+  ]);
+  const built = buildQuestions(meanings, { limit: size, ...(allowed ? { ask: (m) => allowed.has(m.id) } : {}) });
+  if (built.length === 0) return null;
+
+  return db.$transaction(async (tx) => {
+    const run = await tx.vocabRun.create({ data: { kind: "QUICK", pool } });
+    await tx.vocabQuestion.createMany({
+      data: built.map((q) => ({ runId: run.id, meaningId: q.meaningId, position: q.position, optionIds: q.optionIds })),
+    });
+    return run;
+  });
 }

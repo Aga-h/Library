@@ -546,7 +546,7 @@ enum ExpenseCategory {
 }
 
 model Subscription {
-  id             String   @id @default(cuid())
+  id             String     @id @default(cuid())
   name           String
   amount         Float
   startYear      Int
@@ -554,7 +554,7 @@ model Subscription {
   cancelledYear  Int?
   cancelledMonth Int?
   source         FundSource @default(BASE)
-  createdAt      DateTime @default(now())
+  createdAt      DateTime   @default(now())
 }
 
 // A purchase paid in a fixed number of monthly installments (taksit) — a subscription that ends by
@@ -582,7 +582,7 @@ enum FundSource {
 
 // A shop you have tried, filed by category, with what you liked and what you didn't.
 model Shop {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
   url       String
   // Free text, so any category can be made; typing an existing one in another case files with it.
@@ -590,8 +590,8 @@ model Shop {
   liked     String?
   disliked  String?
   products  ShopProduct[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([category])
 }
@@ -727,10 +727,13 @@ model XpAward {
 
 /// Study settings that are not about any one module. A single row, like FinanceConfig.
 model StudyConfig {
-  id                String   @id @default("global")
+  id                 String   @id @default("global")
   /// Total hours a week you mean to study, across every module and free study. In minutes.
-  weeklyGoalMinutes Int?
-  updatedAt         DateTime @updatedAt
+  weeklyGoalMinutes  Int?
+  /// Flashcards: new cards introduced a day, and reviews a day at most.
+  flashNewPerDay     Int      @default(20)
+  flashReviewsPerDay Int      @default(200)
+  updatedAt          DateTime @updatedAt
 }
 
 /// One sitting of study. With a module, it trains that module's stats; without one, three stats
@@ -826,6 +829,7 @@ model VocabWord {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   meanings  VocabMeaning[]
+  card      VocabCard?
 
   @@index([word])
 }
@@ -846,15 +850,25 @@ model VocabMeaning {
   @@index([wordId])
 }
 
-/// One sitting of the test. Starting a new run is what resets the three categories: they are
-/// just the verdicts on the current run's questions.
+/// One sitting of the test. Starting a new full run is what resets the three categories: they
+/// are just the verdicts on the current full run's questions. A quick test is a run too, but
+/// never the current one — it leaves the full test and its categories alone.
 model VocabRun {
   id         String          @id @default(cuid())
+  kind       VocabRunKind    @default(FULL)
+  /// For a quick test: the pool its questions came from ("all", "to_review", …).
+  pool       String?
   startedAt  DateTime        @default(now())
   finishedAt DateTime?
   questions  VocabQuestion[]
 
   @@index([startedAt])
+  @@index([kind, startedAt])
+}
+
+enum VocabRunKind {
+  FULL
+  QUICK
 }
 
 model VocabQuestion {
@@ -883,4 +897,57 @@ enum VocabVerdict {
   DONE
   AMBIGUOUS
   TO_REVIEW
+}
+
+// ─── STUDY: FLASHCARDS ───────────────────────────────────────────────────────
+
+/// A word's flashcard: the word on the front, its meanings on the back, scheduled like Anki
+/// (lib/flashcards.ts). Made for every word the first time the flashcards are opened.
+model VocabCard {
+  id             String         @id @default(cuid())
+  wordId         String         @unique
+  word           VocabWord      @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  state          VocabCardState @default(NEW)
+  /// Which learning (or relearning) step it is on.
+  step           Int            @default(0)
+  /// Days until the next review, once it has graduated.
+  interval       Int            @default(0)
+  /// How much the interval grows on Good — 2.5 to start, lower each time it is forgotten.
+  ease           Float          @default(2.5)
+  due            DateTime       @default(now())
+  reps           Int            @default(0)
+  lapses         Int            @default(0)
+  /// The order new cards are introduced in — random, fixed when the card is made.
+  newOrder       Int            @default(0)
+  lastReviewedAt DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  reviews        VocabReview[]
+
+  @@index([state, due])
+}
+
+enum VocabCardState {
+  NEW
+  LEARNING
+  REVIEW
+  RELEARNING
+}
+
+/// One answer to a flashcard. Counts today's new cards and reviews against the daily limits, and
+/// holds the card as it was before, so the last answer can be undone.
+model VocabReview {
+  id          String         @id @default(cuid())
+  cardId      String
+  card        VocabCard      @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  /// 1 Again, 2 Hard, 3 Good, 4 Easy.
+  rating      Int
+  /// The card's state before this answer — NEW marks a card introduced.
+  stateBefore VocabCardState
+  /// The card's scheduling fields before this answer, to undo it.
+  before      Json
+  reviewedAt  DateTime       @default(now())
+
+  @@index([reviewedAt])
+  @@index([cardId])
 }

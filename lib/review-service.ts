@@ -60,6 +60,7 @@ export async function dailyReview(date: DateKey, now: Date = new Date()): Promis
         orderBy: { answeredAt: "asc" },
       }),
       db.vocabRun.findFirst({
+        where: { kind: "FULL" },
         orderBy: { startedAt: "desc" },
         select: { _count: { select: { questions: true } }, id: true },
       }),

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemePicker from "@/components/ui/ThemePicker";
-import { ArrowLeft, BookA, ClipboardList, GraduationCap, Layers, ListChecks, Timer, TrendingUp } from "lucide-react";
+import { ArrowLeft, BookA, ClipboardList, GalleryHorizontalEnd, GraduationCap, Layers, ListChecks, Timer, TrendingUp, Zap } from "lucide-react";
 
 const SESSION_ITEMS = [
   { href: "/study", label: "Study", icon: Timer, exact: true },
@@ -15,6 +15,8 @@ const SESSION_ITEMS = [
 
 const VOCAB_ITEMS = [
   { href: "/study/sat-vocab", label: "SAT Vocabulary", icon: BookA, exact: true },
+  { href: "/study/sat-vocab/flashcards", label: "Flashcards", icon: GalleryHorizontalEnd },
+  { href: "/study/sat-vocab/quick", label: "Quick test", icon: Zap },
   { href: "/study/sat-vocab/words", label: "Word list", icon: ListChecks },
 ];
 
