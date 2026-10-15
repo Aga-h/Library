@@ -75,6 +75,12 @@ eq([readRow.volumesRead, readRow.chaptersRead], [34, 141], "read: every volume a
 const opm = toManga(raw({ id: 44347, title: "One Punch-Man", status: "currently_publishing", num_volumes: 0, num_chapters: 0 }));
 const opmRow = rowFromManga(opm, { english: false, read: true });
 eq([opmRow.ongoing, opmRow.totalChapters, opmRow.chaptersRead], [true, null, 0], "an ongoing series can't be marked finished");
+const reading = rowFromManga(opm, { english: false, read: false, progress: { chapters: 189, volumes: null } });
+eq([reading.chaptersRead, reading.volumesRead], [189, 0], "reading an ongoing one: at your chapter, no cap");
+const midway = rowFromManga(aot, { english: false, read: true, progress: { chapters: 23, volumes: 2 } });
+eq([midway.chaptersRead, midway.volumesRead], [23, 2], "progress wins over \"read\"");
+const past = rowFromManga(aot, { english: false, read: false, progress: { chapters: 500, volumes: 99 } });
+eq([past.chaptersRead, past.volumesRead], [141, 34], "never past the series' own total");
 
 // ── already in the library ───────────────────────────────────────────────────
 const library = [

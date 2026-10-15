@@ -5,7 +5,6 @@
 //
 // Pure, so the tests exercise every rule without a network or a database.
 
-import { cleanTitle } from "@/lib/mal-list";
 import { NOVEL_MEDIA, type MalManga } from "@/lib/mal-manga";
 import { normaliseTitle } from "@/lib/tmdb";
 import { decodeXml, type Cell } from "@/lib/xlsx-lite";
@@ -20,6 +19,9 @@ export interface MangaListRow {
   mediaType: string;
   /** "completed", "reading", … — null when the list doesn't say (a copy of one list page). */
   status: string | null;
+  /** How far you are, for one you're reading; null when the list doesn't say. */
+  chaptersRead: number | null;
+  volumesRead: number | null;
 }
 
 /** "Light Novel" → "light_novel", "One-shot" → "one_shot". */
@@ -53,27 +55,67 @@ function keyed(rows: Omit<MangaListRow, "key">[], firstRow = 1): MangaListRow[] 
 }
 
 /**
- * Rows from a copy of a MyAnimeList manga list page: the header row has "Manga Title" (or just
- * "Title") and "Type"; each title cell links to the manga's page, which gives its id.
+ * A list page's title cell, cleaned: it also holds the "Add - More" (or "Edit - More") links and,
+ * for a series not finished, its publishing state — "Blue Lock PublishingAdd - More" → "Blue Lock".
+ */
+export function cleanMangaTitle(value: unknown): string {
+  return String(value ?? "").split("\n")[0]
+    .replace(/\s*(Add|Edit)\s*-\s*More\s*$/i, "")
+    .replace(/\s*(Publishing|On Hiatus|Discontinued|Not Yet Published)$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function countOf(value: string | undefined): number | null {
+  const n = Number(value?.trim());
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+/**
+ * A list page's Chapters (or Volumes) cell. On an "All Manga" page a line you're reading shows
+ * "read / total" ("189 / -") and a finished one just its count ("162", or "-" for a one-shot).
+ */
+export function progressCell(value: Cell | undefined): { read: number | null; reading: boolean } {
+  const text = String(value ?? "").trim();
+  if (text.includes("/")) return { read: countOf(text.split("/")[0]), reading: true };
+  return { read: countOf(text), reading: false };
+}
+
+/**
+ * Rows from a copy of a MyAnimeList manga list page — its Completed tab or "All Manga". The header
+ * row has "Manga Title" (or just "Title"); "Type" is there on some layouts and not others. Each
+ * title links to the manga's page, which gives its id. Where there is a Chapters column, "read /
+ * total" marks one you're reading, at that chapter; a plain count, one you finished.
  */
 export function rowsFromMangaSheet(rows: readonly Cell[][], links: readonly (string | null)[][] = []): MangaListRow[] {
   const norm = (c: Cell | undefined) => String(c ?? "").trim().toLowerCase();
-  const headerAt = rows.findIndex((r) => r.some((c) => /title$/.test(norm(c))) && r.some((c) => norm(c) === "type"));
+  const headerAt = rows.findIndex((r) => r.some((c) => norm(c) === "manga title" || norm(c) === "title"));
   if (headerAt < 0) return [];
   const header = rows[headerAt].map(norm);
   const titleCol = header.findIndex((h) => h === "manga title" || h === "title");
   const typeCol = header.indexOf("type");
-  if (titleCol < 0) return [];
+  const chaptersCol = header.indexOf("chapters");
+  const volumesCol = header.indexOf("volumes");
 
   const out: Omit<MangaListRow, "key">[] = [];
   for (let i = headerAt + 1; i < rows.length; i++) {
-    const title = cleanTitle(rows[i][titleCol]);
+    const title = cleanMangaTitle(rows[i][titleCol]);
+    // The page's footer ("MyAnimeList.net is a property of…") sits in the first column, not here.
     if (!title) continue;
+    // The id: the title's link, else any cell holding the manga's address (the cover's link).
+    const malId = mangaIdFromLink(links[i]?.[titleCol])
+      ?? rows[i].map((c) => mangaIdFromLink(typeof c === "string" ? c : null)).find((id) => id !== null)
+      ?? null;
+    const chapters = chaptersCol >= 0 ? progressCell(rows[i][chaptersCol]) : null;
+    const volumes = volumesCol >= 0 ? progressCell(rows[i][volumesCol]) : null;
+    const reading = chapters?.reading ?? false;
     out.push({
-      malId: mangaIdFromLink(links[i]?.[titleCol]),
+      malId,
       title,
-      mediaType: mangaTypeKey(rows[i][typeCol]),
-      status: null,
+      mediaType: typeCol >= 0 ? mangaTypeKey(rows[i][typeCol]) : "unknown",
+      status: chapters ? (reading ? "reading" : "completed") : null,
+      chaptersRead: reading ? chapters!.read : null,
+      volumesRead: reading ? volumes?.read ?? null : null,
     });
   }
   return keyed(out, headerAt + 2);
@@ -97,6 +139,8 @@ export function rowsFromMangaExport(xml: string): MangaListRow[] {
       // The export doesn't say what kind each one is; MyAnimeList's details do, at import.
       mediaType: "unknown",
       status: tag(m[1], "my_status").toLowerCase().replace(/\s+/g, "_") || null,
+      chaptersRead: Number(tag(m[1], "my_read_chapters")) || null,
+      volumesRead: Number(tag(m[1], "my_read_volumes")) || null,
     });
   }
   return keyed(out);
@@ -107,30 +151,41 @@ export function isAnimeExport(xml: string): boolean {
   return /<anime>/.test(xml) && !/<manga>/.test(xml);
 }
 
-/** Rows from the API's completed manga list (lib/mal-service.ts userCompletedManga). */
-export function rowsFromApiManga(entries: readonly MalManga[]): MangaListRow[] {
-  return keyed(entries.map((m) => ({
+/** A line of the API's manga list: the manga, and your status and progress on it. */
+export interface ListedManga {
+  manga: MalManga;
+  status: string | null;
+  chaptersRead: number | null;
+  volumesRead: number | null;
+}
+
+/** Rows from the API's manga list (lib/mal-service.ts userMangaList). */
+export function rowsFromApiManga(entries: readonly ListedManga[]): MangaListRow[] {
+  return keyed(entries.map(({ manga: m, status, chaptersRead, volumesRead }) => ({
     malId: m.id,
     title: m.titleEn ?? m.title,
     mediaType: m.mediaType,
-    status: "completed",
+    status,
+    chaptersRead: status === "reading" ? chaptersRead : null,
+    volumesRead: status === "reading" ? volumesRead : null,
   })));
 }
 
-export type MangaLeftOut = "novel" | "not_completed";
+export type MangaLeftOut = "novel" | "not_started";
 
 export const MANGA_LEFT_OUT_LABELS: Record<MangaLeftOut, string> = {
   novel: "Light novels and novels — they belong under Books",
-  not_completed: "Not on your Completed list",
+  not_started: "On hold, dropped or plan to read",
 };
 
 /**
- * Why a line isn't imported, or null when it is: novels go under Books, and only what you have
- * finished is logged as read. Everything else — manga, manhwa, manhua, one-shots — comes in.
+ * Why a line isn't imported, or null when it is: novels go under Books; what you finished comes in
+ * as read and what you're reading at your chapter — anything else (on hold, dropped, planned) stays
+ * out. Manga, manhwa, manhua and one-shots all come in.
  */
 export function mangaLeftOut(row: Pick<MangaListRow, "mediaType" | "status">): MangaLeftOut | null {
   if (NOVEL_MEDIA.has(row.mediaType)) return "novel";
-  if (row.status !== null && row.status !== "completed") return "not_completed";
+  if (row.status !== null && row.status !== "completed" && row.status !== "reading") return "not_started";
   return null;
 }
 

@@ -49,9 +49,10 @@ async function rowsFromFile(file: File): Promise<MangaListRow[]> {
 }
 
 /**
- * Import a whole MyAnimeList manga list in one go: everything you finished, as read. Light novels
- * and novels are left out (they go under Books), as is anything not on your Completed list. Each
- * manga goes through the ordinary import, so running it again only adds what is new.
+ * Import a whole MyAnimeList manga list in one go: what you finished as read, what you're reading at
+ * your chapter. Light novels and novels are left out (they go under Books), as is anything on hold,
+ * dropped or planned. Each manga goes through the ordinary import, so running it again only adds
+ * what is new.
  */
 export default function MangaListImport({ defaultLanguage }: { defaultLanguage: LanguageKey }) {
   const [user, setUser] = useState("");
@@ -159,7 +160,11 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
       const res = await getJson("/api/manga/mal/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ malId, read: true, english, language }),
+        // Finished: fully read. Reading: at your chapter (volume), status follows from that.
+        body: JSON.stringify({
+          malId, read: row.status !== "reading", english, language,
+          progress: row.status === "reading" ? { chapters: row.chaptersRead, volumes: row.volumesRead } : null,
+        }),
       });
       if (!res.ok) {
         result.problems.push(`${row.title}: ${String(res.data.error ?? "import failed")}`);
@@ -200,7 +205,7 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
               <User className="w-4 h-4" /> Load list
             </button>
           </div>
-          <p className="text-[11px] text-gray-500">Reads your public list&apos;s Completed manga through MyAnimeList&apos;s API.</p>
+          <p className="text-[11px] text-gray-500">Reads your public list&apos;s Completed and Reading manga through MyAnimeList&apos;s API.</p>
         </form>
         <div className="space-y-2">
           <span className="block text-xs font-semibold text-gray-500">Or upload your list</span>
@@ -210,8 +215,8 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
               onChange={(e) => { const f = e.target.files?.[0]; if (f) loadFile(f); e.target.value = ""; }} />
           </label>
           <p className="text-[11px] text-gray-500">
-            A copy of your Completed manga list page saved as .xlsx, or MyAnimeList&apos;s own manga export
-            (.xml or .xml.gz, from your profile&apos;s Export).
+            A copy of your manga list page saved as .xlsx (&ldquo;All Manga&rdquo; or Completed), or MyAnimeList&apos;s
+            own manga export (.xml or .xml.gz, from your profile&apos;s Export).
           </p>
         </div>
         {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
@@ -250,7 +255,7 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900">
           <p className="font-semibold">
             {[
-              `${outcome.added} added as read`,
+              `${outcome.added} added`,
               outcome.linked && `${outcome.linked} matched to ones you'd added by hand`,
               outcome.already && `${outcome.already} already there`,
             ].filter(Boolean).join(" · ")}
@@ -290,7 +295,9 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
     <div className="space-y-4">
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between gap-3 px-3 py-2.5 bg-gray-50 border-b border-gray-200 text-xs">
-          <span className="font-semibold text-gray-600">{checked.size} of {coming.length} to import as read</span>
+          <span className="font-semibold text-gray-600">
+            {checked.size} of {coming.length} to import — {coming.filter((r) => r.status !== "reading").length} read, {coming.filter((r) => r.status === "reading").length} reading
+          </span>
           <span className="flex gap-3">
             <button type="button" onClick={() => setChecked(new Set(coming.map((r) => r.key)))} className="font-semibold text-gray-600 hover:text-gray-900">All</button>
             <button type="button" onClick={() => setChecked(new Set())} className="font-semibold text-gray-600 hover:text-gray-900">None</button>
@@ -307,7 +314,11 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold text-gray-900 truncate">{r.title}</span>
                     <span className="block text-xs text-gray-500">
-                      {[TYPE_LABELS[r.mediaType], r.malId === null && "found by its title when imported"].filter(Boolean).join(" · ")}
+                      {[
+                        TYPE_LABELS[r.mediaType],
+                        r.status === "reading" ? `Reading${r.chaptersRead ? ` · ch. ${r.chaptersRead}` : ""}${r.volumesRead ? ` · vol. ${r.volumesRead}` : ""}` : "Read",
+                        r.malId === null && "found by its title when imported",
+                      ].filter(Boolean).join(" · ")}
                     </span>
                   </span>
                   {inLibrary && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">In your library</span>}
@@ -318,12 +329,12 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
         </ul>
         <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between gap-3">
           <p className="text-[11px] text-gray-500">
-            Each comes in with its author, artist, counts and cover, every chapter read. Ones you have keep what you set.
+            Each comes in with its author, artist, counts and cover — finished ones fully read, ones you&apos;re reading at your chapter. Ones you have keep what you set.
             {titleOnly > 0 && ` ${titleOnly} without a MyAnimeList link are looked up by their exact title.`}
           </p>
           <button type="button" onClick={() => importChecked()} disabled={checked.size === 0}
             className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
-            <Download className="w-3.5 h-3.5" /> Import {checked.size} as read
+            <Download className="w-3.5 h-3.5" /> Import {checked.size}
           </button>
         </div>
       </div>

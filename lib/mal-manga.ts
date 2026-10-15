@@ -136,13 +136,29 @@ export interface NewMangaRow {
   coverImage: string | null;
 }
 
+/** How far you are — from a list's "Reading" line. Unknown counts are null. */
+export interface MangaProgressIn {
+  chapters: number | null;
+  volumes: number | null;
+}
+
+/** A count read, never past the series' own total when it has one. */
+function upTo(read: number | null, total: number | null): number {
+  const n = read !== null && Number.isInteger(read) && read > 0 ? read : 0;
+  return total !== null ? Math.min(n, total) : n;
+}
+
 /**
  * A new library row for a MyAnimeList manga. "Read it" only applies to a series with an end: it
- * marks every chapter and volume read. Status is left to deriveStatus, from these counts.
+ * marks every chapter and volume read. `progress` (what you're reading) sets where you are instead.
+ * Status is left to deriveStatus, from these counts.
  */
-export function rowFromManga(m: MalManga, { english, read }: { english: boolean; read: boolean }): NewMangaRow {
+export function rowFromManga(
+  m: MalManga,
+  { english, read, progress }: { english: boolean; read: boolean; progress?: MangaProgressIn | null },
+): NewMangaRow {
   const ongoing = isOngoing(m.publishing);
-  const finishedRead = read && !ongoing;
+  const finishedRead = read && !ongoing && !progress;
   return {
     malId: m.id,
     title: titleOf(m, english),
@@ -150,8 +166,8 @@ export function rowFromManga(m: MalManga, { english, read }: { english: boolean;
     format: formatOf(m.mediaType),
     totalVolumes: m.volumes,
     totalChapters: m.chapters,
-    volumesRead: finishedRead ? m.volumes ?? 0 : 0,
-    chaptersRead: finishedRead ? m.chapters ?? 0 : 0,
+    volumesRead: progress ? upTo(progress.volumes, m.volumes) : finishedRead ? m.volumes ?? 0 : 0,
+    chaptersRead: progress ? upTo(progress.chapters, m.chapters) : finishedRead ? m.chapters ?? 0 : 0,
     ongoing,
     coverImage: m.cover,
   };

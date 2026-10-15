@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { deriveStatus, mangaProgress, READ_STATUS } from "@/lib/derive-status";
 import type { LanguageKey } from "@/lib/constants/languages";
-import { NOVEL_MEDIA, matchExisting, rowFromManga, updatesFromManga, type MalManga } from "@/lib/mal-manga";
+import { NOVEL_MEDIA, matchExisting, rowFromManga, updatesFromManga, type MalManga, type MangaProgressIn } from "@/lib/mal-manga";
 import { MalError, mangaEntry } from "@/lib/mal-service";
 
 /** Where a MyAnimeList manga already is: linked to it, or added by hand under one of its titles. */
@@ -80,7 +80,11 @@ async function alreadyThere(malId: number): Promise<MangaImportResult> {
  */
 export async function importManga(
   malId: number,
-  { english, read, language, mangaId }: { english: boolean; read: boolean; language: LanguageKey; mangaId?: string },
+  { english, read, language, mangaId, progress }: {
+    english: boolean; read: boolean; language: LanguageKey; mangaId?: string;
+    /** Where you are in it, from a list you're reading it on — for a new row only. */
+    progress?: MangaProgressIn | null;
+  },
 ): Promise<MangaImportResult> {
   const m = await mangaEntry(malId);
   if (NOVEL_MEDIA.has(m.mediaType)) {
@@ -107,7 +111,7 @@ export async function importManga(
       return { outcome: "linked", mangaId: row.id, title: row.title };
     }
 
-    const data = { ...rowFromManga(m, { english, read }), language };
+    const data = { ...rowFromManga(m, { english, read, progress }), language };
     const created = await db.manga.create({
       data: { ...data, status: deriveStatus(mangaProgress(data), READ_STATUS) },
       select: { id: true, title: true },

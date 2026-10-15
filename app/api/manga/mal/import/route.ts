@@ -14,6 +14,11 @@ const schema = z.object({
   english: z.boolean().default(true),
   /** The language you read it in — reading time depends on it. */
   language: z.enum(LANGUAGE_VALUES).default("JAPANESE"),
+  /** Where you are in it (a list's "Reading" line) — sets a new row's progress instead of `read`. */
+  progress: z.object({
+    chapters: z.number().int().min(0).max(100_000).nullable(),
+    volumes: z.number().int().min(0).max(10_000).nullable(),
+  }).nullable().optional(),
   /** Link this manga, already in the library, to the entry instead. */
   mangaId: z.string().min(1).optional(),
 });

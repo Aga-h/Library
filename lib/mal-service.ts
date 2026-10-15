@@ -7,6 +7,7 @@
 
 import { byAiring, toEntry, type MalEntry } from "@/lib/mal";
 import { toManga, type MalManga } from "@/lib/mal-manga";
+import type { ListedManga } from "@/lib/mal-manga-list";
 
 /** Overridable so the importer can be tested against a local stand-in; production never sets it. */
 const BASE_URL = (process.env.MAL_BASE_URL ?? "https://api.myanimelist.net/v2").replace(/\/$/, "");
@@ -183,21 +184,28 @@ export async function userCompleted(user: string): Promise<ListedEntry[]> {
 }
 
 /**
- * Everything on a user's public manga list with the status "completed" — the same way as
- * userCompleted for anime.
+ * Everything on a user's public manga list, with your status and how far you are on each — the
+ * same way as userCompleted for anime.
  */
-export async function userCompletedManga(user: string): Promise<MalManga[]> {
-  const out: MalManga[] = [];
+export async function userMangaList(user: string): Promise<ListedManga[]> {
+  const out: ListedManga[] = [];
   for (let offset = 0; offset < 20_000; offset += 1000) {
     const body = await get(
       `/users/${encodeURIComponent(user)}/mangalist`,
-      { status: "completed", limit: "1000", offset: String(offset), fields: MANGA_FIELDS, nsfw: "true" },
+      { limit: "1000", offset: String(offset), fields: `${MANGA_FIELDS},list_status`, nsfw: "true" },
       "MyAnimeList wouldn't share that list with the site — it may be private, or need you signed in. Upload your list file instead.",
     );
     const rows = Array.isArray(body.data) ? (body.data as Raw[]) : [];
     for (const row of rows) {
-      const m = toManga(row?.node as Raw | undefined);
-      if (m) out.push(m);
+      const manga = toManga(row?.node as Raw | undefined);
+      const status = (row?.list_status ?? {}) as Raw;
+      const count = (v: unknown) => (Number.isInteger(Number(v)) && Number(v) > 0 ? Number(v) : null);
+      if (manga) out.push({
+        manga,
+        status: typeof status.status === "string" ? status.status : null,
+        chaptersRead: count(status.num_chapters_read),
+        volumesRead: count(status.num_volumes_read),
+      });
     }
     if (rows.length < 1000) break;
   }

@@ -19,9 +19,9 @@ export default async function ImportMangaListPage() {
       <div className="bg-white border border-gray-200 rounded-xl p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Import a MyAnimeList list</h1>
         <p className="text-sm text-gray-500 mb-6">
-          Everything on your Completed manga list comes in as read, with its author, artist, volume and
-          chapter counts and cover. Light novels and novels are left out — they go under Books. Running it
-          again only adds what&apos;s new.
+          What you finished comes in as read and what you&apos;re reading at your chapter, each with its
+          author, artist, volume and chapter counts and cover. Light novels and novels are left out — they
+          go under Books. Running it again only adds what&apos;s new.
         </p>
         <MangaListImport defaultLanguage={usual} />
       </div>

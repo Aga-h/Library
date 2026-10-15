@@ -184,10 +184,12 @@ manga mirroring, like anime.
 
 **Importing a whole manga list** (`/library/manga/import`, "Import list" on the Manga page). Sources:
 a public user's Completed manga list (`/users/{name}/mangalist`), MAL's manga export, or an .xlsx copy
-of the list page — each title cell links to `/manga/{id}`, read by `sheetLinks`, so lines carry their
-id; a link-less line is matched by exact title (`pickManga`) at import. `lib/mal-manga-list.ts`: novels
-(Books) and anything not Completed are left out. One manga per line, each through the ordinary
-`/api/manga/mal/import` as read; already-linked ones start unticked (`/api/manga/mal/places`, database
+of the list page — each title cell links to `/manga/{id}`, read by `sheetLinks` (or the cover's address
+as text), so lines carry their id; a link-less line is matched by exact title (`pickManga`) at import. `lib/mal-manga-list.ts`: novels
+(Books) and on hold/dropped/planned are left out. A list page copy may be the Completed tab or "All
+Manga" (no Type column; "read / total" in Chapters marks one being read, a bare count one finished).
+One manga per line, each through the ordinary `/api/manga/mal/import` — finished as read, reading
+with `progress` (chapters/volumes, capped at the series' totals); already-linked ones start unticked (`/api/manga/mal/places`, database
 only). Requests go through `lib/fetch-retry.ts` (shared with the anime list import): up to 5 tries with
 5–45 s pauses on 429/5xx/connection loss; whatever still fails is offered again from the result.
 

@@ -424,6 +424,13 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       what's already in. Verified in Chromium against a stand-in refusing 10% at random: manhwa with
       writer/artist split, one-shot by title, light novel left out, hand-added Berserk linked keeping
       progress/rating/notes, re-run → no duplicates, username + unknown-user paths.
+      **LIVE BUG (2026-10-15, user's file): "No manga found in that list."** Their file is the
+      "All Manga" page: no Type column, status glued to titles ("Blue Lock PublishingAdd - More"),
+      reading rows "189 / -" in Chapters, finished ones a bare count. Fixed: Type optional, titles
+      cleaned, status + chapter/volume read from Chapters/Volumes; they also asked for Reading ones →
+      imported as Reading at their chapter (`progress` on /api/manga/mal/import, capped at the total);
+      only on hold/dropped/planned and novels left out; username/export read progress too. Their
+      file: 180 rows (93 reading, 87 completed), all with ids (not committed).
       **Needs 032 run + `MAL_CLIENT_ID`** (see Blocked).
 - [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
       as there are limited installments"):
