@@ -3,7 +3,7 @@
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
 deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-14 — Anime: whole MyAnimeList list import page (needs MAL_CLIENT_ID + 027); Finances: installment purchases (needs 033 run); Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Updated:** 2026-10-15 — Manga: whole MyAnimeList list import page (needs 032 + MAL_CLIENT_ID); Anime: whole MyAnimeList list import page (needs MAL_CLIENT_ID + 027); Finances: installment purchases (needs 033 run); Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
 
 ## Done
 
@@ -413,6 +413,18 @@ deleted; `main` is the GitHub default and what Vercel deploys.
         Verified with a stand-in refusing 10% of requests at random + a mid-import Stop → retry: all
         imported, no duplicates, one series.
       - **needs MAL_CLIENT_ID + 027** (see Blocked, anime)
+- [x] **Manga: import a whole MyAnimeList list** (user, 2026-10-15: "can you make this for manga as
+      well"). Page `/library/manga/import` ("Import list" on the Manga page). Sources: MAL username
+      (`/users/{name}/mangalist?status=completed`), MAL's manga export (.xml/.gz), or an .xlsx copy of
+      the manga list page — ids from the title cells' links (`sheetLinks` in `lib/xlsx-lite.ts`); a
+      link-less line is found by exact title at import, never guessed. Rules in `lib/mal-manga-list.ts`
+      (13 tests): novels left out (Books), only Completed. Each manga → the existing
+      `/api/manga/mal/import` as read, one at a time, with the shared retrying `lib/fetch-retry.ts`
+      (the anime page now uses it too); "Try the N not imported again". `/api/manga/mal/places` unticks
+      what's already in. Verified in Chromium against a stand-in refusing 10% at random: manhwa with
+      writer/artist split, one-shot by title, light novel left out, hand-added Berserk linked keeping
+      progress/rating/notes, re-run → no duplicates, username + unknown-user paths.
+      **Needs 032 run + `MAL_CLIENT_ID`** (see Blocked).
 - [x] **Finances: installment purchases** (user, 2026-10-09: "like subscriptions but for a limited time
       as there are limited installments"):
       - `Installment` via `033-installments.sql` (verified twice + on a DB without 031)

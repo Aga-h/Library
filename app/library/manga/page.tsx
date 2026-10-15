@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { db } from "@/lib/db";
 import MangaStats from "@/components/manga/MangaStats";
 import MangaCard from "@/components/manga/MangaCard";
@@ -28,6 +28,9 @@ export default async function MangaPage({ searchParams }: PageProps) {
         </div>
         <div className="flex items-center gap-2">
           <MirrorCoversButton apiPath="/api/manga/mirror-covers" />
+          <Link href="/library/manga/import" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+            <Upload className="w-4 h-4" /> Import list
+          </Link>
           <Link href="/library/manga/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Manga
           </Link>

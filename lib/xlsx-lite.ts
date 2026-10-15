@@ -115,3 +115,49 @@ export async function readFirstSheet(bytes: Uint8Array): Promise<Cell[][]> {
   if (sheets.length === 0) throw new Error("no worksheet");
   return sheetRows(files.get(sheets[0])!, sharedStrings(files.get("xl/sharedStrings.xml")));
 }
+
+/**
+ * Each cell's hyperlink target, laid out like sheetRows: links[i][j] belongs to rows[i][j]. A copied
+ * MyAnimeList list page links every title to its entry — that link carries the entry's id.
+ */
+export function sheetLinks(sheetXml: string, relsXml: string | null | undefined): (string | null)[][] {
+  const targets = new Map<string, string>();
+  for (const rel of (relsXml ?? "").match(/<Relationship\b[^>]*>/g) ?? []) {
+    const id = /\bId="([^"]*)"/.exec(rel)?.[1];
+    const target = /\bTarget="([^"]*)"/.exec(rel)?.[1];
+    if (id && target) targets.set(id, decodeXml(target));
+  }
+  // sheetRows counts <row> elements in order, so a row's index is its place among them.
+  const indexOf = new Map<number, number>();
+  let i = 0;
+  for (const row of sheetXml.matchAll(/<row\b([^>]*)>/g)) {
+    const r = Number(/\br="(\d+)"/.exec(row[1])?.[1]);
+    if (r) indexOf.set(r, i);
+    i++;
+  }
+  const links: (string | null)[][] = [];
+  for (const link of sheetXml.match(/<hyperlink\b[^>]*>/g) ?? []) {
+    const ref = /\bref="([A-Z]+)(\d+)/.exec(link);
+    const target = targets.get(/\br:id="([^"]*)"/.exec(link)?.[1] ?? "");
+    const at = ref ? indexOf.get(Number(ref[2])) : undefined;
+    if (!ref || !target || at === undefined) continue;
+    const row = (links[at] ??= []);
+    const col = columnIndex(ref[1]);
+    while (row.length < col) row.push(null);
+    row[col] = target;
+  }
+  return links;
+}
+
+/** The first worksheet with each cell's hyperlink. */
+export async function readFirstSheetWithLinks(bytes: Uint8Array): Promise<{ rows: Cell[][]; links: (string | null)[][] }> {
+  const files = await unzipText(bytes, (n) => n === "xl/sharedStrings.xml" || /^xl\/worksheets\/(_rels\/)?sheet\d+\.xml(\.rels)?$/.test(n));
+  const sheets = [...files.keys()].filter((n) => /^xl\/worksheets\/sheet\d+\.xml$/.test(n))
+    .sort((a, b) => Number(/\d+/.exec(a.slice(14))?.[0]) - Number(/\d+/.exec(b.slice(14))?.[0]));
+  if (sheets.length === 0) throw new Error("no worksheet");
+  const xml = files.get(sheets[0])!;
+  return {
+    rows: sheetRows(xml, sharedStrings(files.get("xl/sharedStrings.xml"))),
+    links: sheetLinks(xml, files.get(sheets[0].replace("worksheets/", "worksheets/_rels/") + ".rels")),
+  };
+}

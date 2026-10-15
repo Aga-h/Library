@@ -181,3 +181,25 @@ export async function userCompleted(user: string): Promise<ListedEntry[]> {
   }
   return out;
 }
+
+/**
+ * Everything on a user's public manga list with the status "completed" — the same way as
+ * userCompleted for anime.
+ */
+export async function userCompletedManga(user: string): Promise<MalManga[]> {
+  const out: MalManga[] = [];
+  for (let offset = 0; offset < 20_000; offset += 1000) {
+    const body = await get(
+      `/users/${encodeURIComponent(user)}/mangalist`,
+      { status: "completed", limit: "1000", offset: String(offset), fields: MANGA_FIELDS, nsfw: "true" },
+      "MyAnimeList wouldn't share that list with the site — it may be private, or need you signed in. Upload your list file instead.",
+    );
+    const rows = Array.isArray(body.data) ? (body.data as Raw[]) : [];
+    for (const row of rows) {
+      const m = toManga(row?.node as Raw | undefined);
+      if (m) out.push(m);
+    }
+    if (rows.length < 1000) break;
+  }
+  return out;
+}

@@ -11,6 +11,7 @@ import {
   type LeftOut, type ListRow,
 } from "@/lib/mal-list";
 import { readFirstSheet } from "@/lib/xlsx-lite";
+import { getJson } from "@/lib/fetch-retry";
 import type { MalEntry } from "@/lib/mal";
 
 interface Place {
@@ -54,34 +55,6 @@ function meta(e: MalEntry): string {
     e.episodes ? `${e.episodes} ep` : null,
     e.duration ? `${e.duration} min` : null,
   ].filter(Boolean).join(" · ");
-}
-
-const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/** Worth asking again after a pause: rate-limited, MyAnimeList or the site briefly down, timed out. */
-const PASSING = new Set([0, 429, 500, 502, 503, 504]);
-/** Pauses between tries — a long list is hundreds of requests, and MyAnimeList rate-limits them. */
-const BACKOFF = [5_000, 10_000, 20_000, 30_000, 45_000];
-
-async function getJson(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
-  for (let attempt = 0; ; attempt++) {
-    let status = 0;
-    let data: Record<string, unknown> = {};
-    try {
-      const res = await fetch(url, init);
-      status = res.status;
-      data = await res.json().catch(() => ({}));
-      if (res.ok) return { ok: true, status, data };
-    } catch {
-      // The connection dropped: status 0, tried again like a timeout.
-    }
-    // 503 with a message is MyAnimeList not being set up on the site — waiting won't fix that.
-    const notSetUp = status === 503 && typeof data.error === "string" && data.error.includes("MAL_CLIENT_ID");
-    if (!PASSING.has(status) || notSetUp || attempt >= BACKOFF.length) {
-      return { ok: false, status, data: status === 0 ? { error: "Lost the connection to the site." } : data };
-    }
-    await pause(BACKOFF[attempt]);
-  }
 }
 
 /** Rows from a list file: a copy of the list page (.xlsx), or MyAnimeList's export (.xml / .xml.gz). */

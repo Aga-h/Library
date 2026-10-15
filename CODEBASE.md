@@ -182,6 +182,15 @@ one has "Check MyAnimeList" (`refreshManga`). Linking and checking only fill bla
 status is re-derived so a series that just ended can complete. Covers hotlinked and excluded from
 manga mirroring, like anime.
 
+**Importing a whole manga list** (`/library/manga/import`, "Import list" on the Manga page). Sources:
+a public user's Completed manga list (`/users/{name}/mangalist`), MAL's manga export, or an .xlsx copy
+of the list page — each title cell links to `/manga/{id}`, read by `sheetLinks`, so lines carry their
+id; a link-less line is matched by exact title (`pickManga`) at import. `lib/mal-manga-list.ts`: novels
+(Books) and anything not Completed are left out. One manga per line, each through the ordinary
+`/api/manga/mal/import` as read; already-linked ones start unticked (`/api/manga/mal/places`, database
+only). Requests go through `lib/fetch-retry.ts` (shared with the anime list import): up to 5 tries with
+5–45 s pauses on 429/5xx/connection loss; whatever still fails is offered again from the result.
+
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
 lock cannot prevent double submission across two tabs, so idempotency is enforced in the database.
@@ -448,7 +457,8 @@ scripts/                node test scripts, graph sealing
 | `tmdb.ts` / `tmdb-service.ts` / `tmdb-import.ts` | Reading TMDB's answers and the merge rule / the API client / landing films in the library |
 | `tmdb-tv.ts` / `tmdb-tv-import.ts` | Shows: reading seasons, `placeSeries` and `planSeasons` / landing shows as series + seasons |
 | `mal.ts` / `mal-service.ts` / `mal-import.ts` | Anime: reading entries and the merge rules / the MAL API client and run walk / landing runs as series |
-| `mal-list.ts` / `xlsx-lite.ts` | Whole-list import: what counts as a season, reading list files, matching title-only rows / reading an .xlsx without a dependency |
+| `mal-list.ts` / `xlsx-lite.ts` | Whole-list import: what counts as a season, reading list files, matching title-only rows / reading an .xlsx (cells and hyperlinks) without a dependency |
+| `mal-manga-list.ts` / `fetch-retry.ts` | Whole manga list import: reading list files and ids, what is left out / the retrying fetch both list imports use |
 | `mal-manga.ts` / `mal-manga-import.ts` | Manga: reading MAL entries, format/credits/ongoing and the fill-blanks rules / landing, linking and checking one in the database |
 | `themes.ts` / `theme-client.ts` | The looks and the cookie that picks one / applying a look in the browser |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
