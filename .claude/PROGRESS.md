@@ -413,6 +413,11 @@ deleted; `main` is the GitHub default and what Vercel deploys.
         Verified with a stand-in refusing 10% of requests at random + a mid-import Stop → retry: all
         imported, no duplicates, one series.
       - **needs MAL_CLIENT_ID + 027** (see Blocked, anime)
+- [ ] **Whole site on a phone — IN PROGRESS** (user, 2026-10-15: "make the whole site work on a phone
+      properly"). Library and Study have fixed 224px sidebars with no phone layout; Finances/Shopping/
+      Wardrobe headers and mains use desktop padding. Plan: a harness (local DB seeded with realistic
+      data, all 90 routes at 390px in all 5 looks, automatic overflow detection) → shared shell first
+      (phone nav for both sidebars, layouts, theme CSS) → per-section page fixes → re-run until clean.
 - [x] **Study: flashcards (Anki-style) + quick tests** (user, 2026-10-15: "aside from the full question
       tab, build a flashcard system like anki's, and smaller question pool tests beside that (the full
       question test should stay)"). Full test untouched (only links added to its header).
