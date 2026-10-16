@@ -292,7 +292,7 @@ export default function QuickExpenseForm() {
           <button
             type="button"
             onClick={() => setShowDescription(true)}
-            className="self-start text-sm font-medium text-gray-400 active:text-gray-600"
+            className="-mx-1 -my-2.5 self-start px-1 py-2.5 text-sm font-medium text-gray-400 active:text-gray-600 sm:mx-0 sm:my-0 sm:px-0 sm:py-0"
           >
             + Add a note
           </button>
@@ -382,7 +382,7 @@ function StatusLine({
           onClick={onRetry}
           disabled={syncing}
           aria-label="Retry upload now"
-          className="flex-shrink-0 rounded-lg border border-amber-300 p-1.5 disabled:opacity-50"
+          className="flex-shrink-0 rounded-lg border border-amber-300 p-[10px] disabled:opacity-50 sm:p-1.5"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
         </button>

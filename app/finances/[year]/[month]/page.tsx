@@ -34,20 +34,23 @@ export default async function FinancesMonthPage({ params }: PageProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <div className="flex-1"><MonthNav year={year} month={month} /></div>
+      {/* Phones: the month on its own row, Quick log full width under it. */}
+      <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:mb-2">
+        <div className="sm:flex-1"><MonthNav year={year} month={month} /></div>
         <Link
           href="/finances/log"
-          className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+          className="flex flex-shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 sm:py-2"
         >
           <Plus className="h-4 w-4" /> Quick log
         </Link>
       </div>
       <BudgetSummary balances={balances} />
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+      {/* grid-cols-1 is minmax(0, 1fr): without it the one implicit column grows to the widest
+          unbroken row (a long expense description) and the page scrolls sideways on a phone. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <ExpenseSection expenses={expenses} year={year} month={month}
           left={{ BASE: balances.base.left, EXTRA: balances.extra.left }} />
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <IncomeSection income={income} year={year} month={month} />
           <SubscriptionSection subscriptions={subscriptions} year={year} month={month} />
           <InstallmentSection key={`${year}-${month}`} installments={installments} year={year} month={month} />

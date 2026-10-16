@@ -33,12 +33,16 @@ export function SourceToggle({ source, apiPath, onMoved }: { source: FundSource;
     }
   }
 
+  // The pill is the span; on phones the button around it is 36px tall so it can be tapped, and its
+  // negative margin keeps the row from growing by as much.
   return (
     <button type="button" onClick={move} disabled={busy}
       title={`Paid from ${SOURCE_LABELS[source]} — tap to move it to ${SOURCE_LABELS[other]}`}
       aria-label={`Paid from ${SOURCE_LABELS[source]}. Move to ${SOURCE_LABELS[other]}`}
-      className={`fund-tag fund-tag-${source.toLowerCase()} ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold disabled:opacity-50 ${SOURCE_TAG_CLS[source]}`}>
-      {SOURCE_LABELS[source]}
+      className="-my-1.5 ml-1 flex-shrink-0 py-2 disabled:opacity-50 sm:my-0 sm:ml-2 sm:py-0">
+      <span className={`fund-tag fund-tag-${source.toLowerCase()} block rounded-full px-2 py-0.5 text-[11px] font-semibold ${SOURCE_TAG_CLS[source]}`}>
+        {SOURCE_LABELS[source]}
+      </span>
     </button>
   );
 }

@@ -71,7 +71,7 @@ export default function IssueRow({ issue, href }: { issue: Issue; href: string }
         <span className="text-xs font-semibold text-amber-500 flex-shrink-0">★ {issue.rating}</span>
       )}
 
-      {/* Phones: both toggles are a thumb's size (38px tall) — ticking issues off is this page's job. */}
+      {/* Phones: both toggles are 36px+ tap targets — ticking issues off is this page's main job. */}
       <button
         onClick={() => toggle("owned")}
         disabled={busy}

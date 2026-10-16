@@ -47,7 +47,7 @@ export default function IncomeSection({ income, year, month }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
       <h2 className="font-semibold text-gray-900 mb-1">Additional Income</h2>
       <p className="text-xs text-gray-500 mb-4">Goes onto your Extra card.</p>
 
@@ -60,7 +60,8 @@ export default function IncomeSection({ income, year, month }: Props) {
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            aria-label="Amount"
+            className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
           <button
@@ -77,6 +78,7 @@ export default function IncomeSection({ income, year, month }: Props) {
           placeholder="Description (optional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          aria-label="Description"
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </form>
@@ -86,15 +88,19 @@ export default function IncomeSection({ income, year, month }: Props) {
       ) : (
         <div className="space-y-1">
           {income.map((entry) => (
-            <div key={entry.id} className="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded-lg text-sm">
-              <span className="text-gray-600 flex-1 truncate">{entry.description || "Income"}</span>
-              <span className="text-emerald-600 font-medium ml-3">+{fmt(entry.amount)}</span>
-              <button
-                onClick={() => handleDelete(entry.id)}
-                className="ml-3 text-gray-400 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+            // Phones: a long description gets the line to itself; the amount and delete drop under it.
+            <div key={entry.id} className="flex flex-wrap items-center justify-between gap-y-1 py-1.5 px-3 bg-gray-50 rounded-lg text-sm sm:flex-nowrap">
+              <span className="text-gray-600 flex-auto min-w-0 break-words sm:flex-1 sm:truncate">{entry.description || "Income"}</span>
+              <span className="ml-auto flex items-center sm:contents">
+                <span className="text-emerald-600 font-medium ml-2 whitespace-nowrap sm:ml-3">+{fmt(entry.amount)}</span>
+                <button
+                  onClick={() => handleDelete(entry.id)}
+                  aria-label={`Delete ${entry.description || "income"}`}
+                  className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </span>
             </div>
           ))}
           <div className="pt-2 border-t border-gray-100 flex justify-between text-sm font-semibold text-gray-900 px-3">
