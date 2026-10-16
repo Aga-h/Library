@@ -48,12 +48,12 @@ export default async function WardrobePage({
           <h2 className="text-2xl font-bold text-gray-900">My Wardrobe</h2>
           <p className="text-sm text-gray-500 mt-0.5">{garments.length} item{garments.length !== 1 ? "s" : ""}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* View toggle */}
           <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
             <Link
               href="/wardrobe"
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`whitespace-nowrap px-3 py-1.5 max-sm:py-2.5 rounded-md text-xs font-semibold transition-colors ${
                 !isGroupView ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -61,7 +61,7 @@ export default async function WardrobePage({
             </Link>
             <Link
               href="/wardrobe?view=groups"
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              className={`whitespace-nowrap px-3 py-1.5 max-sm:py-2.5 rounded-md text-xs font-semibold transition-colors ${
                 isGroupView ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -70,7 +70,7 @@ export default async function WardrobePage({
           </div>
           <Link
             href="/wardrobe/new"
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 whitespace-nowrap bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Garment
           </Link>
@@ -133,7 +133,7 @@ function FilterTab({ href, active, label }: { href: string; active: boolean; lab
   return (
     <Link
       href={href}
-      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+      className={`px-3 py-1.5 max-sm:py-2.5 rounded-full text-xs font-medium transition-colors ${
         active
           ? "bg-gray-900 text-white"
           : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"

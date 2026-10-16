@@ -49,16 +49,16 @@ export default function ShopLines({ lines }: { lines: ShopLine[] }) {
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <span className="shop-code text-[11px] font-mono font-semibold text-gray-400">{shop.station}</span>
                       <a href={shop.url} target="_blank" rel="noopener noreferrer"
-                        className="shop-name inline-flex items-center gap-1.5 font-semibold text-gray-900 hover:underline">
+                        className="shop-name inline-flex items-center gap-1.5 font-semibold text-gray-900 hover:underline max-sm:block max-sm:py-1.5 max-sm:-my-1.5">
                         {shop.name}
-                        <ExternalLink aria-hidden className="w-3.5 h-3.5 text-gray-400" />
+                        <ExternalLink aria-hidden className="w-3.5 h-3.5 text-gray-400 max-sm:inline max-sm:ml-1.5" />
                         <span className="sr-only">(opens the shop&apos;s site)</span>
                       </a>
                     </div>
                     <p className="shop-host text-xs text-gray-500 truncate">{hostOf(shop.url)}</p>
                   </div>
                   <Link href={`/shopping/${shop.id}`} aria-label={`Open ${shop.name}`}
-                    className="shop-open p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                    className="shop-open p-1.5 max-sm:p-2.5 max-sm:-m-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -84,7 +84,7 @@ export default function ShopLines({ lines }: { lines: ShopLine[] }) {
                   </div>
                 )}
                 <Link href={`/shopping/${shop.id}#add-product`}
-                  className="shop-add-product inline-flex items-center gap-1 mt-3 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+                  className="shop-add-product inline-flex items-center gap-1 mt-3 max-sm:mt-0.5 max-sm:-mb-2.5 max-sm:py-2.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">
                   <Plus aria-hidden className="w-3.5 h-3.5" /> Add a product
                 </Link>
               </li>

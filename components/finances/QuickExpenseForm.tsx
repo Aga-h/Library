@@ -263,7 +263,7 @@ export default function QuickExpenseForm() {
                   type="button"
                   onClick={() => setCategory(c.value)}
                   aria-pressed={active}
-                  className={`rounded-xl px-2 py-3 text-sm font-semibold transition-colors ${
+                  className={`rounded-xl px-1 py-3 text-sm font-semibold transition-colors sm:px-2 ${
                     active
                       ? "bg-emerald-600 text-white"
                       : "bg-white border border-gray-200 text-gray-600 active:bg-gray-100"

@@ -14,7 +14,7 @@ export default function LogExpensePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-gray-900">Log expense</h1>
           <p className="text-sm text-gray-400">{monthLabel}</p>

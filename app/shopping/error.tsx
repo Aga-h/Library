@@ -10,7 +10,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       <p className="text-sm text-gray-500 mb-4">{error.digest ? `Reference: ${error.digest}` : "Please try again."}</p>
       <button
         onClick={reset}
-        className="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+        className="px-4 py-2 max-sm:py-2.5 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
       >
         Try again
       </button>

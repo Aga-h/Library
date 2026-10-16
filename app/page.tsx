@@ -62,12 +62,12 @@ const SECTIONS = [
 export default function PortalPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="theme-header px-8 py-6 border-b border-gray-200 bg-white">
+      <header className="theme-header px-4 sm:px-8 py-6 border-b border-gray-200 bg-white">
         <h1 className="text-xl font-bold text-gray-900">My Portal</h1>
         <p className="text-sm text-gray-500 mt-0.5">Your personal hub</p>
       </header>
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
           {SECTIONS.map((section) => {
             const Icon = section.icon;

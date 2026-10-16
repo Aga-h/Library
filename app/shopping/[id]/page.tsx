@@ -23,7 +23,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="shop-page max-w-3xl mx-auto space-y-6" style={{ "--line": `var(--color-${lineHue(shop.category)}-500)` } as React.CSSProperties}>
-      <Link href="/shopping" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
+      <Link href="/shopping" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 max-sm:-mt-2.5 max-sm:mb-3.5 max-sm:py-2.5 transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Shopping
       </Link>
 
@@ -36,18 +36,18 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
           </p>
           <h2 className="text-2xl font-bold text-gray-900 break-words">{shop.name}</h2>
           <a href={shop.url} target="_blank" rel="noopener noreferrer"
-            className="shop-host inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mt-0.5">
-            {hostOf(shop.url)} <ExternalLink aria-hidden className="w-3.5 h-3.5" />
+            className="shop-host inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-sm text-gray-500 hover:text-gray-800 mt-0.5 max-sm:-mt-1.5 max-sm:-mb-2 max-sm:py-2">
+            {hostOf(shop.url)} <ExternalLink aria-hidden className="w-3.5 h-3.5 shrink-0" />
             <span className="sr-only">(opens the shop&apos;s site)</span>
           </a>
         </div>
         <Link href={`/shopping/${shop.id}/edit`}
-          className="flex items-center gap-1.5 border border-gray-200 bg-white text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          className="flex items-center gap-1.5 border border-gray-200 bg-white text-gray-700 px-3 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
           <Pencil className="w-4 h-4" /> Edit shop
         </Link>
       </div>
 
-      <section aria-labelledby="shop-notes" className="bg-white border border-gray-200 rounded-xl p-6">
+      <section aria-labelledby="shop-notes" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6">
         <h3 id="shop-notes" className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">The shop</h3>
         {shop.liked || shop.disliked ? (
           <div className="grid sm:grid-cols-2 gap-4">
@@ -59,7 +59,7 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
         )}
       </section>
 
-      <section aria-labelledby="shop-products" className="bg-white border border-gray-200 rounded-xl p-6">
+      <section aria-labelledby="shop-products" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6">
         <h3 id="shop-products" className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
           Products{shop.products.length > 0 && ` · ${shop.products.length}`}
         </h3>

@@ -8,7 +8,7 @@ const SPIN_LABEL = (rpm: number) =>
 export default function WashRecommendationCard({ rec }: { rec: WashRecommendation }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Wash Recommendation</h2>
       </div>
 
@@ -29,7 +29,7 @@ export default function WashRecommendationCard({ rec }: { rec: WashRecommendatio
       </div>
 
       {/* Dryer */}
-      <div className="px-6 py-5 border-b border-gray-100">
+      <div className="px-4 sm:px-6 py-5 border-b border-gray-100">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Dryer</p>
         {rec.dryer.recommended ? (
           <div className="flex items-start gap-3">
@@ -56,14 +56,14 @@ export default function WashRecommendationCard({ rec }: { rec: WashRecommendatio
 
       {/* Pre-soak */}
       {rec.preSoak && (
-        <div className="px-6 py-4 border-b border-gray-100 bg-amber-50">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 bg-amber-50">
           <p className="text-sm text-amber-700 font-medium">Pre-soak recommended — submerge in cool water for 30 min before washing</p>
         </div>
       )}
 
       {/* Notes */}
       {rec.notes.length > 0 && (
-        <div className="px-6 py-5">
+        <div className="px-4 sm:px-6 py-5">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Tips</p>
           <ul className="space-y-2">
             {rec.notes.map((note, i) => (
@@ -81,7 +81,7 @@ export default function WashRecommendationCard({ rec }: { rec: WashRecommendatio
 
 function Cell({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 p-5 text-center">
+    <div className="flex flex-col items-center justify-center gap-1.5 p-4 sm:p-5 text-center">
       <div className="text-gray-400">{icon}</div>
       <p className="text-xs text-gray-400 font-medium">{label}</p>
       {children}

@@ -69,7 +69,7 @@ function AddProduct({ shopId }: { shopId: string }) {
       </Field>
       <div className="flex justify-end">
         <button type="submit" disabled={saving}
-          className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+          className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           <Plus className="w-4 h-4" /> {saving ? "Adding…" : "Add product"}
         </button>
       </div>
@@ -133,11 +133,11 @@ function ProductRow({ shopId, product }: { shopId: string; product: Product }) {
           </Field>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => { setEditing(false); setName(product.name); setComment(product.comment ?? ""); setError(null); }}
-              className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
+              className="border border-gray-200 text-gray-600 px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={busy}
-              className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+              className="bg-gray-900 text-white px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
               {busy ? "Saving…" : "Save"}
             </button>
           </div>
@@ -156,24 +156,24 @@ function ProductRow({ shopId, product }: { shopId: string; product: Product }) {
         {error && <p role="alert" className="text-xs text-red-600 mt-1">{error}</p>}
       </div>
       {confirming ? (
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex gap-2 flex-shrink-0 max-sm:-my-1">
           <button onClick={remove} disabled={busy}
-            className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">
+            className="bg-red-600 text-white px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">
             {busy ? "Deleting…" : "Delete"}
           </button>
           <button onClick={() => setConfirming(false)}
-            className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
+            className="border border-gray-200 text-gray-600 px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             Keep
           </button>
         </div>
       ) : (
-        <div className="flex gap-1 flex-shrink-0">
+        <div className="flex gap-1 flex-shrink-0 max-sm:-my-1 max-sm:-mr-1">
           <button onClick={() => setEditing(true)} aria-label={`Edit ${product.name}`}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+            className="p-1.5 max-sm:p-2.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
             <Pencil className="w-4 h-4" />
           </button>
           <button onClick={() => setConfirming(true)} aria-label={`Delete ${product.name}`}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+            className="p-1.5 max-sm:p-2.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>

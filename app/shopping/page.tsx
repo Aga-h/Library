@@ -104,7 +104,7 @@ function FilterChip({ href, active, label, count, hue }: { href: string; active:
       href={href}
       aria-current={active ? "page" : undefined}
       style={hue ? ({ "--line": `var(--color-${hue}-500)` } as React.CSSProperties) : undefined}
-      className={`shop-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+      className={`shop-chip inline-flex items-center gap-1.5 px-3 py-1.5 max-sm:py-2.5 rounded-full text-xs font-medium transition-colors ${
         active ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
       }`}
     >
