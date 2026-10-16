@@ -96,7 +96,9 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
         </Field>
       </div>
 
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+      {/* Phones: the explanation goes on its own line under "Still releasing" instead of squeezing
+          both into narrow columns. */}
+      <label className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-medium text-gray-700 cursor-pointer max-sm:py-1">
         <input
           type="checkbox"
           checked={form.ongoing}
@@ -108,7 +110,7 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
           className="w-4 h-4 rounded border-gray-300 accent-gray-900"
         />
         Still releasing
-        <span className="font-normal text-gray-400">— no final volume or chapter count yet</span>
+        <span className="font-normal text-gray-400 max-sm:basis-full max-sm:pl-6">— no final volume or chapter count yet</span>
       </label>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -143,7 +145,7 @@ export default function MangaForm({ initialData, mode, authorOptions, artistOpti
 
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, reviews..." className={inputCls} /></Field>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         <button type="submit" disabled={loading} className="bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {loading ? (mode === "edit" ? "Saving…" : "Adding…") : (mode === "edit" ? "Save Changes" : "Add Manga")}
         </button>

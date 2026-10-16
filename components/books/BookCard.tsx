@@ -43,22 +43,22 @@ export default function BookCard({ book }: { book: Book }) {
         ) : (
           <BookOpen className="w-12 h-12 text-gray-300" />
         )}
-        {/* Status badge */}
-        <span
-          className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}
-        >
-          {status.label}
-        </span>
-        {/* Owned badge */}
-        {book.owned && (
-          <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center gap-1">
-            <Package className="w-3 h-3" /> Owned
+        {/* Owned at the left, status at the right — one wrapping row, so on a narrow phone card
+            the two stack instead of overlapping. */}
+        <div className="absolute top-2 inset-x-2 flex flex-wrap items-start gap-1">
+          {book.owned && (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center gap-1">
+              <Package className="w-3 h-3" /> Owned
+            </span>
+          )}
+          <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>
+            {status.label}
           </span>
-        )}
+        </div>
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-1 p-4 flex-1">
+      <div className="flex flex-col gap-1 p-3 sm:p-4 flex-1">
         <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">
           {book.title}
         </h3>

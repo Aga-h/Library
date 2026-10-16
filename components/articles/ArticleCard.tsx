@@ -25,7 +25,7 @@ export default function ArticleCard({ article }: { article: Article }) {
         <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
         {article.url && <ExternalLink className="absolute bottom-2 right-2 w-3.5 h-3.5 text-gray-400" />}
       </div>
-      <div className="flex flex-col gap-1 p-4 flex-1">
+      <div className="flex flex-col gap-1 p-3 sm:p-4 flex-1">
         <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">{article.title}</h3>
         {article.publication && <p className="text-xs text-gray-400">{article.publication}</p>}
         {article.author && <p className="text-xs text-gray-500">{article.author}</p>}

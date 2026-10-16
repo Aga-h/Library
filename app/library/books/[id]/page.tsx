@@ -55,8 +55,9 @@ export default async function BookDetailPage({ params }: PageProps) {
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         {/* Cover + header */}
-        <div className="flex gap-6 p-8 pb-6">
-          <div className="flex-shrink-0 w-28 h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+        {/* Phones: a smaller cover and tighter padding, so the title column keeps some width. */}
+        <div className="flex gap-4 sm:gap-6 p-5 sm:p-8 sm:pb-6">
+          <div className="flex-shrink-0 w-20 h-28 sm:w-28 sm:h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
             {book.coverImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -70,17 +71,17 @@ export default async function BookDetailPage({ params }: PageProps) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 leading-snug">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold text-gray-900 leading-snug break-words">
                   {book.title}
                 </h1>
                 <p className="text-gray-500 mt-1">{book.author}</p>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex flex-wrap gap-2 flex-shrink-0">
                 <Link
                   href={`/library/books/${book.id}/edit`}
-                  className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" /> Edit
                 </Link>
@@ -116,11 +117,11 @@ export default async function BookDetailPage({ params }: PageProps) {
 
         {/* Notes */}
         {book.notes && (
-          <div className="p-8 pt-6 border-t border-gray-100">
+          <div className="px-5 pb-5 sm:px-8 sm:pb-8 pt-6 border-t border-gray-100">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
               Notes
             </h2>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{book.notes}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{book.notes}</p>
           </div>
         )}
       </div>
@@ -140,10 +141,10 @@ function DetailCell({
   sub?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 p-4 text-center">
+    <div className="min-w-0 flex flex-col items-center justify-center gap-1 p-3 sm:p-4 text-center">
       <div className="text-gray-400">{icon}</div>
       <p className="text-xs text-gray-400 font-medium">{label}</p>
-      <p className="text-sm font-bold text-gray-800">{value}</p>
+      <p className="text-sm font-bold text-gray-800 max-w-full break-words">{value}</p>
       {sub && <p className="text-xs text-gray-400">{sub}</p>}
     </div>
   );

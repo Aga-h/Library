@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Check, Download, FileUp, Loader2, Square, User } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { MalNotice, Poster } from "@/components/tmdb/TmdbParts";
-import { Toggle } from "@/components/anime/MalImport";
+import { Toggle, tinyButtonCls } from "@/components/anime/MalImport";
 import {
   LEFT_OUT_LABELS, leftOutReason, pickEntry, rowsFromMalExport, rowsFromSheet, searchQuery,
   type LeftOut, type ListRow,
@@ -314,7 +314,7 @@ export default function MalListImport() {
           Keep this page open — a long list takes a few minutes.
         </p>
         <button type="button" onClick={() => { stop.current = true; }}
-          className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50">
+          className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50">
           <Square className="w-3 h-3" /> Stop
         </button>
       </div>
@@ -364,7 +364,7 @@ export default function MalListImport() {
           {missing.length > 0 && <> · <strong>{missing.length}</strong> not found</>}
           {" · "}<strong>{leftOutCount}</strong> left out
         </p>
-        <div className="w-56"><Toggle label="Titles" value={english} onChange={setEnglish} off="Japanese" on="English" /></div>
+        <div className="w-full sm:w-56"><Toggle label="Titles" value={english} onChange={setEnglish} off="Japanese" on="English" /></div>
       </div>
       {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
 
@@ -373,8 +373,8 @@ export default function MalListImport() {
           <span className="font-semibold text-gray-700">Seasons — imported as watched</span>
           <span className="flex gap-3">
             <button type="button" onClick={() => setChecked(new Set([...checked, ...seasons.filter((i) => !i.entry.place).map((i) => i.entry.id)]))}
-              className="font-semibold text-gray-600 hover:text-gray-900">All</button>
-            <button type="button" onClick={() => setChecked(new Set())} className="font-semibold text-gray-600 hover:text-gray-900">None</button>
+              className={tinyButtonCls}>All</button>
+            <button type="button" onClick={() => setChecked(new Set())} className={tinyButtonCls}>None</button>
           </span>
         </div>
         <ul className="divide-y divide-gray-100 max-h-[32rem] overflow-y-auto">
@@ -384,7 +384,7 @@ export default function MalListImport() {
 
       {missing.length > 0 && (
         <details className="border border-gray-200 rounded-lg px-3 py-2">
-          <summary className="cursor-pointer text-xs font-semibold text-gray-700">
+          <summary className="cursor-pointer text-xs font-semibold text-gray-700 max-sm:py-2.5 max-sm:-my-2">
             Not found on MyAnimeList ({missing.length}) — add these from Add Anime
           </summary>
           <ul className="mt-2 text-xs text-gray-600 list-disc pl-5 space-y-0.5">
@@ -395,7 +395,7 @@ export default function MalListImport() {
 
       {leftOutCount > 0 && (
         <details className="border border-gray-200 rounded-lg px-3 py-2">
-          <summary className="cursor-pointer text-xs font-semibold text-gray-700">Left out ({leftOutCount}) — films, OVAs, specials, recaps, shorts</summary>
+          <summary className="cursor-pointer text-xs font-semibold text-gray-700 max-sm:py-2.5 max-sm:-my-2">Left out ({leftOutCount}) — films, OVAs, specials, recaps, shorts</summary>
           {[...groupsOut.entries()].map(([reason, g]) => (
             <div key={reason} className="mt-3">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{LEFT_OUT_LABELS[reason]} ({g.items.length + g.rows.length})</p>
@@ -411,7 +411,7 @@ export default function MalListImport() {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <button type="button" onClick={() => { setPhase("start"); setItems([]); }} className="text-xs font-semibold text-gray-500 hover:text-gray-800">
+        <button type="button" onClick={() => { setPhase("start"); setItems([]); }} className="text-xs font-semibold text-gray-500 hover:text-gray-800 max-sm:py-3 max-sm:-my-3">
           Start over
         </button>
         <button type="button" onClick={() => importChecked()} disabled={checked.size === 0}
@@ -426,18 +426,21 @@ export default function MalListImport() {
 
 function Row({ item, name, checked, onToggle }: { item: Item; name: string; checked: boolean; onToggle: (id: number) => void }) {
   const e = item.entry;
+  const place = e.place && (e.place.seriesName ? `In ${e.place.seriesName}` : "In your library");
   return (
     <li>
       <label className="flex items-center gap-3 px-3 py-2 bg-white cursor-pointer hover:bg-gray-50">
         <input type="checkbox" checked={checked} onChange={() => onToggle(e.id)} className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
         <Poster src={e.poster} />
         <span className="flex-1 min-w-0">
-          <span className="block text-sm font-semibold text-gray-900 truncate">{name}</span>
+          <span className="block text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{name}</span>
           <span className="block text-xs text-gray-500">{meta(e)}</span>
+          {/* Phones: where it is goes under the title — beside it, it squeezed the title away. */}
+          {place && <span className="sm:hidden mt-1 inline-block max-w-full truncate align-top text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{place}</span>}
         </span>
-        {e.place && (
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">
-            {e.place.seriesName ? `In ${e.place.seriesName}` : "In your library"}
+        {place && (
+          <span className="max-sm:hidden text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">
+            {place}
           </span>
         )}
       </label>

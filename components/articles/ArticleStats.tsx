@@ -13,7 +13,7 @@ export default function ArticleStats({ articles }: { articles: Article[] }) {
   const remainMinutes = wantTo.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes, 0);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Articles Stats</h2>
       <div className="grid grid-cols-2 gap-3 mb-6">
         <StatPill label="Read"         value={read.length}   color="green"  />

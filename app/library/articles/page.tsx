@@ -21,12 +21,14 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
+      {/* Phones: the actions drop under the title and wrap — side by side they were 450-700px wide.
+          From sm they sit beside it, and drop under it only where the two would not fit. */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-gray-900 break-words">Articles</h1>
           <p className="text-sm text-gray-500 mt-1">{total} articles in your library</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/articles/mirror-covers" />
           <Link href="/library/articles/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Article

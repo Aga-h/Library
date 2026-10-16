@@ -23,13 +23,13 @@ export default function BooksStats({ books }: BooksStatsProps) {
   const timeRemaining = sumReadingTime([...reading, ...wantToRead]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
         Library Stats
       </h2>
 
       {/* Status counts */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
         <StatPill label="Read" value={read.length} color="green" />
         <StatPill label="Reading" value={reading.length} color="blue" />
         <StatPill label="Plan to Read" value={wantToRead.length} color="yellow" />
@@ -85,10 +85,10 @@ function StatPill({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-lg border p-3 ${colors[color]}`}
+      className={`min-w-0 flex flex-col items-center justify-center rounded-lg border p-2 sm:p-3 ${colors[color]}`}
     >
       <span className="text-2xl font-bold">{value}</span>
-      <span className="text-xs font-medium mt-0.5">{label}</span>
+      <span className="text-xs font-medium mt-0.5 text-center max-w-full break-words">{label}</span>
     </div>
   );
 }

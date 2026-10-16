@@ -22,10 +22,10 @@ export default async function NewMangaPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/library/manga" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
+      <Link href="/library/manga" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 py-2.5 -mt-2.5 mb-3.5 sm:py-0 sm:mt-0 sm:mb-6 transition-colors">
         <ChevronLeft className="w-4 h-4" /> Back to Manga
       </Link>
-      <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8 mb-6">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Add Manga</h1>
         <p className="text-sm text-gray-500 mb-6">
           Search MyAnimeList — the series comes in with its author, artist, volume and chapter counts
@@ -33,7 +33,7 @@ export default async function NewMangaPage() {
         </p>
         <MangaMalImport defaultLanguage={usual} />
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8">
         <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-6">Or add one by hand</h2>
         <MangaForm mode="create" authorOptions={authorOpts} artistOptions={artistOpts} publisherOptions={publisherOpts} />
       </div>

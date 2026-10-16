@@ -47,16 +47,19 @@ export default async function AnimeUniversePage({ params }: PageProps) {
     <div>
       <Breadcrumb rootHref="/library/anime" rootLabel="Anime" crumbs={[{ label: universe.name }]} />
 
-      <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{universe.name}</h1>
+      {/* Phones: the buttons go under the title, which gets the full width. From sm the title
+          keeps at least 14rem beside them; when that doesn't leave room (acid's wide buttons at
+          1024px) the buttons wrap under it as a group instead of sticking out of the page. */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between mb-8 gap-4">
+        <div className="min-w-0 sm:grow sm:basis-56">
+          <h1 className="text-2xl font-bold text-gray-900 break-words">{universe.name}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {count(universe.series.length, "series", "series")} · {count(seasonCount, "season")}
             {watchedMinutes > 0 && ` · ${formatTotalTime(watchedMinutes)} watched`}
           </p>
         </div>
-        <div className="flex items-start justify-end flex-wrap gap-2 flex-shrink-0">
-          <Link href={`/library/anime/u/${universe.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
+        <div className="flex items-start justify-start sm:justify-end flex-wrap gap-2">
+          <Link href={`/library/anime/u/${universe.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
           <DeleteEntityButton
@@ -83,9 +86,9 @@ export default async function AnimeUniversePage({ params }: PageProps) {
       </div>
 
       {universe.notes && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Notes</h2>
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">{universe.notes}</p>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{universe.notes}</p>
         </div>
       )}
 

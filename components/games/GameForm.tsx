@@ -102,7 +102,7 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 9" className={inputCls} /></Field>
       </div>
 
-      <label className="flex items-center gap-3 cursor-pointer select-none">
+      <label className="flex items-center gap-3 min-h-10 sm:min-h-0 cursor-pointer select-none">
         <input type="checkbox" checked={form.emulated} onChange={(e) => update("emulated", e.target.checked)} className="w-4 h-4 rounded border-gray-300" />
         <span className="text-sm text-gray-700">This is an emulated version</span>
       </label>
@@ -110,11 +110,11 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
       <FieldGroup label="Cover Image URL"><ImageUpload value={form.coverImage} onChange={(url) => update("coverImage", url)} fieldName="games" /></FieldGroup>
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, playthroughs..." className={inputCls} /></Field>
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button type="submit" disabled={loading} className="max-sm:flex-1 bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {loading ? (mode === "edit" ? "Saving…" : "Adding…") : (mode === "edit" ? "Save Changes" : "Add Game")}
         </button>
-        <button type="button" onClick={() => router.back()} className="border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
+        <button type="button" onClick={() => router.back()} className="max-sm:flex-1 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
       </div>
     </form>
   );

@@ -12,7 +12,7 @@ const FIELD_LABELS: Record<string, string> = {
   coverImage: "cover", author: "author", artist: "artist",
 };
 
-const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors";
+const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors";
 
 /**
  * A manga's link to MyAnimeList. Linked: check it again for final counts once the series ends.
@@ -77,9 +77,9 @@ export default function MangaMalPanel({ mangaId, title, malId, language }: {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-start sm:items-center justify-between gap-3">
         <p className="text-xs text-gray-500">Pick its entry — volume and chapter counts, cover and artist fill in where yours are blank. Your progress stays.</p>
-        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="text-gray-400 hover:text-gray-700 flex-shrink-0">
+        <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="text-gray-400 hover:text-gray-700 flex-shrink-0 max-sm:p-2.5 max-sm:-m-2.5">
           <X className="w-4 h-4" />
         </button>
       </div>
