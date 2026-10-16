@@ -41,7 +41,7 @@ export default function IssueRow({ issue, href }: { issue: Issue; href: string }
   const busy = saving || isPending;
 
   return (
-    <div className="flex items-center gap-3 py-2 px-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+    <div className="flex items-center gap-2 sm:gap-3 py-2 px-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
       <div className="relative flex-shrink-0 w-9 h-12 rounded bg-gray-100 overflow-hidden flex items-center justify-center">
         {issue.coverImage ? (
           <Image fill src={issue.coverImage} alt={`Issue ${issue.issueNumber}`} className="object-cover" sizes="36px"
@@ -71,11 +71,13 @@ export default function IssueRow({ issue, href }: { issue: Issue; href: string }
         <span className="text-xs font-semibold text-amber-500 flex-shrink-0">★ {issue.rating}</span>
       )}
 
+      {/* Phones: both toggles are a thumb's size (38px tall) — ticking issues off is this page's job. */}
       <button
         onClick={() => toggle("owned")}
         disabled={busy}
         title={issue.owned ? "Owned — click to unmark" : "Not owned — click to mark owned"}
-        className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold border transition-colors disabled:opacity-50 flex-shrink-0 ${
+        aria-label={issue.owned ? "Owned — tap to unmark" : "Not owned — tap to mark owned"}
+        className={`flex items-center gap-1 px-3 py-2.5 sm:px-2 sm:py-1 rounded-md text-xs font-semibold border transition-colors disabled:opacity-50 flex-shrink-0 ${
           issue.owned
             ? "bg-blue-50 text-blue-700 border-blue-200"
             : "border-gray-200 text-gray-400 hover:bg-gray-50"
@@ -88,7 +90,7 @@ export default function IssueRow({ issue, href }: { issue: Issue; href: string }
         onClick={() => toggle("read")}
         disabled={busy}
         title={issue.read ? "Read — click to unmark" : "Unread — click to mark read"}
-        className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors disabled:opacity-50 flex-shrink-0 ${
+        className={`flex items-center gap-1 px-3 py-2.5 sm:px-2.5 sm:py-1 rounded-md text-xs font-semibold border transition-colors disabled:opacity-50 flex-shrink-0 ${
           issue.read
             ? "bg-green-50 text-green-700 border-green-200"
             : "border-gray-200 text-gray-400 hover:bg-gray-50"

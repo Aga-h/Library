@@ -11,6 +11,15 @@ export function Poster({ src }: { src: string | null }) {
   );
 }
 
+/** A text-only button (Results, All, None): a 40px-tall hit area on phones, without moving anything. */
+export const tinyButtonCls = "font-semibold text-gray-600 hover:text-gray-900 max-sm:py-3 max-sm:-my-3 max-sm:px-2.5 max-sm:-mx-2.5";
+
+/** The All · None pair those sit in — further apart on phones, so their hit areas don't overlap. */
+export const tinyButtonsCls = "flex gap-3 max-sm:gap-5";
+
+/** A result's title: two lines on a phone rather than a few cut-off words, one line from sm. */
+export const resultTitleCls = "text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate";
+
 /** TMDB's required attribution: its notice and its logo, wherever its data is used. */
 export function TmdbNotice({ className = "" }: { className?: string }) {
   return (

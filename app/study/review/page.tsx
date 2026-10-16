@@ -38,13 +38,13 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
         </div>
         <div className="flex items-center gap-1">
           <Link href={`/study/review?date=${addDays(date, -1)}`} aria-label="Previous day"
-            className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
+            className="p-2 max-sm:p-2.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </Link>
           {!isToday && (
             <>
               <Link href={`/study/review?date=${addDays(date, 1)}`} aria-label="Next day"
-                className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
+                className="p-2 max-sm:p-2.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </Link>
               <Link href="/study/review"
@@ -79,7 +79,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
             {[...(r.goals.overall ? [{ title: "All study", ...r.goals.overall }] : []), ...r.goals.modules].map((g) => (
               <div key={g.title} className="px-4 py-3">
                 <div className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="font-semibold text-gray-900 truncate">{g.title}</span>
+                  <span className="min-w-0 break-words sm:truncate font-semibold text-gray-900">{g.title}</span>
                   <span className="text-gray-500 tabular-nums whitespace-nowrap">
                     {formatDuration(g.doneSeconds)} / {formatDuration(g.goalSeconds)}
                   </span>
@@ -125,7 +125,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
               return (
                 <div key={g.stat} className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${up ? `${meta.bg} ${meta.border}` : "bg-white border-gray-200"}`}>
                   <span className={`text-sm font-semibold ${up ? meta.text : "text-gray-900"}`}>{meta.label}</span>
-                  <span className="text-sm text-gray-600 tabular-nums">
+                  <span className="text-sm text-gray-600 tabular-nums text-right">
                     +{g.xp.toLocaleString()} XP
                     {up ? <span className={`font-bold ${meta.text}`}> · Lv {g.levelBefore} → {g.levelAfter}</span>
                         : <span className="text-gray-400"> · Lv {g.levelAfter}</span>}
@@ -154,8 +154,8 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {r.ap.progress.map((c) => (
             <div key={c.course} className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold text-gray-900">{c.course}</span>
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0 break-words font-semibold text-gray-900">{c.course}</span>
                 <span className="text-gray-500 tabular-nums">{c.done}/{c.total}</span>
               </div>
               <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-2">
@@ -218,9 +218,9 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 function Row({ title, sub, stats }: { title: string; sub: string; stats: Parameters<typeof StatBadges>[0]["stats"] }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
-      <div className="min-w-0">
-        <p className="font-semibold text-gray-900 text-sm truncate">{title}</p>
+    <div className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap max-sm:flex-col max-sm:items-start max-sm:gap-2">
+      <div className="min-w-0 max-sm:w-full">
+        <p className="font-semibold text-gray-900 text-sm break-words sm:truncate">{title}</p>
         <p className="text-xs text-gray-500">{sub}</p>
       </div>
       <StatBadges stats={stats} size="xs" />
@@ -235,7 +235,7 @@ function Tile({ icon: Icon, label, value, hint, accent = false, warn = false }: 
   return (
     <div className={`rounded-xl px-4 py-3 border ${box}`}>
       {Icon && <Icon className={`w-4 h-4 mb-1.5 ${accent ? "text-gray-500" : "text-gray-300"}`} />}
-      <p className={`text-2xl font-bold tabular-nums ${accent ? "text-white" : "text-gray-900"}`}>{value}</p>
+      <p className={`text-2xl max-sm:text-xl font-bold tabular-nums break-words ${accent ? "text-white" : "text-gray-900"}`}>{value}</p>
       <p className={`text-xs mt-0.5 ${accent ? "text-gray-400" : "text-gray-500"}`}>{label}</p>
       {hint && <p className={`text-[11px] mt-0.5 ${accent ? "text-gray-500" : warn ? "text-amber-700" : "text-gray-400"}`}>{hint}</p>}
     </div>

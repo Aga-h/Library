@@ -97,11 +97,11 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
                 <input type="text" required value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })}
                   aria-label="Module name" className={`${inputCls} flex-1 min-w-40`} />
                 <button type="submit" disabled={busy || editStats.length === 0}
-                  className="bg-gray-900 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+                  className="bg-gray-900 text-white px-3 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
                   Save
                 </button>
                 <button type="button" onClick={() => setEditing(null)} aria-label="Cancel"
-                  className="p-2 text-gray-400 hover:text-gray-900 transition-colors"><X className="w-4 h-4" /></button>
+                  className="p-2 max-sm:p-2.5 text-gray-400 hover:text-gray-900 transition-colors"><X className="w-4 h-4" /></button>
               </div>
               <input type="text" value={edit.notes} onChange={(e) => setEdit({ ...edit, notes: e.target.value })}
                 placeholder="Note (optional)" aria-label="Note" className={`${inputCls} text-sm`} />
@@ -109,9 +109,11 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
               <StatPicker picked={editStats} onToggle={setEditStats} />
             </form>
           ) : (
-            <div key={m.id} className="flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-xl px-4 py-3 flex-wrap">
+            // On a phone every row stacks the same way: the module, then its stats with the buttons
+            // at the far end — not side by side for short names and wrapped for long ones.
+            <div key={m.id} className="flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-xl px-4 py-3 flex-wrap max-sm:flex-col max-sm:items-stretch max-sm:gap-2">
               <div className="min-w-0">
-                <p className="font-semibold text-gray-900 text-sm">{m.title}</p>
+                <p className="font-semibold text-gray-900 text-sm break-words">{m.title}</p>
                 {m.notes && <p className="text-xs text-gray-500 mt-0.5">{m.notes}</p>}
                 {m.weeklyGoalMinutes !== null && (
                   <p className="text-xs text-sky-700 mt-0.5">Goal: {formatDuration(m.weeklyGoalMinutes * 60)} a week</p>
@@ -120,24 +122,24 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
                   {m.sessions === 0 ? "not studied yet" : `${m.sessions} session${m.sessions === 1 ? "" : "s"}`}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 max-sm:justify-between">
                 <StatBadges stats={m.stats} size="xs" />
                 {confirming === m.id ? (
                   <div className="flex items-center gap-1.5">
                     <button onClick={async () => { if (await send(`/api/study/modules/${m.id}`, { method: "DELETE" })) setConfirming(null); }}
                       disabled={busy}
-                      className="bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">
+                      className="bg-red-600 text-white px-2.5 py-1.5 max-sm:px-3.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">
                       Delete
                     </button>
                     <button onClick={() => setConfirming(null)} aria-label="Keep it"
-                      className="p-1.5 text-gray-400 hover:text-gray-900 transition-colors"><X className="w-4 h-4" /></button>
+                      className="p-1.5 max-sm:p-2.5 text-gray-400 hover:text-gray-900 transition-colors"><X className="w-4 h-4" /></button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
                     <button onClick={() => beginEdit(m)} aria-label={`Edit ${m.title}`}
-                      className="p-2 text-gray-400 hover:text-gray-900 transition-colors"><Pencil className="w-4 h-4" /></button>
+                      className="p-2 max-sm:p-2.5 text-gray-400 hover:text-gray-900 transition-colors"><Pencil className="w-4 h-4" /></button>
                     <button onClick={() => setConfirming(m.id)} aria-label={`Delete ${m.title}`}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      className="p-2 max-sm:p-2.5 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 )}
               </div>
@@ -169,7 +171,7 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
         <GoalInput id="goal-new" value={draft.goal} onChange={(goal) => setDraft({ ...draft, goal })} />
         <StatPicker picked={draftStats} onToggle={setDraftStats} />
         <button type="submit" disabled={busy || draft.title.trim() === "" || draftStats.length === 0}
-          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           <Plus className="w-4 h-4" /> Add module
         </button>
       </form>
@@ -187,7 +189,7 @@ function StatPicker({ picked, onToggle }: { picked: Stat[]; onToggle: (next: Sta
 
   return (
     <div className="border-t border-gray-100 pt-3">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between gap-3 mb-2">
         <span className="text-xs font-semibold text-gray-500">
           Stats this trains — studying it levels them
         </span>
@@ -204,7 +206,7 @@ function StatPicker({ picked, onToggle }: { picked: Stat[]; onToggle: (next: Sta
           return (
             <button key={stat} type="button" onClick={() => toggle(stat)} disabled={full}
               title={meta.description} aria-pressed={on}
-              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-2 py-1.5 max-sm:py-2.5 rounded-lg border text-xs font-semibold transition-colors ${
                 on ? `${meta.bg} ${meta.text} ${meta.border}`
                    : full ? "border-gray-100 text-gray-300 cursor-not-allowed"
                           : "border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -225,7 +227,7 @@ function StatPicker({ picked, onToggle }: { picked: Stat[]; onToggle: (next: Sta
 function GoalInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor={id} className="text-sm text-gray-600">Weekly goal</label>
+      <label htmlFor={id} className="text-sm text-gray-600 max-sm:whitespace-nowrap">Weekly goal</label>
       <input id={id} type="number" inputMode="decimal" min="0.25" max={MAX_WEEKLY_GOAL_HOURS} step="0.25"
         value={value} onChange={(e) => onChange(e.target.value)} placeholder="none"
         className={`${inputCls} w-24 text-sm`} />

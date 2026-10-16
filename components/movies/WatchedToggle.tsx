@@ -34,7 +34,7 @@ export default function WatchedToggle({ movieId, title, watched }: { movieId: st
       disabled={saving || isPending}
       aria-label={watched ? `${title}: watched — tap to put back on the watchlist` : `Mark ${title} as watched`}
       title={watched ? "Watched — tap to put back on the watchlist" : "Mark as watched"}
-      className={`absolute top-2 left-2 z-10 flex items-center justify-center w-8 h-8 rounded-full border shadow-sm transition-colors disabled:opacity-60 ${
+      className={`absolute top-2 left-2 z-10 flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-full border shadow-sm transition-colors disabled:opacity-60 ${
         watched
           ? "bg-green-600 border-green-600 text-white hover:bg-green-700"
           : "bg-white/90 border-gray-200 text-gray-500 hover:bg-white hover:text-gray-900"

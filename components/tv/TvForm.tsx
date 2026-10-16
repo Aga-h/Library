@@ -331,7 +331,7 @@ export default function TvForm({ seriesOptions, seriesName, initialData, mode, c
       </Field>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         <button
           type="submit"
           disabled={loading}

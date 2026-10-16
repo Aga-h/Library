@@ -20,18 +20,19 @@ export default function MovieStats({ movies }: MovieStatsProps) {
   const totalWatchFormatted = totalWatchMinutes > 0 ? formatReadingTime(totalWatchMinutes) : "—";
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
         Movie Stats
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+      {/* Phones: three across too — at two, Dropped sat alone on a second row. */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
         <StatPill label="Watched" value={watched.length} color="green" />
         <StatPill label="Want to Watch" value={wantToWatch.length} color="yellow" />
         <StatPill label="Dropped" value={dropped.length} color="red" />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:gap-4 pt-4 border-t border-gray-100">
         <TimeStat
           icon={<Eye className="w-4 h-4" />}
           label="Movies Watched"
@@ -66,10 +67,10 @@ function StatPill({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-lg border p-3 ${colors[color]}`}
+      className={`min-w-0 flex flex-col items-center justify-center rounded-lg border p-2 sm:p-3 ${colors[color]}`}
     >
       <span className="text-2xl font-bold">{value}</span>
-      <span className="text-xs font-medium mt-0.5">{label}</span>
+      <span className="text-xs font-medium mt-0.5 text-center max-w-full break-words">{label}</span>
     </div>
   );
 }
@@ -86,11 +87,11 @@ function TimeStat({
   sub?: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5 text-gray-400">{icon}</div>
-      <div>
-        <p className="text-xs text-gray-500 font-medium">{label}</p>
-        <p className="text-lg font-bold text-gray-800">{value}</p>
+    <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+      <div className="mt-0.5 text-gray-400 shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 font-medium break-words">{label}</p>
+        <p className="text-lg max-sm:text-base font-bold text-gray-800 break-words">{value}</p>
         {sub && <p className="text-xs text-gray-400">{sub}</p>}
       </div>
     </div>

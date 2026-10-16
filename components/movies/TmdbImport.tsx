@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, Download, Film, Layers, Loader2, Plus, Search, Tag } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
-import { Poster, TmdbNotice } from "@/components/tmdb/TmdbParts";
+import { Poster, TmdbNotice, resultTitleCls, tinyButtonCls, tinyButtonsCls } from "@/components/tmdb/TmdbParts";
 
 interface Place {
   movieId: string;
@@ -220,7 +220,7 @@ export default function TmdbImport({
           <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg" role="group" aria-label="New films are marked">
             {(["WANT_TO_WATCH", "WATCHED"] as const).map((s) => (
               <button key={s} type="button" onClick={() => setStatus(s)} aria-pressed={status === s}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                className={`px-3 py-2.5 sm:py-1.5 rounded-md text-xs font-semibold transition-colors ${
                   status === s ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"
                 }`}>
                 {s === "WATCHED" ? "Watched" : "Want to watch"}
@@ -233,7 +233,7 @@ export default function TmdbImport({
       <form onSubmit={runSearch} className="flex gap-2">
         <label htmlFor="tmdb-query" className="sr-only">Search TMDB</label>
         <input id="tmdb-query" type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoFocus
-          placeholder="A film, a franchise, or a tag like “marvel cinematic”" className={`${inputCls} flex-1`} />
+          placeholder="A film, a franchise, or a tag like “marvel cinematic”" className={`${inputCls} flex-1 min-w-0`} />
         <button type="submit" disabled={searching || query.trim().length < 2}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Search
@@ -280,11 +280,11 @@ export default function TmdbImport({
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-3 py-2.5 bg-gray-50 border-b border-gray-200">
             <button type="button" onClick={() => setPreview(null)}
-              className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800">
+              className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800 flex-shrink-0 max-sm:py-2.5 max-sm:-my-2.5 max-sm:pr-2">
               <ArrowLeft className="w-3.5 h-3.5" /> Results
             </button>
             <div className="min-w-0 text-right">
-              <p className="text-sm font-semibold text-gray-900 truncate">{preview.name}</p>
+              <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{preview.name}</p>
               <p className="text-xs text-gray-500">
                 {preview.total > preview.films.length
                   ? `The first ${preview.films.length} of ${preview.total} — a broad tag; a collection or a narrower tag may fit better`
@@ -299,11 +299,11 @@ export default function TmdbImport({
             <>
               <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 text-xs">
                 <span className="text-gray-500">{selected.size} selected</span>
-                <span className="flex gap-3">
+                <span className={tinyButtonsCls}>
                   <button type="button" onClick={() => setSelected(new Set(preview.films.map((f) => f.id)))}
-                    className="font-semibold text-gray-600 hover:text-gray-900">All</button>
+                    className={tinyButtonCls}>All</button>
                   <button type="button" onClick={() => setSelected(new Set())}
-                    className="font-semibold text-gray-600 hover:text-gray-900">None</button>
+                    className={tinyButtonCls}>None</button>
                 </span>
               </div>
               <ul className="divide-y divide-gray-100 max-h-[28rem] overflow-y-auto">
@@ -316,11 +316,17 @@ export default function TmdbImport({
                           className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
                         <Poster src={f.poster} />
                         <span className="flex-1 min-w-0">
-                          <span className="block text-sm font-semibold text-gray-900 truncate">{f.title}</span>
+                          <span className={`block ${resultTitleCls}`}>{f.title}</span>
                           <span className="block text-xs text-gray-500">{f.year ?? "No date yet"}</span>
+                          {/* Phones: where it is goes under the title — beside it, it squeezed the title away. */}
+                          {where && (
+                            <span className={`sm:hidden mt-1 inline-block max-w-full truncate align-top text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                              where.importable ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
+                            }`}>{where.text}</span>
+                          )}
                         </span>
                         {where && (
-                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          <span className={`max-sm:hidden text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
                             where.importable ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
                           }`}>{where.text}</span>
                         )}
@@ -329,10 +335,11 @@ export default function TmdbImport({
                   );
                 })}
               </ul>
-              <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between gap-3">
+              {/* Phones: the button under the note, full width, rather than squeezing the note. */}
+              <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <p className="text-[11px] text-gray-500">Films you already have only get their blanks filled in.</p>
                 <button type="button" onClick={importSelected} disabled={busy !== null || selected.size === 0}
-                  className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
+                  className="flex items-center justify-center gap-1.5 bg-gray-900 text-white px-3 py-3 sm:py-2 rounded-lg text-sm sm:text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
                   {busy === "bulk"
                     ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing {plural(selected.size, "film")}…</>
                     : <><Download className="w-3.5 h-3.5" /> Import {plural(selected.size, "film")}</>}
@@ -375,18 +382,18 @@ export default function TmdbImport({
                     <li key={f.id} className="flex items-center gap-3 px-3 py-2 bg-white">
                       <Poster src={f.poster} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{f.title}</p>
+                        <p className={resultTitleCls}>{f.title}</p>
                         <p className="text-xs text-gray-500">{f.year ?? "No date yet"}</p>
                       </div>
                       {where && !where.importable ? (
                         <Link href={`/library/movies/${f.place!.movieId}`}
-                          className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex-shrink-0">
+                          className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-2.5 sm:px-2 sm:py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex-shrink-0 max-sm:max-w-[9rem] max-sm:text-left">
                           {where.text === "Already here" || where.text === "In your library" ? <Check className="w-3 h-3" /> : null}
                           {where.text}
                         </Link>
                       ) : (
                         <button type="button" onClick={() => addOne(f)} disabled={busy !== null}
-                          className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                          className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
                           {busy === f.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
                           {where ? "Move here" : "Add"}
                         </button>
@@ -424,11 +431,11 @@ function GroupRow({
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+        <p className={resultTitleCls}>{name}</p>
         <p className="text-xs text-gray-500">{hint}</p>
       </div>
       <button type="button" onClick={onOpen} disabled={disabled}
-        className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+        className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
         {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Film className="w-3.5 h-3.5" />} See films
       </button>
     </li>

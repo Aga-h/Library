@@ -68,7 +68,7 @@ export default function SessionBoard({
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
                 {running.moduleTitle ? "Studying" : "Free study"}
               </p>
-              <h3 className="text-2xl font-bold mt-1 truncate">
+              <h3 className="text-2xl font-bold mt-1 break-words sm:truncate">
                 {running.moduleTitle ?? "Whatever this is"}
               </h3>
               <div className="mt-3">
@@ -86,7 +86,7 @@ export default function SessionBoard({
           <button
             onClick={() => post("/api/study/stop", {})}
             disabled={busy}
-            className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-200 disabled:opacity-50 transition-colors mt-5"
+            className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2.5 max-sm:w-full max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-200 disabled:opacity-50 transition-colors mt-5"
           >
             <Square className="w-4 h-4" /> {busy ? "Stopping…" : "Stop and bank it"}
           </button>
@@ -123,7 +123,7 @@ export default function SessionBoard({
                         href="/study/modules"
                         className="block border border-dashed border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors"
                       >
-                        <span className="block font-semibold text-gray-400 text-sm truncate">{m.title}</span>
+                        <span className="block font-semibold text-gray-400 text-sm break-words sm:truncate">{m.title}</span>
                         <span className="block text-xs text-amber-600 mt-1">
                           No stats yet — give it one to study it
                         </span>
@@ -136,7 +136,7 @@ export default function SessionBoard({
                       >
                         <span className="flex items-center justify-between gap-3">
                           <span className="min-w-0">
-                            <span className="block font-semibold text-gray-900 text-sm truncate">{m.title}</span>
+                            <span className="block font-semibold text-gray-900 text-sm break-words sm:truncate">{m.title}</span>
                             <span className="block mt-1.5"><StatBadges stats={m.stats} size="xs" /></span>
                             {m.weeklyGoalMinutes !== null && (
                               <span className={`block text-[11px] mt-1.5 tabular-nums ${
@@ -186,9 +186,11 @@ export default function SessionBoard({
         ) : (
           <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
             {today.map((s) => (
-              <div key={s.id} className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">
+              // On a phone each row stacks the same way — name, time, then stats and XP — rather than
+              // wrapping only the rows whose name happens to be long.
+              <div key={s.id} className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap max-sm:flex-col max-sm:items-start max-sm:gap-2">
+                <div className="min-w-0 max-sm:w-full">
+                  <p className="font-semibold text-gray-900 text-sm break-words sm:truncate">
                     {s.moduleTitle ?? "Free study"}
                   </p>
                   <p className="text-xs text-gray-500">{formatDuration(s.seconds)}</p>

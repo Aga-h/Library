@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, CircleHelp, RotateCcw, X } from "lucide-react";
 import { RUN_LENGTHS } from "@/lib/vocab";
+import { useBringIntoReach } from "@/components/study/useBringIntoReach";
 
 export interface OptionView {
   id: string;
@@ -103,6 +104,8 @@ export default function VocabTest({
   }
 
   const finished = total > 0 && answered >= total;
+  // Once answered, Done / Ambiguous / Next are the thumb's next stop on a phone.
+  const after = useBringIntoReach<HTMLDivElement>(outcome);
 
   // The offered lengths, capped at the list, with the whole list always last.
   const lengthChoices = [...new Set([...RUN_LENGTHS.filter((n) => n < meaningCount), meaningCount])];
@@ -128,7 +131,7 @@ export default function VocabTest({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 max-sm:flex-wrap max-sm:w-full">
           <label htmlFor="run-length" className="sr-only">
             Questions per test
           </label>
@@ -137,7 +140,7 @@ export default function VocabTest({
             value={length}
             onChange={(e) => setLength(Number(e.target.value))}
             disabled={busy}
-            className="border border-gray-200 text-gray-700 rounded-lg px-2.5 py-2 text-sm font-semibold bg-white disabled:opacity-50"
+            className="border border-gray-200 text-gray-700 rounded-lg px-2.5 py-2 text-sm font-semibold bg-white disabled:opacity-50 max-sm:flex-1"
           >
             {lengthChoices.map((n) => (
               <option key={n} value={n}>
@@ -148,7 +151,7 @@ export default function VocabTest({
           <button
             onClick={restart}
             disabled={busy}
-            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:flex-1 max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             {total === 0 ? "Start the test" : "Take the test again"}
@@ -158,7 +161,7 @@ export default function VocabTest({
 
       {/* The question */}
       {question && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 max-sm:p-5">
           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
             What does this mean?
             {question.senseOf && (
@@ -167,7 +170,7 @@ export default function VocabTest({
               </span>
             )}
           </p>
-          <h2 className="text-3xl font-bold text-gray-900 mt-1">{question.word}</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mt-1 break-words">{question.word}</h2>
 
           <ul className="mt-5 space-y-2">
             {question.options.map((option) => {
@@ -199,7 +202,7 @@ export default function VocabTest({
           </ul>
 
           {outcome && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
+            <div ref={after} className="scroll-mt-20 scroll-mb-4 mt-5 pt-5 border-t border-gray-100">
               {outcome.correct ? (
                 <>
                   <p className="text-sm font-semibold text-emerald-700 mb-3">
@@ -209,14 +212,14 @@ export default function VocabTest({
                     <button
                       onClick={() => next("DONE")}
                       disabled={busy}
-                      className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                      className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 max-sm:flex-1 max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                     >
                       <Check className="w-4 h-4" /> Done
                     </button>
                     <button
                       onClick={() => next("AMBIGUOUS")}
                       disabled={busy}
-                      className="flex items-center gap-2 bg-amber-500 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                      className="flex items-center gap-2 bg-amber-500 text-white px-4 py-2.5 max-sm:flex-1 max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-amber-600 disabled:opacity-50 transition-colors"
                     >
                       <CircleHelp className="w-4 h-4" /> Ambiguous
                     </button>
@@ -230,7 +233,7 @@ export default function VocabTest({
                   <button
                     onClick={() => next()}
                     disabled={busy}
-                    className="bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                    className="bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
                   >
                     Next question
                   </button>

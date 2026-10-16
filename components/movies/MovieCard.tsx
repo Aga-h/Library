@@ -49,8 +49,10 @@ export default function MovieCard({ movie }: { movie: Movie }) {
           ) : (
             <Film className="w-12 h-12 text-gray-300" />
           )}
+          {/* Phones: the status sits at the poster's foot — at the top, half a phone wide, it ran
+              into the watched toggle beside it. */}
           <span
-            className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}
+            className={`absolute top-2 right-2 max-sm:top-auto max-sm:bottom-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}
           >
             {status.label}
           </span>

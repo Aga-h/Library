@@ -142,7 +142,7 @@ function GoalRow({
           }}
           className="flex items-center gap-2 flex-wrap"
         >
-          <label htmlFor={inputId} className={`font-semibold text-gray-900 ${big ? "text-base" : "text-sm"}`}>
+          <label htmlFor={inputId} className={`font-semibold text-gray-900 max-sm:w-full break-words ${big ? "text-base" : "text-sm"}`}>
             {label}
           </label>
           <input id={inputId} type="number" inputMode="decimal" min="0.25" max={MAX_WEEKLY_GOAL_HOURS} step="0.25"
@@ -150,14 +150,14 @@ function GoalRow({
             className={`${inputCls} w-24 text-sm`} />
           <span className="text-sm text-gray-500">hours a week</span>
           <button type="submit" disabled={busy} aria-label={`Save goal for ${label}`}
-            className="p-2 rounded-lg bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors">
+            className="p-2 max-sm:p-2.5 rounded-lg bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors">
             <Check className="w-4 h-4" />
           </button>
           <button type="button" onClick={() => { setEditing(false); setError(null); }} aria-label="Cancel"
-            className="p-2 text-gray-400 hover:text-gray-900 transition-colors"><X className="w-4 h-4" /></button>
+            className="p-2 max-sm:p-2.5 text-gray-400 hover:text-gray-900 transition-colors"><X className="w-4 h-4" /></button>
           {goalMinutes !== null && (
             <button type="button" onClick={() => submit(null)} disabled={busy}
-              className="text-xs text-gray-400 hover:text-red-600 underline">Remove goal</button>
+              className="text-xs text-gray-400 hover:text-red-600 underline max-sm:py-2.5">Remove goal</button>
           )}
         </form>
         {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
@@ -168,7 +168,8 @@ function GoalRow({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <span className={`font-semibold text-gray-900 truncate ${big ? "text-base" : "text-sm"}`}>{label}</span>
+        {/* On a phone a long module name wraps instead of losing its end. */}
+        <span className={`min-w-0 break-words sm:truncate font-semibold text-gray-900 ${big ? "text-base" : "text-sm"}`}>{label}</span>
         <span className="flex items-center gap-1.5 whitespace-nowrap">
           <span className={`tabular-nums ${big ? "text-sm text-gray-900" : "text-sm text-gray-500"}`}>
             {progress ? (
@@ -182,10 +183,10 @@ function GoalRow({
           </span>
           {progress ? (
             <button onClick={() => setEditing(true)} aria-label={`Change goal for ${label}`}
-              className="p-1 text-gray-300 hover:text-gray-700 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+              className="p-1 max-sm:p-3 max-sm:-m-2 text-gray-300 hover:text-gray-700 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
           ) : (
             <button onClick={() => setEditing(true)}
-              className="text-xs font-semibold text-sky-700 border border-sky-200 bg-sky-50 rounded-md px-2 py-0.5 hover:bg-sky-100 transition-colors">
+              className="text-xs font-semibold text-sky-700 border border-sky-200 bg-sky-50 rounded-md px-2 py-0.5 max-sm:py-2.5 max-sm:-my-2 hover:bg-sky-100 transition-colors">
               Set goal
             </button>
           )}

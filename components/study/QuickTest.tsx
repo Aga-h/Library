@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Play, X } from "lucide-react";
 import { QUICK_SIZES, type QuickPool } from "@/lib/vocab";
+import { useBringIntoReach } from "@/components/study/useBringIntoReach";
 
 export interface QuickQuestion {
   id: string;
@@ -88,6 +89,8 @@ export default function QuickTest({
   }
 
   const chosen = pools.find((p) => p.pool === pool);
+  // Once answered, the Next button is the thumb's next stop on a phone.
+  const after = useBringIntoReach<HTMLDivElement>(outcome);
 
   return (
     <div className="space-y-5">
@@ -139,7 +142,7 @@ export default function QuickTest({
             <div className="flex gap-2" role="radiogroup" aria-label="How many">
               {QUICK_SIZES.map((n) => (
                 <button key={n} type="button" role="radio" aria-checked={size === n} onClick={() => setSize(n)}
-                  className={`border rounded-lg px-3.5 py-1.5 text-sm font-semibold tabular-nums transition-colors ${
+                  className={`border rounded-lg px-3.5 py-1.5 max-sm:flex-1 max-sm:py-2.5 text-sm font-semibold tabular-nums transition-colors ${
                     size === n ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-700 hover:bg-gray-50"
                   }`}>{n}</button>
               ))}
@@ -150,12 +153,12 @@ export default function QuickTest({
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={start} disabled={busy || !chosen || chosen.count === 0}
-              className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+              className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:flex-1 max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
               <Play className="w-4 h-4" /> Start
             </button>
             {question && (
               <button type="button" onClick={() => setStarting(false)}
-                className="text-sm font-semibold text-gray-500 hover:text-gray-800 px-2">Back to the test</button>
+                className="text-sm font-semibold text-gray-500 hover:text-gray-800 px-2 max-sm:py-3">Back to the test</button>
             )}
           </div>
         </div>
@@ -164,19 +167,20 @@ export default function QuickTest({
       {question && !starting && (
         <>
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500 tabular-nums">{progress.answered} / {progress.total}</span>
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-sm text-gray-500 tabular-nums whitespace-nowrap">{progress.answered} / {progress.total}</span>
               <div className="w-40 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-sky-500 rounded-full transition-all" style={{ width: `${Math.round((progress.answered / Math.max(1, progress.total)) * 100)}%` }} />
               </div>
             </div>
-            <button type="button" onClick={() => setStarting(true)} className="text-xs font-semibold text-gray-500 hover:text-gray-800">
+            <button type="button" onClick={() => setStarting(true)}
+              className="text-xs font-semibold text-gray-500 hover:text-gray-800 whitespace-nowrap max-sm:py-3 max-sm:-my-3 max-sm:pl-2">
               Start a different one
             </button>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-sm:p-5">
             <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">What does this mean?</p>
-            <h2 className="text-3xl font-bold text-gray-900 mt-1">{question.word}</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mt-1 break-words">{question.word}</h2>
             <ul className="mt-5 space-y-2">
               {question.options.map((option) => {
                 const isPicked = picked === option.id;
@@ -201,12 +205,12 @@ export default function QuickTest({
               })}
             </ul>
             {outcome && (
-              <div className="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between gap-3">
+              <div ref={after} className="scroll-mt-20 scroll-mb-4 mt-5 pt-5 border-t border-gray-100 flex items-center justify-between gap-3">
                 <p className={`text-sm font-semibold ${outcome.correct ? "text-emerald-700" : "text-red-700"}`}>
                   {outcome.correct ? "Correct." : "Not quite."}
                 </p>
                 <button type="button" onClick={next} autoFocus
-                  className="bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+                  className="bg-gray-900 text-white px-4 py-2.5 max-sm:flex-1 max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
                   {progress.answered + 1 >= progress.total ? "See the score" : "Next question"}
                 </button>
               </div>

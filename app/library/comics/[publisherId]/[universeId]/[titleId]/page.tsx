@@ -48,9 +48,13 @@ export default async function TitlePage({ params }: PageProps) {
         ]}
       />
 
-      <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{title.name}</h1>
+      {/* Phones: the actions stack under the title and wrap. From sm the title takes the room the
+          actions leave it — and when even its longest word won't fit beside them (acid's giant
+          type), the actions drop under it instead of sticking out past the page. w-fit keeps the
+          heading's own box (and acid's gradient on it) the width of its text. */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between mb-8 gap-4">
+        <div className="sm:grow sm:basis-56">
+          <h1 className="text-2xl font-bold text-gray-900 break-words sm:w-fit sm:max-w-full">{title.name}</h1>
           {langLabel && <p className="text-sm text-gray-500 mt-1">{langLabel}</p>}
           {title.comicVineId !== null && (
             <div className="mt-3">
@@ -58,10 +62,10 @@ export default async function TitlePage({ params }: PageProps) {
             </div>
           )}
         </div>
-        <div className="flex items-start gap-2 flex-shrink-0">
+        <div className="flex items-start justify-start sm:justify-end flex-wrap gap-2 flex-shrink-0">
           <Link
             href={`${base}/edit`}
-            className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
           >
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -98,9 +102,9 @@ export default async function TitlePage({ params }: PageProps) {
       />
 
       {title.notes && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Notes</h2>
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">{title.notes}</p>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{title.notes}</p>
         </div>
       )}
 
