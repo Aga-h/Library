@@ -108,11 +108,11 @@ export default function ArticleForm({ initialData, mode, authorOptions, publicat
 
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, key takeaways..." className={inputCls} /></Field>
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button type="submit" disabled={loading} className="max-sm:flex-1 bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {loading ? (mode === "edit" ? "Saving…" : "Adding…") : (mode === "edit" ? "Save Changes" : "Add Article")}
         </button>
-        <button type="button" onClick={() => router.back()} className="border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
+        <button type="button" onClick={() => router.back()} className="max-sm:flex-1 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
       </div>
     </form>
   );

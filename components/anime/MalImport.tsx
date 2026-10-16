@@ -76,6 +76,9 @@ function placeLabel(place: Place | null, target: string | null): { text: string;
   return { text: `In ${place.universeName ?? "another universe"}`, importable: false };
 }
 
+/** A text-only button (All, None…): a 40px-tall hit area on phones, without moving anything. */
+export const tinyButtonCls = "font-semibold text-gray-600 hover:text-gray-900 max-sm:py-3 max-sm:-my-3 max-sm:px-1.5 max-sm:-mx-1.5";
+
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
@@ -254,11 +257,11 @@ export default function MalImport({
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-3 py-2.5 bg-gray-50 border-b border-gray-200">
             <button type="button" onClick={() => setRun(null)}
-              className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800">
+              className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800 flex-shrink-0 max-sm:py-2.5 max-sm:-my-2.5 max-sm:pr-2">
               <ArrowLeft className="w-3.5 h-3.5" /> Results
             </button>
             <div className="min-w-0 text-right">
-              <p className="text-sm font-semibold text-gray-900 truncate">{run.entries[0] ? shown(run.entries[0]) : "Series"}</p>
+              <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{run.entries[0] ? shown(run.entries[0]) : "Series"}</p>
               <p className="text-xs text-gray-500">
                 {plural(run.entries.length, "entry", "entries")} in watch order
                 {run.truncated && " — the 40 nearest the one you picked; a very long franchise"}
@@ -269,9 +272,9 @@ export default function MalImport({
             <span className="text-gray-500">{selected.size} selected</span>
             <span className="flex gap-3">
               <button type="button" onClick={() => setSelected(new Set(run.entries.map((e) => e.id)))}
-                className="font-semibold text-gray-600 hover:text-gray-900">All</button>
+                className={tinyButtonCls}>All</button>
               <button type="button" onClick={() => setSelected(new Set())}
-                className="font-semibold text-gray-600 hover:text-gray-900">None</button>
+                className={tinyButtonCls}>None</button>
             </span>
           </div>
           <ul className="divide-y divide-gray-100 max-h-[28rem] overflow-y-auto">
@@ -284,11 +287,17 @@ export default function MalImport({
                       className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
                     <Poster src={e.poster} />
                     <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-semibold text-gray-900 truncate">{shown(e)}</span>
+                      <span className="block text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</span>
                       <span className="block text-xs text-gray-500">{meta(e)}</span>
+                      {/* Phones: where it is goes under the title — beside it, it squeezed the title away. */}
+                      {where && (
+                        <span className={`sm:hidden mt-1 inline-block max-w-full truncate align-top text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                          where.importable ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
+                        }`}>{where.text}</span>
+                      )}
                     </span>
                     {where && (
-                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                      <span className={`max-sm:hidden text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
                         where.importable ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
                       }`}>{where.text}</span>
                     )}
@@ -297,14 +306,15 @@ export default function MalImport({
               );
             })}
           </ul>
-          <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between gap-3">
+          {/* Phones: the button under the note, full width, rather than squeezing the note. */}
+          <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <p className="text-[11px] text-gray-500">
               {selected.size === 1 && !targetId
                 ? "One entry on its own is added as a single anime, not a series."
                 : "Ticked entries become one series, in this order. Ones you have only get their blanks filled."}
             </p>
             <button type="button" onClick={importSelected} disabled={busy || selected.size === 0}
-              className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
+              className="flex items-center justify-center gap-1.5 bg-gray-900 text-white px-3 py-3 sm:py-2 rounded-lg text-sm sm:text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
               {busy
                 ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing…</>
                 : <><Download className="w-3.5 h-3.5" /> Import {plural(selected.size, "entry", "entries")}</>}
@@ -322,7 +332,7 @@ export default function MalImport({
                 <li key={e.id} className="flex items-center gap-3 px-3 py-2 bg-white">
                   <Poster src={e.poster} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{shown(e)}</p>
+                    <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</p>
                     <p className="text-xs text-gray-500">{meta(e)}</p>
                   </div>
                   {where && (
@@ -332,7 +342,7 @@ export default function MalImport({
                     </Link>
                   )}
                   <button type="button" onClick={() => openRun(e)} disabled={opening !== null}
-                    className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                    className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
                     {opening === e.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Layers className="w-3.5 h-3.5" />} See series
                   </button>
                 </li>
@@ -356,7 +366,7 @@ export function Toggle({ label, value, onChange, off, on }: {
       <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg" role="group" aria-label={label}>
         {[false, true].map((v) => (
           <button key={String(v)} type="button" onClick={() => onChange(v)} aria-pressed={value === v}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`px-3 py-2.5 sm:py-1.5 rounded-md text-xs font-semibold transition-colors ${
               value === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"
             }`}>
             {v ? on : off}

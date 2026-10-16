@@ -58,25 +58,27 @@ export default function DashboardClient({ sections, totalMinutes }: { sections: 
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      {/* Phones: the title, then the total and the Grid/Chart toggle sharing a row below it (each
+          taking a full row of its own when the two don't fit side by side). */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-4 mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-gray-900 break-words">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Your personal media library</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {totalMinutes > 0 && (
-            <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl">
-              <Clock className="w-4 h-4 text-gray-400" />
+            <div className="flex max-sm:flex-auto items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl">
+              <Clock className="w-4 h-4 text-gray-400 shrink-0" />
               <div>
                 <p className="text-xs text-gray-400 leading-none mb-0.5">Total time consumed</p>
                 <p className="text-sm font-bold leading-none">{formatReadingTime(totalMinutes)}</p>
               </div>
             </div>
           )}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-0.5">
+          <div className="flex max-sm:flex-auto items-center bg-gray-100 rounded-lg p-1 gap-0.5">
             <button
               onClick={() => setView("grid")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`flex max-sm:flex-1 items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-all ${
                 view === "grid" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -85,7 +87,7 @@ export default function DashboardClient({ sections, totalMinutes }: { sections: 
             </button>
             <button
               onClick={() => setView("chart")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`flex max-sm:flex-1 items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium transition-all ${
                 view === "chart" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -181,8 +183,9 @@ function ChartView({
   return (
     <div className="flex flex-col lg:flex-row gap-10 items-center lg:items-start">
       {/* Donut */}
-      <div className="flex-shrink-0">
-        <svg width="320" height="320" viewBox="0 0 320 320">
+      {/* max-w-full: a 320px donut is wider than a small phone's content box; it scales down. */}
+      <div className="flex-shrink-0 max-w-full">
+        <svg width="320" height="320" viewBox="0 0 320 320" className="max-w-full h-auto">
           {paths.map((p) => (
             <path
               key={p.key}

@@ -155,7 +155,7 @@ export default function MangaMalImport({
             <li key={e.id} className="flex items-center gap-3 px-3 py-2 bg-white">
               <Poster src={e.cover} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{shown(e)}</p>
+                <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</p>
                 {credits(e) && <p className="text-xs text-gray-600 truncate">{credits(e)}</p>}
                 <p className="text-xs text-gray-500">{meta(e)}</p>
               </div>
@@ -171,7 +171,7 @@ export default function MangaMalImport({
 }
 
 const pillCls = "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full flex-shrink-0";
-const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0";
+const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0";
 
 /** What can be done with one result, given where it already is. */
 function Action({ entry: e, name, link, busy, onPick }: {

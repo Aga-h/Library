@@ -48,18 +48,19 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
     <div>
       <Breadcrumb rootHref="/library/anime" rootLabel="Anime" crumbs={crumbs} />
 
-      <div className="flex items-start justify-between mb-8 gap-4">
+      {/* Phones: the buttons go under the title, which gets the full width. */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 gap-4">
         {/* The title keeps room for its line; the buttons wrap instead of squeezing it. */}
-        <div className="min-w-[14rem]">
-          <h1 className="text-2xl font-bold text-gray-900">{series.name}</h1>
+        <div className="min-w-0 sm:min-w-[14rem]">
+          <h1 className="text-2xl font-bold text-gray-900 break-words">{series.name}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {count(series.anime.length, "season")} · {count(episodesWatched, "episode")} watched
             {watchedMinutes > 0 && ` · ${formatTotalTime(watchedMinutes)}`}
           </p>
         </div>
-        <div className="flex items-start justify-end flex-wrap gap-2">
+        <div className="flex items-start justify-start sm:justify-end flex-wrap gap-2">
           {fromMal && <MalRefresh seriesId={series.id} />}
-          <Link href={`/library/anime/s/${series.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
+          <Link href={`/library/anime/s/${series.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
           <DeleteEntityButton
@@ -86,9 +87,9 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
       </div>
 
       {series.notes && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Notes</h2>
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">{series.notes}</p>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{series.notes}</p>
         </div>
       )}
 

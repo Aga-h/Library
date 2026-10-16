@@ -13,14 +13,15 @@ export default function GameStats({ games }: { games: Game[] }) {
   const totalAchievements = games.reduce((s, g) => s + (g.achievementsTotal ?? 0), 0);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Game Stats</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        <StatPill label="Playing"     value={playing.length}   color="blue"   />
-        <StatPill label="Completed"   value={completed.length} color="green"  />
-        <StatPill label="Platinum"    value={platinum.length}  color="purple" />
-        <StatPill label="Plan to Play" value={planTo.length}   color="yellow" />
-        <StatPill label="Dropped"     value={dropped.length}   color="red"    />
+      {/* Phones: three across, then two across filling the row — not two, two and a lone one. */}
+      <div className="grid grid-cols-6 sm:grid-cols-5 gap-2 sm:gap-3 mb-6">
+        <StatPill label="Playing"     value={playing.length}   color="blue"   span="col-span-2" />
+        <StatPill label="Completed"   value={completed.length} color="green"  span="col-span-2" />
+        <StatPill label="Platinum"    value={platinum.length}  color="purple" span="col-span-2" />
+        <StatPill label="Plan to Play" value={planTo.length}   color="yellow" span="col-span-3" />
+        <StatPill label="Dropped"     value={dropped.length}   color="red"    span="col-span-3" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
         <div className="flex items-start gap-3">
@@ -43,12 +44,12 @@ export default function GameStats({ games }: { games: Game[] }) {
   );
 }
 
-function StatPill({ label, value, color }: { label: string; value: number; color: "green"|"blue"|"yellow"|"red"|"purple" }) {
+function StatPill({ label, value, color, span }: { label: string; value: number; color: "green"|"blue"|"yellow"|"red"|"purple"; span: string }) {
   const colors = { green: "bg-green-50 text-green-700 border-green-200", blue: "bg-blue-50 text-blue-700 border-blue-200", yellow: "bg-amber-50 text-amber-700 border-amber-200", red: "bg-red-50 text-red-700 border-red-200", purple: "bg-purple-50 text-purple-700 border-purple-200" };
   return (
-    <div className={`flex flex-col items-center justify-center rounded-lg border p-3 ${colors[color]}`}>
+    <div className={`${span} sm:col-span-1 min-w-0 flex flex-col items-center justify-center rounded-lg border p-2 sm:p-3 ${colors[color]}`}>
       <span className="text-2xl font-bold">{value}</span>
-      <span className="text-xs font-medium mt-0.5 text-center">{label}</span>
+      <span className="text-xs font-medium mt-0.5 text-center max-w-full break-words">{label}</span>
     </div>
   );
 }

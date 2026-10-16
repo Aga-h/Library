@@ -48,23 +48,23 @@ export default async function NewAnimePage({ searchParams }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
+      <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 py-2.5 -mt-2.5 mb-3.5 sm:py-0 sm:mt-0 sm:mb-6 transition-colors">
         <ChevronLeft className="w-4 h-4" /> {back.label}
       </Link>
       {!series && (
-        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8 mb-6">
           <h1 className="text-xl font-bold text-gray-900 mb-2">Add Anime</h1>
           <p className="text-sm text-gray-500 mb-6">
             Search MyAnimeList and pick any season — the whole run comes up in watch order, with
             episodes, episode length, studio and poster, to import as a series.
           </p>
           <MalImport universes={universeOpts.map(({ id, name }) => ({ id, name }))} initialUniverseId={null} />
-          <Link href="/library/anime/import" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 underline underline-offset-2 hover:text-gray-900">
+          <Link href="/library/anime/import" className="mt-1.5 -mb-2.5 py-2.5 sm:mt-4 sm:mb-0 sm:py-0 inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 underline underline-offset-2 hover:text-gray-900">
             Import your whole MyAnimeList list at once
           </Link>
         </div>
       )}
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8">
         {series ? (
           <h1 className="text-xl font-bold text-gray-900 mb-6">Add Season</h1>
         ) : (

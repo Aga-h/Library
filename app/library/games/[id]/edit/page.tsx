@@ -21,10 +21,10 @@ export default async function EditGamePage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href={`/library/games/${game.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to Game
+      <Link href={`/library/games/${game.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 py-2.5 -mt-2.5 mb-3.5 sm:py-0 sm:mt-0 sm:mb-6 transition-colors">
+        <ChevronLeft className="w-4 h-4 shrink-0" /> Back to Game
       </Link>
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Game</h1>
         <p className="text-sm text-gray-500 mb-6">{game.title}</p>
         <GameForm mode="edit" developerOptions={developerOpts} publisherOptions={publisherOpts} initialData={{

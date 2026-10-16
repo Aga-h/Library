@@ -35,12 +35,13 @@ export default async function AnimePage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Anime</h1>
+      {/* Phones: the actions drop under the title and wrap — side by side they were 450-700px wide. */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-gray-900 break-words">Anime</h1>
           <p className="text-sm text-gray-500 mt-1">{count(total, "season")} in your library</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/anime/mirror-covers" />
           <Link href="/library/anime/u/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Universe

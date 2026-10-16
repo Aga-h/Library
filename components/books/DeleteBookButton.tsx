@@ -27,13 +27,13 @@ export default function DeleteBookButton({ bookId }: { bookId: string }) {
         <button
           onClick={handleDelete}
           disabled={loading}
-          className="flex items-center gap-1.5 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1.5 bg-red-600 text-white px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
         >
           {loading ? "Deleting…" : "Confirm"}
         </button>
         <button
           onClick={() => setConfirming(false)}
-          className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
+          className="border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>
@@ -44,7 +44,7 @@ export default function DeleteBookButton({ bookId }: { bookId: string }) {
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="flex items-center gap-1.5 border border-red-200 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-50 transition-colors"
+      className="flex items-center gap-1.5 border border-red-200 text-red-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-red-50 transition-colors"
     >
       <Trash2 className="w-3.5 h-3.5" /> Delete
     </button>

@@ -35,7 +35,7 @@ export default function GameCard({ game }: { game: Game }) {
         <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
         {game.emulated && <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-800 text-gray-100">EMU</span>}
       </div>
-      <div className="flex flex-col gap-1 p-4 flex-1">
+      <div className="flex flex-col gap-1 p-3 sm:p-4 flex-1">
         <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">{game.title}</h3>
         {game.developer && <p className="text-xs text-gray-500">{game.developer}</p>}
         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto pt-3 text-xs text-gray-400">

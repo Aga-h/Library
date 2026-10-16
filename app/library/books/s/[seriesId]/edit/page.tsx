@@ -19,10 +19,10 @@ export default async function EditBookSeriesPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href={`/library/books/s/${series.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to {series.name}
+      <Link href={`/library/books/s/${series.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 py-2.5 -mt-2.5 mb-3.5 sm:py-0 sm:mt-0 sm:mb-6 transition-colors">
+        <ChevronLeft className="w-4 h-4 shrink-0" /> Back to {series.name}
       </Link>
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-8">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Edit Series</h1>
         <p className="text-sm text-gray-500 mb-6">{series.name}</p>
         <HierarchyForm mode="edit" apiBase="/api/books/series" entityId={series.id}
