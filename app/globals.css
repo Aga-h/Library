@@ -10,3 +10,28 @@ body {
   color: var(--color-gray-900);
   font-family: var(--theme-font-body);
 }
+
+/* Phones: no text field is set under 16px. iOS Safari zooms the whole page into a field smaller
+ * than that the moment it is focused, and leaves it zoomed after — and almost every field here is
+ * text-sm (inputCls) or text-xs. Tablets and desktop keep their sizes.
+ * "Phone" is under sm, or a touch screen under 30rem tall: a phone turned sideways is 667–932px
+ * wide, past sm, and zooms just the same. No tablet or desktop window is that short with only a
+ * coarse pointer.
+ *
+ * "At least", not "exactly": the amount on /finances/log is text-4xl and must stay that big. So
+ * this sits in the base layer, under the utilities, and works two ways:
+ *  - text-xs / text-sm on the field itself read --text-xs / --text-sm, which are redefined here on
+ *    the field alone (labels and hints around it keep the real sizes); text-lg and up are untouched.
+ *  - a field with no size class inherits its parent's (preflight's `font: inherit`); max() keeps
+ *    that when it is already 16px or more and raises it when it is not.
+ * An arbitrary size on a field (text-[13px]) or a look in app/themes.css setting a field's
+ * font-size would beat this — there are none; the phone audit's zoom count catches a new one. */
+@layer base {
+  @media (width < 40rem), (hover: none) and (pointer: coarse) and (height < 30rem) {
+    :is(input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"]), select, textarea) {
+      --text-xs: 1rem;
+      --text-sm: 1rem;
+      font-size: max(1rem, 1em);
+    }
+  }
+}

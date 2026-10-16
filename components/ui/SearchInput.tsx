@@ -26,7 +26,9 @@ export default function SearchInput({ defaultValue, onSearch, placeholder = "Sea
   }
 
   return (
-    <div className="relative">
+    // Every filter row it sits in wraps, so on phones it takes a line of its own at full width
+    // (and full tap height) instead of a fixed 192px squeezed in beside the tabs.
+    <div className="relative w-full sm:w-auto">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       <input
         aria-label={placeholder ?? "Search"}
@@ -34,7 +36,7 @@ export default function SearchInput({ defaultValue, onSearch, placeholder = "Sea
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className="text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 w-48"
+        className="text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 sm:py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 w-full sm:w-48"
       />
     </div>
   );

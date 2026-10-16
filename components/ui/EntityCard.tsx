@@ -50,9 +50,11 @@ export default function EntityCard({
 
       <div className="flex flex-col gap-1 p-4 flex-1">
         {!showCover && <Icon className="w-5 h-5 text-gray-300 mb-1" />}
-        <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">{name}</h3>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
-        {meta && <p className="text-xs text-gray-400">{meta}</p>}
+        {/* break-words: a name or subtitle with one very long word wraps instead of being cut off
+            at a phone's half-width tile. */}
+        <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug break-words">{name}</h3>
+        {subtitle && <p className="text-xs text-gray-500 break-words">{subtitle}</p>}
+        {meta && <p className="text-xs text-gray-400 break-words">{meta}</p>}
 
         {progress && progress.total > 0 && (
           <div className="mt-auto pt-3">

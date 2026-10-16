@@ -56,12 +56,13 @@ export default function ImageUpload({ value, onChange, fieldName = "uploads" }: 
         <div className="flex gap-2 items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="Cover preview" className="w-16 h-20 object-cover rounded border border-gray-200 shrink-0" />
-          <div className="flex gap-1.5">
+          {/* Taller on phones, where they are tapped rather than clicked. */}
+          <div className="flex flex-wrap gap-1.5 min-w-0">
             <button
               type="button"
               disabled={uploading}
               onClick={() => fileRef.current?.click()}
-              className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-md px-2.5 py-1 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs border border-gray-200 rounded-md px-3 py-2.5 sm:px-2.5 sm:py-1 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               <RefreshCw className="w-3 h-3" />
               {uploading ? "Uploading…" : "Change"}
@@ -69,7 +70,7 @@ export default function ImageUpload({ value, onChange, fieldName = "uploads" }: 
             <button
               type="button"
               onClick={handleRemove}
-              className="flex items-center gap-1.5 text-xs border border-red-200 rounded-md px-2.5 py-1 text-red-600 hover:bg-red-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs border border-red-200 rounded-md px-3 py-2.5 sm:px-2.5 sm:py-1 text-red-600 hover:bg-red-50 transition-colors"
             >
               <X className="w-3 h-3" /> Remove
             </button>
