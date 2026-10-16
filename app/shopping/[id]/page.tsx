@@ -32,12 +32,12 @@ export default async function ShopPage({ params }: { params: Promise<{ id: strin
           <p className="shop-page-line flex items-center gap-2 text-xs font-semibold text-gray-500 mb-1">
             <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-(--line)" />
             <span className="shop-code font-mono">{station}</span>
-            <Link href={`/shopping?category=${encodeURIComponent(shop.category)}`} className="hover:text-gray-800">{shop.category}</Link>
+            <Link href={`/shopping?category=${encodeURIComponent(shop.category)}`} className="hover:text-gray-800 max-sm:-my-2 max-sm:py-2">{shop.category}</Link>
           </p>
           <h2 className="text-2xl font-bold text-gray-900 break-words">{shop.name}</h2>
           <a href={shop.url} target="_blank" rel="noopener noreferrer"
-            className="shop-host inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-sm text-gray-500 hover:text-gray-800 mt-0.5 max-sm:-mt-1.5 max-sm:-mb-2 max-sm:py-2">
-            {hostOf(shop.url)} <ExternalLink aria-hidden className="w-3.5 h-3.5 shrink-0" />
+            className="shop-host inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-sm text-gray-500 hover:text-gray-800 mt-0.5 max-sm:block max-sm:-mt-1.5 max-sm:-mb-2 max-sm:py-2">
+            {hostOf(shop.url)} <ExternalLink aria-hidden className="w-3.5 h-3.5 shrink-0 max-sm:inline max-sm:align-[-2px]" />
             <span className="sr-only">(opens the shop&apos;s site)</span>
           </a>
         </div>
