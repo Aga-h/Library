@@ -677,6 +677,10 @@ h2.text-2xl,
 [data-theme="softclub"] .theme-drawer .theme-brand::after {
   right: 3.6rem;
 }
+/* At a finger's height Study's list (it has a heading too) runs down to the target: move it lower. */
+[data-theme="softclub"] .theme-drawer .theme-nav:has(a[href="/study/modules"]) {
+  background-image: radial-gradient(circle at 50% 504px, var(--sc-lime) 0 14px, transparent 20px 33px, var(--sc-lime) 39px 50px, transparent 56px);
+}
 
 /* ── Tracklists ── the portal's sections and the library dashboard's are not a grid of cards but
  * a CD's tracklist: one streak of light per track, numbered in LED, washed at its start with the
@@ -1708,10 +1712,35 @@ h2.text-2xl,
 [data-theme="acid"] .theme-drawer .theme-brand::after {
   right: 3.75rem; /* clear of the close button */
 }
-/* The sidebar's tight list, opened up to a finger's height. */
+/* The sidebar's tight list, opened up to a finger's height. That runs it longer, so the globe hangs
+ * lower, just under the last item (Study's list has its vocabulary heading as well). */
 [data-theme="acid"] .theme-drawer .theme-nav-item {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
+}
+[data-theme="acid"] .theme-drawer .theme-nav::after {
+  top: 416px;
+}
+[data-theme="acid"] .theme-drawer .theme-nav::before {
+  top: 449px;
+}
+[data-theme="acid"] .theme-drawer .theme-nav:has(a[href="/study/modules"])::after {
+  top: 444px;
+}
+[data-theme="acid"] .theme-drawer .theme-nav:has(a[href="/study/modules"])::before {
+  top: 477px;
+}
+/* On a screen too short to show it whole the globe stays out of the drawer, rather than leave a
+ * stray arc of its ring at the menu's edge. The drawer can be a size container: its size comes from
+ * the screen, never from what's in it. */
+[data-theme="acid"] .theme-drawer {
+  container-type: size;
+}
+@container (height < 820px) {
+  [data-theme="acid"] .theme-drawer .theme-nav::before,
+  [data-theme="acid"] .theme-drawer .theme-nav::after {
+    content: none;
+  }
 }
 [data-theme="acid"] .theme-brand .theme-drawer-close svg {
   width: 1.25rem;

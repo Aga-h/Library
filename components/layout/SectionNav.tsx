@@ -69,12 +69,21 @@ export default function SectionNav({ brand, icon: Icon, groups, signOut = false 
     const onWide = () => {
       if (wide.matches) setOpen(false);
     };
+    // A page wider than the screen can still be panned with html's overflow hidden. A drag on the
+    // dimmed page does nothing (touch-none); a drag on a drawer with nothing to scroll does nothing
+    // either. One that can scroll keeps the drag to itself (overscroll-contain).
+    const drawer = panel.current;
+    const onDrag = (e: TouchEvent) => {
+      if (e.cancelable && drawer && drawer.scrollHeight <= drawer.clientHeight) e.preventDefault();
+    };
     window.addEventListener("keydown", onKey);
     wide.addEventListener("change", onWide);
+    drawer?.addEventListener("touchmove", onDrag, { passive: false });
     return () => {
       root.style.overflow = overflow;
       window.removeEventListener("keydown", onKey);
       wide.removeEventListener("change", onWide);
+      drawer?.removeEventListener("touchmove", onDrag);
     };
   }, [open]);
 

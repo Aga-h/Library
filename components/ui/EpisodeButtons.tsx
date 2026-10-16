@@ -41,8 +41,9 @@ export default function EpisodeButtons({
   // card they used to be squeezed to 16px). The third button takes what is left and shows its word
   // whenever the word fits beside the icon, in whatever font the look sets: the icon's box is the
   // button's full height, so it alone makes the first flex line, and a word too wide for that line
-  // wraps to a second one, which the button clips away. Its aria-label still names it, and the
-  // card's badge already says a season is done.
+  // wraps to a second one, which the button clips away (4px padding, not 8, so acid's wide "ALL"
+  // still fits a half-width card at 360). Its aria-label still names it, and the card's badge
+  // already says a season is done.
   // From sm up: the compact 28px row, exactly as before.
   const button = "flex items-center justify-center h-9 sm:h-7 rounded-md border text-xs font-semibold transition-colors disabled:opacity-40";
   const square = `${button} w-9 sm:w-7 max-sm:shrink-0`;
@@ -62,7 +63,7 @@ export default function EpisodeButtons({
         <button type="button" onClick={() => set(totalEpisodes)} disabled={busy || complete}
           aria-label={complete ? `${title}: every episode watched` : `Mark every episode of ${title} watched`}
           title={complete ? "Every episode watched" : "Mark the whole season watched"}
-          className={`${button} flex-1 gap-1 px-2 max-sm:min-w-0 max-sm:flex-wrap max-sm:gap-0 max-sm:overflow-hidden ${complete ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+          className={`${button} flex-1 gap-1 px-2 max-sm:px-1 max-sm:min-w-0 max-sm:flex-wrap max-sm:gap-0 max-sm:overflow-hidden ${complete ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
           <span className="flex shrink-0 items-center max-sm:h-full"><CheckCheck className="w-3.5 h-3.5" /></span>
           <span className="max-sm:ml-1 max-sm:whitespace-nowrap">{complete ? "Watched" : "All"}</span>
         </button>
