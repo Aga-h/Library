@@ -77,7 +77,10 @@ function placeLabel(place: Place | null, target: string | null): { text: string;
 }
 
 /** A text-only button (All, None…): a 40px-tall hit area on phones, without moving anything. */
-export const tinyButtonCls = "font-semibold text-gray-600 hover:text-gray-900 max-sm:py-3 max-sm:-my-3 max-sm:px-1.5 max-sm:-mx-1.5";
+export const tinyButtonCls = "font-semibold text-gray-600 hover:text-gray-900 max-sm:py-3 max-sm:-my-3 max-sm:px-2.5 max-sm:-mx-2.5";
+
+/** The All · None pair those sit in — further apart on phones, so their hit areas don't overlap. */
+export const tinyButtonsCls = "flex gap-3 max-sm:gap-5";
 
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
@@ -270,7 +273,7 @@ export default function MalImport({
           </div>
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 text-xs">
             <span className="text-gray-500">{selected.size} selected</span>
-            <span className="flex gap-3">
+            <span className={tinyButtonsCls}>
               <button type="button" onClick={() => setSelected(new Set(run.entries.map((e) => e.id)))}
                 className={tinyButtonCls}>All</button>
               <button type="button" onClick={() => setSelected(new Set())}

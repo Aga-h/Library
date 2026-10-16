@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Check, Download, FileUp, Loader2, Square, User } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { MalNotice, Poster } from "@/components/tmdb/TmdbParts";
-import { Toggle, tinyButtonCls } from "@/components/anime/MalImport";
+import { Toggle, tinyButtonCls, tinyButtonsCls } from "@/components/anime/MalImport";
 import {
   LEFT_OUT_LABELS, leftOutReason, pickEntry, rowsFromMalExport, rowsFromSheet, searchQuery,
   type LeftOut, type ListRow,
@@ -371,7 +371,7 @@ export default function MalListImport() {
       <section className="border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs">
           <span className="font-semibold text-gray-700">Seasons — imported as watched</span>
-          <span className="flex gap-3">
+          <span className={tinyButtonsCls}>
             <button type="button" onClick={() => setChecked(new Set([...checked, ...seasons.filter((i) => !i.entry.place).map((i) => i.entry.id)]))}
               className={tinyButtonCls}>All</button>
             <button type="button" onClick={() => setChecked(new Set())} className={tinyButtonCls}>None</button>

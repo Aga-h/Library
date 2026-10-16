@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Check, Download, FileUp, Loader2, Square, User } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { MalNotice } from "@/components/tmdb/TmdbParts";
-import { Toggle, tinyButtonCls } from "@/components/anime/MalImport";
+import { Toggle, tinyButtonCls, tinyButtonsCls } from "@/components/anime/MalImport";
 import { LANGUAGE_OPTIONS, type LanguageKey } from "@/lib/constants/languages";
 import { getJson } from "@/lib/fetch-retry";
 import { searchQuery } from "@/lib/mal-list";
@@ -299,7 +299,7 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
           <span className="font-semibold text-gray-600">
             {checked.size} of {coming.length} to import — {coming.filter((r) => r.status !== "reading").length} read, {coming.filter((r) => r.status === "reading").length} reading
           </span>
-          <span className="flex gap-3">
+          <span className={tinyButtonsCls}>
             <button type="button" onClick={() => setChecked(new Set(coming.map((r) => r.key)))} className={tinyButtonCls}>All</button>
             <button type="button" onClick={() => setChecked(new Set())} className={tinyButtonCls}>None</button>
           </span>
