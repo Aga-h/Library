@@ -140,7 +140,7 @@ export default function VocabTest({
             value={length}
             onChange={(e) => setLength(Number(e.target.value))}
             disabled={busy}
-            className="border border-gray-200 text-gray-700 rounded-lg px-2.5 py-2 text-sm font-semibold bg-white disabled:opacity-50 max-sm:flex-1"
+            className="border border-gray-200 text-gray-700 rounded-lg px-2.5 py-2 text-sm font-semibold bg-white disabled:opacity-50 max-sm:flex-1 max-sm:min-w-[7.5rem]"
           >
             {lengthChoices.map((n) => (
               <option key={n} value={n}>
@@ -151,7 +151,7 @@ export default function VocabTest({
           <button
             onClick={restart}
             disabled={busy}
-            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:flex-1 max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:flex-auto max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             {total === 0 ? "Start the test" : "Take the test again"}

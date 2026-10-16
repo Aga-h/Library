@@ -16,7 +16,7 @@ export default function FinancesError({
       {error.digest && <p className="text-xs text-gray-400 mt-2">Reference: {error.digest}</p>}
       <button
         onClick={reset}
-        className="mt-5 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+        className="mt-5 bg-gray-900 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
       >
         Try again
       </button>

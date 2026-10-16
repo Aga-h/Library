@@ -78,15 +78,17 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Expenses</h2>
 
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-5">
-        <div className="flex gap-2">
+        {/* Phones: the category takes the first row, amount and Add share the second. */}
+        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            aria-label="Category"
+            className="w-full sm:w-auto sm:flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
@@ -99,7 +101,8 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            aria-label="Amount"
+            className="min-w-0 flex-1 sm:w-28 sm:flex-initial border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
           <button
@@ -116,6 +119,7 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
           placeholder="Description (optional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          aria-label="Description"
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <SourcePicker value={source} onChange={setSource} left={left} />
@@ -133,19 +137,24 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
               </div>
               <div className="space-y-1">
                 {items.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded-lg text-sm">
-                    <span className="text-gray-600 flex-1 truncate">
+                  <div key={expense.id} className="flex flex-wrap items-center justify-between gap-y-1 py-1.5 px-3 bg-gray-50 rounded-lg text-sm sm:flex-nowrap">
+                    {/* Phones: a long description gets the line to itself and wraps, and the tag,
+                        amount and delete drop under it on the right. From sm the wrapper around
+                        them vanishes (contents) and it is one truncated line as before. */}
+                    <span className="text-gray-600 flex-auto min-w-0 break-words sm:flex-1 sm:truncate">
                       {expense.description || CATEGORY_LABELS[expense.category]}
                     </span>
-                    <SourceToggle source={expense.source} apiPath={`/api/finances/expenses/${expense.id}`} />
-                    <span className="text-gray-900 font-medium ml-3">{fmt(expense.amount)}</span>
-                    <button
-                      onClick={() => handleDelete(expense.id)}
-                      aria-label={`Delete ${expense.description || CATEGORY_LABELS[expense.category]}`}
-                      className="ml-3 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <span className="ml-auto flex items-center sm:contents">
+                      <SourceToggle source={expense.source} apiPath={`/api/finances/expenses/${expense.id}`} />
+                      <span className="text-gray-900 font-medium ml-2 whitespace-nowrap sm:ml-3">{fmt(expense.amount)}</span>
+                      <button
+                        onClick={() => handleDelete(expense.id)}
+                        aria-label={`Delete ${expense.description || CATEGORY_LABELS[expense.category]}`}
+                        className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
                   </div>
                 ))}
               </div>

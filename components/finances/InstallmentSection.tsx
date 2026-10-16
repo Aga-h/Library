@@ -95,20 +95,21 @@ export default function InstallmentSection({ installments, year, month }: Props)
   const thisMonth = paying.reduce((s, x) => s + (x.state.current?.amount ?? 0), 0);
 
   return (
-    <div className="installments bg-white rounded-xl border border-gray-200 p-5">
+    <div className="installments bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Installments</h2>
 
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-4">
         <input type="text" placeholder="What (e.g. Phone)" value={name} onChange={(e) => setName(e.target.value)}
           aria-label="What was bought" maxLength={120} className={`${fieldCls} w-full`} required />
+        {/* Phones: the price takes the first row, Total/Each and the count share the second. */}
         <div className="flex flex-wrap gap-2">
           <input type="number" min="0.01" step="0.01" placeholder={per === "total" ? "Price" : "Each"}
             aria-label={per === "total" ? "Total price" : "Each installment"}
-            value={amount} onChange={(e) => setAmount(e.target.value)} className={`${fieldCls} w-28 flex-1 min-w-24`} required />
+            value={amount} onChange={(e) => setAmount(e.target.value)} className={`${fieldCls} w-full sm:w-28 sm:flex-1 min-w-24`} required />
           <div role="radiogroup" aria-label="Amount is" className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg text-xs font-semibold">
             {(["total", "each"] as const).map((v) => (
               <button key={v} type="button" role="radio" aria-checked={per === v} onClick={() => setPer(v)}
-                className={`px-2.5 py-1 rounded-md transition-colors ${per === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
+                className={`px-2.5 py-2 sm:py-1 rounded-md transition-colors ${per === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
                 {v === "total" ? "Total" : "Each"}
               </button>
             ))}
@@ -138,7 +139,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
               : `${MIN_INSTALLMENTS}–${MAX_INSTALLMENTS} monthly installments`}
           </p>
           <button type="submit" disabled={adding || isPending || !valid || !name.trim()}
-            className="flex flex-shrink-0 items-center gap-1 bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50">
+            className="flex flex-shrink-0 items-center gap-1 bg-emerald-600 text-white px-3 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50">
             <Plus className="w-4 h-4" /> Add
           </button>
         </div>
@@ -151,18 +152,22 @@ export default function InstallmentSection({ installments, year, month }: Props)
         <div className="space-y-1">
           {paying.map(({ plan, state }) => (
             <div key={plan.id} className="installment-row py-2 px-3 bg-gray-50 rounded-lg text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 flex-1 truncate font-medium">{plan.name}</span>
-                <span className="installment-count ml-2 text-[11px] font-semibold text-gray-500 tabular-nums"
-                  aria-label={`installment ${state.current!.number} of ${plan.count}`}>
-                  {state.current!.number}/{plan.count}
+              {/* Phones: a long name gets the line to itself and the rest drops under it, on the
+                  right. From sm the wrapper vanishes (contents) and it is one line as before. */}
+              <div className="flex flex-wrap items-center justify-between gap-y-1 sm:flex-nowrap">
+                <span className="text-gray-700 flex-auto min-w-0 break-words sm:flex-1 sm:truncate font-medium">{plan.name}</span>
+                <span className="ml-auto flex items-center sm:contents">
+                  <span className="installment-count ml-2 text-[11px] font-semibold text-gray-500 tabular-nums"
+                    aria-label={`installment ${state.current!.number} of ${plan.count}`}>
+                    {state.current!.number}/{plan.count}
+                  </span>
+                  <SourceToggle source={plan.source} apiPath={`/api/finances/installments/${plan.id}`} />
+                  <span className="text-gray-900 font-medium ml-2 whitespace-nowrap sm:ml-3 tabular-nums">{fmt(state.current!.amount)}</span>
+                  <button onClick={() => handleDelete(plan)} title="Delete — from past months too" aria-label={`Delete ${plan.name}`}
+                    className="-my-1.5 -mr-2 ml-0.5 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-2 sm:p-0">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </span>
-                <SourceToggle source={plan.source} apiPath={`/api/finances/installments/${plan.id}`} />
-                <span className="text-gray-900 font-medium ml-3 tabular-nums">{fmt(state.current!.amount)}</span>
-                <button onClick={() => handleDelete(plan)} title="Delete — from past months too" aria-label={`Delete ${plan.name}`}
-                  className="ml-2 text-gray-400 hover:text-red-500 transition-colors">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
               </div>
               <div className="installment-track mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden" aria-hidden>
                 <div className="installment-fill h-full rounded-full bg-emerald-500" style={{ width: `${(state.paidCount / plan.count) * 100}%` }} />
@@ -175,15 +180,21 @@ export default function InstallmentSection({ installments, year, month }: Props)
           ))}
 
           {upcoming.map(({ plan }) => (
-            <div key={plan.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg text-sm text-gray-500">
-              <span className="flex-1 truncate">{plan.name}</span>
-              <span className="ml-2 text-[11px]">from {label({ year: plan.startYear, month: plan.startMonth })}</span>
-              <SourceToggle source={plan.source} apiPath={`/api/finances/installments/${plan.id}`} />
-              <span className="ml-3 tabular-nums">{plan.count} × {fmt(installmentAmounts(plan.total, plan.count)[plan.count - 1])}</span>
-              <button onClick={() => handleDelete(plan)} title="Delete" aria-label={`Delete ${plan.name}`}
-                className="ml-2 text-gray-400 hover:text-red-500 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+            <div key={plan.id} className="flex flex-wrap items-center justify-between gap-y-1 py-1.5 px-3 rounded-lg text-sm text-gray-500 sm:flex-nowrap">
+              {/* Phones put the start month under the name, and the rest under both when the name
+                  is long; from sm the wrappers vanish (contents) and it is one line as before. */}
+              <span className="flex min-w-0 flex-auto flex-col sm:contents">
+                <span className="break-words sm:flex-1 sm:truncate">{plan.name}</span>
+                <span className="text-[11px] sm:ml-2">from {label({ year: plan.startYear, month: plan.startMonth })}</span>
+              </span>
+              <span className="ml-auto flex items-center sm:contents">
+                <SourceToggle source={plan.source} apiPath={`/api/finances/installments/${plan.id}`} />
+                <span className="ml-2 whitespace-nowrap sm:ml-3 tabular-nums">{plan.count} × {fmt(installmentAmounts(plan.total, plan.count)[plan.count - 1])}</span>
+                <button onClick={() => handleDelete(plan)} title="Delete" aria-label={`Delete ${plan.name}`}
+                  className="-my-1.5 -mr-2 ml-0.5 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-2 sm:p-0">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </span>
             </div>
           ))}
 
@@ -196,18 +207,22 @@ export default function InstallmentSection({ installments, year, month }: Props)
 
           {done.length > 0 && (
             <details className="pt-1">
-              <summary className="cursor-pointer px-3 py-1 text-xs font-semibold text-gray-400 hover:text-gray-600">
+              <summary className="cursor-pointer px-3 py-2.5 sm:py-1 text-xs font-semibold text-gray-400 hover:text-gray-600">
                 Paid off ({done.length})
               </summary>
               {done.map(({ plan }) => (
-                <div key={plan.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg text-sm opacity-50">
-                  <span className="text-gray-500 flex-1 truncate">{plan.name}</span>
-                  <span className="ml-2 text-[11px] text-gray-500">{label(lastMonth(plan))}</span>
-                  <span className="text-gray-500 ml-3 tabular-nums">{fmt(plan.total)}</span>
-                  <button onClick={() => handleDelete(plan)} title="Delete — from past months too" aria-label={`Delete ${plan.name}`}
-                    className="ml-3 text-gray-400 hover:text-red-500 transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                <div key={plan.id} className="flex flex-wrap items-center justify-between gap-y-1 py-1.5 px-3 rounded-lg text-sm opacity-50 sm:flex-nowrap">
+                  <span className="flex min-w-0 flex-auto flex-col sm:contents">
+                    <span className="text-gray-500 break-words sm:flex-1 sm:truncate">{plan.name}</span>
+                    <span className="text-[11px] text-gray-500 sm:ml-2">{label(lastMonth(plan))}</span>
+                  </span>
+                  <span className="ml-auto flex items-center sm:contents">
+                    <span className="text-gray-500 ml-2 whitespace-nowrap sm:ml-3 tabular-nums">{fmt(plan.total)}</span>
+                    <button onClick={() => handleDelete(plan)} title="Delete — from past months too" aria-label={`Delete ${plan.name}`}
+                      className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
                 </div>
               ))}
             </details>

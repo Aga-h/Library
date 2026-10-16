@@ -284,7 +284,7 @@ export default function TmdbImport({
               <ArrowLeft className="w-3.5 h-3.5" /> Results
             </button>
             <div className="min-w-0 text-right">
-              <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{preview.name}</p>
+              <p className={resultTitleCls}>{preview.name}</p>
               <p className="text-xs text-gray-500">
                 {preview.total > preview.films.length
                   ? `The first ${preview.films.length} of ${preview.total} — a broad tag; a collection or a narrower tag may fit better`

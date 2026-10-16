@@ -11,7 +11,7 @@ export function Poster({ src }: { src: string | null }) {
   );
 }
 
-/** A text-only button (Results, All, None): a 40px-tall hit area on phones, without moving anything. */
+/** A text-only button (All, None): a 40px-tall hit area on phones, without moving anything. */
 export const tinyButtonCls = "font-semibold text-gray-600 hover:text-gray-900 max-sm:py-3 max-sm:-my-3 max-sm:px-2.5 max-sm:-mx-2.5";
 
 /** The All · None pair those sit in — further apart on phones, so their hit areas don't overlap. */

@@ -18,9 +18,9 @@ export default function BudgetSummary({ balances }: { balances: MonthBalances })
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 px-1">
         <span>Available this month: <span className="font-medium text-gray-700">{fmt(total.available)}</span></span>
-        <span aria-hidden>·</span>
+        <span aria-hidden className="hidden sm:inline">·</span>
         <span>Spent: <span className="font-medium text-gray-700">{fmt(total.spent)}</span></span>
-        <span aria-hidden>·</span>
+        <span aria-hidden className="hidden sm:inline">·</span>
         <span>
           Left in total:{" "}
           <span className={`font-semibold ${total.left >= 0 ? "text-emerald-600" : "text-red-600"}`}>{fmt(total.left)}</span>

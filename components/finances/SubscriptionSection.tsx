@@ -67,17 +67,19 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
       <h2 className="font-semibold text-gray-900 mb-4">Subscriptions</h2>
 
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-4">
-        <div className="flex gap-2">
+        {/* Phones: the name takes the first row, amount and Add share the second. */}
+        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
           <input
             type="text"
             placeholder="Name (e.g. Netflix)"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            aria-label="Name"
+            className="w-full sm:w-auto sm:flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
           <input
@@ -87,7 +89,8 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            aria-label="Amount"
+            className="min-w-0 flex-1 sm:w-28 sm:flex-initial border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
           <button
@@ -107,40 +110,48 @@ export default function SubscriptionSection({ subscriptions, year, month }: Prop
       ) : (
         <div className="space-y-1">
           {active.map((sub) => (
-            <div key={sub.id} className="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded-lg text-sm">
-              <span className="text-gray-700 flex-1 truncate font-medium">{sub.name}</span>
-              <SourceToggle source={sub.source} apiPath={`/api/finances/subscriptions/${sub.id}`} />
-              <span className="text-gray-900 font-medium ml-3">{fmt(sub.amount)}</span>
-              <button
-                onClick={() => handleCancel(sub.id)}
-                title="Cancel from next month"
-                className="ml-2 text-gray-400 hover:text-orange-500 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => handleDelete(sub.id)}
-                title="Delete permanently"
-                className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+            // Phones: a long name gets the line to itself; the tag, amount and buttons drop under it.
+            <div key={sub.id} className="flex flex-wrap items-center justify-between gap-y-1 py-1.5 px-3 bg-gray-50 rounded-lg text-sm sm:flex-nowrap">
+              <span className="text-gray-700 flex-auto min-w-0 break-words sm:flex-1 sm:truncate font-medium">{sub.name}</span>
+              <span className="ml-auto flex items-center sm:contents">
+                <SourceToggle source={sub.source} apiPath={`/api/finances/subscriptions/${sub.id}`} />
+                <span className="text-gray-900 font-medium ml-2 whitespace-nowrap sm:ml-3">{fmt(sub.amount)}</span>
+                <button
+                  onClick={() => handleCancel(sub.id)}
+                  title="Cancel from next month"
+                  aria-label={`Cancel ${sub.name} from next month`}
+                  className="-my-1.5 flex-shrink-0 p-3 text-gray-400 hover:text-orange-500 transition-colors sm:my-0 sm:ml-2 sm:p-0"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleDelete(sub.id)}
+                  title="Delete permanently"
+                  aria-label={`Delete ${sub.name} permanently`}
+                  className="-my-1.5 -mr-2 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-1 sm:p-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </span>
             </div>
           ))}
           {inactive.length > 0 && (
             <>
               {active.length > 0 && <div className="pt-1" />}
               {inactive.map((sub) => (
-                <div key={sub.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg text-sm opacity-40">
-                  <span className="text-gray-500 flex-1 truncate line-through">{sub.name}</span>
-                  <span className="text-gray-500 ml-3">{fmt(sub.amount)}</span>
-                  <button
-                    onClick={() => handleDelete(sub.id)}
-                    title="Delete permanently"
-                    className="ml-3 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                <div key={sub.id} className="flex flex-wrap items-center justify-between gap-y-1 py-1.5 px-3 rounded-lg text-sm opacity-40 sm:flex-nowrap">
+                  <span className="text-gray-500 flex-auto min-w-0 break-words sm:flex-1 sm:truncate line-through">{sub.name}</span>
+                  <span className="ml-auto flex items-center sm:contents">
+                    <span className="text-gray-500 ml-2 whitespace-nowrap sm:ml-3">{fmt(sub.amount)}</span>
+                    <button
+                      onClick={() => handleDelete(sub.id)}
+                      title="Delete permanently"
+                      aria-label={`Delete ${sub.name} permanently`}
+                      className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
                 </div>
               ))}
             </>

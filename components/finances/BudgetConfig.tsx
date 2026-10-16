@@ -32,7 +32,7 @@ export default function BudgetConfig({ currentBudget }: { currentBudget: number 
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
       <h2 className="font-semibold text-gray-900 mb-1">Monthly Budget</h2>
       <p className="text-xs text-gray-500 mb-2">Goes onto your Base card each month.</p>
       <p className="text-2xl font-bold text-gray-900 mb-4">{fmt(currentBudget)}</p>
@@ -44,7 +44,8 @@ export default function BudgetConfig({ currentBudget }: { currentBudget: number 
           placeholder="e.g. 200 or -50"
           value={delta}
           onChange={(e) => setDelta(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          aria-label="Change the budget by"
+          className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           required
         />
         <button
