@@ -3,7 +3,8 @@
  * Colours are not here — app/theme-palettes.css (generated) swaps Tailwind's colour variables, which
  * restyles every page by itself. This file adds what a palette cannot: type, texture, borders,
  * shadows, and a few signature touches keyed off hook classes in the shells (theme-sidebar,
- * theme-brand, theme-nav, theme-nav-item[data-active], theme-header, theme-tile).
+ * theme-brand, theme-nav, theme-nav-item[data-active], theme-header, theme-tile; on a phone,
+ * Library's and Study's sidebar is a theme-topbar header and a theme-drawer — see SectionNav).
  *
  * Unlayered on purpose: unlayered rules beat Tailwind's layered utilities, so a skin can restyle a
  * utility (`.bg-gray-900`) without !important. "classic" has no rules: it is the site as it was.
@@ -41,6 +42,20 @@ h2.text-2xl,
 .ring-offset-1,
 .ring-offset-2 {
   --tw-ring-offset-color: var(--color-gray-50);
+}
+
+/* The phone menu drawer is a sidebar too, so it takes each look's sidebar rules — but it stays
+ * pinned to the screen's edge whatever position a look gives a sidebar. */
+:root .theme-sidebar.theme-drawer {
+  position: absolute;
+}
+/* While the top bar is up (below md) it is held over the page, so what focus or a #link scrolls
+ * to stops below it rather than under it. Not while the menu is open or its button has focus:
+ * held in place, they'd count as hidden behind the bar and the page would scroll to the top. */
+@media (width < 48rem) {
+  html:has(.theme-menu-button[aria-expanded="false"]:not(:focus)) {
+    scroll-padding-top: calc(4.5rem + env(safe-area-inset-top));
+  }
 }
 
 /* The backdrop layer every decorated theme draws into. */
@@ -130,9 +145,12 @@ h2.text-2xl,
   background-origin: border-box;
 }
 
-/* Beside a sidebar the data text runs down the sidebar's edge instead — the only divider it has. */
-:root[data-theme="softclub"]:has(.theme-sidebar)::before {
-  background-position: left 192px top 0, right 6vw top 22vh, right 1.5vw bottom 2vh, 0 31.5%, 100% 73%, 61% 0;
+/* Beside a sidebar the data text runs down the sidebar's edge instead — the only divider it has.
+ * Only from md up: below it the sidebar is folded into a drawer and the page has a top bar. */
+@media (min-width: 48rem) {
+  :root[data-theme="softclub"]:has(.theme-sidebar)::before {
+    background-position: left 192px top 0, right 6vw top 22vh, right 1.5vw bottom 2vh, 0 31.5%, 100% 73%, 61% 0;
+  }
 }
 
 /* On a phone the content fills the screen; the frames and the map would sit right behind it. */
@@ -143,8 +161,9 @@ h2.text-2xl,
 }
 
 /* The Tresor target, cropped by the corner behind the header — out of focus, like everything
- * else. Only on pages without a sidebar; where there is one, it sits in the sidebar instead. */
-:root[data-theme="softclub"]:not(:has(.theme-sidebar))::after {
+ * else. Where a sidebar is on screen (md up), it sits in the sidebar instead (see .theme-nav);
+ * on a phone the sidebar is a drawer and the target is back behind the top bar. */
+:root[data-theme="softclub"]::after {
   content: "";
   position: fixed;
   z-index: -1;
@@ -157,6 +176,11 @@ h2.text-2xl,
   background: radial-gradient(circle, var(--sc-lime) 0 19%, transparent 25% 43%, var(--sc-lime) 49% 66%, transparent 72%);
   background-origin: border-box;
   opacity: 0.85;
+}
+@media (min-width: 48rem) {
+  :root[data-theme="softclub"]:has(.theme-sidebar)::after {
+    content: none;
+  }
 }
 
 /* Grain and scanlines over everything, faint as a camcorder tape. */
@@ -586,6 +610,74 @@ h2.text-2xl,
   }
 }
 
+/* ── On a phone ── the top bar stays put while the page passes beneath it, so it is frosted: a
+ * strip of the same haze that blurs what slides under it (and the target in the corner). The
+ * section's name is set like the brand; the open page is the roll sign, as in the menu. */
+[data-theme="softclub"] .theme-topbar {
+  background: linear-gradient(180deg, rgb(246 251 254 / 0.93), rgb(232 244 251 / 0.8));
+  background-origin: border-box;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+[data-theme="softclub"] .theme-topbar-brand {
+  color: var(--sc-ink);
+}
+[data-theme="softclub"] .theme-topbar-brand svg {
+  color: var(--sc-cyan);
+}
+[data-theme="softclub"] .theme-topbar-brand span {
+  font-weight: 300;
+  text-transform: lowercase;
+  letter-spacing: -0.04em;
+  color: inherit;
+}
+[data-theme="softclub"] .theme-topbar-sep {
+  display: none;
+}
+[data-theme="softclub"] .theme-topbar-page {
+  margin-left: 0.25rem;
+  padding: 0.35rem 1.5rem 0.35rem 0.6rem;
+  background: linear-gradient(90deg, #13283a, #13283a 62%, rgb(19 40 58 / 0.55) 84%, transparent);
+  background-origin: border-box;
+  color: #f4f8fb;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+}
+/* The menu button is a capsule drawn in light, like the other secondary buttons. */
+[data-theme="softclub"] .theme-menu-button {
+  border-radius: 999px;
+  color: var(--sc-ink);
+  background-color: rgb(42 150 212 / 0.07);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9), 0 0 9px rgb(42 150 212 / 0.28);
+}
+[data-theme="softclub"] .theme-menu-button:active {
+  transition-duration: 0s;
+  background-color: rgb(42 150 212 / 0.32);
+  box-shadow: inset 0 0 0 1px #fff, 0 0 22px rgb(42 150 212 / 0.75);
+}
+/* The drawer: a pane of frosted daylight drawn in over the city, which goes out of focus behind
+ * it; its edge is the doubled rule — white, then cyan — glowing out into the haze. */
+:root[data-theme="softclub"] .theme-sidebar.theme-drawer {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.74), rgb(242 249 253 / 0.6) 70%, rgb(226 241 250 / 0.55));
+  background-origin: border-box;
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 1px 0 0 rgb(255 255 255 / 0.95), 2px 0 0 rgb(42 150 212 / 0.45), 0 0 36px 6px rgb(255 255 255 / 0.7);
+}
+[data-theme="softclub"] .theme-drawer-overlay {
+  background: rgb(190 210 236 / 0.3);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+/* The close button sits at the brand smear's faded end, so it is drawn in ink; the version tag
+ * moves over to make room for it. */
+[data-theme="softclub"] .theme-brand .theme-drawer-close {
+  color: var(--sc-ink);
+}
+[data-theme="softclub"] .theme-drawer .theme-brand::after {
+  right: 3.6rem;
+}
+
 /* ── Tracklists ── the portal's sections and the library dashboard's are not a grid of cards but
  * a CD's tracklist: one streak of light per track, numbered in LED, washed at its start with the
  * section's own colour and fading out to the right. The icon gives way to the track number. */
@@ -981,6 +1073,18 @@ h2.text-2xl,
   /* Opening something — the look menu, a list of suggestions — pulls it into focus. */
   [data-theme="softclub"] :is(.theme-picker-menu, .theme-picker-panel, ul.absolute) {
     animation: sc-focus-in 0.24s var(--sc-ease) backwards;
+  }
+
+  /* The menu drawer travels in sideways like a train braking into the platform, and the top
+   * bar's roll sign rolls to each new page. */
+  :root[data-theme="softclub"] {
+    --theme-drawer-time: 0.42s;
+  }
+  [data-theme="softclub"] .theme-drawer {
+    transition-timing-function: var(--sc-ease);
+  }
+  [data-theme="softclub"] .theme-topbar-page {
+    animation: sc-roll-label 0.42s var(--sc-ease) 40ms backwards;
   }
 
   /* Lights fade out after a press; they come on at once (below). */
@@ -1550,6 +1654,86 @@ h2.text-2xl,
   }
 }
 
+/* ── On a phone ── the top bar is the header strip held over the page as it scrolls, drips and
+ * all: the brand in blackletter on its acid block, the open page in acid wide caps like the
+ * menu's open item. The menu and close buttons are cut-corner HUD frames that light up acid. The
+ * drawer is the sidebar pulled over the poster, leaving tracers in the posters' inks. */
+/* Solid, unlike the header strip it stands for: the page passes right under it. And once the page
+ * has moved under it, the drips draw up to a fringe so they don't hang over what you're reading
+ * (with reduced motion, or no scroll timelines, they stay a fringe; see the motion rules). */
+[data-theme="acid"] .theme-topbar {
+  background-color: #050505;
+}
+[data-theme="acid"] .theme-topbar::before {
+  scale: 1 0.35;
+}
+[data-theme="acid"] .theme-topbar-brand svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 2px;
+  color: #000;
+  background: var(--ac-acid);
+}
+[data-theme="acid"] .theme-topbar-brand span {
+  font-family: var(--font-pirata), serif;
+  font-weight: 400;
+  font-size: 1.55rem;
+  line-height: 1;
+  text-transform: lowercase;
+  color: var(--ac-ink);
+}
+[data-theme="acid"] .theme-topbar-sep {
+  color: rgb(242 242 238 / 0.4);
+}
+[data-theme="acid"] .theme-topbar-page {
+  font-family: var(--theme-font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ac-acid);
+}
+[data-theme="acid"] :is(.theme-menu-button, .theme-drawer-close) {
+  border: 1px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%23f2f2ee' stroke-width='1.5'%3E%3Cpath d='M8 0.75H35.25V28L28 35.25H0.75V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+  border-radius: 0;
+  color: var(--ac-ink);
+}
+[data-theme="acid"] :is(.theme-menu-button, .theme-drawer-close):is(:hover, :active, [aria-expanded="true"]) {
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' fill='none' stroke='%238cff3a' stroke-width='2'%3E%3Cpath d='M8 1.0H35.0V28L28 35.0H1.0V8Z'/%3E%3C/svg%3E") 12 / 12px / 0 stretch;
+  background: transparent;
+  color: var(--ac-acid);
+}
+[data-theme="acid"] .theme-drawer .theme-brand::after {
+  right: 3.75rem; /* clear of the close button */
+}
+/* The sidebar's tight list, opened up to a finger's height. */
+[data-theme="acid"] .theme-drawer .theme-nav-item {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+[data-theme="acid"] .theme-brand .theme-drawer-close svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  color: inherit;
+  background: none;
+}
+[data-theme="acid"] .theme-sidebar.theme-drawer {
+  background:
+    repeating-linear-gradient(180deg, var(--ac-ink) 0 1px, transparent 1px 26px) right 0 top 0 / 7px 100% no-repeat,
+    rgb(5 5 5 / 0.95);
+  box-shadow:
+    6px 0 0 -1px #050505, 6px 0 0 0 var(--ac-acid),
+    12px 0 0 -1px #050505, 12px 0 0 0 var(--ac-violet);
+}
+[data-theme="acid"] .theme-drawer-overlay {
+  background:
+    repeating-linear-gradient(0deg, rgb(140 255 58 / 0.06) 0 1px, transparent 1px 3px),
+    rgb(0 0 0 / 0.62);
+}
+
 /* ── Modules ── the portal's sections and the library dashboard's are HUD modules: a cut-corner
  * frame, the name in wide caps, a serial at the top right, the figures big, and a run of acid
  * chevrons pointing on. */
@@ -1755,6 +1939,10 @@ h2.text-2xl,
   from { transform: scaleY(0.65); }
   to { transform: scaleY(1.3); }
 }
+@keyframes ac-drip-up {
+  from { scale: 1 1; }
+  to { scale: 1 0.35; }
+}
 @keyframes ac-spin {
   to { transform: rotate(360deg); }
 }
@@ -1839,6 +2027,24 @@ h2.text-2xl,
   /* Opening a menu boots it open. */
   [data-theme="acid"] :is(.theme-picker-menu, .theme-picker-panel, ul.absolute) {
     animation: ac-boot 0.2s steps(5, end) backwards;
+  }
+  /* The menu drawer snaps in, in steps, never eased; the open page's name glitches in. */
+  :root[data-theme="acid"] {
+    --theme-drawer-time: 0.24s;
+  }
+  [data-theme="acid"] :is(.theme-drawer, .theme-drawer-overlay) {
+    transition-timing-function: steps(6, end);
+  }
+  [data-theme="acid"] .theme-topbar-page {
+    animation: ac-glitch 0.4s steps(1, end) backwards;
+  }
+  /* The top bar's drips hang full length over the top of the page and draw up as it scrolls. */
+  @supports (animation-timeline: scroll()) {
+    [data-theme="acid"] .theme-topbar::before {
+      animation: ac-drip 5.5s ease-in-out infinite alternate, ac-drip-up linear both;
+      animation-timeline: auto, scroll(root);
+      animation-range: normal, 0 4rem;
+    }
   }
   /* A field you're typing in keeps a blinking acid block at its edge. */
   [data-theme="acid"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea):focus {
@@ -1960,6 +2166,52 @@ h2.text-2xl,
   box-shadow: 1px 1px 0 #2b2bd6;
 }
 
+/* On a phone the top bar is the title strip under the thermal rule; the open page is inverted
+ * with its thermographic edge, as in the menu. The buttons are 1-bit push buttons. The drawer is a
+ * window pulled over the desktop with a hard shadow, the desktop greyed behind it with a dither. */
+[data-theme="earlycyber"] .theme-topbar-brand span {
+  font-family: var(--theme-font-display);
+  font-weight: 600;
+}
+[data-theme="earlycyber"] .theme-topbar-page {
+  padding: 0.05rem 0.45rem;
+  border-left: 5px solid;
+  border-image: linear-gradient(180deg, #2b2bd6, #00c2a8, #ffd400, #ff2d2d) 1;
+  font-family: var(--theme-font-label);
+  font-weight: 400;
+  color: #fff;
+  background: #000;
+}
+[data-theme="earlycyber"] :is(.theme-menu-button, .theme-drawer-close) {
+  border: 1px solid #000;
+  border-radius: 0;
+  color: #000;
+  background: #fff;
+  box-shadow: 2px 2px 0 #000;
+}
+[data-theme="earlycyber"] :is(.theme-menu-button, .theme-drawer-close):active,
+[data-theme="earlycyber"] .theme-menu-button[aria-expanded="true"] {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+  color: #fff;
+  background: #000;
+}
+[data-theme="earlycyber"] .theme-drawer {
+  box-shadow: 4px 0 0 #000;
+}
+[data-theme="earlycyber"] .theme-drawer-overlay {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'%3E%3Crect width='1' height='1' fill='%23000'/%3E%3C/svg%3E") 0 0 / 2px 2px;
+  image-rendering: pixelated;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="earlycyber"] {
+    --theme-drawer-time: 0.2s;
+  }
+  [data-theme="earlycyber"] :is(.theme-drawer, .theme-drawer-overlay) {
+    transition-timing-function: steps(4, end);
+  }
+}
+
 [data-theme="earlycyber"] .theme-tile {
   background-image: none;
   background-color: #fff;
@@ -2072,6 +2324,55 @@ h2.text-2xl,
   background-color: rgb(17 10 34 / 0.78);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+/* On a phone the top bar is dark glass under its spectral rule, the section's name in the
+ * spectrum, the open page glowing like the menu's open item. The drawer is the sidebar's
+ * ultraviolet glass with a spectral edge, glowing out over the night it dims. */
+[data-theme="cyberdelia"] .theme-topbar {
+  background-color: rgb(17 10 34 / 0.9);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+[data-theme="cyberdelia"] .theme-topbar-brand span {
+  background: var(--spectral);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 400;
+}
+[data-theme="cyberdelia"] .theme-topbar-brand svg {
+  color: #00e5ff;
+  filter: drop-shadow(0 0 6px rgb(0 229 255 / 0.7));
+}
+[data-theme="cyberdelia"] .theme-topbar-page {
+  color: #f7f3ff;
+  text-shadow: 0 0 12px rgb(0 229 255 / 0.6);
+}
+[data-theme="cyberdelia"] :is(.theme-menu-button, .theme-drawer-close) {
+  color: #6ff3ff;
+}
+[data-theme="cyberdelia"] .theme-menu-button {
+  box-shadow: inset 0 0 0 1px rgb(0 229 255 / 0.35), 0 0 16px -4px rgb(0 229 255 / 0.8);
+}
+[data-theme="cyberdelia"] .theme-sidebar.theme-drawer {
+  background-color: rgb(17 10 34 / 0.9);
+  border-right: 1px solid;
+  border-image: linear-gradient(180deg, #00e5ff, #6b5bff, #b14bff, #ff2bd6, #ff6a00, #a6ff00) 1;
+  box-shadow: 0 0 48px -6px rgb(177 75 255 / 0.6);
+}
+[data-theme="cyberdelia"] .theme-drawer-overlay {
+  background: rgb(7 3 15 / 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="cyberdelia"] {
+    --theme-drawer-time: 0.36s;
+  }
+  [data-theme="cyberdelia"] .theme-drawer {
+    transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
 }
 
 [data-theme="cyberdelia"] .theme-tile {

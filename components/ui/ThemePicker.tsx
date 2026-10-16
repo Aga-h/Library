@@ -11,7 +11,8 @@ import { applyTheme, currentTheme, subscribeTheme } from "@/lib/theme-client";
  * the iPad and the phone each keep their own.
  *
  * Folded away until opened: the other looks' colours would clash with whichever one is showing.
- * `full` opens in place (the portal); `compact` opens upwards over the sidebar's foot.
+ * `full` opens in place (the portal); `compact` opens upwards over the sidebar's foot (or the
+ * phone menu drawer's).
  */
 export default function ThemePicker({ variant = "full" }: { variant?: "full" | "compact" }) {
   // Read from the document, so every picker on the page agrees; nothing is marked during the
@@ -23,7 +24,8 @@ export default function ThemePicker({ variant = "full" }: { variant?: "full" | "
   const toggle = useRef<HTMLButtonElement>(null);
   const panelId = useId();
 
-  // Close on a click elsewhere, or on Escape (handing focus back to the toggle).
+  // Close on a click elsewhere, or on Escape (handing focus back to the toggle). The Escape is
+  // marked handled, so the phone menu drawer the picker sits in stays open.
   useEffect(() => {
     if (!open) return;
     const onPointer = (e: PointerEvent) => {
@@ -31,6 +33,7 @@ export default function ThemePicker({ variant = "full" }: { variant?: "full" | "
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
+      e.preventDefault();
       setOpen(false);
       toggle.current?.focus();
     };

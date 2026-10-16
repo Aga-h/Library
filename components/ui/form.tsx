@@ -2,6 +2,9 @@
  * Shared control styling. This string was copy-pasted into 14 files and had already drifted —
  * AnimeSeriesManager's copy was missing focus:border-transparent, so that one input's focus
  * ring looked different from every other one.
+ *
+ * Its text-sm reads as 16px on phones: app/globals.css lifts every field to that there, or iOS
+ * Safari zooms the page into it on focus.
  */
 export const inputCls =
   "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400";

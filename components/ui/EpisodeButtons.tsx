@@ -37,25 +37,34 @@ export default function EpisodeButtons({
     }
   }
 
-  const button = "flex items-center justify-center h-7 rounded-md border text-xs font-semibold transition-colors disabled:opacity-40";
+  // Phones: −/+ are 36px squares, tapped with a thumb, and never give up width (in a half-width
+  // card they used to be squeezed to 16px). The third button takes what is left and shows its word
+  // whenever the word fits beside the icon, in whatever font the look sets: the icon's box is the
+  // button's full height, so it alone makes the first flex line, and a word too wide for that line
+  // wraps to a second one, which the button clips away. Its aria-label still names it, and the
+  // card's badge already says a season is done.
+  // From sm up: the compact 28px row, exactly as before.
+  const button = "flex items-center justify-center h-9 sm:h-7 rounded-md border text-xs font-semibold transition-colors disabled:opacity-40";
+  const square = `${button} w-9 sm:w-7 max-sm:shrink-0`;
   return (
-    <div className="flex items-center gap-1.5 px-3 py-2 border-t border-gray-100">
+    <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 border-t border-gray-100">
       <button type="button" onClick={() => set(episodesWatched - 1)} disabled={busy || episodesWatched <= 0}
         aria-label={`One episode fewer of ${title}`} title="One episode fewer"
-        className={`${button} w-7 border-gray-200 text-gray-500 hover:bg-gray-50`}>
+        className={`${square} border-gray-200 text-gray-500 hover:bg-gray-50`}>
         <Minus className="w-3.5 h-3.5" />
       </button>
       <button type="button" onClick={() => set(episodesWatched + 1)} disabled={busy || complete}
         aria-label={`Watched one more episode of ${title}`} title="Watched one more episode"
-        className={`${button} w-7 border-gray-200 text-gray-700 hover:bg-gray-50`}>
+        className={`${square} border-gray-200 text-gray-700 hover:bg-gray-50`}>
         <Plus className="w-3.5 h-3.5" />
       </button>
       {totalEpisodes !== null && totalEpisodes > 0 && (
         <button type="button" onClick={() => set(totalEpisodes)} disabled={busy || complete}
           aria-label={complete ? `${title}: every episode watched` : `Mark every episode of ${title} watched`}
           title={complete ? "Every episode watched" : "Mark the whole season watched"}
-          className={`${button} flex-1 gap-1 px-2 ${complete ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-          <CheckCheck className="w-3.5 h-3.5" /> {complete ? "Watched" : "All"}
+          className={`${button} flex-1 gap-1 px-2 max-sm:min-w-0 max-sm:flex-wrap max-sm:gap-0 max-sm:overflow-hidden ${complete ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+          <span className="flex shrink-0 items-center max-sm:h-full"><CheckCheck className="w-3.5 h-3.5" /></span>
+          <span className="max-sm:ml-1 max-sm:whitespace-nowrap">{complete ? "Watched" : "All"}</span>
         </button>
       )}
     </div>

@@ -2,9 +2,11 @@ import Sidebar from "@/components/layout/Sidebar";
 
 export default function LibraryLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-auto">{children}</main>
+      {/* Beside the sidebar (md up) anything too wide scrolls inside main, so the sidebar never
+          goes sideways with it; on a phone the page itself scrolls. */}
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 md:overflow-auto">{children}</main>
     </div>
   );
 }
