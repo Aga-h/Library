@@ -53,7 +53,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
             actions, tags and link beside it (the wrappers below step aside with `contents`). Beside
             the 112px cover the title was a narrow column and Edit/Delete were pushed off the card. */}
         <div className="flex gap-6 p-8 pb-6 max-sm:grid max-sm:grid-cols-[6rem_minmax(0,1fr)] max-sm:grid-rows-[auto_auto_auto_auto_1fr] max-sm:gap-x-4 max-sm:gap-y-3 max-sm:p-4">
-          <div className="flex-shrink-0 w-28 h-40 max-sm:w-full max-sm:h-auto max-sm:aspect-[2/3] max-sm:self-start max-sm:row-start-2 max-sm:row-span-4 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+          <div className="flex-shrink-0 w-28 h-40 max-sm:w-full max-sm:h-36 max-sm:self-start max-sm:row-start-2 max-sm:row-span-4 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
             {anime.coverImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={anime.coverImage} alt={anime.title} className="w-full h-full object-cover" />
