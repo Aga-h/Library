@@ -18,7 +18,7 @@ export default function MonthNav({ year, month }: { year: number; month: number 
   const next = nextMonth(year, month);
 
   return (
-    <div className="flex items-center justify-between gap-2 sm:mb-6">
+    <div className="flex items-center justify-between sm:mb-6">
       <Link
         href={`/finances/${prev.year}/${prev.month}`}
         aria-label="Previous month"

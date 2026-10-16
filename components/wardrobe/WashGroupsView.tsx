@@ -100,8 +100,8 @@ export default function WashGroupsView({ garments }: { garments: Garment[] }) {
       {groups.map((group) => (
         <div key={group.key} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
           {/* Group header */}
-          <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className="px-4 sm:px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-3">
+            <div className="flex items-center gap-x-2 gap-y-1 sm:gap-3 flex-wrap">
               <span className={`w-4 h-4 rounded-full flex-shrink-0 inline-block ${COLOR_SWATCH[group.colorGroup]}`} />
               <span className="font-semibold text-gray-800 text-sm">{COLOR_LABELS[group.colorGroup]}</span>
               <span className="text-gray-300">·</span>
@@ -136,16 +136,16 @@ export default function WashGroupsView({ garments }: { garments: Garment[] }) {
                   <li key={item.id}>
                     <Link
                       href={`/wardrobe/${item.id}`}
-                      className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 hover:bg-gray-50 transition-colors"
                     >
-                      <div>
+                      <div className="min-w-0 break-words">
                         <span className="text-sm font-medium text-gray-800">{item.name}</span>
                         {item.brand && <span className="text-xs text-gray-400 ml-1.5">· {item.brand}</span>}
                         <span className="text-xs text-gray-400 ml-1.5">
                           · {TYPE_LABELS[item.type] ?? item.type}
                         </span>
                       </div>
-                      <span className={`text-xs font-semibold border px-2 py-0.5 rounded-full ${badge.cls}`}>
+                      <span className={`flex-shrink-0 whitespace-nowrap text-xs font-semibold border px-2 py-0.5 rounded-full ${badge.cls}`}>
                         {badge.label}
                       </span>
                     </Link>

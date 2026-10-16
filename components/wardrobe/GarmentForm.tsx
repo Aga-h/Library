@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUpload from "@/components/ui/ImageUpload";
-import { Field, inputCls } from "@/components/ui/form";
+import { Field, FieldGroup, inputCls } from "@/components/ui/form";
 
 interface FormData {
   name: string; type: string; brand: string; color: string; colorGroup: string;
@@ -97,7 +97,7 @@ export default function GarmentForm({ initialData, mode }: Props) {
       </Field>
 
       {/* Wash instructions */}
-      <div className="border border-gray-100 rounded-xl p-5 space-y-4">
+      <div className="border border-gray-100 rounded-xl p-4 sm:p-5 space-y-4">
         <p className="text-sm font-semibold text-gray-700">Care Label — Washing</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="Wash method">
@@ -140,7 +140,7 @@ export default function GarmentForm({ initialData, mode }: Props) {
       </div>
 
       {/* Dry instructions */}
-      <div className="border border-gray-100 rounded-xl p-5">
+      <div className="border border-gray-100 rounded-xl p-4 sm:p-5">
         <p className="text-sm font-semibold text-gray-700 mb-4">Care Label — Drying</p>
         <Field label="Dry method">
           <select value={form.dryMethod} onChange={(e) => update("dryMethod", e.target.value)} className={inputCls}>
@@ -158,19 +158,19 @@ export default function GarmentForm({ initialData, mode }: Props) {
 
       {/* Optional */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Photo URL (optional)">
+        <FieldGroup label="Photo URL (optional)">
           <ImageUpload value={form.image} onChange={(url) => update("image", url)} fieldName="wardrobe" />
-        </Field>
+        </FieldGroup>
         <Field label="Notes (optional)">
           <input type="text" value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Any extra care notes" className={inputCls} />
         </Field>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button type="submit" disabled={loading} className="whitespace-nowrap max-sm:flex-1 bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {loading ? (mode === "edit" ? "Saving…" : "Adding…") : (mode === "edit" ? "Save Changes" : "Add to Wardrobe")}
         </button>
-        <button type="button" onClick={() => router.back()} className="border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
+        <button type="button" onClick={() => router.back()} className="whitespace-nowrap max-sm:flex-1 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
       </div>
     </form>
   );

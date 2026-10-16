@@ -17,12 +17,12 @@ export default async function EditShopPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href={`/shopping/${shop.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
+      <Link href={`/shopping/${shop.id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 max-sm:-mt-2.5 max-sm:mb-3.5 max-sm:py-2.5 transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to {shop.name}
       </Link>
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Edit {shop.name}</h2>
+      <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-8">
+        <div className="flex items-start justify-between gap-4 mb-6 max-sm:flex-wrap max-sm:gap-y-3">
+          <h2 className="min-w-0 break-words text-xl font-bold text-gray-900">Edit {shop.name}</h2>
           <DeleteEntityButton apiPath={`/api/shopping/${shop.id}`} redirectTo="/shopping"
             warning={shop._count.products > 0
               ? `This also deletes its ${shop._count.products} product${shop._count.products === 1 ? "" : "s"}.`
