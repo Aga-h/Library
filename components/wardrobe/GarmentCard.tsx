@@ -36,7 +36,7 @@ export default function GarmentCard({ garment }: { garment: Garment }) {
         )}
       </div>
       <div className="p-4 flex flex-col gap-1 flex-1">
-        <h3 className="font-semibold text-gray-900 line-clamp-1 text-sm">{garment.name}</h3>
+        <h3 className="font-semibold text-gray-900 line-clamp-2 sm:line-clamp-1 break-words text-sm">{garment.name}</h3>
         <p className="text-xs text-gray-400">{TYPE_LABELS[garment.type] ?? garment.type}{garment.brand ? ` · ${garment.brand}` : ""}</p>
         <div className="flex items-center gap-1 mt-auto pt-2 text-xs font-medium text-gray-600">
           {urgency.icon}

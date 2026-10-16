@@ -27,11 +27,12 @@ export default function WardrobeActions({ garmentId, wornCount }: { garmentId: s
   return (
     <div className="flex flex-col gap-2 max-sm:w-full">
       {error && <p className="text-red-600 text-xs">{error}</p>}
-      <div className="flex gap-3">
+      {/* When the two don't fit side by side on a narrow phone, the second takes its own row. */}
+      <div className="flex gap-3 max-sm:flex-wrap">
       <button
         onClick={() => hit("wear")}
         disabled={loading !== null}
-        className="flex items-center justify-center gap-2 border border-gray-200 text-gray-700 px-4 py-2 max-sm:flex-1 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors"
+        className="flex items-center justify-center gap-2 whitespace-nowrap border border-gray-200 text-gray-700 px-4 py-2 max-sm:flex-1 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors"
       >
         <Shirt className="w-4 h-4" />
         {loading === "wear" ? "Updating…" : "Wore Today"}
@@ -40,7 +41,7 @@ export default function WardrobeActions({ garmentId, wornCount }: { garmentId: s
         <button
           onClick={() => hit("wash")}
           disabled={loading !== null}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 max-sm:flex-1 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="flex items-center justify-center gap-2 whitespace-nowrap bg-blue-600 text-white px-4 py-2 max-sm:flex-1 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           <Droplets className="w-4 h-4" />
           {loading === "wash" ? "Marking…" : "Mark as Washed"}
