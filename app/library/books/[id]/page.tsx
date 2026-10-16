@@ -70,10 +70,14 @@ export default async function BookDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold text-gray-900 leading-snug break-words">
+          {/* Phones: Edit/Delete go under the title. From sm they sit beside it, and drop under it
+              only when the title's longest word wouldn't fit beside them (acid's giant type) — the
+              heading is capped at this column's width (cqw), so such a word wraps instead of
+              pushing the buttons off the card. */}
+          <div className="flex-1 min-w-0 @container">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="sm:grow sm:basis-56">
+                <h1 className="text-xl font-bold text-gray-900 leading-snug break-words max-w-[100cqw] sm:w-fit">
                   {book.title}
                 </h1>
                 <p className="text-gray-500 mt-1">{book.author}</p>
