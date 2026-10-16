@@ -50,11 +50,11 @@ export default async function NewTvPage({ searchParams }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> {back.label}
+      <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 py-2.5 -mt-2.5 mb-3.5 sm:py-0 sm:mt-0 sm:mb-6 transition-colors">
+        <ChevronLeft className="w-4 h-4 shrink-0" /> {back.label}
       </Link>
       {!series && (
-        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8 mb-6">
           <h1 className="text-xl font-bold text-gray-900 mb-2">Add TV Shows</h1>
           <p className="text-sm text-gray-500 mb-6">
             Search TMDB — each show comes in as a series with every season, episodes, runtime and poster
@@ -63,7 +63,7 @@ export default async function NewTvPage({ searchParams }: PageProps) {
           <TmdbTvImport universes={universeOpts.map(({ id, name }) => ({ id, name }))} initialUniverseId={null} />
         </div>
       )}
-      <div className="bg-white border border-gray-200 rounded-xl p-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8">
         {series ? (
           <h1 className="text-xl font-bold text-gray-900 mb-6">Add Season</h1>
         ) : (

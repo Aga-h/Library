@@ -137,22 +137,23 @@ export default function IssueForm({
         </div>
       </div>
 
+      {/* Phones: each label is a 40px-tall tap target for its box. */}
       <div className="flex flex-wrap gap-6">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer max-sm:py-2.5 max-sm:-my-2.5">
           <input
             type="checkbox"
             checked={form.read}
             onChange={(e) => update("read", e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 accent-gray-900"
+            className="w-5 h-5 sm:w-4 sm:h-4 rounded border-gray-300 accent-gray-900"
           />
           Read
         </label>
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer max-sm:py-2.5 max-sm:-my-2.5">
           <input
             type="checkbox"
             checked={form.owned}
             onChange={(e) => update("owned", e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 accent-gray-900"
+            className="w-5 h-5 sm:w-4 sm:h-4 rounded border-gray-300 accent-gray-900"
           />
           Owned
         </label>
@@ -202,7 +203,7 @@ export default function IssueForm({
         />
       </Field>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         <button
           type="submit"
           disabled={loading}

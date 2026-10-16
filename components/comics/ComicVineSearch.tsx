@@ -93,7 +93,7 @@ export default function ComicVineSearch({
       <form onSubmit={search} className="flex gap-2">
         <label htmlFor="cv-query" className="sr-only">Search Comic Vine</label>
         <input id="cv-query" type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoFocus
-          placeholder="e.g. Amazing Spider-Man" className={`${inputCls} flex-1`} />
+          placeholder="e.g. Amazing Spider-Man" className={`${inputCls} flex-1 min-w-0`} />
         <button type="submit" disabled={searching || query.trim().length < 2}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Search
@@ -134,7 +134,8 @@ export default function ComicVineSearch({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
+                {/* Two lines on a phone rather than a few cut-off words; one line from sm. */}
+                <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">
                   {v.name}{v.startYear && <span className="font-normal text-gray-500"> ({v.startYear})</span>}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -142,7 +143,7 @@ export default function ComicVineSearch({
                 </p>
               </div>
               <button onClick={() => importVolume(v)} disabled={importing !== null}
-                className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
                 {importing === v.id
                   ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing {v.issueCount}…</>
                   : <><Download className="w-3.5 h-3.5" /> Import</>}

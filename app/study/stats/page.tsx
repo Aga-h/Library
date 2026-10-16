@@ -51,7 +51,7 @@ export default async function StatsPage() {
       </div>
 
       <section className="bg-white border border-gray-200 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 max-sm:flex-wrap max-sm:gap-y-1 mb-4">
           <Timer className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide">Study time</h3>
           <span className="text-xs text-gray-400 font-normal">every session, module or not</span>
@@ -98,9 +98,10 @@ export default async function StatsPage() {
         ) : (
           <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
             {recent.map((session) => (
-              <div key={session.id} className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap">
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">
+              // Stacked the same way on every row on a phone, as on the Study page's Today list.
+              <div key={session.id} className="flex items-center justify-between gap-4 px-4 py-3 flex-wrap max-sm:flex-col max-sm:items-start max-sm:gap-2">
+                <div className="min-w-0 max-sm:w-full">
+                  <p className="font-semibold text-gray-900 text-sm break-words sm:truncate">
                     {session.moduleTitle ?? "Free study"}
                   </p>
                   <p className="text-xs text-gray-500">
@@ -136,7 +137,7 @@ function StudyTile({
 }) {
   return (
     <div className={`rounded-xl px-4 py-3 border ${accent ? "bg-gray-900 border-gray-900" : "bg-gray-50 border-gray-100"}`}>
-      <p className={`text-2xl font-bold tabular-nums ${accent ? "text-white" : "text-gray-900"}`}>
+      <p className={`text-2xl max-sm:text-xl font-bold tabular-nums break-words ${accent ? "text-white" : "text-gray-900"}`}>
         {formatDuration(value)}
       </p>
       <p className={`text-xs mt-0.5 ${accent ? "text-gray-400" : "text-gray-500"}`}>{label}</p>

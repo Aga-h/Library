@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, Layers, Loader2, Settings2, Undo2 } from "lucide-react";
 import type { DeckView } from "@/lib/flashcard-service";
 import { RATINGS, RATING_LABELS, type Rating } from "@/lib/flashcards";
+import { useBringIntoReach } from "@/components/study/useBringIntoReach";
 
 const RATING_STYLE: Record<Rating, string> = {
   1: "bg-red-600 hover:bg-red-700",
@@ -86,6 +87,9 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
     return () => clearTimeout(timer);
   }, [deck.card, deck.waitUntil, send]);
 
+  // Show answer, then the four ratings: whichever is up, keep it on a phone's screen.
+  const actions = useBringIntoReach<HTMLDivElement>(`${deck.card?.id ?? ""}:${shown}`);
+
   const { summary } = deck;
   const state = deck.card?.state;
 
@@ -93,7 +97,7 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
     <div className="space-y-5">
       {/* Anki's three numbers: new, learning, to review. */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-4 text-sm tabular-nums" aria-label="Today">
+        <div className="flex items-center gap-4 max-sm:flex-wrap max-sm:gap-x-3 max-sm:gap-y-1 text-sm tabular-nums" aria-label="Today">
           <span><span className={`font-bold text-sky-600 ${state === "NEW" ? "underline underline-offset-4" : ""}`}>{summary.new}</span> <span className="text-gray-500">new</span></span>
           <span><span className={`font-bold text-red-600 ${state === "LEARNING" || state === "RELEARNING" ? "underline underline-offset-4" : ""}`}>{summary.learning}</span> <span className="text-gray-500">learning</span></span>
           <span><span className={`font-bold text-emerald-600 ${state === "REVIEW" ? "underline underline-offset-4" : ""}`}>{summary.review}</span> <span className="text-gray-500">to review</span></span>
@@ -101,11 +105,11 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={undo} disabled={!deck.canUndo || busy} title="Undo the last answer (Z)"
-            className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-100 disabled:opacity-40 transition-colors">
+            className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-100 disabled:opacity-40 transition-colors">
             <Undo2 className="w-3.5 h-3.5" /> Undo
           </button>
           <button type="button" onClick={() => setEditing((v) => !v)} aria-expanded={editing}
-            className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-100 transition-colors">
+            className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-100 transition-colors">
             <Settings2 className="w-3.5 h-3.5" /> Daily limits
           </button>
         </div>
@@ -130,7 +134,7 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
               className="block mt-1 w-28 border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-900" />
           </label>
           <button type="submit" disabled={busy}
-            className="bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50">Save</button>
+            className="bg-gray-900 text-white px-3 py-2 max-sm:px-4 max-sm:py-3 rounded-lg text-xs font-semibold hover:bg-gray-700 disabled:opacity-50">Save</button>
         </form>
       )}
 
@@ -157,7 +161,7 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
                   ))}
                 </ol>
               </div>
-              <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 grid grid-cols-4 gap-2">
+              <div ref={actions} className="scroll-mt-20 scroll-mb-4 border-t border-gray-100 bg-gray-50 px-4 py-4 grid grid-cols-4 gap-2 max-sm:px-3 max-sm:gap-1.5">
                 {RATINGS.map((r) => (
                   <button key={r} type="button" onClick={() => rate(r)} disabled={busy}
                     className={`flex flex-col items-center gap-0.5 text-white rounded-lg px-2 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors ${RATING_STYLE[r]}`}>
@@ -169,7 +173,7 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
               </div>
             </>
           ) : (
-            <div className="border-t border-gray-100 bg-gray-50 px-4 py-4">
+            <div ref={actions} className="scroll-mt-20 scroll-mb-4 border-t border-gray-100 bg-gray-50 px-4 py-4">
               <button type="button" onClick={() => setShown(true)} disabled={busy}
                 className="w-full bg-gray-900 text-white px-4 py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
                 {busy ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : <>Show answer <span className="hidden sm:inline text-xs font-normal opacity-70">· space</span></>}

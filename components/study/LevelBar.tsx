@@ -13,7 +13,7 @@ export default function LevelBar({ stat, xp }: { stat: Stat; xp: number }) {
           <Icon className={`w-4 h-4 flex-shrink-0 ${meta.text}`} />
           <div className="min-w-0">
             <p className="font-semibold text-gray-900 text-sm truncate">{meta.label}</p>
-            <p className="text-[11px] text-gray-500 truncate">{meta.description}</p>
+            <p className="text-[11px] text-gray-500 sm:truncate">{meta.description}</p>
           </div>
         </div>
         <div className="text-right flex-shrink-0">

@@ -150,7 +150,7 @@ function CourseCard({
 
   return (
     <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between gap-4 px-5 py-3.5 border-b border-gray-100 flex-wrap">
+      <div className="flex items-center justify-between gap-4 px-5 max-sm:px-4 py-3.5 border-b border-gray-100 flex-wrap max-sm:gap-y-2">
         <h3 className="font-semibold text-gray-900">{course.name}</h3>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500 tabular-nums">
@@ -163,7 +163,7 @@ function CourseCard({
       </div>
 
       {course.units.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-gray-400">No units loaded for this course yet.</p>
+        <p className="px-5 max-sm:px-4 py-4 text-sm text-gray-400">No units loaded for this course yet.</p>
       ) : (
         <ul className="divide-y divide-gray-50">
           {course.units.map((unit) => {
@@ -174,7 +174,7 @@ function CourseCard({
                   onClick={() => onToggle(unit)}
                   disabled={pending === unit.id}
                   aria-pressed={isDone}
-                  className="w-full flex items-start gap-3 px-5 py-3 text-left hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="w-full flex items-start gap-3 px-5 max-sm:px-4 py-3 text-left hover:bg-gray-50 disabled:opacity-50 transition-colors"
                 >
                   <span
                     className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${
