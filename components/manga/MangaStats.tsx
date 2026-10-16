@@ -41,5 +41,5 @@ function StatPill({ label, value, color }: { label: string; value: number; color
 }
 
 function TimeStat({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
-  return <div className="flex items-start gap-2 sm:gap-3 min-w-0"><div className="mt-0.5 text-gray-400 shrink-0">{icon}</div><div className="min-w-0"><p className="text-xs text-gray-500 font-medium break-words">{label}</p><p className="text-lg font-bold text-gray-800 break-words">{value}</p>{sub && <p className="text-xs text-gray-400">{sub}</p>}</div></div>;
+  return <div className="flex items-start gap-2 sm:gap-3 min-w-0"><div className="mt-0.5 text-gray-400 shrink-0">{icon}</div><div className="min-w-0"><p className="text-xs text-gray-500 font-medium break-words">{label}</p><p className="text-base sm:text-lg font-bold text-gray-800 break-words">{value}</p>{sub && <p className="text-xs text-gray-400">{sub}</p>}</div></div>;
 }
