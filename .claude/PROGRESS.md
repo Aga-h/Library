@@ -422,6 +422,10 @@ deleted; `main` is the GitHub default and what Vercel deploys.
       sidebar (Study also spills to ~500px); Finances month pages 807px wide; 59/90 pages have fields
       under 16px (iOS zoom on focus); portal/shopping/wardrobe/log mostly fine. Harness + seed live in
       the session scratchpad only (not committed); local DB `lib_phone`.
+      - **Work in progress lives on branch `claude/phone-wip`** (not merged — main stays deployable).
+        Resume there: `git checkout claude/phone-wip`. Phase 1 built + reviewed; reviewer findings
+        being fixed (acid drawer scroll/tap size, LevelStats lost the looks' figure styling, landscape
+        phones still zoom fields, EpisodeButtons label, Breadcrumb desktop shift).
       - [ ] phase 1: phone nav (top bar + drawer) for Library/Study, layouts, looks; 16px fields; ui/*
       - [ ] phase 2: per-section pages (portal/login, library ×3 groups, study, finances, shopping+wardrobe)
       - [ ] phase 3: all 90 pages × 5 looks clean; desktop unchanged
