@@ -152,14 +152,16 @@ export default function MangaMalImport({
       ) : (
         <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
           {results.map((e) => (
-            <li key={e.id} className="flex items-center gap-3 px-3 py-2 bg-white">
+            // Phones: the action wraps under the text, lined up with it (the poster's 36px + the
+            // gap), instead of squeezing the title and counts into a narrow column.
+            <li key={e.id} className="flex items-center max-sm:flex-wrap gap-3 max-sm:gap-y-2 px-3 py-2 bg-white">
               <Poster src={e.cover} />
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 max-sm:basis-[calc(100%-3rem)]">
                 <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</p>
                 {credits(e) && <p className="text-xs text-gray-600 truncate">{credits(e)}</p>}
                 <p className="text-xs text-gray-500">{meta(e)}</p>
               </div>
-              <Action entry={e} name={shown(e)} link={link} busy={busy} onPick={pick} />
+              <div className="flex-shrink-0 max-sm:ml-12"><Action entry={e} name={shown(e)} link={link} busy={busy} onPick={pick} /></div>
             </li>
           ))}
         </ul>
@@ -170,7 +172,8 @@ export default function MangaMalImport({
   );
 }
 
-const pillCls = "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full flex-shrink-0";
+// Phones: as tall as the buttons beside it — the "In your library" one is a link to tap.
+const pillCls = "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 max-sm:py-2.5 rounded-full flex-shrink-0";
 const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0";
 
 /** What can be done with one result, given where it already is. */
