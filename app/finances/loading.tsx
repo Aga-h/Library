@@ -1,10 +1,14 @@
 export default function Loading() {
   return (
     <div className="animate-pulse">
-      <div className="flex items-center justify-between mb-6">
-        <div className="h-9 w-9 bg-gray-200 rounded-lg" />
-        <div className="h-7 w-40 bg-gray-200 rounded-lg" />
-        <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+      <div className="flex flex-col gap-3 mb-5 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+          <div className="h-7 w-40 bg-gray-200 rounded-lg" />
+          <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+        </div>
+        {/* Phones: the full-width Quick log under the month, as on the page. */}
+        <div className="h-10 bg-gray-200 rounded-lg sm:hidden" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (

@@ -147,7 +147,9 @@ function ProductRow({ shopId, product }: { shopId: string; product: Product }) {
   }
 
   return (
-    <li className="shop-product py-4 flex items-start justify-between gap-4">
+    // While confirming, a phone puts Delete / Keep on a row of their own, under the text, so the
+    // name and comment keep their width.
+    <li className={`shop-product py-4 flex items-start justify-between gap-4 ${confirming ? "max-sm:flex-wrap max-sm:gap-y-3" : ""}`}>
       <div className="min-w-0">
         <p className="shop-product-name font-semibold text-gray-900 break-words">{product.name}</p>
         {product.comment
@@ -156,7 +158,7 @@ function ProductRow({ shopId, product }: { shopId: string; product: Product }) {
         {error && <p role="alert" className="text-xs text-red-600 mt-1">{error}</p>}
       </div>
       {confirming ? (
-        <div className="flex gap-2 flex-shrink-0 max-sm:-my-1">
+        <div className="flex gap-2 flex-shrink-0 max-sm:w-full max-sm:justify-end">
           <button onClick={remove} disabled={busy}
             className="bg-red-600 text-white px-3 py-1.5 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">
             {busy ? "Deleting…" : "Delete"}

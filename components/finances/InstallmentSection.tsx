@@ -9,6 +9,7 @@ import {
   MAX_INSTALLMENTS, MIN_INSTALLMENTS, addMonths, installmentAmounts, lastMonth, planState, totalFromEach,
 } from "@/lib/installments";
 import { SourcePicker, SourceToggle } from "@/components/finances/SourceTag";
+import { PHONE_TALL, PHONE_TAP_H, ROW_END_ICON_BTN } from "@/components/finances/touch";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const label = ({ year, month }: { year: number; month: number }) => `${MONTHS[month - 1]} ${year}`;
@@ -109,7 +110,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
           <div role="radiogroup" aria-label="Amount is" className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-lg text-xs font-semibold">
             {(["total", "each"] as const).map((v) => (
               <button key={v} type="button" role="radio" aria-checked={per === v} onClick={() => setPer(v)}
-                className={`px-2.5 py-2 sm:py-1 rounded-md transition-colors ${per === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
+                className={`px-2.5 py-2 sm:py-1 rounded-md transition-colors ${PHONE_TAP_H} ${per === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>
                 {v === "total" ? "Total" : "Each"}
               </button>
             ))}
@@ -139,7 +140,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
               : `${MIN_INSTALLMENTS}–${MAX_INSTALLMENTS} monthly installments`}
           </p>
           <button type="submit" disabled={adding || isPending || !valid || !name.trim()}
-            className="flex flex-shrink-0 items-center gap-1 bg-emerald-600 text-white px-3 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50">
+            className={`flex flex-shrink-0 items-center gap-1 bg-emerald-600 text-white px-3 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 ${PHONE_TALL}`}>
             <Plus className="w-4 h-4" /> Add
           </button>
         </div>
@@ -164,7 +165,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
                   <SourceToggle source={plan.source} apiPath={`/api/finances/installments/${plan.id}`} />
                   <span className="text-gray-900 font-medium ml-2 whitespace-nowrap sm:ml-3 tabular-nums">{fmt(state.current!.amount)}</span>
                   <button onClick={() => handleDelete(plan)} title="Delete — from past months too" aria-label={`Delete ${plan.name}`}
-                    className="-my-1.5 -mr-2 ml-0.5 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-2 sm:p-0">
+                    className={`${ROW_END_ICON_BTN} ml-0.5 hover:text-red-500 sm:ml-2`}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </span>
@@ -191,7 +192,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
                 <SourceToggle source={plan.source} apiPath={`/api/finances/installments/${plan.id}`} />
                 <span className="ml-2 whitespace-nowrap sm:ml-3 tabular-nums">{plan.count} × {fmt(installmentAmounts(plan.total, plan.count)[plan.count - 1])}</span>
                 <button onClick={() => handleDelete(plan)} title="Delete" aria-label={`Delete ${plan.name}`}
-                  className="-my-1.5 -mr-2 ml-0.5 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-2 sm:p-0">
+                  className={`${ROW_END_ICON_BTN} ml-0.5 hover:text-red-500 sm:ml-2`}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </span>
@@ -207,7 +208,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
 
           {done.length > 0 && (
             <details className="pt-1">
-              <summary className="cursor-pointer px-3 py-2.5 sm:py-1 text-xs font-semibold text-gray-400 hover:text-gray-600">
+              <summary className="cursor-pointer px-3 py-2.5 sm:py-1 text-xs font-semibold text-gray-400 hover:text-gray-600 [@media(hover:none)_and_(pointer:coarse)_and_(height<30rem)]:py-2.5">
                 Paid off ({done.length})
               </summary>
               {done.map(({ plan }) => (
@@ -219,7 +220,7 @@ export default function InstallmentSection({ installments, year, month }: Props)
                   <span className="ml-auto flex items-center sm:contents">
                     <span className="text-gray-500 ml-2 whitespace-nowrap sm:ml-3 tabular-nums">{fmt(plan.total)}</span>
                     <button onClick={() => handleDelete(plan)} title="Delete — from past months too" aria-label={`Delete ${plan.name}`}
-                      className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0">
+                      className={`${ROW_END_ICON_BTN} ml-1 hover:text-red-500 sm:ml-3`}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </span>

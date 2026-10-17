@@ -7,6 +7,7 @@ import type { Expense, ExpenseCategory } from "@prisma/client";
 import type { FundSource } from "@/lib/fund-sources";
 import { useStoredSource } from "@/lib/fund-source-client";
 import { SourcePicker, SourceToggle } from "@/components/finances/SourceTag";
+import { PHONE_TALL, ROW_END_ICON_BTN, confirmOnTouch } from "@/components/finances/touch";
 
 const CATEGORIES: ExpenseCategory[] = [
   "FOOD", "BOOKS", "EDUCATION", "ENTERTAINMENT", "CLOTHING",
@@ -66,8 +67,9 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
     }
   }
 
-  async function handleDelete(id: string) {
-    await fetch(`/api/finances/expenses/${id}`, { method: "DELETE" });
+  async function handleDelete(expense: Expense) {
+    if (!confirmOnTouch(`Delete "${expense.description || CATEGORY_LABELS[expense.category]}" (${fmt(expense.amount)})?`)) return;
+    await fetch(`/api/finances/expenses/${expense.id}`, { method: "DELETE" });
     startTransition(() => router.refresh());
   }
 
@@ -82,8 +84,9 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
       <h2 className="font-semibold text-gray-900 mb-4">Expenses</h2>
 
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-5">
-        {/* Phones: the category takes the first row, amount and Add share the second. */}
-        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+        {/* Phones: one field to a row and Add last, under the card picker — filled top to bottom.
+            From sm the wrapper is a row again: category, amount and Add, as before. */}
+        <div className="contents sm:flex sm:gap-2">
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
@@ -102,13 +105,13 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             aria-label="Amount"
-            className="min-w-0 flex-1 sm:w-28 sm:min-w-auto sm:flex-initial border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="sm:w-28 sm:flex-initial border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
           <button
             type="submit"
             disabled={adding || isPending}
-            className="flex items-center gap-1 bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50"
+            className={`order-last flex items-center justify-center gap-1 bg-emerald-600 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 sm:order-none sm:py-2 ${PHONE_TALL}`}
           >
             <Plus className="w-4 h-4" />
             Add
@@ -148,9 +151,9 @@ export default function ExpenseSection({ expenses, year, month, left }: Props) {
                       <SourceToggle source={expense.source} apiPath={`/api/finances/expenses/${expense.id}`} />
                       <span className="text-gray-900 font-medium ml-2 whitespace-nowrap sm:ml-3">{fmt(expense.amount)}</span>
                       <button
-                        onClick={() => handleDelete(expense.id)}
+                        onClick={() => handleDelete(expense)}
                         aria-label={`Delete ${expense.description || CATEGORY_LABELS[expense.category]}`}
-                        className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0"
+                        className={`${ROW_END_ICON_BTN} ml-1 hover:text-red-500 sm:ml-3`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
