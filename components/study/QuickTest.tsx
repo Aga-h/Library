@@ -128,7 +128,7 @@ export default function QuickTest({
               {pools.map((p) => (
                 <button key={p.pool} type="button" role="radio" aria-checked={pool === p.pool} disabled={p.count === 0}
                   onClick={() => setPool(p.pool)}
-                  className={`flex items-center justify-between gap-2 border rounded-lg px-3 py-2 text-sm text-left transition-colors disabled:opacity-40 ${
+                  className={`flex items-center justify-between gap-2 border rounded-lg px-3 py-2 max-sm:py-2.5 text-sm text-left transition-colors disabled:opacity-40 ${
                     pool === p.pool ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-700 hover:bg-gray-50"
                   }`}>
                   <span className="font-semibold">{p.label}</span>

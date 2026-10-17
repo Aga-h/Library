@@ -220,7 +220,7 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
             own manga export (.xml or .xml.gz, from your profile&apos;s Export).
           </p>
         </div>
-        {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+        {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words">{error}</div>}
         <MalNotice kind="Manga" />
       </div>
     );
@@ -253,7 +253,7 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
   if (phase === "done" && outcome) {
     return (
       <div className="space-y-3">
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 break-words">
           <p className="font-semibold">
             {[
               `${outcome.added} added`,

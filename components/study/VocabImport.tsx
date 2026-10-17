@@ -118,7 +118,7 @@ export default function VocabImport({ builtinSize }: { builtinSize: number }) {
                 {summary.skipped.map((s) => (
                   <li key={s.line} className="text-xs text-gray-500">
                     <span className="tabular-nums text-gray-400">line {s.line}</span> — {s.reason}
-                    <span className="block font-mono text-[11px] text-gray-400 truncate">{s.text}</span>
+                    <span className="block font-mono text-[11px] text-gray-400 break-words sm:truncate">{s.text}</span>
                   </li>
                 ))}
               </ul>

@@ -109,7 +109,7 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
         <Field label="Rating (1–10)"><input type="number" min={1} max={10} step={0.5} value={form.rating} onChange={(e) => update("rating", e.target.value)} placeholder="e.g. 9" className={inputCls} /></Field>
       </div>
 
-      <label className="flex items-center gap-3 min-h-10 sm:min-h-0 cursor-pointer select-none">
+      <label className="flex items-center gap-3 max-sm:min-h-10 cursor-pointer select-none">
         <input type="checkbox" checked={form.emulated} onChange={(e) => update("emulated", e.target.checked)} className="w-4 h-4 rounded border-gray-300" />
         <span className="text-sm text-gray-700">This is an emulated version</span>
       </label>

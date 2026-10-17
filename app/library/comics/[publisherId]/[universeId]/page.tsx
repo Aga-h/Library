@@ -76,7 +76,7 @@ export default async function UniversePage({ params }: PageProps) {
           />
           <Link
             href={`${base}/new`}
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Comic
           </Link>

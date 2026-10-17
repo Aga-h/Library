@@ -74,7 +74,7 @@ export default async function BookSeriesPage({ params }: PageProps) {
             label="Add existing book"
             emptyHint="Every book you have is already in this series."
           />
-          <Link href={`/library/books/new?seriesId=${series.id}`} className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href={`/library/books/new?seriesId=${series.id}`} className="flex items-center gap-2 max-sm:min-h-10 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Book
           </Link>
         </div>

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, Download, Loader2, Plus, Search, Tag, Tv2 } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
-import { Poster, TmdbNotice, resultTitleCls, tinyButtonCls, tinyButtonsCls } from "@/components/tmdb/TmdbParts";
+import {
+  Poster, TmdbNotice, resultBodyCls, resultTextCls, resultTitleCls, resultWideCls, reveal, revealCls, tinyButtonCls, tinyButtonsCls,
+} from "@/components/tmdb/TmdbParts";
 
 interface Place {
   seriesId: string;
@@ -249,10 +251,11 @@ export default function TmdbTvImport({
         </button>
       </form>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {/* Both appear up here after a tap far down the list, so they scroll themselves into view. */}
+      {error && <div ref={reveal} className={`bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm ${revealCls}`}>{error}</div>}
 
       {summary && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1">
+        <div ref={reveal} className={`bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1 ${revealCls}`}>
           {summary.report.length > 0 && (
             <ul className="space-y-0.5">
               {summary.report.map((line) => (
@@ -319,7 +322,7 @@ export default function TmdbTvImport({
                           <span className="block text-xs text-gray-500">{s.year ?? "Not aired yet"}</span>
                           {/* Phones: where it is goes under the title — beside it, it squeezed the title away. */}
                           {where && (
-                            <span className={`sm:hidden mt-1 inline-block max-w-full truncate align-top text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                            <span className={`sm:hidden mt-1 inline-block max-w-full break-words align-top text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                               where.importable ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
                             }`}>{where.text}</span>
                           )}
@@ -362,14 +365,16 @@ export default function TmdbTvImport({
                     <div className="flex-shrink-0 w-9 h-[54px] rounded bg-gray-50 flex items-center justify-center">
                       <Tag className="w-4 h-4 text-gray-400" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={resultTitleCls}>{k.name}</p>
-                      <p className="text-xs text-gray-500">Every show with this tag</p>
+                    <div className={resultBodyCls}>
+                      <div className={resultTextCls}>
+                        <p className={`${resultTitleCls} ${resultWideCls}`}>{k.name}</p>
+                        <p className="text-xs text-gray-500">Every show with this tag</p>
+                      </div>
+                      <button type="button" onClick={() => openKeyword(k)} disabled={opening !== null}
+                        className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                        {opening === k.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Tv2 className="w-3.5 h-3.5" />} See shows
+                      </button>
                     </div>
-                    <button type="button" onClick={() => openKeyword(k)} disabled={opening !== null}
-                      className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
-                      {opening === k.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Tv2 className="w-3.5 h-3.5" />} See shows
-                    </button>
                   </li>
                 ))}
               </ul>
@@ -385,23 +390,25 @@ export default function TmdbTvImport({
                   return (
                     <li key={s.id} className="flex items-center gap-3 px-3 py-2 bg-white">
                       <Poster src={s.poster} />
-                      <div className="flex-1 min-w-0">
-                        <p className={resultTitleCls}>{s.name}</p>
-                        <p className="text-xs text-gray-500">{s.year ?? "Not aired yet"}</p>
+                      <div className={resultBodyCls}>
+                        <div className={resultTextCls}>
+                          <p className={`${resultTitleCls} ${resultWideCls}`}>{s.name}</p>
+                          <p className="text-xs text-gray-500">{s.year ?? "Not aired yet"}</p>
+                        </div>
+                        {where && !where.importable ? (
+                          <Link href={`/library/tv/s/${s.place!.seriesId}`}
+                            className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-2.5 sm:px-2 sm:py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex-shrink-0 max-sm:text-left">
+                            {s.place!.universeId === targetId ? <Check className="w-3 h-3" /> : null}
+                            {where.text}
+                          </Link>
+                        ) : (
+                          <button type="button" onClick={() => addOne(s)} disabled={busy !== null}
+                            className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                            {busy === s.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                            {where ? "Move here" : "Add"}
+                          </button>
+                        )}
                       </div>
-                      {where && !where.importable ? (
-                        <Link href={`/library/tv/s/${s.place!.seriesId}`}
-                          className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-2.5 sm:px-2 sm:py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex-shrink-0 max-sm:max-w-[9rem] max-sm:text-left">
-                          {s.place!.universeId === targetId ? <Check className="w-3 h-3" /> : null}
-                          {where.text}
-                        </Link>
-                      ) : (
-                        <button type="button" onClick={() => addOne(s)} disabled={busy !== null}
-                          className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
-                          {busy === s.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                          {where ? "Move here" : "Add"}
-                        </button>
-                      )}
                     </li>
                   );
                 })}

@@ -48,7 +48,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
                 <ChevronRight className="w-4 h-4" />
               </Link>
               <Link href="/study/review"
-                className="px-3 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+                className="px-3 py-2 max-sm:py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
                 Today
               </Link>
             </>

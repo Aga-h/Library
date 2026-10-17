@@ -171,7 +171,7 @@ export default function ModulesManager({ modules }: { modules: ModuleRow[] }) {
         <GoalInput id="goal-new" value={draft.goal} onChange={(goal) => setDraft({ ...draft, goal })} />
         <StatPicker picked={draftStats} onToggle={setDraftStats} />
         <button type="submit" disabled={busy || draft.title.trim() === "" || draftStats.length === 0}
-          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+          className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:py-3 max-sm:w-full max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           <Plus className="w-4 h-4" /> Add module
         </button>
       </form>
@@ -197,7 +197,8 @@ function StatPicker({ picked, onToggle }: { picked: Stat[]; onToggle: (next: Sta
           {picked.length}/{MAX_STATS_PER_MODULE}
         </span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+      {/* On a phone the chips flow by their own width, so a wide look's labels are never cut off. */}
+      <div className="flex flex-wrap sm:grid sm:grid-cols-3 gap-1.5">
         {STATS.map((stat) => {
           const meta = STAT_META[stat];
           const on = picked.includes(stat);
@@ -206,7 +207,7 @@ function StatPicker({ picked, onToggle }: { picked: Stat[]; onToggle: (next: Sta
           return (
             <button key={stat} type="button" onClick={() => toggle(stat)} disabled={full}
               title={meta.description} aria-pressed={on}
-              className={`flex items-center gap-1.5 px-2 py-1.5 max-sm:py-2.5 rounded-lg border text-xs font-semibold transition-colors ${
+              className={`flex flex-auto items-center gap-1.5 px-2 py-1.5 max-sm:py-2.5 rounded-lg border text-xs font-semibold transition-colors ${
                 on ? `${meta.bg} ${meta.text} ${meta.border}`
                    : full ? "border-gray-100 text-gray-300 cursor-not-allowed"
                           : "border-gray-200 text-gray-600 hover:bg-gray-50"

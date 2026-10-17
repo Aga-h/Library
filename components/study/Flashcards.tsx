@@ -146,7 +146,7 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
             <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               {state === "NEW" ? "New" : state === "REVIEW" ? "Review" : "Learning"}
             </p>
-            <h2 className="text-4xl font-bold text-gray-900 mt-2 break-words">{deck.card.word}</h2>
+            <h2 className="text-4xl max-sm:text-3xl font-bold text-gray-900 mt-2 break-words">{deck.card.word}</h2>
           </div>
 
           {shown ? (

@@ -17,8 +17,29 @@ export const tinyButtonCls = "font-semibold text-gray-600 hover:text-gray-900 ma
 /** The All · None pair those sit in — further apart on phones, so their hit areas don't overlap. */
 export const tinyButtonsCls = "flex gap-3 max-sm:gap-5";
 
-/** A result's title: two lines on a phone rather than a few cut-off words, one line from sm. */
-export const resultTitleCls = "text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate";
+/** A result's title: whole on a phone (titles that differ only at the end must be told apart), one line from sm. */
+export const resultTitleCls = "text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate";
+
+/**
+ * A result row's text and its button. From sm they sit side by side, as always; on a phone the
+ * title gets the whole width and the button drops under it, beside the year. Put the title and
+ * the year in a `resultTextCls` block (dissolved on phones) and give the title `resultWideCls`.
+ */
+export const resultBodyCls = "flex-1 min-w-0 max-sm:grid max-sm:grid-cols-[1fr_auto] max-sm:gap-y-1 sm:flex items-center gap-x-3";
+export const resultTextCls = "max-sm:contents sm:flex-1 sm:min-w-0";
+export const resultWideCls = "max-sm:col-span-2 max-sm:min-w-0";
+
+/**
+ * A report that appears above the list after a tap far down it: scrolled into view when it
+ * mounts (below a phone's top bar — the page's scroll-padding keeps it clear). Use as
+ * `ref={reveal}` with `revealCls`, a little room above it.
+ */
+export function reveal(el: HTMLElement | null) {
+  if (!el) return;
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({ block: "nearest", behavior: still ? "auto" : "smooth" });
+}
+export const revealCls = "scroll-mt-3";
 
 /** TMDB's required attribution: its notice and its logo, wherever its data is used. */
 export function TmdbNotice({ className = "" }: { className?: string }) {

@@ -47,15 +47,15 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/books/mirror-covers" />
-          <Link href="/library/books/u/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/books/u/new" className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Universe
           </Link>
-          <Link href="/library/books/s/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/books/s/new" className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Series
           </Link>
           <Link
             href="/library/books/new"
-            className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 max-sm:min-h-10 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Book
@@ -152,7 +152,7 @@ async function Buckets() {
         <p className="text-gray-400 text-sm mt-1">Add your first book to get started.</p>
         <Link
           href="/library/books/new"
-          className="mt-4 flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          className="mt-4 flex items-center gap-2 max-sm:min-h-10 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Book

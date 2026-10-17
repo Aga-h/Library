@@ -222,10 +222,10 @@ export default function MalImport({
         </button>
       </form>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words">{error}</div>}
 
       {summary && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1 break-words">
           <p>
             {summary.seriesId && (
               <><Link href={`/library/anime/s/${summary.seriesId}`} className="font-semibold underline">{summary.seriesName}</Link>: </>

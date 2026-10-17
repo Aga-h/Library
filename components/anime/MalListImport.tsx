@@ -292,7 +292,7 @@ export default function MalListImport() {
             from your profile&apos;s Export).
           </p>
         </div>
-        {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+        {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words">{error}</div>}
         <MalNotice />
       </div>
     );
@@ -324,7 +324,7 @@ export default function MalListImport() {
   if (phase === "done" && outcome) {
     return (
       <div className="space-y-3">
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 break-words">
           <p className="font-semibold">
             {[
               `${outcome.added} added as watched`,
@@ -366,7 +366,7 @@ export default function MalListImport() {
         </p>
         <div className="w-full sm:w-56"><Toggle label="Titles" value={english} onChange={setEnglish} off="Japanese" on="English" /></div>
       </div>
-      {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words">{error}</div>}
 
       <section className="border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs">

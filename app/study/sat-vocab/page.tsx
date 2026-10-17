@@ -68,19 +68,19 @@ export default async function SatVocabPage() {
         <div className="flex items-center gap-2 flex-wrap">
         <Link
           href="/study/sat-vocab/flashcards"
-          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
         >
           <GalleryHorizontalEnd className="w-4 h-4" /> Flashcards
         </Link>
         <Link
           href="/study/sat-vocab/quick"
-          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
         >
           <Zap className="w-4 h-4" /> Quick test
         </Link>
         <Link
           href="/study/sat-vocab/words"
-          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
         >
           <ListChecks className="w-4 h-4" /> {wordCount} word{wordCount === 1 ? "" : "s"}
         </Link>
@@ -96,7 +96,7 @@ export default async function SatVocabPage() {
           </p>
           <Link
             href="/study/sat-vocab/words"
-            className="inline-flex items-center gap-2 mt-4 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-2 mt-4 bg-gray-900 text-white px-4 py-2 max-sm:py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
           >
             <ListChecks className="w-4 h-4" /> Add the word list
           </Link>
