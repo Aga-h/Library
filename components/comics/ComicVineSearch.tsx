@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BookOpen, Download, Loader2, Search } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
+import { resultBodyCls, resultTextCls, resultWideCls, reveal, revealCls } from "@/components/tmdb/TmdbParts";
 
 interface Volume {
   id: number;
@@ -68,6 +69,7 @@ export default function ComicVineSearch({
   async function importVolume(volume: Volume) {
     setImporting(volume.id);
     setError(null);
+    setDone(null);
     const res = await fetch("/api/comics/comicvine/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -100,10 +102,11 @@ export default function ComicVineSearch({
         </button>
       </form>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {/* Both appear up here after a tap far down the list, so they scroll themselves into view. */}
+      {error && <div ref={reveal} className={`bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm ${revealCls}`}>{error}</div>}
 
       {done && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900">
+        <div ref={reveal} className={`bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 ${revealCls}`}>
           <p>
             <span className="font-semibold">{done.titleName}</span>: {done.added} issue{done.added === 1 ? "" : "s"} added
             {done.filled > 0 && <>, {done.filled} filled in</>}.
@@ -133,21 +136,24 @@ export default function ComicVineSearch({
                   <BookOpen className="w-4 h-4 text-gray-300" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                {/* Two lines on a phone rather than a few cut-off words; one line from sm. */}
-                <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">
-                  {v.name}{v.startYear && <span className="font-normal text-gray-500"> ({v.startYear})</span>}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {[v.publisher, `${v.issueCount} issue${v.issueCount === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}
-                </p>
+              {/* Phones: the whole name, then the year (runs often share a name) beside Import. */}
+              <div className={resultBodyCls}>
+                <div className={resultTextCls}>
+                  <p className={`text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate ${resultWideCls}`}>
+                    {v.name}{v.startYear && <span className="max-sm:hidden font-normal text-gray-500"> ({v.startYear})</span>}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {v.startYear && <span className="sm:hidden">{v.startYear} · </span>}
+                    {[v.publisher, `${v.issueCount}\u00a0issue${v.issueCount === 1 ? "" : "s"}`].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <button onClick={() => importVolume(v)} disabled={importing !== null}
+                  className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                  {importing === v.id
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing {v.issueCount}…</>
+                    : <><Download className="w-3.5 h-3.5" /> Import</>}
+                </button>
               </div>
-              <button onClick={() => importVolume(v)} disabled={importing !== null}
-                className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
-                {importing === v.id
-                  ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importing {v.issueCount}…</>
-                  : <><Download className="w-3.5 h-3.5" /> Import</>}
-              </button>
             </li>
           ))}
         </ul>

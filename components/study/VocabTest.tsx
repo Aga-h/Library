@@ -111,13 +111,14 @@ export default function VocabTest({
   const lengthChoices = [...new Set([...RUN_LENGTHS.filter((n) => n < meaningCount), meaningCount])];
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>
       )}
 
-      {/* Progress + restart */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      {/* Progress + restart. On a phone the restart row drops below the question, so the answers
+          start higher up the screen; it is the rarely-used, run-wiping control anyway. */}
+      <div className="flex items-center justify-between gap-4 flex-wrap max-sm:contents">
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-sm text-gray-500 tabular-nums">
             {total === 0 ? "No questions yet" : `${answered} / ${total} answered`}
@@ -131,7 +132,7 @@ export default function VocabTest({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2 max-sm:flex-wrap max-sm:w-full">
+        <div className="flex items-center gap-2 max-sm:flex-wrap max-sm:order-1">
           <label htmlFor="run-length" className="sr-only">
             Questions per test
           </label>
@@ -151,7 +152,7 @@ export default function VocabTest({
           <button
             onClick={restart}
             disabled={busy}
-            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:flex-auto max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:py-2.5 max-sm:flex-auto max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             {total === 0 ? "Start the test" : "Take the test again"}
@@ -254,7 +255,7 @@ export default function VocabTest({
       )}
 
       {/* The categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-sm:order-2">
         <CategoryList title="Done" entries={categories.DONE} tone="emerald" />
         <CategoryList title="Ambiguous" entries={categories.AMBIGUOUS} tone="amber" />
         <CategoryList title="To Review" entries={categories.TO_REVIEW} tone="red" />

@@ -75,7 +75,7 @@ export default async function MovieUniversePage({ params }: PageProps) {
             label="Add existing film"
             emptyHint="Every film you have is already in this universe."
           />
-          <Link href={`/library/movies/new?universeId=${universe.id}`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href={`/library/movies/new?universeId=${universe.id}`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Movie
           </Link>
         </div>

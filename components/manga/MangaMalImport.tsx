@@ -145,7 +145,7 @@ export default function MangaMalImport({
         </button>
       </form>
 
-      {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words">{error}</div>}
 
       {results && (results.length === 0 ? (
         <p className="text-sm text-gray-500">Nothing on MyAnimeList matches that. Try fewer words.</p>
@@ -158,7 +158,7 @@ export default function MangaMalImport({
               <Poster src={e.cover} />
               <div className="flex-1 min-w-0 max-sm:basis-[calc(100%-3rem)]">
                 <p className="text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate">{shown(e)}</p>
-                {credits(e) && <p className="text-xs text-gray-600 truncate">{credits(e)}</p>}
+                {credits(e) && <p className="text-xs text-gray-600 max-sm:break-words sm:truncate">{credits(e)}</p>}
                 <p className="text-xs text-gray-500">{meta(e)}</p>
               </div>
               <div className="flex-shrink-0 max-sm:ml-12 max-sm:max-w-[calc(100%-3rem)]"><Action entry={e} name={shown(e)} link={link} busy={busy} onPick={pick} /></div>

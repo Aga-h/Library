@@ -33,7 +33,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
         <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/games/mirror-covers" />
           <SteamSyncButton />
-          <Link href="/library/games/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href="/library/games/new" className="flex items-center gap-2 max-sm:min-h-10 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Game
           </Link>
         </div>

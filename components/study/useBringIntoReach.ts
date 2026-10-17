@@ -2,11 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
+/** A phone: narrow, or a touch screen held sideways (wide but very short). */
+const PHONE = "(max-width: 639.98px), (pointer: coarse) and (max-height: 500px)";
+
 /**
  * On a phone, scrolls the element this ref is attached to into view whenever `key` changes —
  * never on the first render. A flashcard's answer or a question's verdict can push the next
  * button below the screen; this brings it up to the thumb. A no-op when it is already in view,
- * and on anything wider than a phone.
+ * and on anything bigger than a phone.
  */
 export function useBringIntoReach<T extends HTMLElement>(key: unknown) {
   const ref = useRef<T>(null);
@@ -15,7 +18,7 @@ export function useBringIntoReach<T extends HTMLElement>(key: unknown) {
   useEffect(() => {
     if (Object.is(last.current, key)) return;
     last.current = key;
-    if (!ref.current || !window.matchMedia("(max-width: 639.98px)").matches) return;
+    if (!ref.current || !window.matchMedia(PHONE).matches) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     ref.current.scrollIntoView({ block: "nearest", behavior: still ? "auto" : "smooth" });
   }, [key]);

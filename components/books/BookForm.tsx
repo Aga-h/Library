@@ -259,7 +259,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
       </div>
 
       {/* Owned checkbox */}
-      <label className="flex items-center gap-3 min-h-10 sm:min-h-0 cursor-pointer select-none">
+      <label className="flex items-center gap-3 max-sm:min-h-10 cursor-pointer select-none">
         <input
           type="checkbox"
           checked={form.owned}
