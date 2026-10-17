@@ -313,7 +313,7 @@ export default function MangaListImport({ defaultLanguage }: { defaultLanguage: 
                   <input type="checkbox" checked={checked.has(r.key)} onChange={() => toggle(r.key)}
                     className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
                   <span className="flex-1 min-w-0">
-                    <span className="block text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{r.title}</span>
+                    <span className="block text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate">{r.title}</span>
                     <span className="block text-xs text-gray-500">
                       {[
                         TYPE_LABELS[r.mediaType],

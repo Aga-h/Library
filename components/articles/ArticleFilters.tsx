@@ -44,7 +44,7 @@ export default function ArticleFilters() {
         <option value="">All Languages</option>
         {LANGUAGE_OPTIONS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
       </select>
-      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Search title, author, or publication…" />
+      <SearchInput defaultValue={currentQ} onSearch={setSearch} placeholder="Title, author or publication…" />
     </div>
   );
 }

@@ -141,7 +141,7 @@ export default function MangaMalImport({
           placeholder="e.g. Berserk" className={`${inputCls} flex-1`} />
         <button type="submit" disabled={searching || query.trim().length < 3} autoFocus={!!link}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
-          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Search
+          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} <span className="max-sm:sr-only">Search</span>
         </button>
       </form>
 
@@ -153,15 +153,15 @@ export default function MangaMalImport({
         <ul className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
           {results.map((e) => (
             // Phones: the action wraps under the text, lined up with it (the poster's 36px + the
-            // gap), instead of squeezing the title and counts into a narrow column.
+            // gap), instead of squeezing the title and counts into a narrow column; the title shows whole.
             <li key={e.id} className="flex items-center max-sm:flex-wrap gap-3 max-sm:gap-y-2 px-3 py-2 bg-white">
               <Poster src={e.cover} />
               <div className="flex-1 min-w-0 max-sm:basis-[calc(100%-3rem)]">
-                <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</p>
+                <p className="text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate">{shown(e)}</p>
                 {credits(e) && <p className="text-xs text-gray-600 truncate">{credits(e)}</p>}
                 <p className="text-xs text-gray-500">{meta(e)}</p>
               </div>
-              <div className="flex-shrink-0 max-sm:ml-12"><Action entry={e} name={shown(e)} link={link} busy={busy} onPick={pick} /></div>
+              <div className="flex-shrink-0 max-sm:ml-12 max-sm:max-w-[calc(100%-3rem)]"><Action entry={e} name={shown(e)} link={link} busy={busy} onPick={pick} /></div>
             </li>
           ))}
         </ul>
@@ -172,8 +172,9 @@ export default function MangaMalImport({
   );
 }
 
-// Phones: as tall as the buttons beside it — the "In your library" one is a link to tap.
-const pillCls = "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 max-sm:py-2.5 rounded-full flex-shrink-0";
+// Phones: as tall as the buttons beside it — the "In your library" one is a link to tap — and a
+// long "Already <title>" wraps rather than running out of the card.
+const pillCls = "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 max-sm:py-2.5 rounded-full max-sm:rounded-xl max-sm:break-words sm:flex-shrink-0";
 const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0";
 
 /** What can be done with one result, given where it already is. */
@@ -192,14 +193,14 @@ function Action({ entry: e, name, link, busy, onPick }: {
     if (place?.linked && place.mangaId !== link.mangaId) {
       return (
         <Link href={`/library/manga/${place.mangaId}`} className={`${pillCls} bg-gray-100 text-gray-600 hover:bg-gray-200`}>
-          <Check className="w-3 h-3" /> Already {place.title}
+          <Check className="w-3 h-3 flex-shrink-0" /> Already {place.title}
         </Link>
       );
     }
   } else if (place?.linked) {
     return (
       <Link href={`/library/manga/${place.mangaId}`} className={`${pillCls} bg-gray-100 text-gray-600 hover:bg-gray-200`}>
-        <Check className="w-3 h-3" /> In your library
+        <Check className="w-3 h-3 flex-shrink-0" /> In your library
       </Link>
     );
   }

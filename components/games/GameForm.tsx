@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_GROUPS, PLATFORM_LABELS } from "@/lib/constants/platforms";
 import ComboboxField from "@/components/ui/ComboboxField";
@@ -34,6 +34,13 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
   const [form, setForm] = useState<GameFormData>({ ...DEFAULT, ...initialData });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The error prints at the top of the form; on a phone the one-column form is ~1400px tall, so
+  // from the button you just tapped you would never see it. "nearest" leaves it be when it is
+  // already on screen (scroll-mt clears the phone's sticky top bar).
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ block: "nearest" });
+  }, [error]);
 
   function update(key: keyof GameFormData, value: string | boolean) { setForm((p) => ({ ...p, [key]: value })); }
 
@@ -56,14 +63,14 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
     };
     const url = mode === "edit" && initialData?.id ? `/api/games/${initialData.id}` : "/api/games";
     const res = await fetch(url, { method: mode === "edit" ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-    if (!res.ok) { const d = await res.json(); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "Something went wrong"); setLoading(false); return; }
     const item = await res.json();
     router.push(`/library/games/${item.id}`);
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {error && <div ref={errorRef} role="alert" className="scroll-mt-24 scroll-mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Title *"><input type="text" required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Game title" className={inputCls} /></Field>
@@ -111,10 +118,10 @@ export default function GameForm({ initialData, mode, developerOptions, publishe
       <Field label="Notes"><textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Thoughts, playthroughs..." className={inputCls} /></Field>
 
       <div className="flex flex-wrap gap-3 pt-2">
-        <button type="submit" disabled={loading} className="max-sm:flex-1 bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
+        <button type="submit" disabled={loading} className="max-sm:flex-1 whitespace-nowrap bg-gray-900 text-white px-3 sm:px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {loading ? (mode === "edit" ? "Saving…" : "Adding…") : (mode === "edit" ? "Save Changes" : "Add Game")}
         </button>
-        <button type="button" onClick={() => router.back()} className="max-sm:flex-1 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
+        <button type="button" onClick={() => router.back()} className="max-sm:flex-1 whitespace-nowrap border border-gray-200 text-gray-600 px-3 sm:px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
       </div>
     </form>
   );

@@ -35,9 +35,11 @@ export default async function BooksPage({ searchParams }: PageProps) {
   const total = await db.book.count();
 
   return (
-    <div>
+    // Phones: a column, so the stats can go after the results (see the stats component).
+    <div className="max-sm:flex max-sm:flex-col">
       {/* Phones: the actions drop under the title and wrap — side by side they were 450-700px wide.
-          From sm they sit beside it, and drop under it only where the two would not fit. */}
+          From sm they sit beside it, and drop under it only where the two would not fit. On phones
+          the buttons are 40px tall (min-h-10), easier to hit than the desktop's 32-36px. */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-8">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 break-words">Books</h1>
@@ -45,15 +47,15 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/books/mirror-covers" />
-          <Link href="/library/books/u/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/books/u/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Universe
           </Link>
-          <Link href="/library/books/s/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/books/s/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Series
           </Link>
           <Link
             href="/library/books/new"
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Book
@@ -150,7 +152,7 @@ async function Buckets() {
         <p className="text-gray-400 text-sm mt-1">Add your first book to get started.</p>
         <Link
           href="/library/books/new"
-          className="mt-4 flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+          className="mt-4 flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Book

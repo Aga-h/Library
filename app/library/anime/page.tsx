@@ -35,21 +35,23 @@ export default async function AnimePage({ searchParams }: PageProps) {
 
   return (
     <div>
-      {/* Phones: the actions drop under the title and wrap — side by side they were 450-700px wide. */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-8">
-        <div className="min-w-0">
+      {/* Phones: the actions drop under the title and wrap — side by side they were 450-700px wide —
+          and are 40px tall (min-h-10). Tablets: they wrap beside the title, to the right. From lg,
+          one row as before. */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 lg:gap-0 mb-8">
+        <div>
           <h1 className="text-2xl font-bold text-gray-900 break-words">Anime</h1>
           <p className="text-sm text-gray-500 mt-1">{count(total, "season")} in your library</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap lg:flex-nowrap items-center sm:justify-end gap-2">
           <MirrorCoversButton apiPath="/api/anime/mirror-covers" />
-          <Link href="/library/anime/u/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/anime/u/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Universe
           </Link>
-          <Link href="/library/anime/s/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/anime/s/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Series
           </Link>
-          <Link href="/library/anime/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href="/library/anime/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Anime
           </Link>
         </div>

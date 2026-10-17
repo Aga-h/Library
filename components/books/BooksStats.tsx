@@ -23,7 +23,9 @@ export default function BooksStats({ books }: BooksStatsProps) {
   const timeRemaining = sumReadingTime([...reading, ...wantToRead]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
+    // Phones: after the results (the page is a flex column there). Above them, 350-410px of stats
+    // filled the first screen, so a search or a filter showed no result without scrolling.
+    <div className="max-sm:order-last mt-10 sm:mt-0 sm:mb-8 bg-white border border-gray-200 rounded-xl p-4 sm:p-6">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
         Library Stats
       </h2>

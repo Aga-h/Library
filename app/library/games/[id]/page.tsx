@@ -31,8 +31,13 @@ export default async function GameDetailPage({ params }: PageProps) {
         <ChevronLeft className="w-4 h-4 shrink-0" /> Back to Games
       </Link>
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="flex gap-4 sm:gap-6 p-5 sm:p-8 sm:pb-6">
-          <div className="flex-shrink-0 w-20 h-28 sm:w-28 sm:h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+        {/* Phones: the title spans the card, with the cover beside the developer, actions and
+            badges below it. Squeezed into the column beside the cover, acid's giant type broke
+            nearly every word. The wrappers in between turn into `contents` so their children
+            become cells of this grid; the last row (1fr) takes up whatever height the cover has
+            left over so the rows beside it stay tight. From sm it is the old flex row. */}
+        <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] grid-rows-[repeat(5,auto)_1fr] gap-x-4 p-5 sm:flex sm:gap-6 sm:p-8 sm:pb-6">
+          <div className="row-[2/-1] self-start flex-shrink-0 w-[4.5rem] h-[6.25rem] sm:w-28 sm:h-40 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
             {game.coverImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
@@ -40,25 +45,25 @@ export default async function GameDetailPage({ params }: PageProps) {
               <Gamepad2 className="w-10 h-10 text-gray-300" />
             )}
           </div>
-          {/* Phones: Edit/Delete go under the title. From sm they sit beside it, and drop under it
-              only when the title's longest word wouldn't fit beside them (acid's giant type) — the
-              heading is capped at this column's width (cqw), so such a word wraps instead of
-              pushing the buttons off the card. */}
-          <div className="flex-1 min-w-0 @container">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 sm:gap-4">
-              <div className="sm:grow sm:basis-56">
-                <h1 className="text-xl font-bold text-gray-900 leading-snug break-words max-w-[100cqw] sm:w-fit">{game.title}</h1>
-                {game.developer && <p className="text-gray-500 mt-1">{game.developer}</p>}
-                {game.publisher && <p className="text-gray-400 text-sm">{game.publisher}</p>}
+          {/* From sm, Edit/Delete sit beside the title, and drop under it only when the title's
+              longest word wouldn't fit beside them (acid's giant type) — the heading is capped at
+              this column's width (cqw), so such a word wraps instead of pushing the buttons off
+              the card. */}
+          <div className="max-sm:contents flex-1 min-w-0 @container">
+            <div className="max-sm:contents flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="max-sm:contents sm:grow sm:basis-56">
+                <h1 className="col-span-2 mb-3 sm:mb-0 min-w-0 text-xl font-bold text-gray-900 leading-snug break-words max-w-[100cqw] sm:w-fit">{game.title}</h1>
+                {game.developer && <p className="col-start-2 min-w-0 break-words text-gray-500 mt-1">{game.developer}</p>}
+                {game.publisher && <p className="col-start-2 min-w-0 break-words text-gray-400 text-sm">{game.publisher}</p>}
               </div>
-              <div className="flex flex-wrap gap-2 flex-shrink-0">
+              <div className="col-start-2 self-start mt-3 sm:mt-0 flex flex-wrap gap-2 flex-shrink-0">
                 <Link href={`/library/games/${game.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
                   <Pencil className="w-3.5 h-3.5" /> Edit
                 </Link>
                 <DeleteGameButton gameId={game.id} />
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="col-start-2 self-start flex flex-wrap gap-2 mt-3">
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">{platformLabel}</span>
               {game.emulated && <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-800 text-gray-100">Emulated</span>}

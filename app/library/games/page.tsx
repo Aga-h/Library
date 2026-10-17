@@ -20,9 +20,11 @@ export default async function GamesPage({ searchParams }: PageProps) {
   const total = await db.game.count();
 
   return (
-    <div>
+    // Phones: a column, so the stats can go after the results (see the stats component).
+    <div className="max-sm:flex max-sm:flex-col">
       {/* Phones: the actions drop under the title and wrap — side by side they were 450-700px wide.
-          From sm they sit beside it, and drop under it only where the two would not fit. */}
+          From sm they sit beside it, and drop under it only where the two would not fit. On phones
+          the buttons are 40px tall (min-h-10), easier to hit than the desktop's 32-36px. */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-8">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 break-words">Games</h1>
@@ -31,7 +33,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
         <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/games/mirror-covers" />
           <SteamSyncButton />
-          <Link href="/library/games/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href="/library/games/new" className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Game
           </Link>
         </div>
