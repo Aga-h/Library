@@ -13,7 +13,9 @@ export default function GameStats({ games }: { games: Game[] }) {
   const totalAchievements = games.reduce((s, g) => s + (g.achievementsTotal ?? 0), 0);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
+    // Phones: after the results (the page is a flex column there). Above them, 350-410px of stats
+    // filled the first screen, so a search or a filter showed no result without scrolling.
+    <div className="max-sm:order-last mt-10 sm:mt-0 sm:mb-8 bg-white border border-gray-200 rounded-xl p-4 sm:p-6">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Game Stats</h2>
       {/* Phones: three across, then two across filling the row — not two, two and a lone one. */}
       <div className="grid grid-cols-6 sm:grid-cols-5 gap-2 sm:gap-3 mb-6">

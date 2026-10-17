@@ -433,10 +433,10 @@ function Row({ item, name, checked, onToggle }: { item: Item; name: string; chec
         <input type="checkbox" checked={checked} onChange={() => onToggle(e.id)} className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
         <Poster src={e.poster} />
         <span className="flex-1 min-w-0">
-          <span className="block text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{name}</span>
+          <span className="block text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate">{name}</span>
           <span className="block text-xs text-gray-500">{meta(e)}</span>
-          {/* Phones: where it is goes under the title — beside it, it squeezed the title away. */}
-          {place && <span className="sm:hidden mt-1 inline-block max-w-full truncate align-top text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{place}</span>}
+          {/* Phones: where it is goes under the title, whole — beside it, it squeezed the title away. */}
+          {place && <span className="sm:hidden mt-1 inline-block max-w-full break-words align-top text-[11px] font-semibold px-2 py-0.5 rounded-full max-sm:rounded-xl bg-gray-100 text-gray-500">{place}</span>}
         </span>
         {place && (
           <span className="max-sm:hidden text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">

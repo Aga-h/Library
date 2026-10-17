@@ -1,6 +1,7 @@
 export default function Loading() {
   return (
-    <div className="animate-pulse">
+    // Phones: the stats after the grid, as on the page.
+    <div className="animate-pulse max-sm:flex max-sm:flex-col">
       <div className="flex items-center justify-between mb-8">
         <div className="space-y-2">
           <div className="h-8 w-24 bg-gray-200 rounded-lg" />
@@ -8,7 +9,7 @@ export default function Loading() {
         </div>
         <div className="h-9 w-28 bg-gray-200 rounded-lg" />
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div className="max-sm:order-last mt-10 sm:mt-0 sm:mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="bg-white border border-gray-100 rounded-xl p-5 space-y-2">
             <div className="h-3 w-16 bg-gray-100 rounded" />

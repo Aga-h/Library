@@ -35,12 +35,16 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
           ) : (
             <Tv2 className="w-12 h-12 text-gray-300" />
           )}
-          {anime.seasonNumber !== null && (
-            <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900/80 text-white">
-              S{anime.seasonNumber}
-            </span>
-          )}
-          <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
+          {/* One row, so a wide status (Plan to Watch, in a half-width card) wraps under the season
+              number instead of covering it. */}
+          <div className="absolute inset-x-2 top-2 flex flex-wrap items-start gap-1">
+            {anime.seasonNumber !== null && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900/80 text-white">
+                S{anime.seasonNumber}
+              </span>
+            )}
+            <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
+          </div>
         </div>
         <div className="flex flex-col gap-1 p-4 flex-1">
           <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm leading-snug">{anime.title}</h3>

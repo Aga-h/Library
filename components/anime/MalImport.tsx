@@ -217,7 +217,8 @@ export default function MalImport({
           placeholder="e.g. Attack on Titan" className={`${inputCls} flex-1`} />
         <button type="submit" disabled={searching || query.trim().length < 3}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
-          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Search
+          {/* Phones: just the icon — the word squeezed the field until its example was cut off. */}
+          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} <span className="max-sm:sr-only">Search</span>
         </button>
       </form>
 
@@ -290,11 +291,11 @@ export default function MalImport({
                       className="w-4 h-4 rounded border-gray-300 flex-shrink-0" />
                     <Poster src={e.poster} />
                     <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</span>
+                      <span className="block text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate">{shown(e)}</span>
                       <span className="block text-xs text-gray-500">{meta(e)}</span>
-                      {/* Phones: where it is goes under the title — beside it, it squeezed the title away. */}
+                      {/* Phones: where it is goes under the title, whole — beside it, it squeezed the title away. */}
                       {where && (
-                        <span className={`sm:hidden mt-1 inline-block max-w-full truncate align-top text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                        <span className={`sm:hidden mt-1 inline-block max-w-full break-words align-top text-[11px] font-semibold px-2 py-0.5 rounded-full max-sm:rounded-xl ${
                           where.importable ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
                         }`}>{where.text}</span>
                       )}
@@ -332,22 +333,26 @@ export default function MalImport({
             {results.map((e) => {
               const where = placeLabel(e.place, targetId);
               return (
-                <li key={e.id} className="flex items-center gap-3 px-3 py-2 bg-white">
+                // Phones: the actions wrap under the text, lined up with it (the poster's 36px + the
+                // gap), so the whole title shows — it is what tells the seasons apart.
+                <li key={e.id} className="flex items-center max-sm:flex-wrap gap-3 max-sm:gap-y-2 px-3 py-2 bg-white">
                   <Poster src={e.poster} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 max-sm:line-clamp-2 max-sm:break-words sm:truncate">{shown(e)}</p>
+                  <div className="flex-1 min-w-0 max-sm:basis-[calc(100%-3rem)]">
+                    <p className="text-sm font-semibold text-gray-900 max-sm:break-words sm:truncate">{shown(e)}</p>
                     <p className="text-xs text-gray-500">{meta(e)}</p>
                   </div>
-                  {where && (
-                    <Link href={`/library/anime/${e.place!.animeId}`}
-                      className="hidden sm:flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex-shrink-0">
-                      <Check className="w-3 h-3" /> {where.text}
-                    </Link>
-                  )}
-                  <button type="button" onClick={() => openRun(e)} disabled={opening !== null}
-                    className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
-                    {opening === e.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Layers className="w-3.5 h-3.5" />} See series
-                  </button>
+                  <div className="flex items-center max-sm:flex-wrap gap-3 max-sm:gap-2 flex-shrink-0 max-sm:ml-12 max-sm:basis-[calc(100%-3rem)]">
+                    {where && (
+                      <Link href={`/library/anime/${e.place!.animeId}`}
+                        className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 max-sm:py-2.5 rounded-full max-sm:rounded-xl max-sm:min-w-0 max-sm:break-words bg-gray-100 text-gray-600 hover:bg-gray-200 sm:flex-shrink-0">
+                        <Check className="w-3 h-3 flex-shrink-0" /> {where.text}
+                      </Link>
+                    )}
+                    <button type="button" onClick={() => openRun(e)} disabled={opening !== null}
+                      className="flex items-center gap-1.5 border border-gray-200 text-gray-700 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0">
+                      {opening === e.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Layers className="w-3.5 h-3.5" />} See series
+                    </button>
+                  </div>
                 </li>
               );
             })}

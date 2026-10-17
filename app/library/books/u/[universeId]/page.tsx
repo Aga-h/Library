@@ -51,7 +51,7 @@ export default async function BookUniversePage({ params }: PageProps) {
             {count(universe.series.length, "series", "series")} · {count(seasonCount, "book")}
           </p>
         </div>
-        <div className="flex items-start justify-start sm:justify-end flex-wrap gap-2 flex-shrink-0">
+        <div className="flex items-center sm:items-start justify-start sm:justify-end flex-wrap gap-2 flex-shrink-0">
           <Link href={`/library/books/u/${universe.id}/edit`} className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2.5 sm:py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors">
             <Pencil className="w-3.5 h-3.5" /> Edit
           </Link>
@@ -72,7 +72,7 @@ export default async function BookUniversePage({ params }: PageProps) {
             label="Add existing series"
             emptyHint="Every series you have is already in this universe."
           />
-          <Link href={`/library/books/u/${universe.id}/new`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href={`/library/books/u/${universe.id}/new`} className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Series
           </Link>
         </div>

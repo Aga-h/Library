@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS } from "@/lib/constants/languages";
 import { calculateReadingTime } from "@/lib/reading-time";
@@ -63,6 +63,13 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The error prints at the top of the form; on a phone the one-column form is ~1400px tall, so
+  // from the button you just tapped you would never see it. "nearest" leaves it be when it is
+  // already on screen (scroll-mt clears the phone's sticky top bar).
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ block: "nearest" });
+  }, [error]);
 
   const pages = parseInt(form.pages, 10);
   const previewTime =
@@ -114,7 +121,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
     });
 
     if (!res.ok) {
-      const data = await res.json();
+      const data = await res.json().catch(() => ({})); // a 502/504 page is not JSON
       setError(data.error ?? "Something went wrong");
       setLoading(false);
       return;
@@ -131,7 +138,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+        <div ref={errorRef} role="alert" className="scroll-mt-24 scroll-mb-6 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
           {error}
         </div>
       )}
@@ -278,7 +285,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
         <button
           type="submit"
           disabled={loading}
-          className="max-sm:flex-1 bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          className="max-sm:flex-1 whitespace-nowrap bg-gray-900 text-white px-3 sm:px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
         >
           {loading
             ? mode === "edit"
@@ -291,7 +298,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
         <button
           type="button"
           onClick={() => router.back()}
-          className="max-sm:flex-1 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+          className="max-sm:flex-1 whitespace-nowrap border border-gray-200 text-gray-600 px-3 sm:px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>

@@ -80,7 +80,7 @@ export default async function AnimeSeriesPage({ params }: PageProps) {
             label="Add existing season"
             emptyHint="Every season you have is already in this series."
           />
-          <Link href={`/library/anime/new?seriesId=${series.id}`} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+          <Link href={`/library/anime/new?seriesId=${series.id}`} className="flex items-center gap-2 min-h-10 sm:min-h-0 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
             <Plus className="w-4 h-4" /> Add Season
           </Link>
         </div>

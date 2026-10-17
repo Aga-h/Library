@@ -13,7 +13,9 @@ export default function ArticleStats({ articles }: { articles: Article[] }) {
   const remainMinutes = wantTo.reduce((s, a) => s + calculateArticleTime(a.wordCount, a.language as LanguageKey).minutes, 0);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-8">
+    // Phones: after the results (the page is a flex column there). Above them, 350-410px of stats
+    // filled the first screen, so a search or a filter showed no result without scrolling.
+    <div className="max-sm:order-last mt-10 sm:mt-0 sm:mb-8 bg-white border border-gray-200 rounded-xl p-4 sm:p-6">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Articles Stats</h2>
       <div className="grid grid-cols-2 gap-3 mb-6">
         <StatPill label="Read"         value={read.length}   color="green"  />
