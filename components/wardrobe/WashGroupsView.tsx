@@ -84,6 +84,16 @@ function urgencyBadge(type: string, wornCount: number) {
   return { label: `${wornCount} wear${wornCount > 1 ? "s" : ""}`, cls: "bg-gray-50 text-gray-500 border-gray-200" };
 }
 
+/** One of a group's wash settings, kept on a line with the "·" before it when the line wraps. */
+function Setting({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 sm:gap-3 whitespace-nowrap">
+      <span className="text-gray-300">·</span>
+      <span className="text-sm text-gray-600">{children}</span>
+    </span>
+  );
+}
+
 export default function WashGroupsView({ garments }: { garments: Garment[] }) {
   const groups = groupGarments(garments);
 
@@ -104,14 +114,10 @@ export default function WashGroupsView({ garments }: { garments: Garment[] }) {
             <div className="flex items-center gap-x-2 gap-y-1 sm:gap-3 flex-wrap">
               <span className={`w-4 h-4 rounded-full flex-shrink-0 inline-block ${COLOR_SWATCH[group.colorGroup]}`} />
               <span className="font-semibold text-gray-800 text-sm">{COLOR_LABELS[group.colorGroup]}</span>
-              <span className="text-gray-300">·</span>
-              <span className="text-sm text-gray-600">{METHOD_LABELS[group.washMethod]}</span>
-              <span className="text-gray-300">·</span>
-              <span className="text-sm text-gray-600">{CYCLE_LABELS[group.washCycle]}</span>
-              <span className="text-gray-300">·</span>
-              <span className="text-sm text-gray-600">{group.safeTemp}°C max</span>
-              <span className="text-gray-300">·</span>
-              <span className="text-sm text-gray-600">{SPIN_LABEL[group.safeSpin]}</span>
+              <Setting>{METHOD_LABELS[group.washMethod]}</Setting>
+              <Setting>{CYCLE_LABELS[group.washCycle]}</Setting>
+              <Setting>{group.safeTemp}°C max</Setting>
+              <Setting>{SPIN_LABEL[group.safeSpin]}</Setting>
             </div>
             <div className="flex-shrink-0">
               {group.needsWashCount > 0 ? (
@@ -140,9 +146,11 @@ export default function WashGroupsView({ garments }: { garments: Garment[] }) {
                     >
                       <div className="min-w-0 break-words">
                         <span className="text-sm font-medium text-gray-800">{item.name}</span>
-                        {item.brand && <span className="text-xs text-gray-400 ml-1.5">· {item.brand}</span>}
+                        {/* A wrapping row breaks before a "·", never after it: <wbr> inside the
+                            span (so the margin stays at the end of the line above), &nbsp; after. */}
+                        {item.brand && <span className="text-xs text-gray-400 ml-1.5"><wbr />·&nbsp;{item.brand}</span>}
                         <span className="text-xs text-gray-400 ml-1.5">
-                          · {TYPE_LABELS[item.type] ?? item.type}
+                          <wbr />·&nbsp;{TYPE_LABELS[item.type] ?? item.type}
                         </span>
                       </div>
                       <span className={`flex-shrink-0 whitespace-nowrap text-xs font-semibold border px-2 py-0.5 rounded-full ${badge.cls}`}>

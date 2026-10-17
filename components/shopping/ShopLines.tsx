@@ -31,11 +31,11 @@ export default function ShopLines({ lines }: { lines: ShopLine[] }) {
         <section key={line.category} aria-labelledby={`line-${line.code}`} className="shop-line"
           style={{ "--line": `var(--color-${line.hue}-500)` } as React.CSSProperties}>
           <div className="shop-line-head flex items-center gap-3 mb-4">
-            <span aria-hidden className="shop-line-bullet flex items-center justify-center min-w-8 h-8 px-1.5 rounded-full bg-(--line) text-xs font-bold text-white">
+            <span aria-hidden className="shop-line-bullet flex flex-shrink-0 items-center justify-center min-w-8 h-8 px-1.5 rounded-full bg-(--line) text-xs font-bold text-white">
               {line.code}
             </span>
-            <h3 id={`line-${line.code}`} className="text-lg font-semibold text-gray-900">{line.category}</h3>
-            <span className="shop-line-count text-xs text-gray-400">
+            <h3 id={`line-${line.code}`} className="min-w-0 break-words text-lg font-semibold text-gray-900">{line.category}</h3>
+            <span className="shop-line-count flex-shrink-0 whitespace-nowrap text-xs text-gray-400">
               {line.shops.length} shop{line.shops.length === 1 ? "" : "s"}
             </span>
           </div>
@@ -49,7 +49,7 @@ export default function ShopLines({ lines }: { lines: ShopLine[] }) {
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <span className="shop-code text-[11px] font-mono font-semibold text-gray-400">{shop.station}</span>
                       <a href={shop.url} target="_blank" rel="noopener noreferrer"
-                        className="shop-name inline-flex items-center gap-1.5 font-semibold text-gray-900 hover:underline max-sm:block max-sm:py-1.5 max-sm:-my-1.5">
+                        className="shop-name min-w-0 break-words inline-flex items-center gap-1.5 font-semibold text-gray-900 hover:underline max-sm:block max-sm:py-1.5 max-sm:-my-1.5">
                         {shop.name}
                         <ExternalLink aria-hidden className="w-3.5 h-3.5 text-gray-400 max-sm:inline max-sm:ml-1.5" />
                         <span className="sr-only">(opens the shop&apos;s site)</span>

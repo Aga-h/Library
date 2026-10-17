@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus } from "lucide-react";
 import type { AdditionalIncome } from "@prisma/client";
+import { PHONE_TALL, ROW_END_ICON_BTN, confirmOnTouch } from "@/components/finances/touch";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(n);
@@ -41,8 +42,9 @@ export default function IncomeSection({ income, year, month }: Props) {
     }
   }
 
-  async function handleDelete(id: string) {
-    await fetch(`/api/finances/income/${id}`, { method: "DELETE" });
+  async function handleDelete(entry: AdditionalIncome) {
+    if (!confirmOnTouch(`Delete "${entry.description || "Income"}" (+${fmt(entry.amount)})?`)) return;
+    await fetch(`/api/finances/income/${entry.id}`, { method: "DELETE" });
     startTransition(() => router.refresh());
   }
 
@@ -52,7 +54,9 @@ export default function IncomeSection({ income, year, month }: Props) {
       <p className="text-xs text-gray-500 mb-4">Goes onto your Extra card.</p>
 
       <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-4">
-        <div className="flex gap-2">
+        {/* Phones: amount, description, then Add — filled top to bottom. From sm the wrapper is a
+            row again: amount and Add, as before. */}
+        <div className="contents sm:flex sm:gap-2">
           <input
             type="number"
             min="0.01"
@@ -61,13 +65,13 @@ export default function IncomeSection({ income, year, month }: Props) {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             aria-label="Amount"
-            className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="sm:min-w-0 sm:flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
           <button
             type="submit"
             disabled={adding || isPending}
-            className="flex items-center gap-1 bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50"
+            className={`order-last flex items-center justify-center gap-1 bg-emerald-600 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 sm:order-none sm:py-2 ${PHONE_TALL}`}
           >
             <Plus className="w-4 h-4" />
             Add
@@ -94,9 +98,9 @@ export default function IncomeSection({ income, year, month }: Props) {
               <span className="ml-auto flex items-center sm:contents">
                 <span className="text-emerald-600 font-medium ml-2 whitespace-nowrap sm:ml-3">+{fmt(entry.amount)}</span>
                 <button
-                  onClick={() => handleDelete(entry.id)}
+                  onClick={() => handleDelete(entry)}
                   aria-label={`Delete ${entry.description || "income"}`}
-                  className="-my-1.5 -mr-2 ml-1 flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-colors sm:my-0 sm:mr-0 sm:ml-3 sm:p-0"
+                  className={`${ROW_END_ICON_BTN} ml-1 hover:text-red-500 sm:ml-3`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

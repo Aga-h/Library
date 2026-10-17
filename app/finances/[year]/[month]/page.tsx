@@ -13,6 +13,7 @@ import { notFound } from "next/navigation";
 import { parseMonthParams } from "@/lib/month-params";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { PHONE_TALL } from "@/components/finances/touch";
 
 interface PageProps {
   params: Promise<{ year: string; month: string }>;
@@ -39,7 +40,7 @@ export default async function FinancesMonthPage({ params }: PageProps) {
         <div className="sm:flex-1"><MonthNav year={year} month={month} /></div>
         <Link
           href="/finances/log"
-          className="flex flex-shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 sm:py-2"
+          className={`flex flex-shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 sm:py-2 ${PHONE_TALL}`}
         >
           <Plus className="h-4 w-4" /> Quick log
         </Link>

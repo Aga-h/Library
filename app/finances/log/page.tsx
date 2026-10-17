@@ -21,7 +21,7 @@ export default function LogExpensePage() {
         </div>
         <Link
           href={`/finances/${now.getFullYear()}/${now.getMonth() + 1}`}
-          className="-mr-2 flex flex-shrink-0 items-center gap-1 rounded-lg px-2 py-2.5 text-sm font-medium text-gray-500 active:bg-gray-100 sm:mr-0 sm:py-1.5"
+          className="-mr-2 flex flex-shrink-0 items-center gap-1 rounded-lg px-2 py-2.5 text-sm font-medium text-gray-500 active:bg-gray-100 sm:mr-0 sm:py-1.5 [@media(hover:none)_and_(pointer:coarse)_and_(height<30rem)]:py-2.5"
         >
           <ChevronLeft className="h-4 w-4" />
           Month
