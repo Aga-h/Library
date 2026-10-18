@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-18 — books: Google Books alongside Open Library; search results start unticked. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-18 — books: Google Books alongside Open Library; search results start unticked. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,15 +215,14 @@
 
 ## Next
 
-- [ ] **Books: Google Books + no auto-tick** (asked 2026-10-18: Open Library missed a title;
-      search ticked every match). Branch `cursor/books-google-books-search-0646`.
-      Search Open Library and Google Books together; merge by title+author; GB-only hits
-      (the ones OL hasn't got) still show. Results start unticked — All/None stay explicit.
-      `Book.googleBooksId` unique (036). `GOOGLE_BOOKS_API_KEY` optional: without it GB may
-      403/429 and search still returns Open Library, with a notice. Publisher filled from GB
-      when blank. Importable if either source has a page count.
-      Unit tests: Open Library 98, Google Books + combined search 83. Needs merge to `main`,
-      then 036 and the API key (see Blocked).
+- [x] **Books: Google Books + no auto-tick** (asked 2026-10-18: Open Library missed a title;
+      search ticked every match). Search Open Library and Google Books together; merge by
+      title+author; GB-only hits still show (lifted first when they match the query). Results
+      start unticked — All/None stay explicit. `Book.googleBooksId` unique (036).
+      `GOOGLE_BOOKS_API_KEY` optional: without it GB may 403/429 and search still returns Open
+      Library, with a notice. Publisher filled from GB when blank. Importable if either source
+      has a page count. Tests: OL 98, GB + combined search 83. Build green. On `main`.
+      **Needs 036 + the API key** (see Blocked). No browser e2e here (no Postgres).
 - [x] **Books from Open Library** (asked 2026-10-18: auto-import like the other library sections).
       Open Library Search API — no key. A work is one book (`Book.openLibraryId` unique, 035).
       "Add Book" searches a title, an author, an ISBN or a work id; tick several (Harry Potter
