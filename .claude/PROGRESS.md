@@ -1,8 +1,8 @@
 # Current state
 
-**Goal:** Finish the whole-site phone layout and get it onto `main` / the live site.
-**Branch:** `cursor/phone-interface-a49b` (from `claude/phone-wip`, rebased onto `origin/main`).
-**Updated:** 2026-10-18 — phone layout finished: drawer/top bar, per-section pages, 390px × 5 looks overflow-clean, desktop sidebar kept from `lg` up.
+**Goal:** Media library app — feature work plus the repo-wide audit fixes.
+**Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
+**Updated:** 2026-10-18 — phone layout on main (drawer/top bar from `lg` down, 89 routes × 5 looks overflow-clean). Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–034 and `MAL_CLIENT_ID` still need the user.
 
 ## Done
 
@@ -425,7 +425,7 @@
       - [x] phase 3: 89 routes × 5 looks at 390×844, 445/445 no sideways scroll and no field
             under 16px (`scripts/phone-seed.mjs`, `scripts/phone-audit.mjs`). Drawer closes on
             navigate; delete confirm is a bottom sheet and dismisses on Escape.
-      Lives on `cursor/phone-interface-a49b` — merge to `main` to deploy. No schema/env changes.
+      On `main` (fast-forward of `cursor/phone-interface-a49b`). No schema/env changes.
 - [x] **Study: flashcards (Anki-style) + quick tests** (user, 2026-10-15: "aside from the full question
       tab, build a flashcard system like anki's, and smaller question pool tests beside that (the full
       question test should stay)"). Full test untouched (only links added to its header).
@@ -439,8 +439,7 @@
       - verified in Chromium on a local DB with the built-in list: quick tests left the full run
         byte-identical; buttons 1m/6m/10m/4d; Easy → due 4am in 4 days; undo; a double answer counted
         once; new-card limit respected
-      - **needs 034 run** (see Blocked). Known, not new: the Study section has no phone layout (the
-        sidebar always takes 224px)
+      - **needs 034 run** (see Blocked).
 - [x] **Manga: import a whole MyAnimeList list** (user, 2026-10-15: "can you make this for manga as
       well"). Page `/library/manga/import` ("Import list" on the Manga page). Sources: MAL username
       (`/users/{name}/mangalist?status=completed`), MAL's manga export (.xml/.gz), or an .xlsx copy of
