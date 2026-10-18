@@ -561,7 +561,9 @@
 ## Blocked / needs the user
 
 - **Books: run `035-book-openlibrary.sql`** in the Supabase SQL Editor NOW — the book pages error
-  until it has run. Additive, safe to re-run. No API key.
+  until it has run. Additive, safe to re-run. No API key. Branch
+  `cursor/books-open-library-import-0646` is pushed; opening a GitHub PR from the agent failed
+  ("must be a collaborator") — open one from that branch against `main`.
 
 - **Study: run `034-flashcards-quick-tests.sql`** in the Supabase SQL Editor NOW — the SAT Vocabulary
   pages error until it has run. Additive, safe to re-run.
