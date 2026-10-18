@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-18 — books import from Open Library (search / ISBN / bulk into a series). Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–035 and `MAL_CLIENT_ID` still need the user.
+**Updated:** 2026-10-18 — books: Google Books alongside Open Library; search results start unticked. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,13 +215,20 @@
 
 ## Next
 
+- [ ] **Books: Google Books + no auto-tick** (asked 2026-10-18: Open Library missed a title;
+      search ticked every match). Branch `cursor/books-google-books-search-0646`.
+      Search Open Library and Google Books together; merge by title+author; GB-only hits
+      (the ones OL hasn't got) still show. Results start unticked — All/None stay explicit.
+      `Book.googleBooksId` unique (036). `GOOGLE_BOOKS_API_KEY` optional: without it GB may
+      403/429 and search still returns Open Library, with a notice. Publisher filled from GB
+      when blank. Importable if either source has a page count.
 - [x] **Books from Open Library** (asked 2026-10-18: auto-import like the other library sections).
       Open Library Search API — no key. A work is one book (`Book.openLibraryId` unique, 035).
       "Add Book" searches a title, an author, an ISBN or a work id; tick several (Harry Potter
       lists the seven novels first) into a series you pick, or standalone. Author, page-count
       median, cover; publisher skipped (edition soup); language is yours. Hand-added linked by
       title+author; re-import fills blanks only; "Find / Check Open Library" on the book page.
-      Google Books not used (edition-centric, needs a key). Goodreads has no public API.
+      Goodreads has no public API.
       **Needs 035 run** (see Blocked). No env var. On `main`.
 - [x] **Comics: import a whole run from Comic Vine** — "Add Comic" searches Comic Vine; Import
       creates the comic and every issue (names + covers); "Check for new issues" on an imported comic
@@ -560,8 +567,11 @@
 
 ## Blocked / needs the user
 
-- **Books: run `035-book-openlibrary.sql`** in the Supabase SQL Editor NOW — the book pages error
-  until it has run. Additive, safe to re-run. No API key. On `main` (Vercel production).
+- **Books: run `035-book-openlibrary.sql` then `036-book-google-books.sql`** in the Supabase SQL
+  Editor NOW — the book pages error until 035 has run; 036 is additive (`Book.googleBooksId`)
+  and the new import reads it. Both safe to re-run. For the titles Open Library hasn't got,
+  set `GOOGLE_BOOKS_API_KEY` in Vercel (Google Cloud → Credentials → API key, enable Books API)
+  and redeploy. Never in chat. Open Library still works with no key.
 
 - **Study: run `034-flashcards-quick-tests.sql`** in the Supabase SQL Editor NOW — the SAT Vocabulary
   pages error until it has run. Additive, safe to re-run.
