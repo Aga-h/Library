@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-pulse">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <div className="h-8 w-32 bg-gray-200 rounded-lg" />
           <div className="h-4 w-48 bg-gray-100 rounded" />

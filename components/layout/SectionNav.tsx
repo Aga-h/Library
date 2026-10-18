@@ -145,7 +145,7 @@ export default function SectionNav({ brand, icon: Icon, groups, signOut = false 
         <ThemePicker variant="compact" />
       </div>
       <div className="px-3 py-4 flex flex-col gap-1">
-        <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+        <Link href="/" className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
           <ArrowLeft className="w-4 h-4 flex-shrink-0" />
           Back to Portal
         </Link>

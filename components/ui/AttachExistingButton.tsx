@@ -78,7 +78,7 @@ export default function AttachExistingButton({
       onClick={() => setOpen(true)}
       disabled={options.length === 0}
       title={options.length === 0 ? emptyHint : undefined}
-      className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+      className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
     >
       <Plus className="w-4 h-4" /> {label}
     </button>

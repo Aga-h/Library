@@ -60,10 +60,10 @@ export default async function TvPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/tv/mirror-covers" />
-          <Link href="/library/tv/u/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/tv/u/new" className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Universe
           </Link>
-          <Link href="/library/tv/s/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/tv/s/new" className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Series
           </Link>
           <Link href="/library/tv/new" className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">

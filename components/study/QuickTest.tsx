@@ -166,15 +166,17 @@ export default function QuickTest({
 
       {question && !starting && (
         <>
-          <div className="flex items-center justify-between gap-3">
+          {/* On a phone the restart control drops below the question, as on the full test —
+              otherwise the count, a 160px bar and "Start a different one" fight for 390px. */}
+          <div className="flex items-center justify-between gap-3 flex-wrap max-sm:contents">
             <div className="flex items-center gap-3 min-w-0">
               <span className="text-sm text-gray-500 tabular-nums whitespace-nowrap">{progress.answered} / {progress.total}</span>
-              <div className="w-40 h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="min-w-0 flex-1 max-w-40 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-sky-500 rounded-full transition-all" style={{ width: `${Math.round((progress.answered / Math.max(1, progress.total)) * 100)}%` }} />
               </div>
             </div>
             <button type="button" onClick={() => setStarting(true)}
-              className="text-xs font-semibold text-gray-500 hover:text-gray-800 whitespace-nowrap max-sm:py-3 max-sm:-my-3 max-sm:pl-2">
+              className="text-xs font-semibold text-gray-500 hover:text-gray-800 whitespace-nowrap max-sm:order-1 max-sm:py-3">
               Start a different one
             </button>
           </div>

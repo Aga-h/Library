@@ -72,7 +72,7 @@ export default function MirrorCoversButton({ apiPath }: { apiPath: string }) {
   return (
     <button
       onClick={handleMirror}
-      className="flex items-center gap-2 border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap hover:bg-gray-50 transition-colors"
+      className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap hover:bg-gray-50 transition-colors"
     >
       Mirror Covers
     </button>

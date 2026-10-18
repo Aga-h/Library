@@ -71,7 +71,7 @@ export default async function StatsPage() {
           <p className="text-xs text-gray-500 mt-0.5">Total XP</p>
         </div>
         {totalXp > 0 && (
-          <p className="text-sm text-gray-500 flex-1 min-w-60">
+          <p className="text-sm text-gray-500 flex-1 min-w-0 sm:min-w-60">
             Strongest stat: <span className="font-semibold text-gray-900">{STAT_META[best].label}</span> at level{" "}
             {levelFromXp(totals[best] ?? 0)} — next level at{" "}
             {xpForLevel(levelFromXp(totals[best] ?? 0) + 1).toLocaleString()} XP.

@@ -160,7 +160,7 @@ export default function SessionBoard({
             <button
               onClick={() => post("/api/study/start", { moduleId: null })}
               disabled={busy}
-              className="flex items-center gap-2 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 max-sm:w-full max-sm:justify-center border border-gray-200 text-gray-700 px-4 py-2.5 max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-100 disabled:opacity-50 transition-colors"
             >
               <Shuffle className="w-4 h-4" /> Free study
             </button>

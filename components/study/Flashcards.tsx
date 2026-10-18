@@ -164,7 +164,7 @@ export default function Flashcards({ initial }: { initial: DeckView }) {
               <div ref={actions} className="scroll-mt-20 scroll-mb-4 border-t border-gray-100 bg-gray-50 px-4 py-4 grid grid-cols-4 gap-2 max-sm:px-3 max-sm:gap-1.5">
                 {RATINGS.map((r) => (
                   <button key={r} type="button" onClick={() => rate(r)} disabled={busy}
-                    className={`flex flex-col items-center gap-0.5 text-white rounded-lg px-2 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors ${RATING_STYLE[r]}`}>
+                    className={`flex flex-col items-center gap-0.5 text-white rounded-lg px-2 py-2.5 max-sm:py-3 text-sm font-semibold disabled:opacity-50 transition-colors ${RATING_STYLE[r]}`}>
                     <span className="text-[11px] font-medium opacity-90 tabular-nums">{deck.card!.labels[r]}</span>
                     {RATING_LABELS[r]}
                     <span className="hidden sm:block text-[10px] font-normal opacity-70">{r}</span>

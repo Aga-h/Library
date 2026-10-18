@@ -1681,7 +1681,7 @@ h2.text-2xl,
 [data-theme="acid"] .theme-topbar-brand span {
   font-family: var(--font-pirata), serif;
   font-weight: 400;
-  font-size: 1.55rem;
+  font-size: 1.3rem;
   line-height: 1;
   text-transform: lowercase;
   color: var(--ac-ink);
@@ -2165,7 +2165,7 @@ h2.text-2xl,
   padding-top: 0.7rem;
   padding-bottom: 0.7rem;
 }
-[data-theme="earlycyber"] .theme-brand > * {
+[data-theme="earlycyber"] .theme-brand > *:not(.theme-drawer-close) {
   background: #fff;
   padding: 0 0.35rem;
 }
@@ -2198,6 +2198,12 @@ h2.text-2xl,
 /* On a phone the top bar is the title strip under the thermal rule; the open page is inverted
  * with its thermographic edge, as in the menu. The buttons are 1-bit push buttons. The drawer is a
  * window pulled over the desktop with a hard shadow, the desktop greyed behind it with a dither. */
+[data-theme="earlycyber"] .theme-topbar {
+  background: #fff;
+}
+[data-theme="earlycyber"] .theme-topbar-sep {
+  display: none;
+}
 [data-theme="earlycyber"] .theme-topbar-brand span {
   font-family: var(--theme-font-display);
   font-weight: 600;
@@ -2362,6 +2368,9 @@ h2.text-2xl,
   background-color: rgb(17 10 34 / 0.9);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
+}
+[data-theme="cyberdelia"] .theme-topbar-sep {
+  display: none;
 }
 [data-theme="cyberdelia"] .theme-topbar-brand span {
   background: var(--spectral);

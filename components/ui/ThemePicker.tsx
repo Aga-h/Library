@@ -54,7 +54,7 @@ export default function ThemePicker({ variant = "full" }: { variant?: "full" | "
     return (
       <div ref={root} className="theme-picker relative px-3">
         <button ref={toggle} type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}
-          className="theme-picker-toggle w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+          className="theme-picker-toggle w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors">
           <span>
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mr-2">Look</span>
             {currentName}
@@ -67,7 +67,7 @@ export default function ThemePicker({ variant = "full" }: { variant?: "full" | "
             {THEMES.map((t) => (
               <button key={t.id} type="button" role="radio" aria-checked={current === t.id} onClick={() => choose(t.id)}
                 title={t.hint}
-                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm text-gray-700 hover:bg-gray-100">
+                className="w-full flex items-center gap-2.5 px-2 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-100">
                 <span className="relative w-6 h-6 rounded-md overflow-hidden border border-gray-200 flex-shrink-0">
                   <Swatch colors={t.swatch} />
                 </span>

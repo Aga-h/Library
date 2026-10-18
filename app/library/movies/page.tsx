@@ -43,7 +43,7 @@ export default async function MoviesPage({ searchParams }: PageProps) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MirrorCoversButton apiPath="/api/movies/mirror-covers" />
-          <Link href="/library/movies/u/new" className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <Link href="/library/movies/u/new" className="flex items-center gap-2 max-sm:min-h-10 border border-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" /> Universe
           </Link>
           <Link

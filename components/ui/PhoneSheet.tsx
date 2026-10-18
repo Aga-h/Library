@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 interface Props {
@@ -11,6 +11,9 @@ interface Props {
   children: ReactNode;
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), select:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 /**
  * Phones only (under sm): a step that opens in place — a confirm, a picker — shown as a sheet along
  * the bottom edge instead, over a scrim that dismisses it. Such steps sit in a page header's button
@@ -20,14 +23,64 @@ interface Props {
  *
  * Only ever mount it after a tap, never on the server render. Callers keep their inline version
  * for sm up and hide it on phones (`max-sm:hidden`).
+ *
+ * While open: focus starts on the first control, Tab stays in the sheet, Escape dismisses it, and
+ * the page behind it does not scroll — the same contract as the Library/Study menu drawer.
  */
 export default function PhoneSheet({ label, onDismiss, children }: Props) {
+  const panel = useRef<HTMLDivElement>(null);
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const root = document.documentElement;
+    const overflow = root.style.overflow;
+    root.style.overflow = "hidden";
+
+    const first = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
+    first?.focus();
+
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) {
+        e.preventDefault();
+        onDismissRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      root.style.overflow = overflow;
+      window.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus();
+    };
+  }, []);
+
+  const keepFocusIn = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab" || !panel.current) return;
+    const focusable = panel.current.querySelectorAll<HTMLElement>(FOCUSABLE);
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) return;
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   return createPortal(
     <div className="sm:hidden fixed inset-0 z-[70]">
       <div aria-hidden onClick={onDismiss} className="absolute inset-0 bg-black/40" />
       <div
+        ref={panel}
         role="dialog"
+        aria-modal="true"
         aria-label={label}
+        onKeyDown={keepFocusIn}
         className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto overscroll-contain flex flex-col gap-3 bg-white border-t border-gray-200 shadow-xl pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
       >
         {children}

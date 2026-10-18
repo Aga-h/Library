@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { PHONE_TAP_H } from "@/components/finances/touch";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -22,7 +23,7 @@ export default function MonthNav({ year, month }: { year: number; month: number 
       <Link
         href={`/finances/${prev.year}/${prev.month}`}
         aria-label="Previous month"
-        className="-ml-2 flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 sm:ml-0">
+        className={`-ml-2 flex-shrink-0 p-3 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 sm:ml-0 ${PHONE_TAP_H}`}>
         <ChevronLeft className="w-5 h-5" />
       </Link>
       <h1 className="min-w-0 break-words text-center text-2xl font-bold text-gray-900">
@@ -31,7 +32,7 @@ export default function MonthNav({ year, month }: { year: number; month: number 
       <Link
         href={`/finances/${next.year}/${next.month}`}
         aria-label="Next month"
-        className="-mr-2 flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 sm:mr-0">
+        className={`-mr-2 flex-shrink-0 p-3 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 sm:mr-0 ${PHONE_TAP_H}`}>
         <ChevronRight className="w-5 h-5" />
       </Link>
     </div>
