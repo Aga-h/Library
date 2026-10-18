@@ -27,9 +27,11 @@ REPORT_TOKEN=…                  # optional: 32+ random chars; lets the nightly
 COMICVINE_API_KEY=…             # optional: comicvine.gamespot.com/api — lets Add Comic import a whole run
 TMDB_API_KEY=…                  # optional: themoviedb.org API key or read token — film and TV imports
 MAL_CLIENT_ID=…                 # optional: myanimelist.net/apiconfig Client ID — anime and manga imports
+GOOGLE_BOOKS_API_KEY=…          # optional: Google Cloud Books API key — titles Open Library hasn't got
 ```
 
-Book import talks to Open Library and needs no key.
+Book import searches Open Library (no key) and Google Books. Google Books is optional; without a key
+it may quota-out, and Open Library still answers.
 
 Optional, per feature: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (cover uploads),
 `STEAM_API_KEY` / `STEAM_USER_ID` / `STEAMGRIDDB_API_KEY` (Steam sync),

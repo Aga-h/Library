@@ -54,6 +54,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `033-installments.sql` | Creates `Installment` (name, total, count, first year/month, `source`) for purchases paid in monthly installments; RLS on. Also creates the `FundSource` type if 031 hasn't run (same definition, so they can run in either order). Additive — run **before** (or right as) the deploy; the finance pages error until it has run. Verified: twice on the local copy (no-op the second time, `migrate diff` empty), and on an empty database without 031. |
 | `034-flashcards-quick-tests.sql` | Adds `VocabRunKind` / `VocabCardState`, `VocabCard` and `VocabReview` for SAT flashcards, plus `kind`/`pool` on `VocabRun` so a quick test never becomes the full run. Additive — run **before** (or right as) the deploy; the SAT Vocabulary pages error until it has run. |
 | `035-book-openlibrary.sql` | Adds `Book.openLibraryId` (unique) — on Open Library a work is the book itself, so the link is per row. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
+| `036-book-google-books.sql` | Adds `Book.googleBooksId` (unique) — Google Books is edition-centric, so search collapses volumes by title + author and a row remembers at most one. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 
 ## How 019 was verified
 

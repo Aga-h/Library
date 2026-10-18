@@ -7,7 +7,7 @@ import { Check, Download, Link2, Loader2, Search } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import HierarchySelect, { type HierarchyOption } from "@/components/ui/HierarchySelect";
 import {
-  Poster, OlNotice, resultBodyCls, resultTextCls, resultTitleCls, resultWideCls,
+  Poster, CatalogNotice, resultBodyCls, resultTextCls, resultTitleCls, resultWideCls,
   reveal, revealCls, tinyButtonCls, tinyButtonsCls,
 } from "@/components/tmdb/TmdbParts";
 import { Toggle } from "@/components/anime/MalImport";
@@ -29,11 +29,16 @@ interface Work {
   pages: number | null;
   cover: string | null;
   coverThumb: string | null;
+  publisher: string | null;
+  openLibraryId: string | null;
+  googleBooksId: string | null;
   place: Place | null;
 }
 
 interface ReportLine {
-  openLibraryId: string;
+  id: string;
+  openLibraryId: string | null;
+  googleBooksId: string | null;
   title: string;
   year: number | null;
   outcome: "added" | "linked" | "moved" | "already" | "elsewhere";
@@ -43,7 +48,7 @@ interface ReportLine {
 
 interface Summary {
   report: ReportLine[];
-  failed: { openLibraryId: string; reason: string }[];
+  failed: { id: string; reason: string }[];
   seriesId: string | null;
 }
 
@@ -68,10 +73,11 @@ function plural(n: number, one: string, many = `${one}s`) {
 }
 
 /**
- * Find a book on Open Library and add it — author, page count and cover come with it. One
- * already in the library is opened, never added twice; one you added by hand under the same
- * title is linked instead. Tick several (a search for a series lists its books) to import them
- * into the series you pick. With `link`, picking a work links that book.
+ * Find a book on Open Library or Google Books and add it — author, page count and cover come
+ * with it. One already in the library is opened, never added twice; one you added by hand under
+ * the same title is linked instead. Tick several (a search for a series lists its books) to
+ * import them into the series you pick. Matches start unticked. With `link`, picking a work
+ * links that book.
  */
 export default function OpenLibraryImport({
   seriesOptions,
@@ -95,6 +101,7 @@ export default function OpenLibraryImport({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | "bulk" | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const targetId = target || null;
   const targetName = seriesOptions.find((s) => s.id === target)?.name ?? null;
@@ -105,6 +112,7 @@ export default function OpenLibraryImport({
     setSearching(true);
     setError(null);
     setSummary(null);
+    setNotice(null);
     const res = await fetch(`/api/books/openlibrary/search?${new URLSearchParams({ q: query.trim() })}`);
     const data = await res.json().catch(() => ({}));
     setSearching(false);
@@ -115,12 +123,13 @@ export default function OpenLibraryImport({
     }
     const works: Work[] = data.works;
     setResults(works);
-    setSelected(new Set(works.filter((w) => w.pages && (placeLabel(w.place, targetId)?.importable ?? true)).map((w) => w.id)));
+    setSelected(new Set());
+    setNotice(typeof data.notice === "string" && data.notice ? data.notice : null);
   }
 
   function placed(works: Work[], report: ReportLine[]): Work[] {
     const landed = new Map(
-      report.filter((r) => r.outcome !== "elsewhere" && r.bookId).map((r) => [r.openLibraryId, r.bookId!]),
+      report.filter((r) => r.outcome !== "elsewhere" && r.bookId).map((r) => [r.id, r.bookId!]),
     );
     return works.map((w) =>
       landed.has(w.id)
@@ -138,12 +147,15 @@ export default function OpenLibraryImport({
     );
   }
 
-  async function importIds(workIds: string[]): Promise<Summary | null> {
+  async function importWorks(works: Work[]): Promise<Summary | null> {
     const res = await fetch("/api/books/openlibrary/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        workIds,
+        items: works.map((w) => ({
+          ...(w.openLibraryId ? { openLibraryId: w.openLibraryId } : {}),
+          ...(w.googleBooksId ? { googleBooksId: w.googleBooksId } : {}),
+        })),
         read,
         language,
         seriesId: targetId,
@@ -162,7 +174,7 @@ export default function OpenLibraryImport({
     setBusy(work.id);
     setError(null);
     setSummary(null);
-    const done = await importIds([work.id]);
+    const done = await importWorks([work]);
     setBusy(null);
     if (!done) return;
     if (link) {
@@ -192,7 +204,7 @@ export default function OpenLibraryImport({
     setBusy("bulk");
     setError(null);
     setSummary(null);
-    const done = await importIds(results.filter((w) => selected.has(w.id)).map((w) => w.id));
+    const done = await importWorks(results.filter((w) => selected.has(w.id)));
     setBusy(null);
     if (!done) return;
     if (done.failed.length === 0 && !done.report.some((line) => line.outcome === "elsewhere")) {
@@ -233,8 +245,8 @@ export default function OpenLibraryImport({
           />
           <Toggle label="Mark it" value={read} onChange={setRead} off="To read" on="Read" />
           <div>
-            <label htmlFor="ol-language" className="block text-xs font-semibold text-gray-500 mb-1">Reading it in</label>
-            <select id="ol-language" value={language} onChange={(ev) => setLanguage(ev.target.value as LanguageKey)} className={inputCls}>
+            <label htmlFor="book-language" className="block text-xs font-semibold text-gray-500 mb-1">Reading it in</label>
+            <select id="book-language" value={language} onChange={(ev) => setLanguage(ev.target.value as LanguageKey)} className={inputCls}>
               {LANGUAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
@@ -242,8 +254,8 @@ export default function OpenLibraryImport({
       )}
 
       <form onSubmit={runSearch} className="flex gap-2">
-        <label htmlFor="ol-query" className="sr-only">Search Open Library</label>
-        <input id="ol-query" type="search" value={query} onChange={(ev) => setQuery(ev.target.value)} autoFocus={!link}
+        <label htmlFor="book-query" className="sr-only">Search books</label>
+        <input id="book-query" type="search" value={query} onChange={(ev) => setQuery(ev.target.value)} autoFocus={!link}
           placeholder="A title, an author, or an ISBN" className={`${inputCls} flex-1 min-w-0`} />
         <button type="submit" disabled={searching || query.trim().length < 2}
           className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
@@ -252,6 +264,7 @@ export default function OpenLibraryImport({
       </form>
 
       {error && <div ref={reveal} role="alert" className={`bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words ${revealCls}`}>{error}</div>}
+      {notice && !error && <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{notice}</p>}
 
       {summary && (
         <div ref={reveal} className={`bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1 ${revealCls}`}>
@@ -268,7 +281,7 @@ export default function OpenLibraryImport({
               <p className="text-emerald-800">Left where they are — move them from the book&apos;s Edit page if you want:</p>
               <ul className="text-xs text-emerald-800 list-disc pl-5">
                 {summary.report.filter((r) => r.outcome === "elsewhere").map((r) => (
-                  <li key={r.openLibraryId}>{r.title}{r.year && ` (${r.year})`} — in {r.where}</li>
+                  <li key={r.id}>{r.title}{r.year && ` (${r.year})`} — in {r.where}</li>
                 ))}
               </ul>
             </>
@@ -277,7 +290,7 @@ export default function OpenLibraryImport({
             <>
               <p className="text-emerald-800">Couldn&apos;t be imported — add {summary.failed.length === 1 ? "it" : "them"} by hand:</p>
               <ul className="text-xs text-emerald-800 list-disc pl-5">
-                {summary.failed.map((f) => <li key={f.openLibraryId}>{nameOf(f.openLibraryId)} — {f.reason}</li>)}
+                {summary.failed.map((f) => <li key={f.id}>{nameOf(f.id)} — {f.reason}</li>)}
               </ul>
             </>
           )}
@@ -288,7 +301,7 @@ export default function OpenLibraryImport({
       )}
 
       {results && (results.length === 0 ? (
-        <p className="text-sm text-gray-500">Nothing on Open Library matches that. Try fewer words, or an ISBN.</p>
+        <p className="text-sm text-gray-500">Nothing on Open Library or Google Books matches that. Try fewer words, or an ISBN.</p>
       ) : (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {!link && (
@@ -329,7 +342,7 @@ export default function OpenLibraryImport({
           </ul>
           {!link && (
             <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <p className="text-[11px] text-gray-500">Books you already have only get their blanks filled in. A work with no page count has to be added by hand.</p>
+              <p className="text-[11px] text-gray-500">Nothing is ticked until you pick it. Books you already have only get their blanks filled in. A work with no page count has to be added by hand.</p>
               <button type="button" onClick={importSelected} disabled={busy !== null || selected.size === 0}
                 className="flex items-center justify-center gap-1.5 bg-gray-900 text-white px-3 py-3 sm:py-2 rounded-lg text-sm sm:text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
                 {busy === "bulk"
@@ -341,7 +354,7 @@ export default function OpenLibraryImport({
         </div>
       ))}
 
-      <OlNotice />
+      <CatalogNotice />
     </div>
   );
 }

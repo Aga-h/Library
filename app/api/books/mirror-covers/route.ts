@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 import { withErrors } from "@/lib/api-errors";
 import { OL_IMAGE_HOST } from "@/lib/openlibrary";
+import { GB_IMAGE_HOSTS } from "@/lib/google-books";
 
 const MIRROR_BATCH = 10;
 
@@ -17,12 +18,13 @@ async function POSTHandler() {
   }
 
   // Filter in SQL rather than reading the whole table and discarding all but 10 rows.
-  // Open Library covers are left where they are: they are shown straight from its CDN.
+  // Open Library and Google Books covers are left where they are: shown from those CDNs.
   const pendingWhere = {
     coverImage: { not: null },
     NOT: [
       { coverImage: { contains: SUPABASE_COVER_MARKER } },
       { coverImage: { contains: OL_IMAGE_HOST } },
+      ...GB_IMAGE_HOSTS.map((host) => ({ coverImage: { contains: host } })),
     ],
   };
 

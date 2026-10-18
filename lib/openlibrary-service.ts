@@ -6,7 +6,7 @@
 // production never sets it.
 
 import {
-  MAX_IMPORT, byYear, hasPages, searchQueryOf, toWork, workIdOf,
+  BookCatalogError, MAX_IMPORT, byYear, hasPages, searchQueryOf, toWork, workIdOf,
   type OlWork,
 } from "@/lib/openlibrary";
 
@@ -21,13 +21,7 @@ const FIELDS = "key,title,author_name,first_publish_year,cover_i,number_of_pages
 /** Requests in flight at once. Open Library does not publish a hard limit; this stays gentle. */
 const CONCURRENCY = 3;
 
-export class OpenLibraryError extends Error {
-  readonly status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-  }
-}
+export class OpenLibraryError extends BookCatalogError {}
 
 type Raw = Record<string, unknown>;
 

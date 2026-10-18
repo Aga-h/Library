@@ -5,7 +5,8 @@
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-openlibrary.mjs
 import {
   workIdOf, isbnOf, searchQueryOf, coverUrl, isOpenLibraryImage, authorsOf, yearOf, toWork,
-  hasPages, normaliseAuthor, matchExisting, planImport, updatesFromWork, byYear, OL_IMAGE_HOST,
+  hasPages, normaliseAuthor, firstAuthor, authorsMatch, titleKeys, catalogOf, matchExisting,
+  planImport, updatesFromWork, byYear, OL_IMAGE_HOST,
 } from "../lib/openlibrary.ts";
 
 let pass = 0;
@@ -80,6 +81,8 @@ eq(toWork(raw({ first_publish_year: 0 })).year, null, "year 0 is not a year");
 eq(toWork(raw({ first_publish_year: 1997.5 })).year, null, "a fractional year is refused");
 eq(toWork({ title: "x" }), null, "no work id: unusable");
 eq(toWork({ key: "/works/OL1W" }), null, "no title: unusable");
+eq(catalogOf(stone).openLibraryId, "OL82563W", "an Open Library work becomes a catalogue row");
+eq(catalogOf(stone).googleBooksId, null, "…with no Google Books id yet");
 eq(hasPages(stone), true, "302 pages: importable");
 eq(hasPages(toWork(raw({ number_of_pages_median: 0 }))), false, "unknown pages: not importable");
 eq(authorsOf(["  J. K. Rowling  ", "", "Mary GrandPré"]), "J. K. Rowling, Mary GrandPré", "blank names dropped");
@@ -91,6 +94,10 @@ eq(yearOf(2101), null, "too late");
 eq(normaliseAuthor("J. K. Rowling"), "jkrowling", "initials and spaces collapse");
 eq(normaliseAuthor("J.K. Rowling"), "jkrowling", "…even without spaces");
 eq(normaliseAuthor("JK Rowling"), "jkrowling", "…and without dots");
+eq(firstAuthor("J. K. Rowling, Mary GrandPré"), "J. K. Rowling", "illustrator dropped for matching");
+eq(authorsMatch("J. K. Rowling, Mary GrandPré", "JK Rowling"), true, "first author matches despite extra credits");
+eq(titleKeys("Piranesi: A Novel"), ["piranesi a novel", "piranesi"], "subtitle is a second key");
+eq(titleKeys("The Hobbit"), ["the hobbit"], "no colon: one key");
 
 // ── already in the library ───────────────────────────────────────────────────
 const library = [
@@ -153,7 +160,8 @@ const incomingTowers = { ...toWork({ key: "/works/OL27501W", title: "The Two Tow
 
 const added = planImport([hand, linked, standalone, otherSeries], [incomingNew], null, { read: false });
 eq(added.create[0], {
-  title: incomingNew.title, author: "J. K. Rowling", pages: 302, pagesRead: 0, coverImage: coverL, openLibraryId: "OL82563W",
+  title: incomingNew.title, author: "J. K. Rowling", pages: 302, pagesRead: 0, coverImage: coverL,
+  publisher: null, openLibraryId: "OL82563W", googleBooksId: null,
 }, "a new unread row");
 eq(added.report[0].outcome, "added", "…reported as added");
 

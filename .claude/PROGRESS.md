@@ -222,6 +222,8 @@
       `Book.googleBooksId` unique (036). `GOOGLE_BOOKS_API_KEY` optional: without it GB may
       403/429 and search still returns Open Library, with a notice. Publisher filled from GB
       when blank. Importable if either source has a page count.
+      Unit tests: Open Library 98, Google Books + combined search 83. Needs merge to `main`,
+      then 036 and the API key (see Blocked).
 - [x] **Books from Open Library** (asked 2026-10-18: auto-import like the other library sections).
       Open Library Search API — no key. A work is one book (`Book.openLibraryId` unique, 035).
       "Add Book" searches a title, an author, an ISBN or a work id; tick several (Harry Potter

@@ -25,6 +25,10 @@ model Book {
   timesReread Int         @default(0)
   // Open Library work id ("OL82563W"). Unique so importing the same work again lands on this row.
   openLibraryId String?   @unique
+  // Google Books volume id. Unique; the same novel can be many volumes, so search collapses
+  // them by title + author before import. Filled when Open Library hasn't got the book, or
+  // alongside an Open Library id when both catalogues have it.
+  googleBooksId String?   @unique
   seriesId    String?
   series      BookSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt   DateTime    @default(now())

@@ -1,13 +1,18 @@
-// Landing Open Library works in the library. Server-only. The rules are in lib/openlibrary.ts.
+// Landing catalogue books in the library. Server-only. The rules are in lib/openlibrary.ts.
 
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 import type { LanguageKey } from "@/lib/constants/languages";
-import { OpenLibraryError, workById, workDetails } from "@/lib/openlibrary-service";
+import { OpenLibraryError } from "@/lib/openlibrary-service";
+import { catalogDetails, type CatalogItem } from "@/lib/book-catalog-service";
+import { combineSources } from "@/lib/google-books";
+import { workById } from "@/lib/openlibrary-service";
+import { volumeById } from "@/lib/google-books-service";
+import { GoogleBooksError } from "@/lib/google-books-service";
 import {
   matchExisting, planImport, updatesFromWork,
-  type ExistingBook, type OlWork, type ReportLine,
+  type CatalogBook, type ExistingBook, type ReportLine,
 } from "@/lib/openlibrary";
 
 export interface BookPlace {
@@ -20,36 +25,37 @@ export interface BookPlace {
 }
 
 const MATCH_FIELDS = {
-  id: true, title: true, author: true, openLibraryId: true, publisher: true,
+  id: true, title: true, author: true, openLibraryId: true, googleBooksId: true, publisher: true,
   pages: true, coverImage: true, seriesId: true, series: { select: { name: true } },
 } as const;
 
 function asExisting(row: {
-  id: string; title: string; author: string; openLibraryId: string | null; publisher: string | null;
-  pages: number; coverImage: string | null; seriesId: string | null; series: { name: string } | null;
+  id: string; title: string; author: string; openLibraryId: string | null; googleBooksId: string | null;
+  publisher: string | null; pages: number; coverImage: string | null; seriesId: string | null;
+  series: { name: string } | null;
 }): ExistingBook {
   return { ...row, seriesName: row.series?.name ?? null };
 }
 
-/** The rows an entry could be: linked to one of these ids, or not linked to anything yet. */
-function candidates(ids: string[]) {
-  return db.book.findMany({
-    where: { OR: [{ openLibraryId: { in: ids } }, { openLibraryId: null }] },
-    select: MATCH_FIELDS,
-  });
+/** Every row that could match: linked to one of these ids, or matchable by title + author. */
+async function candidates(): Promise<ExistingBook[]> {
+  return (await db.book.findMany({ select: MATCH_FIELDS })).map(asExisting);
 }
 
-export async function libraryBookPlaces(works: OlWork[]): Promise<Map<string, BookPlace>> {
+export async function libraryBookPlaces(works: CatalogBook[]): Promise<Map<string, BookPlace>> {
   const places = new Map<string, BookPlace>();
   if (works.length === 0) return places;
-  const library = (await candidates(works.map((w) => w.id))).map(asExisting);
+  const library = await candidates();
   for (const work of works) {
     const found = matchExisting(work, library);
     if (found) {
+      const linked =
+        (work.openLibraryId !== null && found.openLibraryId === work.openLibraryId) ||
+        (work.googleBooksId !== null && found.googleBooksId === work.googleBooksId);
       places.set(work.id, {
         bookId: found.id,
         title: found.title,
-        linked: found.openLibraryId === work.id,
+        linked,
         seriesId: found.seriesId,
         seriesName: found.seriesName,
       });
@@ -61,20 +67,21 @@ export async function libraryBookPlaces(works: OlWork[]): Promise<Map<string, Bo
 export interface ImportResult {
   seriesId: string | null;
   report: ReportLine[];
-  failed: { openLibraryId: string; reason: string }[];
+  failed: { id: string; reason: string }[];
 }
 
 const LINK_FIELDS = {
-  id: true, title: true, author: true, openLibraryId: true, coverImage: true,
+  id: true, title: true, author: true, openLibraryId: true, googleBooksId: true,
+  coverImage: true, publisher: true,
 } as const;
 
 /**
- * Brings Open Library works into the library — into `seriesId`, or standalone when it is null.
+ * Brings catalogue books into the library — into `seriesId`, or standalone when it is null.
  * New books get `language` and are marked read when asked; books already there keep theirs, and
  * only have blanks filled: see planImport. With `bookId`, that row is linked, whatever its title.
  */
 export async function importWorks(
-  workIds: string[],
+  items: CatalogItem[],
   { read, language, seriesId, bookId }: {
     read: boolean;
     language: LanguageKey;
@@ -88,12 +95,12 @@ export async function importWorks(
   }
 
   if (bookId) {
-    if (workIds.length !== 1) throw new OpenLibraryError("Link one book at a time.", 400);
-    return linkBook(bookId, workIds[0], seriesId);
+    if (items.length !== 1) throw new OpenLibraryError("Link one book at a time.", 400);
+    return linkBook(bookId, items[0], seriesId);
   }
 
-  const { works, failed } = await workDetails(workIds);
-  const rows = (await candidates(works.map((w) => w.id))).map(asExisting);
+  const { works, failed } = await catalogDetails(items);
+  const rows = await candidates();
   const plan = planImport(rows, works, seriesId, { read });
 
   const now = Date.now();
@@ -116,39 +123,115 @@ export async function importWorks(
     throw e;
   }
 
-  const added = plan.report.filter((line) => line.outcome === "added").map((line) => line.openLibraryId);
+  const added = plan.report.filter((line) => line.outcome === "added");
   if (added.length > 0) {
+    const olIds = added.map((line) => line.openLibraryId).filter((id): id is string => id !== null);
+    const gbIds = added.map((line) => line.googleBooksId).filter((id): id is string => id !== null);
     const created = await db.book.findMany({
-      where: { openLibraryId: { in: added } },
-      select: { id: true, openLibraryId: true },
+      where: {
+        OR: [
+          ...(olIds.length ? [{ openLibraryId: { in: olIds } }] : []),
+          ...(gbIds.length ? [{ googleBooksId: { in: gbIds } }] : []),
+        ],
+      },
+      select: { id: true, openLibraryId: true, googleBooksId: true },
     });
-    const idFor = new Map(created.map((b) => [b.openLibraryId, b.id]));
+    const byOl = new Map(created.filter((b) => b.openLibraryId).map((b) => [b.openLibraryId!, b.id]));
+    const byGb = new Map(created.filter((b) => b.googleBooksId).map((b) => [b.googleBooksId!, b.id]));
     for (const line of plan.report) {
-      if (line.outcome === "added") line.bookId = idFor.get(line.openLibraryId);
+      if (line.outcome !== "added") continue;
+      line.bookId = (line.openLibraryId && byOl.get(line.openLibraryId))
+        || (line.googleBooksId && byGb.get(line.googleBooksId))
+        || undefined;
     }
   }
 
   return { seriesId, report: plan.report, failed };
 }
 
-async function linkBook(bookId: string, workId: string, seriesId: string | null): Promise<ImportResult> {
-  const work = await workById(workId);
+async function fetchCatalogItem(item: CatalogItem): Promise<CatalogBook> {
+  let ol = null;
+  let gb = null;
+  if (item.openLibraryId) {
+    try {
+      ol = await workById(item.openLibraryId);
+    } catch (e) {
+      if (!(e instanceof OpenLibraryError) || (e.status !== 404 && e.status !== 400)) throw e;
+    }
+  }
+  if (item.googleBooksId) {
+    try {
+      gb = await volumeById(item.googleBooksId);
+    } catch (e) {
+      if (e instanceof GoogleBooksError && (e.status === 404 || e.status === 400)) {
+        gb = null;
+      } else if (ol) {
+        gb = null;
+      } else {
+        throw e;
+      }
+    }
+  }
+  const combined = combineSources(ol, gb);
+  if (!combined) throw new OpenLibraryError("That isn't in the catalogues.", 404);
+  return combined;
+}
+
+async function linkBook(bookId: string, item: CatalogItem, seriesId: string | null): Promise<ImportResult> {
+  const work = await fetchCatalogItem(item);
   const row = await db.book.findUnique({ where: { id: bookId }, select: LINK_FIELDS });
   if (!row) throw new OpenLibraryError("Book not found.", 404);
-  if (row.openLibraryId === work.id) {
-    return { seriesId, report: [{ openLibraryId: work.id, title: row.title, year: work.year, outcome: "already", bookId: row.id }], failed: [] };
-  }
-  if (row.openLibraryId !== null) {
+
+  if (work.openLibraryId && row.openLibraryId && row.openLibraryId !== work.openLibraryId) {
     throw new OpenLibraryError("This book is already linked to another Open Library work.", 409);
   }
-  const taken = await db.book.findUnique({ where: { openLibraryId: work.id }, select: { title: true } });
-  if (taken) throw new OpenLibraryError(`"${taken.title}" in your library is already that work.`, 409);
+  if (work.googleBooksId && row.googleBooksId && row.googleBooksId !== work.googleBooksId) {
+    throw new OpenLibraryError("This book is already linked to another Google Books volume.", 409);
+  }
+
+  const alreadyLinked =
+    (!work.openLibraryId || row.openLibraryId === work.openLibraryId) &&
+    (!work.googleBooksId || row.googleBooksId === work.googleBooksId);
+  if (alreadyLinked && (row.openLibraryId !== null || row.googleBooksId !== null)) {
+    return {
+      seriesId,
+      report: [{
+        id: work.id,
+        openLibraryId: work.openLibraryId,
+        googleBooksId: work.googleBooksId,
+        title: row.title,
+        year: work.year,
+        outcome: "already",
+        bookId: row.id,
+      }],
+      failed: [],
+    };
+  }
+
+  if (work.openLibraryId) {
+    const taken = await db.book.findFirst({
+      where: { openLibraryId: work.openLibraryId, NOT: { id: row.id } },
+      select: { title: true },
+    });
+    if (taken) throw new OpenLibraryError(`"${taken.title}" in your library is already that work.`, 409);
+  }
+  if (work.googleBooksId) {
+    const taken = await db.book.findFirst({
+      where: { googleBooksId: work.googleBooksId, NOT: { id: row.id } },
+      select: { title: true },
+    });
+    if (taken) throw new OpenLibraryError(`"${taken.title}" in your library is already that volume.`, 409);
+  }
 
   const changes = updatesFromWork(row, work);
   try {
     await db.book.update({
       where: { id: row.id },
-      data: { ...changes, openLibraryId: work.id },
+      data: {
+        ...changes,
+        ...(work.openLibraryId && !row.openLibraryId ? { openLibraryId: work.openLibraryId } : {}),
+        ...(work.googleBooksId && !row.googleBooksId ? { googleBooksId: work.googleBooksId } : {}),
+      },
     });
   } catch (e) {
     if (isUniqueViolation(e)) throw new OpenLibraryError("Another import ran at the same time — try again.", 409);
@@ -156,23 +239,36 @@ async function linkBook(bookId: string, workId: string, seriesId: string | null)
   }
   return {
     seriesId,
-    report: [{ openLibraryId: work.id, title: row.title, year: work.year, outcome: "linked", bookId: row.id }],
+    report: [{
+      id: work.id,
+      openLibraryId: work.openLibraryId,
+      googleBooksId: work.googleBooksId,
+      title: row.title,
+      year: work.year,
+      outcome: "linked",
+      bookId: row.id,
+    }],
     failed: [],
   };
 }
 
 /**
- * "Check Open Library" on a linked book: a cover or an author it was missing. Returns the
+ * "Check catalogues" on a linked book: a cover, author or publisher it was missing. Returns the
  * fields that changed — nothing you entered is overwritten.
  */
 export async function refreshBook(bookId: string): Promise<{ changed: string[] }> {
   const row = await db.book.findUnique({
     where: { id: bookId },
-    select: { id: true, author: true, openLibraryId: true, coverImage: true },
+    select: { id: true, author: true, openLibraryId: true, googleBooksId: true, coverImage: true, publisher: true },
   });
   if (!row) throw new OpenLibraryError("Book not found.", 404);
-  if (row.openLibraryId === null) throw new OpenLibraryError("This book isn't linked to Open Library.", 400);
-  const work = await workById(row.openLibraryId);
+  if (row.openLibraryId === null && row.googleBooksId === null) {
+    throw new OpenLibraryError("This book isn't linked to a catalogue.", 400);
+  }
+  const work = await fetchCatalogItem({
+    ...(row.openLibraryId ? { openLibraryId: row.openLibraryId } : {}),
+    ...(row.googleBooksId ? { googleBooksId: row.googleBooksId } : {}),
+  });
   const changes = updatesFromWork(row, work);
   const changed = Object.keys(changes);
   if (changed.length === 0) return { changed };

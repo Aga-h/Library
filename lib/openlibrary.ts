@@ -1,17 +1,18 @@
-// Importing books from Open Library: reading its search answers, and the rules for landing a
-// work in the library. A work is the book itself (every paperback of Philosopher's Stone is the
-// same work), so `Book.openLibraryId` is unique.
+// Importing books: reading Open Library's search answers, and the rules for landing a work in
+// the library. A work is the book itself (every paperback of Philosopher's Stone is the same
+// work), so `Book.openLibraryId` is unique. Google Books is the second catalogue (`googleBooksId`)
+// for titles Open Library hasn't got; same fill-blanks merge, matched by either id or title+author.
 //
 // Pure and dependency-free, so the tests exercise every rule without a network or a database
 // (scripts/test-openlibrary.mjs). The API client is lib/openlibrary-service.ts; the database
-// side is lib/openlibrary-import.ts.
+// side is lib/openlibrary-import.ts. Google Books parsing is lib/google-books.ts.
 //
-// Open Library is used because it is the official, documented API of a project of the Internet
-// Archive: no key, work-level identity, ISBN lookup, covers, and a page-count median across
-// editions. Google Books was the other candidate — edition-centric (the same novel is many
-// volumes), needs an API key, no first-class series. Goodreads has no public API. Catalog data
-// is stored as Open Library gives it; publisher is not, because a work lists every edition's
-// publisher and the first is rarely the one you'd pick.
+// Open Library is the official API of a project of the Internet Archive: no key, work-level
+// identity, ISBN lookup, covers, and a page-count median across editions. Google Books is
+// edition-centric (the same novel is many volumes) and wants an API key — search still works
+// without it, and a 403/429 there must not hide Open Library hits. Goodreads has no public API.
+// Publisher is taken from Google Books (one edition, one name), never from Open Library (a work
+// lists every edition's publisher and the first is rarely the one you'd pick).
 
 import type { LanguageKey } from "@/lib/constants/languages";
 import { normaliseTitle, type Outcome } from "@/lib/tmdb";
@@ -38,6 +39,50 @@ export interface OlWork {
   cover: string | null;
   /** Smaller cover for search rows. */
   coverThumb: string | null;
+}
+
+/**
+ * One row in Add Book, after Open Library and Google Books have been merged. `id` is the Open
+ * Library work id when we have one, otherwise `gb:{googleBooksId}`.
+ */
+export interface CatalogBook {
+  id: string;
+  title: string;
+  author: string;
+  year: number | null;
+  pages: number | null;
+  cover: string | null;
+  coverThumb: string | null;
+  publisher: string | null;
+  openLibraryId: string | null;
+  googleBooksId: string | null;
+}
+
+export function fromOlWork(work: OlWork): CatalogBook {
+  return {
+    id: work.id,
+    title: work.title,
+    author: work.author,
+    year: work.year,
+    pages: work.pages,
+    cover: work.cover,
+    coverThumb: work.coverThumb,
+    publisher: null,
+    openLibraryId: work.id,
+    googleBooksId: null,
+  };
+}
+
+export function catalogOf(work: OlWork | CatalogBook): CatalogBook {
+  return "openLibraryId" in work ? work : fromOlWork(work);
+}
+
+export class BookCatalogError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
 }
 
 type Raw = Record<string, unknown>;
@@ -132,7 +177,7 @@ export function toWork(raw: Raw | null | undefined): OlWork | null {
   };
 }
 
-export function hasPages(work: OlWork): work is OlWork & { pages: number } {
+export function hasPages<T extends { pages: number | null }>(work: T): work is T & { pages: number } {
   return work.pages !== null;
 }
 
@@ -151,11 +196,36 @@ function authorUnknown(name: string): boolean {
   return normaliseAuthor(name) === "unknown" || name.trim() === "";
 }
 
+/** "J. K. Rowling, Mary GrandPré" → "J. K. Rowling", so illustrators don't split a match. */
+export function firstAuthor(name: string): string {
+  const comma = name.indexOf(",");
+  return (comma === -1 ? name : name.slice(0, comma)).trim();
+}
+
+export function authorsMatch(a: string, b: string): boolean {
+  return authorUnknown(a) || authorUnknown(b) || normaliseAuthor(firstAuthor(a)) === normaliseAuthor(firstAuthor(b));
+}
+
+/**
+ * Title keys for merging catalogue hits of the same novel: the full title, plus the part
+ * before a colon so "Piranesi" and "Piranesi: A Novel" collapse. Library matching stays on
+ * the full normalised title — "The Hobbit" is not the graphic novel of the same name.
+ */
+export function titleKeys(title: string): string[] {
+  const full = normaliseTitle(title);
+  if (!full) return [];
+  const colon = title.indexOf(":");
+  if (colon <= 0) return [full];
+  const short = normaliseTitle(title.slice(0, colon));
+  return short && short !== full ? [full, short] : [full];
+}
+
 export interface ExistingBook {
   id: string;
   title: string;
   author: string;
   openLibraryId: string | null;
+  googleBooksId?: string | null;
   publisher: string | null;
   pages: number;
   coverImage: string | null;
@@ -164,20 +234,28 @@ export interface ExistingBook {
 }
 
 /**
- * A book already in the library that this work is — by Open Library id, or else a hand-added
- * one (no Open Library link yet) whose title matches and whose author matches (or either side
- * is "Unknown"). Matching on the normalised title means "the hobbit" typed by hand is found by
- * "The Hobbit".
+ * A book already in the library that this work is — by Open Library id, by Google Books id,
+ * or else by title + author. A row linked to the *other* catalogue still matches (so importing
+ * from Google Books does not duplicate one already linked to Open Library). A row already
+ * linked to a *different* work at this source is left alone.
  */
-export function matchExisting<T extends ExistingBook>(work: OlWork, library: readonly T[]): T | null {
-  const linked = library.find((x) => x.openLibraryId === work.id);
-  if (linked) return linked;
-  const title = normaliseTitle(work.title);
+export function matchExisting<T extends ExistingBook>(work: OlWork | CatalogBook, library: readonly T[]): T | null {
+  const cat = catalogOf(work);
+  if (cat.openLibraryId) {
+    const linked = library.find((x) => x.openLibraryId === cat.openLibraryId);
+    if (linked) return linked;
+  }
+  if (cat.googleBooksId) {
+    const linked = library.find((x) => x.googleBooksId === cat.googleBooksId);
+    if (linked) return linked;
+  }
+  const title = normaliseTitle(cat.title);
   return (
     library.find((x) => {
-      if (x.openLibraryId !== null) return false;
+      if (cat.openLibraryId && x.openLibraryId && x.openLibraryId !== cat.openLibraryId) return false;
+      if (cat.googleBooksId && x.googleBooksId && x.googleBooksId !== cat.googleBooksId) return false;
       if (normaliseTitle(x.title) !== title) return false;
-      return authorUnknown(x.author) || authorUnknown(work.author) || normaliseAuthor(x.author) === normaliseAuthor(work.author);
+      return authorsMatch(x.author, cat.author);
     }) ?? null
   );
 }
@@ -188,22 +266,28 @@ export interface NewBook {
   pages: number;
   pagesRead: number;
   coverImage: string | null;
-  openLibraryId: string;
+  publisher: string | null;
+  openLibraryId: string | null;
+  googleBooksId: string | null;
 }
 
 export interface BookUpdate {
   id: string;
   data: {
     openLibraryId?: string;
+    googleBooksId?: string;
     author?: string;
     coverImage?: string;
+    publisher?: string;
     /** Into the series being imported into: only ever from standalone. */
     seriesId?: string;
   };
 }
 
 export interface ReportLine {
-  openLibraryId: string;
+  id: string;
+  openLibraryId: string | null;
+  googleBooksId: string | null;
   title: string;
   year: number | null;
   outcome: Outcome;
@@ -219,61 +303,75 @@ export interface ImportPlan {
 }
 
 /**
- * Lands a batch of Open Library works in the library, in `seriesId` (or standalone, when null).
+ * Lands a batch of catalogue books in the library, in `seriesId` (or standalone, when null).
  *
- * A work is matched to a library row by its Open Library id, or else — once — to a book added
- * by hand with the same title and author. The merge only ever adds:
+ * A work is matched by Open Library id, Google Books id, or else — once — by title and author,
+ * even when the existing row is already linked to the other catalogue. The merge only ever adds:
  *
- *  - Blanks get filled: a cover, and an author of "Unknown". Everything you set yourself —
- *    title, pages, pages read, rating, rereads, notes, language, publisher, a cover you chose —
- *    is never touched. Page counts vary by edition, so a stored one is never overwritten.
+ *  - Blanks get filled: a cover, an author of "Unknown", a publisher from Google Books, and
+ *    whichever catalogue id is missing. Everything you set yourself — title, pages, pages read,
+ *    rating, rereads, notes, language, a publisher or cover you chose — is never touched. Page
+ *    counts vary by edition, so a stored one is never overwritten.
  *  - A standalone book moves into the series it is imported into. A book in a different series
  *    stays where it is and is reported — which series is your call, not an import's.
  */
 export function planImport(
   existing: ExistingBook[],
-  incoming: (OlWork & { pages: number })[],
+  incoming: ((OlWork | CatalogBook) & { pages: number })[],
   seriesId: string | null,
   { read }: { read: boolean },
 ): ImportPlan {
   const plan: ImportPlan = { create: [], update: [], report: [] };
-  const byOl = new Map<string, ExistingBook>();
-  const handAdded: ExistingBook[] = [];
-  for (const book of existing) {
-    if (book.openLibraryId === null) handAdded.push(book);
-    else byOl.set(book.openLibraryId, book);
-  }
   const claimed = new Set<string>();
   const seen = new Set<string>();
 
   for (const work of incoming) {
-    if (seen.has(work.id)) continue;
-    seen.add(work.id);
+    const cat = catalogOf(work);
+    if (seen.has(cat.id)) continue;
+    if (cat.openLibraryId && seen.has(cat.openLibraryId)) continue;
+    if (cat.googleBooksId && seen.has(`gb:${cat.googleBooksId}`)) continue;
+    seen.add(cat.id);
+    if (cat.openLibraryId) seen.add(cat.openLibraryId);
+    if (cat.googleBooksId) seen.add(`gb:${cat.googleBooksId}`);
 
-    const current = byOl.get(work.id) ?? matchExisting(work, handAdded.filter((b) => !claimed.has(b.id)));
+    const current = matchExisting(cat, existing.filter((b) => !claimed.has(b.id)));
     if (!current) {
       plan.create.push({
-        title: work.title,
-        author: work.author,
+        title: cat.title,
+        author: cat.author,
         pages: work.pages,
         pagesRead: read ? work.pages : 0,
-        coverImage: work.cover,
-        openLibraryId: work.id,
+        coverImage: cat.cover,
+        publisher: cat.publisher,
+        openLibraryId: cat.openLibraryId,
+        googleBooksId: cat.googleBooksId,
       });
-      plan.report.push({ openLibraryId: work.id, title: work.title, year: work.year, outcome: "added" });
+      plan.report.push({
+        id: cat.id,
+        openLibraryId: cat.openLibraryId,
+        googleBooksId: cat.googleBooksId,
+        title: cat.title,
+        year: cat.year,
+        outcome: "added",
+      });
       continue;
     }
     claimed.add(current.id);
 
     const data: BookUpdate["data"] = {};
-    if (current.openLibraryId === null) data.openLibraryId = work.id;
-    if (authorUnknown(current.author) && !authorUnknown(work.author)) data.author = work.author;
-    if (!current.coverImage && work.cover) data.coverImage = work.cover;
+    if (!current.openLibraryId && cat.openLibraryId) data.openLibraryId = cat.openLibraryId;
+    if (!current.googleBooksId && cat.googleBooksId) data.googleBooksId = cat.googleBooksId;
+    if (authorUnknown(current.author) && !authorUnknown(cat.author)) data.author = cat.author;
+    if (!current.coverImage && cat.cover) data.coverImage = cat.cover;
+    if (!current.publisher && cat.publisher) data.publisher = cat.publisher;
+
+    const linkedASource =
+      (!current.openLibraryId && !!cat.openLibraryId) || (!current.googleBooksId && !!cat.googleBooksId);
 
     let outcome: Outcome;
     let where: string | undefined;
     if (current.seriesId === seriesId) {
-      outcome = current.openLibraryId === null ? "linked" : "already";
+      outcome = linkedASource ? "linked" : "already";
     } else if (current.seriesId === null) {
       data.seriesId = seriesId!;
       outcome = "moved";
@@ -284,9 +382,11 @@ export function planImport(
 
     if (Object.keys(data).length > 0) plan.update.push({ id: current.id, data });
     plan.report.push({
-      openLibraryId: work.id,
+      id: cat.id,
+      openLibraryId: cat.openLibraryId,
+      googleBooksId: cat.googleBooksId,
       title: current.title,
-      year: work.year,
+      year: cat.year,
       outcome,
       ...(where ? { where } : {}),
       bookId: current.id,
@@ -299,17 +399,20 @@ export function planImport(
 export interface BookFields {
   author: string;
   coverImage: string | null;
+  publisher?: string | null;
 }
 
 /**
- * What Open Library may change on a book already in the library — when linking a hand-added
+ * What a catalogue may change on a book already in the library — when linking a hand-added
  * one, or checking a linked one again. Only blanks are filled: your title, pages, progress,
  * rating, notes, language and publisher are never touched.
  */
-export function updatesFromWork(existing: BookFields, work: OlWork): Partial<BookFields> {
+export function updatesFromWork(existing: BookFields, work: OlWork | CatalogBook): Partial<BookFields> {
+  const cat = catalogOf(work);
   const out: Partial<BookFields> = {};
-  if (authorUnknown(existing.author) && !authorUnknown(work.author)) out.author = work.author;
-  if (!existing.coverImage && work.cover) out.coverImage = work.cover;
+  if (authorUnknown(existing.author) && !authorUnknown(cat.author)) out.author = cat.author;
+  if (!existing.coverImage && cat.cover) out.coverImage = cat.cover;
+  if (!existing.publisher && cat.publisher) out.publisher = cat.publisher;
   return out;
 }
 

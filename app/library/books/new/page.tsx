@@ -40,8 +40,9 @@ export default async function NewBookPage({ searchParams }: PageProps) {
       <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-8 mb-6">
         <h1 className="text-xl font-bold text-gray-900 mb-2">Add Books</h1>
         <p className="text-sm text-gray-500 mb-6">
-          Search Open Library — author, page count and cover come with each book. A title, an
-          author or an ISBN all work; tick several to import a series at once.
+          Search Open Library and Google Books — author, page count and cover come with each
+          book. A title, an author or an ISBN all work; tick the ones you want (nothing is
+          ticked for you) to import a series at once.
         </p>
         <OpenLibraryImport
           seriesOptions={seriesOpts}
