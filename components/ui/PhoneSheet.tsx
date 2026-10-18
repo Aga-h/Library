@@ -29,8 +29,6 @@ const FOCUSABLE =
  */
 export default function PhoneSheet({ label, onDismiss, children }: Props) {
   const panel = useRef<HTMLDivElement>(null);
-  const onDismissRef = useRef(onDismiss);
-  onDismissRef.current = onDismiss;
 
   useEffect(() => {
     const previouslyFocused = document.activeElement instanceof HTMLElement
@@ -43,19 +41,22 @@ export default function PhoneSheet({ label, onDismiss, children }: Props) {
     const first = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus();
 
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "Escape" && !e.defaultPrevented) {
-        e.preventDefault();
-        onDismissRef.current();
-      }
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
       root.style.overflow = overflow;
-      window.removeEventListener("keydown", onKey);
       previouslyFocused?.focus();
     };
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) {
+        e.preventDefault();
+        onDismiss();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onDismiss]);
 
   const keepFocusIn = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "Tab" || !panel.current) return;

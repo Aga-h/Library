@@ -1,8 +1,8 @@
 # Current state
 
-**Goal:** Finish the whole-site phone layout (Claude's `claude/phone-wip` work) and get it onto `main` / the live site.
-**Branch:** `cursor/phone-interface-a49b` — rebased onto `origin/main` from `claude/phone-wip`.
-**Updated:** 2026-10-18 — picking up the phone WIP: phase 1 (drawer + 16px fields) and most of phase 2 (per-section pages) already landed on that branch; remaining is PhoneSheet a11y, leftover tap targets, Early Cyber/Cyberdelia topbar polish, then a 390px overflow pass across looks.
+**Goal:** Finish the whole-site phone layout and get it onto `main` / the live site.
+**Branch:** `cursor/phone-interface-a49b` (from `claude/phone-wip`, rebased onto `origin/main`).
+**Updated:** 2026-10-18 — phone layout finished: drawer/top bar, per-section pages, 390px × 5 looks overflow-clean, desktop sidebar kept from `lg` up.
 
 ## Done
 
@@ -412,15 +412,20 @@
         Verified with a stand-in refusing 10% of requests at random + a mid-import Stop → retry: all
         imported, no duplicates, one series.
       - **needs MAL_CLIENT_ID + 027** (see Blocked, anime)
-- [ ] **Whole site on a phone — FINISHING** (user, 2026-10-15: "make the whole site work on a phone
-      properly"; 2026-10-18: pick up Claude's WIP and put it on the live site).
+- [x] **Whole site on a phone** (user, 2026-10-15: "make the whole site work on a phone properly";
+      2026-10-18: pick up Claude's WIP and put it on the live site).
       Baseline (Soft Club, 390px): Library/Study squeezed by a 224px sidebar; finance months ~807px
       wide; 59/90 pages had fields under 16px (iOS zoom).
       - [x] phase 1: Library/Study top bar + drawer (`SectionNav`), layouts, looks, 16px fields, ui/*
       - [x] phase 2: per-section pages (portal/login, library, study, finances, shopping, wardrobe)
-      - [ ] remaining nits: PhoneSheet Escape/focus/scroll-lock; Movies/TV/Mirror/drawer tap heights;
-            Early Cyber topbar + drawer close; Cyberdelia topbar sep; QuickTest progress wrap
-      - [ ] phase 3: 390px overflow + field-size pass across the five looks; desktop unchanged
+      - [x] nits: PhoneSheet Escape/focus/scroll-lock; Movies/TV/Mirror/drawer tap heights;
+            Early Cyber top bar + drawer close; Cyberdelia top-bar slash hidden; QuickTest wrap
+      - [x] shell breakpoint `md` (768) → `lg` (1024), so iPad portrait and phone landscape keep
+            the drawer instead of the squeezed sidebar; desktop 1180 still has the sidebar
+      - [x] phase 3: 89 routes × 5 looks at 390×844, 445/445 no sideways scroll and no field
+            under 16px (`scripts/phone-seed.mjs`, `scripts/phone-audit.mjs`). Drawer closes on
+            navigate; delete confirm is a bottom sheet and dismisses on Escape.
+      Lives on `cursor/phone-interface-a49b` — merge to `main` to deploy. No schema/env changes.
 - [x] **Study: flashcards (Anki-style) + quick tests** (user, 2026-10-15: "aside from the full question
       tab, build a flashcard system like anki's, and smaller question pool tests beside that (the full
       question test should stay)"). Full test untouched (only links added to its header).

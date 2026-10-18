@@ -14,9 +14,10 @@ const isActive = (pathname: string, item: NavItem) =>
   item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
 /**
- * A section's navigation — Library's, Study's. From md up it is the sidebar down the left. Below md
- * a sidebar would leave the page a sliver, so it gives way to a top bar naming the section and the
- * open page, whose menu button draws the same sidebar in from the left as a drawer over the page.
+ * A section's navigation — Library's, Study's. From lg up it is the sidebar down the left. Below lg
+ * (phones, phones turned sideways, iPads in portrait) a sidebar would eat the page, so it gives way
+ * to a top bar naming the section and the open page, whose menu button draws the same sidebar in
+ * from the left as a drawer over the page.
  *
  * Desktop sidebar and drawer carry the hook classes the looks style a sidebar by (theme-sidebar,
  * theme-brand, theme-nav, theme-nav-item[data-active]); the top bar is a theme-header, like the
@@ -64,8 +65,8 @@ export default function SectionNav({ brand, icon: Icon, groups, signOut = false 
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape" && !e.defaultPrevented) setOpen(false);
     };
-    // The drawer only exists below md: a window widened past it (an iPad turned) closes it.
-    const wide = window.matchMedia("(min-width: 48rem)");
+    // The drawer only exists below lg: a window widened past it (an iPad turned landscape) closes it.
+    const wide = window.matchMedia("(min-width: 64rem)");
     const onWide = () => {
       if (wide.matches) setOpen(false);
     };
@@ -156,14 +157,14 @@ export default function SectionNav({ brand, icon: Icon, groups, signOut = false 
 
   return (
     <>
-      <aside className="theme-sidebar w-56 flex-shrink-0 hidden md:flex flex-col bg-white border-r border-gray-200 min-h-screen">
+      <aside className="theme-sidebar w-56 flex-shrink-0 hidden lg:flex flex-col bg-white border-r border-gray-200 min-h-screen">
         <div className="theme-brand flex items-center gap-2.5 px-5 py-5 border-b border-gray-200">{brandMark}</div>
         {nav(false)}
         {foot}
       </aside>
 
       {/* Phone: the top bar. Sticky on a wrapper, since the looks position the header itself. */}
-      <div className="sticky top-0 z-[55] md:hidden">
+      <div className="sticky top-0 z-[55] lg:hidden">
         <header className="theme-header theme-topbar flex items-center gap-2 bg-white border-b border-gray-200 pt-[calc(0.375rem+env(safe-area-inset-top))] pb-1.5 pl-[max(0.375rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <button ref={menuButton} type="button" aria-label="Menu" aria-expanded={open} aria-controls={drawerId}
             onClick={() => setOpen(true)}
@@ -189,7 +190,7 @@ export default function SectionNav({ brand, icon: Icon, groups, signOut = false 
           screen (dvh) rather than the layout viewport, which a page too wide for the screen
           stretches past it; and a drag on the dimmed page does nothing, so it can't pan. */}
       <div inert={!open}
-        className={`fixed inset-x-0 top-0 h-dvh z-[60] md:hidden ${
+        className={`fixed inset-x-0 top-0 h-dvh z-[60] lg:hidden ${
           open ? "visible" : "invisible [transition:visibility_0s_linear_var(--theme-drawer-time,300ms)] motion-reduce:[transition:none]"
         }`}>
         <div aria-hidden onClick={() => setOpen(false)}

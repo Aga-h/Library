@@ -49,10 +49,10 @@ h2.text-2xl,
 :root .theme-sidebar.theme-drawer {
   position: absolute;
 }
-/* While the top bar is up (below md) it is held over the page, so what focus or a #link scrolls
+/* While the top bar is up (below lg) it is held over the page, so what focus or a #link scrolls
  * to stops below it rather than under it. Not while the menu is open or its button has focus:
  * held in place, they'd count as hidden behind the bar and the page would scroll to the top. */
-@media (width < 48rem) {
+@media (width < 64rem) {
   html:has(.theme-menu-button[aria-expanded="false"]:not(:focus)) {
     scroll-padding-top: calc(4.5rem + env(safe-area-inset-top));
   }
@@ -146,8 +146,8 @@ h2.text-2xl,
 }
 
 /* Beside a sidebar the data text runs down the sidebar's edge instead — the only divider it has.
- * Only from md up: below it the sidebar is folded into a drawer and the page has a top bar. */
-@media (min-width: 48rem) {
+ * Only from lg up: below it the sidebar is folded into a drawer and the page has a top bar. */
+@media (min-width: 64rem) {
   :root[data-theme="softclub"]:has(.theme-sidebar)::before {
     background-position: left 192px top 0, right 6vw top 22vh, right 1.5vw bottom 2vh, 0 31.5%, 100% 73%, 61% 0;
   }
@@ -161,7 +161,7 @@ h2.text-2xl,
 }
 
 /* The Tresor target, cropped by the corner behind the header — out of focus, like everything
- * else. Where a sidebar is on screen (md up), it sits in the sidebar instead (see .theme-nav);
+ * else. Where a sidebar is on screen (lg up), it sits in the sidebar instead (see .theme-nav);
  * on a phone the sidebar is a drawer and the target is back behind the top bar. */
 :root[data-theme="softclub"]::after {
   content: "";
@@ -177,7 +177,7 @@ h2.text-2xl,
   background-origin: border-box;
   opacity: 0.85;
 }
-@media (min-width: 48rem) {
+@media (min-width: 64rem) {
   :root[data-theme="softclub"]:has(.theme-sidebar)::after {
     content: none;
   }

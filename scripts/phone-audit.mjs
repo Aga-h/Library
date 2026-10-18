@@ -7,9 +7,9 @@
 import "dotenv/config";
 import { chromium } from "playwright-core";
 
-const BASE = process.env.NEXT_URL ?? "http://127.0.0.1:3000";
+const BASE = process.env.NEXT_URL ?? "http://localhost:3000";
 const CHROME = process.env.CHROMIUM ?? "/usr/bin/google-chrome-stable";
-const THEMES = ["softclub", "acid", "earlycyber", "cyberdelia", "classic"];
+const THEMES = (process.env.THEMES ?? "softclub,acid,earlycyber,cyberdelia,classic").split(",");
 const now = new Date();
 const YEAR = now.getUTCFullYear();
 const MONTH = now.getUTCMonth() + 1;
@@ -140,13 +140,13 @@ async function main() {
   });
   const page = await context.newPage();
 
-  const login = await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
+  const login = await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   if (!login || login.status() >= 400) {
     throw new Error(`login page ${login?.status()}`);
   }
   await page.locator('input[type="password"]').fill(process.env.AUTH_PASSWORD ?? "phone-test");
-  await page.getByRole("button", { name: /log in|sign in|enter/i }).click();
-  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 15_000 });
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 30_000 });
 
   const failures = [];
   const fieldHits = [];
@@ -155,13 +155,13 @@ async function main() {
   for (const theme of THEMES) {
     await context.addCookies([{ name: "theme", value: theme, url: BASE }]);
     for (const route of ROUTES) {
-      const res = await page.goto(`${BASE}${route}`, { waitUntil: "networkidle", timeout: 30_000 });
+      const res = await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
       const status = res?.status() ?? 0;
       if (status >= 400) {
         failures.push({ theme, route, status, overflow: 0 });
         continue;
       }
-      await page.waitForTimeout(50);
+      await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
       const { overflow, fields } = await measure(page);
       if (overflow > 1) failures.push({ theme, route, status, overflow: Math.round(overflow) });
       else ok++;
