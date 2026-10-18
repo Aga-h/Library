@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-18 — phone layout on main (drawer/top bar from `lg` down, 89 routes × 5 looks overflow-clean). Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–034 and `MAL_CLIENT_ID` still need the user.
+**Updated:** 2026-10-18 — books import from Open Library (search / ISBN / bulk into a series). Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–035 and `MAL_CLIENT_ID` still need the user.
 
 ## Done
 
@@ -215,6 +215,14 @@
 
 ## Next
 
+- [x] **Books from Open Library** (asked 2026-10-18: auto-import like the other library sections).
+      Open Library Search API — no key. A work is one book (`Book.openLibraryId` unique, 035).
+      "Add Book" searches a title, an author, an ISBN or a work id; tick several (Harry Potter
+      lists the seven novels first) into a series you pick, or standalone. Author, page-count
+      median, cover; publisher skipped (edition soup); language is yours. Hand-added linked by
+      title+author; re-import fills blanks only; "Find / Check Open Library" on the book page.
+      Google Books not used (edition-centric, needs a key). Goodreads has no public API.
+      **Needs 035 run** (see Blocked). No env var.
 - [x] **Comics: import a whole run from Comic Vine** — "Add Comic" searches Comic Vine; Import
       creates the comic and every issue (names + covers); "Check for new issues" on an imported comic
       picks up new releases. Read/Owned buttons were already on every issue row. Verified against a
@@ -551,6 +559,9 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Books: run `035-book-openlibrary.sql`** in the Supabase SQL Editor NOW — the book pages error
+  until it has run. Additive, safe to re-run. No API key.
 
 - **Study: run `034-flashcards-quick-tests.sql`** in the Supabase SQL Editor NOW — the SAT Vocabulary
   pages error until it has run. Additive, safe to re-run.

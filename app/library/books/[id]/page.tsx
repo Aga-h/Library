@@ -14,6 +14,8 @@ import { calculateReadingTime, formatReadingTime } from "@/lib/reading-time";
 import { LANGUAGE_CONFIG, type LanguageKey } from "@/lib/constants/languages";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import DeleteBookButton from "@/components/books/DeleteBookButton";
+import OpenLibraryPanel from "@/components/books/OpenLibraryPanel";
+import { bookSeriesOptions } from "@/lib/hierarchy-options";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -28,10 +30,13 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
 
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const book = await db.book.findUnique({
-    where: { id },
-    include: { series: { include: { universe: true } } },
-  });
+  const [book, seriesOpts] = await Promise.all([
+    db.book.findUnique({
+      where: { id },
+      include: { series: { include: { universe: true } } },
+    }),
+    bookSeriesOptions(),
+  ]);
   if (!book) notFound();
 
   const status = STATUS_STYLES[book.status] ?? STATUS_STYLES.WANT_TO_READ;
@@ -121,6 +126,16 @@ export default async function BookDetailPage({ params }: PageProps) {
           <DetailCell icon={<Globe className="w-4 h-4" />} label="Language" value={langLabel} />
           <DetailCell icon={<Clock className="w-4 h-4" />} label="Est. Time" value={formatReadingTime(totalMinutes)} sub={`${Math.round(totalMinutes / 60 * 10) / 10}h`} />
           <DetailCell icon={<Building2 className="w-4 h-4" />} label="Publisher" value={book.publisher ?? "—"} />
+        </div>
+
+        <div className="px-4 sm:px-8 py-4 border-t border-gray-100">
+          <OpenLibraryPanel
+            bookId={book.id}
+            title={book.title}
+            openLibraryId={book.openLibraryId}
+            language={book.language as LanguageKey}
+            seriesOptions={seriesOpts}
+          />
         </div>
 
         {/* Notes */}

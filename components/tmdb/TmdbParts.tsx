@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Film } from "lucide-react";
 import { TMDB_NOTICE } from "@/lib/tmdb";
+import { OL_NOTICE, OL_NOTICE_HREF } from "@/lib/openlibrary";
 
 /** A search-result poster thumbnail, straight from the source's CDN (TMDB or MyAnimeList). */
 export function Poster({ src }: { src: string | null }) {
@@ -59,6 +60,16 @@ export function MalNotice({ className = "", kind = "Anime" }: { className?: stri
       {kind} data from{" "}
       <a href="https://myanimelist.net" target="_blank" rel="noreferrer" className="underline">MyAnimeList</a>,
       through the official MyAnimeList API.
+    </p>
+  );
+}
+
+/** Open Library's attribution, shown wherever its data is used. */
+export function OlNotice({ className = "" }: { className?: string }) {
+  return (
+    <p className={`text-[11px] text-gray-400 ${className}`}>
+      {OL_NOTICE}{" "}
+      <a href={OL_NOTICE_HREF} target="_blank" rel="noreferrer" className="underline">openlibrary.org</a>.
     </p>
   );
 }

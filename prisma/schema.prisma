@@ -23,6 +23,8 @@ model Book {
   rating      Float?
   notes       String?
   timesReread Int         @default(0)
+  // Open Library work id ("OL82563W"). Unique so importing the same work again lands on this row.
+  openLibraryId String?   @unique
   seriesId    String?
   series      BookSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdAt   DateTime    @default(now())

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { SUPABASE_COVER_MARKER, mirrorCover } from "@/lib/covers";
 import { withErrors } from "@/lib/api-errors";
+import { OL_IMAGE_HOST } from "@/lib/openlibrary";
 
 const MIRROR_BATCH = 10;
 
@@ -16,10 +17,14 @@ async function POSTHandler() {
   }
 
   // Filter in SQL rather than reading the whole table and discarding all but 10 rows.
+  // Open Library covers are left where they are: they are shown straight from its CDN.
   const pendingWhere = {
     coverImage: { not: null },
-    NOT: { coverImage: { contains: SUPABASE_COVER_MARKER } },
-  } as const;
+    NOT: [
+      { coverImage: { contains: SUPABASE_COVER_MARKER } },
+      { coverImage: { contains: OL_IMAGE_HOST } },
+    ],
+  };
 
   const [batch, pendingCount] = await Promise.all([
     db.book.findMany({ where: pendingWhere, select: { id: true, coverImage: true }, take: MIRROR_BATCH }),

@@ -26,8 +26,10 @@ AUTH_PASSWORD=…                 # the password you log in with
 REPORT_TOKEN=…                  # optional: 32+ random chars; lets the nightly review read /api/study/review
 COMICVINE_API_KEY=…             # optional: comicvine.gamespot.com/api — lets Add Comic import a whole run
 TMDB_API_KEY=…                  # optional: themoviedb.org API key or read token — film and TV imports
-MAL_CLIENT_ID=…                 # optional: myanimelist.net/apiconfig Client ID — anime imports
+MAL_CLIENT_ID=…                 # optional: myanimelist.net/apiconfig Client ID — anime and manga imports
 ```
+
+Book import talks to Open Library and needs no key.
 
 Optional, per feature: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (cover uploads),
 `STEAM_API_KEY` / `STEAM_USER_ID` / `STEAMGRIDDB_API_KEY` (Steam sync),
