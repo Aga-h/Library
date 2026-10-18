@@ -222,7 +222,7 @@
       median, cover; publisher skipped (edition soup); language is yours. Hand-added linked by
       title+author; re-import fills blanks only; "Find / Check Open Library" on the book page.
       Google Books not used (edition-centric, needs a key). Goodreads has no public API.
-      **Needs 035 run** (see Blocked). No env var.
+      **Needs 035 run** (see Blocked). No env var. On `main`.
 - [x] **Comics: import a whole run from Comic Vine** — "Add Comic" searches Comic Vine; Import
       creates the comic and every issue (names + covers); "Check for new issues" on an imported comic
       picks up new releases. Read/Owned buttons were already on every issue row. Verified against a
@@ -561,9 +561,7 @@
 ## Blocked / needs the user
 
 - **Books: run `035-book-openlibrary.sql`** in the Supabase SQL Editor NOW — the book pages error
-  until it has run. Additive, safe to re-run. No API key. Branch
-  `cursor/books-open-library-import-0646` is pushed; opening a GitHub PR from the agent failed
-  ("must be a collaborator") — open one from that branch against `main`.
+  until it has run. Additive, safe to re-run. No API key. On `main` (Vercel production).
 
 - **Study: run `034-flashcards-quick-tests.sql`** in the Supabase SQL Editor NOW — the SAT Vocabulary
   pages error until it has run. Additive, safe to re-run.
@@ -680,6 +678,10 @@
   Postgres *and* prove it can fail before handing it over.
 
 ## Notes for the next session
+
+- **Always merge finished work into `main`.** Vercel production is `main` only — other branches
+  are not published as the site. Fast-forward when possible; don't leave a completed feature
+  sitting on a `cursor/` branch.
 
 - **Commit work in progress before long test runs.** On 2026-10-14 the container was reset
   mid-task: everything uncommitted (and the user's upload) was gone, and the repo came back empty.
