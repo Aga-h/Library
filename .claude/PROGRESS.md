@@ -1,9 +1,8 @@
 # Current state
 
-**Goal:** Media library app — feature work plus the repo-wide audit fixes.
-**Branch:** `main` — the only branch. The four old `claude/*` branches were merged into it and
-deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-15 — Study: flashcards (Anki-style) + quick tests (needs 034); Manga: whole MyAnimeList list import page (needs 032 + MAL_CLIENT_ID); Anime: whole MyAnimeList list import page (needs MAL_CLIENT_ID + 027); Finances: installment purchases (needs 033 run); Manga from MyAnimeList (search/add/link/check; needs 032 run + MAL_CLIENT_ID); Finances: Base/Extra money sources per expense, balance per card (needs 031 run); Shopping section + products per shop (Soft Club metro-map look; needs 029 and 030 run); Acid pass 3 (31→60fps; the feature liquid now pours), Acid pass 2 (liquid marble, melting holographic titles, collage, drips, tracers, thermal covers) + look-picker oval bug fixed; Acid redone from the user's 14 posters (windows, HUD modules, stepped glitch motion); Soft Club pass 4: motion (arrival like carriages, roll-sign navigation, light passes, LED warm-up); pass 3 replaced white panels; pass 2 removed outlines and folded the look menu; Acid/Early Cyber/Cyberdelia redesigns next (one at a time, from references); anime import waiting on MAL Client ID/027/optional 028; 018–020 unconfirmed
+**Goal:** Finish the whole-site phone layout (Claude's `claude/phone-wip` work) and get it onto `main` / the live site.
+**Branch:** `cursor/phone-interface-a49b` — rebased onto `origin/main` from `claude/phone-wip`.
+**Updated:** 2026-10-18 — picking up the phone WIP: phase 1 (drawer + 16px fields) and most of phase 2 (per-section pages) already landed on that branch; remaining is PhoneSheet a11y, leftover tap targets, Early Cyber/Cyberdelia topbar polish, then a 390px overflow pass across looks.
 
 ## Done
 
@@ -413,22 +412,15 @@ deleted; `main` is the GitHub default and what Vercel deploys.
         Verified with a stand-in refusing 10% of requests at random + a mid-import Stop → retry: all
         imported, no duplicates, one series.
       - **needs MAL_CLIENT_ID + 027** (see Blocked, anime)
-- [ ] **Whole site on a phone — IN PROGRESS** (user, 2026-10-15: "make the whole site work on a phone
-      properly"). Library and Study have fixed 224px sidebars with no phone layout; Finances/Shopping/
-      Wardrobe headers and mains use desktop padding. Plan: a harness (local DB seeded with realistic
-      data, all 90 routes at 390px in all 5 looks, automatic overflow detection) → shared shell first
-      (phone nav for both sidebars, layouts, theme CSS) → per-section page fixes → re-run until clean.
-      Baseline (Soft Club, 390px): all 72 Library + 9 Study pages squeezed to a 166px main by the
-      sidebar (Study also spills to ~500px); Finances month pages 807px wide; 59/90 pages have fields
-      under 16px (iOS zoom on focus); portal/shopping/wardrobe/log mostly fine. Harness + seed live in
-      the session scratchpad only (not committed); local DB `lib_phone`.
-      - **Work in progress lives on branch `claude/phone-wip`** (not merged — main stays deployable).
-        Resume there: `git checkout claude/phone-wip`. Phase 1 built + reviewed; reviewer findings
-        being fixed (acid drawer scroll/tap size, LevelStats lost the looks' figure styling, landscape
-        phones still zoom fields, EpisodeButtons label, Breadcrumb desktop shift).
-      - [ ] phase 1: phone nav (top bar + drawer) for Library/Study, layouts, looks; 16px fields; ui/*
-      - [ ] phase 2: per-section pages (portal/login, library ×3 groups, study, finances, shopping+wardrobe)
-      - [ ] phase 3: all 90 pages × 5 looks clean; desktop unchanged
+- [ ] **Whole site on a phone — FINISHING** (user, 2026-10-15: "make the whole site work on a phone
+      properly"; 2026-10-18: pick up Claude's WIP and put it on the live site).
+      Baseline (Soft Club, 390px): Library/Study squeezed by a 224px sidebar; finance months ~807px
+      wide; 59/90 pages had fields under 16px (iOS zoom).
+      - [x] phase 1: Library/Study top bar + drawer (`SectionNav`), layouts, looks, 16px fields, ui/*
+      - [x] phase 2: per-section pages (portal/login, library, study, finances, shopping, wardrobe)
+      - [ ] remaining nits: PhoneSheet Escape/focus/scroll-lock; Movies/TV/Mirror/drawer tap heights;
+            Early Cyber topbar + drawer close; Cyberdelia topbar sep; QuickTest progress wrap
+      - [ ] phase 3: 390px overflow + field-size pass across the five looks; desktop unchanged
 - [x] **Study: flashcards (Anki-style) + quick tests** (user, 2026-10-15: "aside from the full question
       tab, build a flashcard system like anki's, and smaller question pool tests beside that (the full
       question test should stay)"). Full test untouched (only links added to its header).
