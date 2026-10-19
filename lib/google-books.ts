@@ -54,15 +54,16 @@ function positiveInt(value: unknown): number | null {
 const GB_ID = /^[A-Za-z0-9_-]{8,20}$/;
 
 /**
- * A Google Books volume id, from a bare id, a books.google.com URL (`?id=`), or a
- * `/volumes/{id}` API URL. Open Library work ids and ISBNs are refused — they can look like
- * ids and must not be stitched into a Google URL.
+ * A Google Books volume id, from a bare id, a books.google.com URL (`?id=`), a
+ * google.com/books/edition/{name}/{id} page, or a `/volumes/{id}` API URL. Open Library work ids
+ * and ISBNs are refused — they can look like ids and must not be stitched into a Google URL.
  */
 export function googleVolumeIdOf(value: unknown): string | null {
   const raw = text(value);
   if (!raw) return null;
   const fromUrl =
     raw.match(/[?&]id=([A-Za-z0-9_-]{8,20})/) ??
+    raw.match(/\/books\/edition\/[^/?#]*\/([A-Za-z0-9_-]{8,20})(?:[/?#]|$)/) ??
     raw.match(/\/volumes\/([A-Za-z0-9_-]{8,20})(?:[/?#]|$)/);
   const id = fromUrl ? fromUrl[1] : raw;
   if (workIdOf(id) || isbnOf(id)) return null;
@@ -381,10 +382,16 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
   const ambiguous = ambiguousCores(listings);
   const titles = titlesOf(listings);
   const parent = listings.map((_, i) => i);
+  // Who each group is by, once a listing in it names an author. A listing with no author may join
+  // either of two books, but never joins them to each other: an anonymous "Piranesi" must not
+  // make Susanna Clarke's novel and Nicholas Penny's art book one book.
+  const by = listings.map((l) => (l.author && l.author !== "unknown" ? l.author : null));
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const join = (i: number, j: number) => {
     const [a, b] = [find(i), find(j)].sort((x, y) => x - y);
+    if (a === b || (by[a] && by[b] && by[a] !== by[b])) return;
     parent[b] = a;
+    by[a] ??= by[b];
   };
   for (let i = 0; i < listings.length; i++) {
     for (let j = i + 1; j < listings.length; j++) {
@@ -646,21 +653,30 @@ export function catalogFromVolumes(
 
 /**
  * What to ask Google Books for every edition of one book, by its first author: the title as
- * shown, and — for "Mistborn: The Final Empire" — each half on its own, since one publisher calls
- * it "The Final Empire" and another just "Mistborn". Punctuation goes, so "Mistborn:" can't read
- * as a search keyword. The author goes in as plain words, not `inauthor:` — Google answers
- * `inauthor:"Brandon Sanderson"` with nothing, and `inauthor:Sanderson` with nothing for "The Hero
- * of Ages" (2026-10-19). groupEditions keeps other authors' books out.
+ * shown and, for "Mistborn: The Final Empire", its second half, both with the author; then the
+ * title and each half on its own. Punctuation goes, so "Mistborn:" can't read as a search
+ * keyword. The author is plain words, not `inauthor:` (since ~1 Oct 2026 Google answers every
+ * fielded search with nothing). The bare queries matter: Google returns the 2006 Tor hardcover of
+ * The Final Empire for "mistborn" or "the final empire" and for no query with the author in it.
+ * groupEditions keeps other authors' books out. A one-part title also asks for its series by the
+ * author ("The Hero of Ages: Book Three of Mistborn" → "mistborn Brandon Sanderson").
+ * Measured on six books, 2026-10-19: 27 of 31 editions with covers, against 23 before.
  */
 export function editionSearchQueries(book: Titled): string[] {
   const words = (title: string) => title.replace(/[^\p{L}\p{N}'’]+/gu, " ").trim();
   const author = words(firstAuthor(book.author));
-  const by = author && normaliseAuthor(author) !== "unknown"
-    ? ` ${author}`
-    : "";
-  const { core } = parseTitle(book.title);
-  const queries = [`${words(book.title)}${by}`];
-  if (by && core.length > 1) queries.push(`${core.slice(1).join(" ")}${by}`, `${core[0]}${by}`);
+  const by = author && normaliseAuthor(author) !== "unknown" ? ` ${author}` : "";
+  const { core, series } = parseTitle(book.title);
+  const full = words(book.title);
+  const queries = [`${full}${by}`];
+  if (core.length > 1) {
+    const [head, ...rest] = core;
+    if (by) queries.push(`${rest.join(" ")}${by}`);
+    queries.push(full, head, rest.join(" "));
+  } else {
+    queries.push(full);
+    if (series && by) queries.push(`${series}${by}`);
+  }
   return [...new Set(queries)];
 }
 

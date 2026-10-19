@@ -31,10 +31,15 @@ const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Pauses before asking again. Since early October 2026 Google Books answers many searches with a
- * quick 503 "Service temporarily unavailable"; the same request usually succeeds a moment later.
+ * quick 503 "Service temporarily unavailable"; the same request usually succeeds a moment later,
+ * so a search is asked up to 12 times. Looking up one volume hardly ever fails.
  */
-const RETRY_PAUSES = [300, 700, 1500, 3000];
+const SEARCH_PAUSES = [250, 250, 500, 500, 750, 750, 1000, 1000, 1000, 1000, 1000];
+const VOLUME_PAUSES = [300, 1000];
 const PASSING = new Set([500, 502, 503, 504]);
+/** One request, every try included, so a search and its page counts fit in a route's 60s. */
+const CALL_LIMIT = 15_000;
+const TRY_LIMIT = 8_000;
 
 async function get(path: string, params: Record<string, string> = {}): Promise<Raw> {
   const url = new URL(`${baseUrl()}${path}`);
@@ -46,31 +51,37 @@ async function get(path: string, params: Record<string, string> = {}): Promise<R
   if (key) search.set("key", key);
   url.search = search.toString();
 
+  const pauses = path === "/volumes" ? SEARCH_PAUSES : VOLUME_PAUSES;
+  const deadline = Date.now() + CALL_LIMIT;
   let res: Response | null = null;
   for (let attempt = 0; ; attempt++) {
     try {
       res = await fetch(url, {
         headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(Math.max(1, Math.min(TRY_LIMIT, deadline - Date.now()))),
         cache: "no-store",
       });
     } catch {
       res = null;
     }
-    // A 429 is asked once more; a brief outage, up to RETRY_PAUSES times.
-    const again = res === null || PASSING.has(res.status) ? attempt < RETRY_PAUSES.length
+    // A 429 is asked once more; a brief outage, once per pause, while there is time.
+    const again = res === null || PASSING.has(res.status) ? attempt < pauses.length
       : res.status === 429 ? attempt === 0 : false;
-    if (!again) break;
-    await pause(RETRY_PAUSES[attempt]);
+    if (!again || Date.now() + pauses[attempt] >= deadline) break;
+    await pause(pauses[attempt]);
   }
   if (!res) throw new GoogleBooksError("Couldn't reach Google Books — try again in a minute.", 502);
 
   if (res.status === 404) throw new GoogleBooksError("That isn't on Google Books.", 404);
   if (res.status === 429) {
+    // The key's "Queries per day" (1,000 by default) ends at midnight Pacific; waiting a moment won't help.
+    const daily = /per day/i.test(await res.text().catch(() => ""));
     throw new GoogleBooksError(
-      apiKey()
-        ? "Google Books is rate-limiting requests — wait a moment and try again."
-        : "Google Books needs GOOGLE_BOOKS_API_KEY — set it in Vercel, enable the Books API, and redeploy.",
+      !apiKey()
+        ? "Google Books needs GOOGLE_BOOKS_API_KEY — set it in Vercel, enable the Books API, and redeploy."
+        : daily
+          ? "Google Books' daily limit for this API key is used up — it starts again at midnight Pacific time."
+          : "Google Books is rate-limiting requests — wait a moment and try again.",
       429,
     );
   }
@@ -102,6 +113,7 @@ function volumesOf(body: Raw): GbVolume[] {
 
 /** Volumes matching a search, in Google's relevance order. Magazines excluded. */
 export async function searchVolumes(query: string): Promise<GbVolume[]> {
+  const started = Date.now();
   const asked = googleSearchQueryOf(query);
   if (asked.kind === "id") {
     try {
@@ -121,17 +133,29 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
   };
   // Do not send langRestrict. Google's "en" filter drops books it tagged "un" and can return
   // an empty list for an English novel. Translations are removed afterwards in catalogFromVolumes.
-  const first = await get("/volumes", params);
+  let first: Raw;
+  try {
+    first = await get("/volumes", params);
+  } catch (e) {
+    // isbn: finds nothing at the moment anyway, so Google refusing it isn't the end of it.
+    if (asked.kind === "isbn" && e instanceof GoogleBooksError) return volumesForIsbn(asked.value);
+    throw e;
+  }
   const rows = Array.isArray(first.items) ? [...(first.items as Raw[])] : [];
   // A second page so a paperback buried under Kindle listings can still be collapsed in. Not
-  // gated on totalItems: Google says 1 while sending 20. It sends at most 20 per page.
+  // gated on totalItems: Google says 1 while sending 20. It sends at most 20 per page. Page 1 is
+  // worth showing on its own, so a page 2 Google keeps refusing is left out.
   if (rows.length > 0) {
-    const second = await get("/volumes", { ...params, startIndex: String(rows.length) });
-    if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
+    try {
+      const second = await get("/volumes", { ...params, startIndex: String(rows.length) });
+      if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
+    } catch (e) {
+      if (!(e instanceof GoogleBooksError)) throw e;
+    }
   }
   const volumes = volumesOf({ items: rows });
   if (asked.kind === "isbn" && volumes.length === 0) return volumesForIsbn(asked.value);
-  return refillBlankPages(volumes, volumesToRefetch(volumes, asked.value));
+  return refillBlankPages(volumes, volumesToRefetch(volumes, asked.value), started + REFILL_BY);
 }
 
 /**
@@ -153,7 +177,7 @@ async function volumesForIsbn(isbn: string): Promise<GbVolume[]> {
   // of Ascension - …") is known for one and isn't taken for an edition of it.
   const group = groupEditions<{ title: string; author: string }>([book, ...volumes]).find((g) => g.includes(book)) ?? [];
   const found = exact ? [exact] : (group.filter((row) => row !== book) as GbVolume[]);
-  return refillBlankPages(found, volumesToRefetch(found, book.title));
+  return refillBlankPages(found, volumesToRefetch(found, book.title), Date.now() + CALL_LIMIT);
 }
 
 /**
@@ -187,16 +211,20 @@ export async function editionVolumes(book: { title: string; author: string }, bo
   return volumes;
 }
 
+/** Page-count lookups start no later than this after a search began: the route has 60s. */
+const REFILL_BY = 40_000;
+
 /**
  * `volumes.list` often says a paperback has no page count. `volumes.get` for that same id
- * has the count the Google Books site shows. A failure here leaves the list as it was.
+ * has the count the Google Books site shows. A failure here leaves the list as it was, and so
+ * does running out of time: none is started after `deadline`.
  */
-async function refillBlankPages(volumes: GbVolume[], pending: string[]): Promise<GbVolume[]> {
+async function refillBlankPages(volumes: GbVolume[], pending: string[], deadline: number): Promise<GbVolume[]> {
   if (pending.length === 0) return volumes;
   const updates = new Map<string, GbVolume>();
   let next = 0;
   async function worker() {
-    while (next < pending.length) {
+    while (next < pending.length && Date.now() < deadline) {
       const id = pending[next++];
       try {
         const full = await volumeById(id);

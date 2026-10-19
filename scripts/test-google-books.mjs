@@ -6,7 +6,7 @@
 import {
   googleVolumeIdOf, googleSearchQueryOf, googleCoverUrl, isGoogleBooksImage, yearFromDate,
   toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, volumesToRefetch,
-  isEnglishListing, GB_IMAGE_HOSTS, editionSearchQueries, editionsFromVolumes,
+  isEnglishListing, GB_IMAGE_HOSTS, editionSearchQueries, editionsFromVolumes, groupEditions,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
 import { readFileSync } from "node:fs";
@@ -43,6 +43,10 @@ const raw = (over = {}, infoOver = {}) => ({
 eq(googleVolumeIdOf(gbId), gbId, "bare volume id");
 eq(googleVolumeIdOf(`https://books.google.com/books?id=${gbId}`), gbId, "books.google.com ?id=");
 eq(googleVolumeIdOf(`https://www.googleapis.com/books/v1/volumes/${gbId}`), gbId, "API volumes URL");
+eq(googleVolumeIdOf("https://www.google.com/books/edition/Mistborn/dlfOfxkm1PoC?hl=en&gbpv=1&printsec=frontcover"),
+  "dlfOfxkm1PoC", "google.com/books/edition page, as a browser shows it today");
+eq(googleSearchQueryOf("https://www.google.com/books/edition/_/dlfOfxkm1PoC"), { kind: "id", value: "dlfOfxkm1PoC" },
+  "…and searching for it opens that edition");
 eq(googleVolumeIdOf("OL82563W"), null, "an Open Library work id is not a Google volume");
 eq(googleVolumeIdOf("9780439708180"), null, "an ISBN is not a Google volume id");
 eq(googleVolumeIdOf(""), null, "empty: unusable");
@@ -293,13 +297,37 @@ ok(sameWork({ title: "Educated", author: "Tara Westover" }, { title: "Educated: 
 ok(!sameWork({ title: "Special Topics in Calamity Physics", author: "Marisha Pessl" }, { title: "Calamity Physics", author: "Marisha Pessl" }),
   "a main title is never dressing, even with 'special' in it");
 
+{
+  const pir = (id, title, author) => ({ id, title, author });
+  const groups = groupEditions([
+    pir("samuel", "Piranesi", "Arthur Michael Samuel"),
+    pir("anon", "Piranesi", "Unknown"),
+    pir("clarke", "Piranesi", "Susanna Clarke"),
+    pir("penny", "Piranesi", "Nicholas Penny"),
+    pir("clarke2", "Piranesi", "Susanna Clarke"),
+  ]).map((g) => g.map((r) => r.id));
+  eq(groups, [["samuel", "anon"], ["clarke", "clarke2"], ["penny"]],
+    "a listing with no author joins one book, never two authors' books to each other");
+}
+
 // ── the edition search for the cover flow ────────────────────────────────────
 eq(editionSearchQueries({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson, Someone Else" }), [
   "Mistborn The Final Empire Brandon Sanderson",
   "the final empire Brandon Sanderson",
+  "Mistborn The Final Empire",
+  "mistborn",
+  "the final empire",
+], "edition search: the title and its second half by the first author, then the title and each half bare");
+eq(editionSearchQueries({ title: "Piranesi", author: "Susanna Clarke" }), ["Piranesi Susanna Clarke", "Piranesi"],
+  "…a one-part title: with the author, then bare");
+eq(editionSearchQueries({ title: "The Hero of Ages: Book Three of Mistborn", author: "Brandon Sanderson" }), [
+  "The Hero of Ages Book Three of Mistborn Brandon Sanderson",
+  "The Hero of Ages Book Three of Mistborn",
   "mistborn Brandon Sanderson",
-], "edition search: the whole title, and each half on its own, by the first author");
+], "…and its series by the author, when the title names one");
 eq(editionSearchQueries({ title: "Piranesi", author: "Unknown" }), ["Piranesi"], "…an unknown author is left out");
+eq(editionSearchQueries({ title: "Mistborn: The Final Empire", author: "Unknown" }),
+  ["Mistborn The Final Empire", "mistborn", "the final empire"], "…and then the halves are only asked bare");
 const fePaperBlank = gb("finalEmpPapr1", "Mistborn", "The Final Empire", 0, { year: 2010, publisher: "Tor Books", isbn: "9780765365439" });
 const feNoCover = { ...gb("finalEmpNoCov", "Mistborn", "The Final Empire", 560, { year: 2008, publisher: "Tor Teen", isbn: "9780765360960" }), cover: null, coverThumb: null };
 const feUntaggedEs = { ...gb("finalEmpSpan1", "Mistborn", "El imperio final", 688, { year: 2008, publisher: "Nova" }), language: "un" };
@@ -450,10 +478,18 @@ const server = createServer((req, res) => {
   }
   if (url.pathname === "/volumes" && (url.searchParams.get("q") ?? "").includes("ratelimit")) {
     res.writeHead(429);
-    res.end(JSON.stringify({ error: { code: 429, message: "quota" } }));
+    const daily = url.searchParams.get("q") === "dailylimit ratelimit";
+    res.end(JSON.stringify({ error: { code: 429, message: daily ? "Quota exceeded for quota metric 'Queries' and limit 'Queries per day'" : "quota" } }));
     return;
   }
-  // Google's quick 503: this query fails twice, then answers.
+  // Google refusing page 2 of a search, and every isbn: probe for one ISBN.
+  if (url.pathname === "/volumes" && ((url.searchParams.get("q") === "piranesi novel" && url.searchParams.get("startIndex"))
+    || url.searchParams.get("q") === "isbn:9781635575637")) {
+    res.writeHead(503);
+    res.end(JSON.stringify({ error: { code: 503, message: "Service temporarily unavailable." } }));
+    return;
+  }
+  // Google's quick 503: this query fails `flaky` times, then answers.
   if (url.pathname === "/volumes" && (url.searchParams.get("q") ?? "") === "piranesi" && flaky > 0) {
     flaky--;
     res.writeHead(503);
@@ -609,9 +645,10 @@ try {
   eq(found[0].id, gbId, "…Piranesi");
   eq(found[0].publisher, "Bloomsbury", "…publisher");
 
-  flaky = 2;
-  eq((await searchVolumes("piranesi")).map((v) => v.id), [gbId], "two quick 503s are asked again, not an error");
-  eq(flaky, 0, "…both were used up");
+  flaky = 11;
+  eq((await searchVolumes("piranesi")).map((v) => v.id), [gbId], "eleven quick 503s are asked again, not an error");
+  eq(flaky, 0, "…all were used up");
+  eq((await searchVolumes("piranesi novel")).map((v) => v.id), [gbId], "page 2 always refused: page 1 is still shown");
 
   const catalog = await searchCatalog("piranesi");
   eq(catalog.works.map((w) => w.googleBooksId), [gbId], "searchCatalog is Google Books only");
@@ -638,7 +675,7 @@ try {
   eq((await searchVolumes("0-7653-1178-X")).map((v) => v.id), ["dlfOfxkm1PoC"],
     "isbn: finds nothing: Open Library names the book, the plain search's listing with the ISBN is the answer");
   eq((await searchVolumes("978-1-63557-563-7")).map((v) => v.id), [gbId],
-    "…no listing has the ISBN: the book's other listings are shown");
+    "…no listing has the ISBN: the book's other listings are shown (and the isbn: probe 503ing didn't stop it)");
   eq(await searchVolumes("9780000000002"), [], "…an ISBN Open Library doesn't know finds nothing, without an error");
 
   const one = await volumeById(gbId);
@@ -659,6 +696,22 @@ try {
     assert(String(e.message).includes("GOOGLE_BOOKS_API_KEY"), "no-key 429 mentions the env var");
     assert(!String(e.message).includes("127.0.0.1"), "the stand-in URL is not in the 429 message");
   }
+
+  process.env.GOOGLE_BOOKS_API_KEY = "good";
+  try {
+    await searchVolumes("dailylimit ratelimit");
+    assert(false, "a used-up day should throw");
+  } catch (e) {
+    assert(e instanceof GoogleBooksError && e.status === 429 && /midnight Pacific/.test(e.message),
+      "a used-up daily limit says when it starts again, not 'wait a moment'");
+  }
+  try {
+    await searchVolumes("ratelimit");
+    assert(false, "429 should throw");
+  } catch (e) {
+    assert(e instanceof GoogleBooksError && /wait a moment/.test(e.message), "…a short rate limit says wait a moment");
+  }
+  delete process.env.GOOGLE_BOOKS_API_KEY;
 
   try {
     await searchVolumes("down");
