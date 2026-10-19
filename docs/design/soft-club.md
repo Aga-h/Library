@@ -31,33 +31,56 @@ CARI's markers:
 - **Subject:** city life and first-wave gentrification.
 - **Colour:** muted naturals: greens, beiges, tans, greys, black.
 
-**This site's version** follows the owner's 24 reference images, sent on 2026-10-02: tDR sleeves,
-Tresor, Y2K transit, CD singles. These sit at the cooler club-sleeve and transit end of the
-aesthetic. The ones the build is drawn from:
+**This site's version** follows the owner's 24 reference images, kept in
+[`references/softclub/`](references/softclub/). They are record sleeves, film and game covers, a
+book jacket, two Bowienet pages, and photos of a subway, a shop window and a showroom. Together
+they sit at the cooler club-sleeve and transit end of the aesthetic.
 
-| Reference | What it gives the look |
-|---|---|
-| Blur's "blur" sleeve | Motion blur. Shapes you can tell apart with no outline at all |
-| The "Gen X / contemporary soft club" collage | Layered stills with fading edges, a glowing rule running off the page |
-| Tresor's *Globus Mix* | The concentric target, used as an emblem |
-| *Ambient Lounge* | Bands of tinted film between hairline rules, open at the sides |
-| Bowienet (1998) | Numbered tiles, index tabs, dotted column rules |
-| Junkie XL | Light bars: a bright top edge over a streak that fades out |
-| Kaskade | Out-of-focus colour blobs |
-| *Jazzy Chill Out* | Light trails, a row of fading dots |
-| The Nintendo GameCube ad | Capsules drawn in light |
-| Y2K transit, CD singles | Roll signs, station codes, LED platform boards, tracklists |
+| File | What it is | What the look takes from it |
+|---|---|---|
+| [2519](references/softclub/IMG_2519.webp) | The "Gen X / Young Adult / contemporary soft club" collage | The name; layered stills with fading edges; a glowing rule running off the page; thin, wide type |
+| [2520](references/softclub/IMG_2520.webp) | *Chungking Express* poster (Wong Kar-wai, 1994) | Crowds smeared by motion; a small, widely spaced caption |
+| [2521](references/softclub/IMG_2521.webp) | Blur, *Blur* (1997) | Motion blur: shapes told apart with no outline at all |
+| [2522](references/softclub/IMG_2522.webp) | Tresor 142, *Globus Mix Vol. 4* | The concentric lime target; "Tresor." ending in a full stop, as the titles do; a lime-lit tunnel |
+| [2523](references/softclub/IMG_2523.webp) | Bowienet home page (1998) | Washed-out white haze; thin columns of small text; dotted column rules; index tabs |
+| [2524](references/softclub/IMG_2524.webp) | Ruxpin, *Midnight Drive* | A fluorescent-green metro station with a train passing: the transit setting |
+| [2525](references/softclub/IMG_2525.webp) | Junkie XL, *Saturday Teenage Kick* | Light bars streaking right; `<software release …>` in angle brackets, hence the `<label>`s; "V1.13X", hence `ver.2` |
+| [2526](references/softclub/IMG_2526.webp) | Radiohead, *OK Computer* (1997) | A pale blue-white wash; motorway line drawings; figures fading into the haze |
+| [2527](references/softclub/IMG_2527.webp) | Kaskade, *Gonna Make It* | Out-of-focus colour blobs, used for the stat boxes; thin lowercase type on a hairline |
+| [2528](references/softclub/IMG_2528.webp) | Sneaker Pimps, *Becoming X* | The whole photo in one blue cast, with line art over it |
+| [2529](references/softclub/IMG_2529.webp) | Nine Days, *The Madding Crowd* | Commuters smeared by motion in a green-lit hall: things arriving blurred; the title in a band of blue |
+| [2530](references/softclub/IMG_2530.webp) | *Deus Ex* (2000) cover | A violet-blue city at night under a column of light |
+| [2531](references/softclub/IMG_2531.webp) | *Phase Paradox* cover | A face behind a cyan grid; Japanese type; small portraits in a column |
+| [2532](references/softclub/IMG_2532.webp) | Ratty, *Sunrise (Here I Am)* | An LED dot-matrix road sign: the figures in DotGothic16 |
+| [2533](references/softclub/IMG_2533.webp) | T.M.Revolution, *Progress* | Dot-matrix type at full size; a green-lit tunnel |
+| [2534](references/softclub/IMG_2534.webp) | A Japanese car showroom | Brushed steel, a lit turntable, cool white light: the sterile side of the futurism |
+| [2535](references/softclub/IMG_2535.webp) | Bloomingdale's "Power Flower" window at night | White line drawings glowing on cyan light boxes; passers-by blurred |
+| [2536](references/softclub/IMG_2536.webp) | Black-and-white video still of a tower against the sun | Camcorder grain and a timestamp over the picture: the grain and scanlines |
+| [2537](references/softclub/IMG_2537.webp) | New York subway roll signs (F train, "179 St, Jamaica") | The roll sign: the active menu item and the phone top bar |
+| [2538](references/softclub/IMG_2538.webp) | Nintendo GameCube ad | The capsule text box: secondary buttons |
+| [2539](references/softclub/IMG_2539.webp) | David Mitchell, *Ghostwritten* (book cover) | Light streaks; the title echoed and blurred |
+| [2540](references/softclub/IMG_2540.webp) | Bowienet "Inside" page | A pale blue pixel mosaic; letters spaced down a column |
+| [2541](references/softclub/IMG_2541.webp) | *Ambient Lounge 5* | Bands between hairline rules, open at the sides (the panels); a Barcelona chair in cool daylight |
+| [2542](references/softclub/IMG_2542.webp) | *Jazzy Chill Out* (Sacred Spirit Vol. 8) | Light trails; the row of fading orange dots in the page header |
 
-Nine Days is also named in the stylesheet's list of references.
+**What the whole set shows:**
+
+- **Three casts.**
+  - Icy blue-cyan, in most of the set.
+  - Fluorescent subway green: Tresor, Ruxpin, Nine Days, T.M.Revolution, *Phase Paradox*.
+  - Warm sodium orange: Blur, *Jazzy Chill Out*, Ratty.
+
+  The site keeps blue-cyan as its cast and uses the other two as its lights, lime and orange.
+- **People and trains smeared by motion:** Blur, *Chungking Express*, Nine Days, *OK Computer*.
+- **Tunnels, stations and signage:** roll signs, LED boards, platform type.
+- **Thin lowercase sans:** Bowienet, Kaskade, *Ambient Lounge*.
+- **Washed-out white haze:** Bowienet, *OK Computer*, *Ambient Lounge*.
 
 **The idea in one line:** *a city seen from a moving train, in one icy cyan cast.*
 
 **A known difference:** CARI's colour is muted naturals, while the owner's references are an icy
 cyan cast. The site follows the owner. The natural palette is a valid other version of the
 aesthetic, but it is not this one. Don't drift toward beige.
-
-**The references are not in the repo.** Only these descriptions survive. If the owner can, they
-should be committed to `docs/design/references/softclub/` so future work can look at them. See §12.
 
 ---
 
@@ -420,7 +443,7 @@ Soft Club is softer, cooler, earthbound and urban.
    - `bg-gray-900` → the roll sign
 
    Use the same classes the other looks use, so each look keeps working.
-2. **Name the reference.** For anything signature, decide which sleeve or sign it comes from and
+2. **Name the reference.** For anything signature, pick the image it comes from in §1 and
    say so in the CSS comment, as the existing rules do ("like the bands on Ambient Lounge's
    sleeve"). If no reference fits, ask the owner rather than inventing one.
 3. **Give it a hook class** (`.shop-line-bullet`, `.theme-nav-item`), and style it under
@@ -447,15 +470,12 @@ Soft Club is softer, cooler, earthbound and urban.
   gray-500 at 4.2:1, both under AA for small text. The fix would move label text to `#17609f` and
   the readout to gray-600, keeping cyan for the brackets and glows. It is not done yet because it
   changes the look, so the owner decides.
-- **The references are missing.** The 24 images aren't in the repo. Committing them to
-  `docs/design/references/softclub/` would let future work check against them instead of against
-  descriptions.
 
 ---
 
 ## Sources
 
-- The owner's reference images and feedback, 2026-10-02 to 2026-10-03, recorded in
-  `.claude/PROGRESS.md`.
+- The owner's reference images, in [`references/softclub/`](references/softclub/).
+- The owner's feedback, 2026-10-02 to 2026-10-03, recorded in `.claude/PROGRESS.md`.
 - [CARI — Gen X Soft Club](https://cari.institute/aesthetics/gen-x-soft-club)
 - [Consumer Aesthetics Research Institute — Wikipedia](https://en.wikipedia.org/wiki/Consumer_Aesthetics_Research_Institute)

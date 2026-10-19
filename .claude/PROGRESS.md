@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: Mistborn shows as "Mistborn: The Final Empire" (subtitle was dropped, and langRestrict hid untagged English books). Soft Club design guideline written (`docs/design/soft-club.md`). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: Mistborn shows as "Mistborn: The Final Empire" (subtitle was dropped, and langRestrict hid untagged English books). Soft Club design guideline written (`docs/design/soft-club.md`), reference images indexed. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -434,9 +434,9 @@
 - [x] **Soft Club design guideline** (user, 2026-10-19: "write a detailed guideline for gen x
       soft club"): `docs/design/soft-club.md`, drawn from the shipped CSS, the owner's feedback
       above, and CARI's definition. Covers the rules, tokens, type, surfaces, controls, layers,
-      motion, motifs, do/don't and a build checklist. It found two things, both left for the owner
-      (see Blocked): label and readout contrast below AA, and the reference images aren't in the
-      repo.
+      motion, motifs, do/don't and a build checklist. The user then committed the 24 reference
+      images; they are in `docs/design/references/softclub/` and indexed in the guideline's §1.
+      Open for the owner (see Blocked): label and readout contrast is below AA.
 - [ ] **Then Early Cyber, then Cyberdelia**
 - [x] **Anime: import a whole MyAnimeList list** (user, 2026-10-14, Turkish: log every anime in their
       list with the auto import, all watched, only complete seasons — no films, OVAs, specials,
@@ -606,12 +606,8 @@
 
 ## Blocked / needs the user
 
-- **Soft Club, two decisions (optional).**
-  1. Should the cyan `<label>` text (2.9:1) and the grey title readout (4.2:1) move to `#17609f`
-     and gray-600 to pass AA? It changes the look slightly.
-  2. Can the 24 Soft Club reference images go into `docs/design/references/softclub/`? They
-     aren't in the repo.
-
+- **Soft Club contrast (optional).** Should the cyan `<label>` text (2.9:1) and the grey title
+  readout (4.2:1) move to `#17609f` and gray-600 to pass AA? It changes the look slightly.
   See `docs/design/soft-club.md` §12.
 - **Books: run `035-book-openlibrary.sql`, then `036-book-google-books.sql`, then
   `037-book-owned-kindle.sql`** in the Supabase SQL Editor NOW — the book pages error until
