@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — working rules for this repo are in `AGENTS.md` ("How to work"). Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: Mistborn shows as "Mistborn: The Final Empire" (subtitle was dropped, and langRestrict hid untagged English books). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,11 @@
 
 ## Next
 
+- [x] **Books: Mistborn: The Final Empire missing** (asked 2026-10-19). Google stores the
+      title as "Mistborn" and the subtitle as "The Final Empire", so search showed "Mistborn"
+      and folded it into other Mistborn books. Subtitle is now part of the title. `langRestrict=en`
+      is not sent: it drops books Google tagged `un` and can return nothing. A tagged translation
+      is still left out. Search is the first 80 volumes that have a page count. On `main`.
 - [x] **Working rules** (asked 2026-10-19). How to change this repo — read first, match the
       surrounding code, keep the diff to the task, verify, and say what was not checked — is
       in `AGENTS.md` under "How to work", so later sessions load it. On `main`.

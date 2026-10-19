@@ -97,8 +97,8 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
     printType: "books",
     projection: "full",
   };
-  // Title search stays in English. An ISBN or a volume id is a specific edition and is left as it is.
-  if (asked.kind === "text") params.langRestrict = "en";
+  // Do not send langRestrict. Google's "en" filter drops books it tagged "un" and can return
+  // an empty list for an English novel. Translations are removed afterwards in catalogFromVolumes.
   const first = await get("/volumes", params);
   const rows = Array.isArray(first.items) ? [...(first.items as Raw[])] : [];
   const total = Number(first.totalItems) || rows.length;

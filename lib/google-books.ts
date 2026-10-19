@@ -107,6 +107,15 @@ export function yearFromDate(value: unknown): number | null {
   return m ? yearOf(Number(m[1])) : null;
 }
 
+/** Google often stores "Mistborn" as the title and "The Final Empire" as the subtitle. */
+function volumeTitle(info: Raw): string {
+  const title = text(info.title);
+  const subtitle = text(info.subtitle);
+  if (!title) return "";
+  if (!subtitle || title.toLowerCase().includes(subtitle.toLowerCase())) return title;
+  return `${title}: ${subtitle}`;
+}
+
 function hasImageLinks(info: Raw): boolean {
   const links = info.imageLinks;
   return !!links && typeof links === "object" && !Array.isArray(links) && Object.keys(links as object).length > 0;
@@ -117,7 +126,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
   if (!raw) return null;
   const id = googleVolumeIdOf(raw.id);
   const info = (raw.volumeInfo && typeof raw.volumeInfo === "object" ? raw.volumeInfo : {}) as Raw;
-  const title = text(info.title);
+  const title = volumeTitle(info);
   if (!id || !title) return null;
   const pictured = hasImageLinks(info);
   const lang = text(info.language).toLowerCase();
@@ -207,9 +216,13 @@ export function volumesToRefetch(volumes: GbVolume[], query: string, limit = REF
   return ids;
 }
 
-/** English, or a volume Google did not tag. "eng" is the occasional three-letter code. */
+/**
+ * Shown in search. English, a missing tag, or "un"/"und" (undetermined — Google uses that
+ * for a lot of English books, and langRestrict=en drops them). A tagged translation is not.
+ */
 export function isEnglishListing(volume: { language: string | null }): boolean {
-  return volume.language === null || volume.language === "en" || volume.language === "eng";
+  return volume.language === null || volume.language === "en" || volume.language === "eng"
+    || volume.language === "un" || volume.language === "und";
 }
 
 function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {

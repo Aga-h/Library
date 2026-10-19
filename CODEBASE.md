@@ -200,9 +200,11 @@ page count, not the Kindle file's. `volumes.list` reports 0 pages for a paperbac
 preview; every such row in the search is fetched again with `volumes.get`, which has the count
 on the Google Books page. A physical copy (dimensions) wins over a longer Kindle listing.
 One `googleBooksId` (036, unique) is stored.
-Title search is restricted to English (`langRestrict=en`), so a Portuguese or Spanish
-edition (Mistborn: O Império Final) is not listed; an ISBN still opens that exact edition.
-Hits whose title fits the query rank first. Tick one or several into a series you pick, or
+Google's title and subtitle are joined (Mistborn + The Final Empire), and a tagged
+translation is left out. `langRestrict=en` is not sent: it drops books Google tagged `un`
+and can return nothing. A book with no language tag still shows. Hits whose title fits the
+query rank first. An ISBN still opens that exact edition. Search shows what the first two
+pages of results contain (80 volumes) once a page count is known. Tick one or several into a series you pick, or
 standalone. Language is yours. "Read" marks every page; re-import only fills blanks.
 `matchExisting`: Google Books id, else title + author (including a row that still has an
 `openLibraryId` from an earlier import, so the two never duplicate). A volume with no page count

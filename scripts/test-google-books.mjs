@@ -187,6 +187,27 @@ const enPiranesi = { ...piranesi, language: "en", pages: 272 };
 eq(dedupeVolumes([ptPiranesi, enPiranesi]).map((v) => v.id), [gbId],
   "the English edition wins even when the translation has more pages");
 
+const finalEmpire = toVolume(raw({ id: "finalempire01" }, {
+  title: "Mistborn", subtitle: "The Final Empire", authors: ["Brandon Sanderson"],
+  pageCount: 544, language: "en", imageLinks: { thumbnail: "http://x" },
+}));
+eq(finalEmpire.title, "Mistborn: The Final Empire", "the subtitle is part of the title Google shows");
+const secretHistory = toVolume(raw({ id: "secrethistory1" }, {
+  title: "Mistborn: Secret History", authors: ["Brandon Sanderson"],
+  pageCount: 180, language: "en", imageLinks: { thumbnail: "http://x" },
+}));
+ok(!sameWork(finalEmpire, secretHistory), "The Final Empire is not Secret History");
+const undetermined = toVolume(raw({ id: "untaggedbook01" }, {
+  title: "The Hobbit", authors: ["J.R.R. Tolkien"], pageCount: 310, language: "un",
+  imageLinks: { thumbnail: "http://x" },
+}));
+eq(isEnglishListing(undetermined), true, "language 'un' is undetermined, not a translation");
+const mistbornList = catalogFromVolumes([finalEmpire, secretHistory, mistbornPt, undetermined], "Mistborn The Final Empire");
+eq(mistbornList[0].title, "Mistborn: The Final Empire", "the book that was searched is first");
+ok(mistbornList.some((w) => w.title === "Mistborn: Secret History"), "another English Mistborn book still shows");
+ok(!mistbornList.some((w) => w.title.includes("Império")), "the Portuguese edition stays out");
+ok(mistbornList.some((w) => w.title === "The Hobbit"), "a book Google left untagged still shows");
+
 const printId = "9qGQEAAAQBAJ";
 const kindleId = "zPWKDwAAQBAJ";
 const listedPrint = toVolume(raw({ id: printId, saleInfo: { isEbook: false } }, {
@@ -287,14 +308,6 @@ const server = createServer((req, res) => {
     res.writeHead(500);
     res.end("no");
     return;
-  }
-  if (url.pathname === "/volumes") {
-    const q = url.searchParams.get("q") ?? "";
-    if (!q.startsWith("isbn:") && url.searchParams.get("langRestrict") !== "en") {
-      res.writeHead(400);
-      res.end(JSON.stringify({ error: "title search must be English" }));
-      return;
-    }
   }
   if (url.pathname === `/volumes/${gbId}`) {
     res.writeHead(200, { "content-type": "application/json" });
