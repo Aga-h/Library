@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: Google Books only (Open Library dropped from search/import). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: Google Books search prefers the print page count over Kindle. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,11 @@
 
 ## Next
 
+- [x] **Books: print page count, not Kindle** (asked 2026-10-19: Mushoku Tensei Vol. 1 showed
+      267 instead of Google's 320). Same novel is many Google volumes; search was keeping the
+      first (usually the ebook). Prefer the print listing when collapsing editions. Series
+      volumes no longer collapse into one row via the title before a colon. Tests: Google
+      Books 79. On `main`.
 - [x] **Books: Google Books only** (asked 2026-10-19: drop Open Library). Add Book searches
       Google Books `/volumes` only; import and "Check Google Books" never call Open Library.
       Hits without a page count are still omitted. Existing `openLibraryId` rows stay and

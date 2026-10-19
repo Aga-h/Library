@@ -29,6 +29,8 @@ export interface GbVolume {
   publisher: string | null;
   /** ISO 639-1 from volumeInfo.language, e.g. "en". */
   language: string | null;
+  /** saleInfo.isEbook — Kindle/e-pub listings use a different page count than the print book. */
+  ebook: boolean;
 }
 
 type Raw = Record<string, unknown>;
@@ -117,6 +119,9 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
   if (!id || !title) return null;
   const pictured = hasImageLinks(info);
   const lang = text(info.language).toLowerCase();
+  const sale = (raw.saleInfo && typeof raw.saleInfo === "object" && !Array.isArray(raw.saleInfo)
+    ? raw.saleInfo
+    : {}) as Raw;
   return {
     id,
     title,
@@ -127,6 +132,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
     coverThumb: pictured ? googleCoverUrl(id, "thumb") : null,
     publisher: text(info.publisher) || null,
     language: /^[a-z]{2,3}$/.test(lang) ? lang : null,
+    ebook: sale.isEbook === true,
   };
 }
 
@@ -146,13 +152,22 @@ export function fromGbVolume(volume: GbVolume): CatalogBook {
 }
 
 /**
- * Same novel: any title key overlaps (so a subtitle doesn't split it) and the authors match.
- * Used only to collapse search hits — library rows still match on the full title.
+ * Same novel for collapsing search hits: authors match, and either the full titles match or
+ * one is the other with only a subtitle ("Piranesi" / "Piranesi: A Novel"). The short key
+ * before a colon is not enough on its own — that would merge every Mushoku Tensei volume.
+ * Library rows still match on the full title.
  */
 export function sameWork(a: { title: string; author: string }, b: { title: string; author: string }): boolean {
-  const titles = new Set(titleKeys(a.title));
-  if (!titleKeys(b.title).some((t) => titles.has(t))) return false;
-  return authorsMatch(a.author, b.author);
+  if (!authorsMatch(a.author, b.author)) return false;
+  const aKeys = titleKeys(a.title);
+  const bKeys = titleKeys(b.title);
+  const aFull = aKeys[0];
+  const bFull = bKeys[0];
+  if (!aFull || !bFull) return false;
+  if (aFull === bFull) return true;
+  if (aKeys[1] && aKeys[1] === bFull) return true;
+  if (bKeys[1] && bKeys[1] === aFull) return true;
+  return false;
 }
 
 function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
@@ -161,13 +176,17 @@ function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
     if (delta > 0) return next;
     if (delta < 0) return prev;
   }
+  // Print page counts are the ones Google's site (and a physical copy) show; Kindle listings
+  // of the same novel are often ~50 pages short.
+  if (prev.ebook && !next.ebook && next.pages) return next;
+  if (!prev.ebook && next.ebook && prev.pages) return prev;
   if (!prev.pages && next.pages) return next;
   if (prev.pages && !next.pages) return prev;
   if (!prev.cover && next.cover) return next;
   return prev;
 }
 
-/** Collapse Google Books' edition soup: one volume per title + author, keeping pages then a cover. */
+/** Collapse Google Books' edition soup: one volume per novel, preferring print over ebook. */
 export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
   const best: GbVolume[] = [];
   for (const volume of volumes) {

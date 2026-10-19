@@ -63,8 +63,9 @@ eq(GB_IMAGE_HOSTS.includes("books.google.com"), true, "primary host listed for m
 const piranesi = toVolume(raw());
 eq(piranesi, {
   id: gbId, title: "Piranesi", author: "Susanna Clarke", year: 2020, pages: 272,
-  cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null,
+  cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null, ebook: false,
 }, "a volume document");
+eq(toVolume(raw({ saleInfo: { isEbook: true } })).ebook, true, "saleInfo.isEbook marks an ebook");
 eq(toVolume(raw({}, { authors: ["Susanna Clarke", "Someone"] })).author, "Susanna Clarke, Someone", "several authors");
 eq(toVolume(raw({}, { authors: undefined })).author, "Unknown", "missing authors");
 eq(toVolume(raw({}, { pageCount: 0 })).pages, null, "0 pages means unknown");
@@ -88,6 +89,14 @@ ok(sameWork(olPiranesi, piranesi), "same title and author: same work");
 ok(sameWork({ title: "Piranesi", author: "Susanna Clarke" }, { title: "Piranesi: A Novel", author: "S. Clarke" }) === false, "different normalised author: not merged");
 ok(sameWork({ title: "Piranesi", author: "Susanna Clarke" }, { title: "Piranesi: A Novel", author: "Susanna Clarke" }), "subtitle does not split a search hit");
 ok(!sameWork({ title: "The Hobbit", author: "J.R.R. Tolkien" }, { title: "The Lord of the Rings", author: "J.R.R. Tolkien" }), "different titles: not merged");
+ok(!sameWork(
+  { title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1", author: "Rifujin na Magonote" },
+  { title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 2", author: "Rifujin na Magonote" },
+), "volumes of a series are not the same work");
+ok(!sameWork(
+  { title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1", author: "Rifujin na Magonote" },
+  { title: "Mushoku Tensei: Jobless Reincarnation Vol. 1", author: "Rifujin na Magonote" },
+), "the light novel is not the manga");
 
 const ed1 = { ...piranesi, id: "AAAAAAAAAAAA", pages: null, cover: null };
 const ed2 = { ...piranesi, id: "BBBBBBBBBBBB", pages: 300, cover: coverFull };
@@ -99,6 +108,11 @@ eq(
   [gbId],
   "a subtitle does not split edition soup",
 );
+const kindle = { ...piranesi, id: "kindlevolume1", pages: 267, ebook: true };
+const print = { ...piranesi, id: "printvolume01", pages: 320, ebook: false };
+eq(dedupeVolumes([kindle, print]).map((v) => v.id), ["printvolume01"], "print edition beats the Kindle listing of the same novel");
+eq(catalogFromVolumes([kindle, print], "piranesi")[0].pages, 320, "…search lists the print page count");
+eq(dedupeVolumes([kindle, { ...print, pages: null }]).map((v) => v.id), ["kindlevolume1"], "ebook with pages beats print without");
 
 const gbOnly = toVolume(raw({ id: "zyTCAlFPjgYC" }, { title: "A Missing Novel", authors: ["Pat"] }));
 const listed = catalogFromVolumes([piranesi, gbOnly], "a missing novel");
@@ -119,6 +133,19 @@ const gbMushoku = toVolume(raw({ id: "mushokutense1" }, {
 const mushokuHits = catalogFromVolumes([gbMushokuJp, gbMushoku], mushokuQuery);
 eq(mushokuHits[0].title, mushokuQuery, "English Mushoku Tensei is listed before 無職転生");
 ok(!mushokuHits[0].title.includes("無職"), "the first hit is not the Japanese title");
+
+const mushokuKindle = toVolume(raw({ id: "mushokukindle", saleInfo: { isEbook: true } }, {
+  title: mushokuQuery, authors: ["Rifujin na Magonote"], publisher: "Seven Seas", pageCount: 267,
+  imageLinks: { thumbnail: "http://x" }, language: "en",
+}));
+const mushokuPrint = toVolume(raw({ id: "mushokuprint1", saleInfo: { isEbook: false } }, {
+  title: mushokuQuery, authors: ["Rifujin na Magonote"], publisher: "Seven Seas", pageCount: 320,
+  imageLinks: { thumbnail: "http://x" }, language: "en",
+}));
+eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery)[0].pages, 320,
+  "Mushoku Tensei Vol. 1 uses the print page count, not the Kindle 267");
+eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery)[0].googleBooksId, "mushokuprint1",
+  "…and keeps the print volume id");
 
 // ── already in the library: the other catalogue must not duplicate ───────────
 const library = [

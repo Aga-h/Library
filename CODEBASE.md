@@ -195,8 +195,9 @@ only). Requests go through `lib/fetch-retry.ts` (shared with the anime list impo
 
 **Books from Google Books.** "Add Book" searches Google Books `/volumes` for a title, an author,
 an ISBN or a pasted volume id. Results start **unticked** — All/None are explicit. Google Books
-is edition-centric, so search collapses volumes by title + author and stores at most one
-`googleBooksId` (036, unique). Hits whose title is in the same script as the query (English
+is edition-centric, so search collapses volumes by title + author (print over Kindle — the
+paperback page count, not the ebook's) and stores at most one `googleBooksId` (036, unique).
+Hits whose title is in the same script as the query (English
 search → English title, not 無職転生) rank first. Tick one or several into a series you pick, or
 standalone. Language is yours. "Read" marks every page; re-import only fills blanks.
 `matchExisting`: Google Books id, else title + author (including a row that still has an
