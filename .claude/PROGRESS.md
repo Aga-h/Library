@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: paperback page counts come from volumes.get (list says 0). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: every search result uses the paperback page count, not only the closest hit. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,12 +215,10 @@
 
 ## Next
 
-- [x] **Books: print page count, not Kindle** (asked 2026-10-19: Mushoku Tensei Vol. 1
-      still showed 267). The paperback (`9qGQEAAAQBAJ`) is in the search results but
-      `volumes.list` says 0 pages, so it was dropped and the Kindle (`zPWKDwAAQBAJ`, 267)
-      was all that remained. `volumes.get` for the paperback returns 320 — the count on
-      Google's own page. Search now refetches a close hit whose list count is blank.
-      On `main`.
+- [x] **Books: paperback page count on every search hit** (asked 2026-10-19, after Vol. 1
+      was fixed). The blank-count refetch only covered the closest few titles, so the rest
+      of a search still showed Kindle pages. Every paperback the list reports as 0 pages is
+      fetched with `volumes.get`. A physical copy wins over a longer Kindle file. On `main`.
 - [x] **Books: Google Books only** (asked 2026-10-19: drop Open Library). Add Book searches
       Google Books `/volumes` only; import and "Check Google Books" never call Open Library.
       Hits without a page count are still omitted. Existing `openLibraryId` rows stay and

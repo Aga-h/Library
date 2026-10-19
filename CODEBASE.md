@@ -195,10 +195,11 @@ only). Requests go through `lib/fetch-retry.ts` (shared with the anime list impo
 
 **Books from Google Books.** "Add Book" searches Google Books `/volumes` for a title, an author,
 an ISBN or a pasted volume id. Results start **unticked** — All/None are explicit. Google Books
-is edition-centric, so search collapses volumes by title + author, keeping the highest page
-count (the paperback, not the Kindle listing). `volumes.list` reports 0 pages for a paperback
-with no preview; that id is fetched again with `volumes.get`, which has the count the Google
-Books page shows (320, not the Kindle 267). One `googleBooksId` (036, unique) is stored.
+is edition-centric, so search collapses volumes by title + author and keeps the paperback
+page count, not the Kindle file's. `volumes.list` reports 0 pages for a paperback with no
+preview; every such row in the search is fetched again with `volumes.get`, which has the count
+on the Google Books page. A physical copy (dimensions) wins over a longer Kindle listing.
+One `googleBooksId` (036, unique) is stored.
 Hits whose title is in the same script as the query (English
 search → English title, not 無職転生) rank first. Tick one or several into a series you pick, or
 standalone. Language is yours. "Read" marks every page; re-import only fills blanks.

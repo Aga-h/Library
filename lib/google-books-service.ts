@@ -129,7 +129,7 @@ async function refillBlankPages(volumes: GbVolume[], query: string): Promise<GbV
       }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(4, pending.length) }, () => worker()));
+  await Promise.all(Array.from({ length: Math.min(8, pending.length) }, () => worker()));
   if (updates.size === 0) return volumes;
   return volumes.map((volume) => updates.get(volume.id) ?? volume);
 }

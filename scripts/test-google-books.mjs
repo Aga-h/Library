@@ -63,9 +63,11 @@ eq(GB_IMAGE_HOSTS.includes("books.google.com"), true, "primary host listed for m
 const piranesi = toVolume(raw());
 eq(piranesi, {
   id: gbId, title: "Piranesi", author: "Susanna Clarke", year: 2020, pages: 272,
-  cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null, ebook: false,
+  cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null, ebook: false, printEdition: false,
 }, "a volume document");
 eq(toVolume(raw({ saleInfo: { isEbook: true } })).ebook, true, "saleInfo.isEbook marks an ebook");
+eq(toVolume(raw({}, { dimensions: { height: "18.00 cm", thickness: "2.50 cm" } })).printEdition, true,
+  "physical dimensions mark a print edition");
 eq(toVolume(raw({}, { subtitle: "Kindle Edition" })).ebook, true, "Kindle in the subtitle is an ebook");
 eq(toVolume(raw({}, { authors: ["Susanna Clarke", "Someone"] })).author, "Susanna Clarke, Someone", "several authors");
 eq(toVolume(raw({}, { authors: undefined })).author, "Unknown", "missing authors");
@@ -114,6 +116,10 @@ const print = { ...piranesi, id: "printvolume01", pages: 320, ebook: false };
 eq(dedupeVolumes([kindle, print]).map((v) => v.id), ["printvolume01"], "print edition beats the Kindle listing of the same novel");
 eq(catalogFromVolumes([kindle, print], "piranesi")[0].pages, 320, "…search lists the print page count");
 eq(dedupeVolumes([kindle, { ...print, pages: null }]).map((v) => v.id), ["kindlevolume1"], "ebook with pages beats print without");
+eq(dedupeVolumes([
+  { ...piranesi, id: "longkindle001", pages: 400, ebook: true, printEdition: false },
+  { ...piranesi, id: "shortprint001", pages: 320, ebook: true, printEdition: true },
+]).map((v) => v.id), ["shortprint001"], "a physical copy beats a longer Kindle file");
 eq(
   dedupeVolumes([
     { ...piranesi, id: "kindlevolume1", pages: 267, ebook: true },
@@ -177,6 +183,18 @@ const listedKindle = toVolume(raw({ id: kindleId, saleInfo: { isEbook: true } },
 eq(listedPrint.pages, null, "search lists the paperback as 0 pages");
 eq(volumesToRefetch([listedKindle, listedPrint], mushokuQuery), [printId],
   "the paperback with a blank count is fetched again");
+const vol2Query = "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 2";
+const vol2PrintId = "mushokuvol2prn";
+const vol2Print = toVolume(raw({ id: vol2PrintId }, {
+  title: vol2Query, authors: ["Rifujin na Magonote"], pageCount: 0, imageLinks: { thumbnail: "http://x" },
+}));
+const vol2Kindle = toVolume(raw({ id: "mushokuvol2kin", saleInfo: { isEbook: true } }, {
+  title: vol2Query, authors: ["Rifujin na Magonote"], pageCount: 240, imageLinks: { thumbnail: "http://x" },
+}));
+eq(volumesToRefetch([listedKindle, listedPrint, vol2Kindle, vol2Print], mushokuQuery), [printId, vol2PrintId],
+  "every paperback in the search is fetched, not only the closest title");
+eq(volumesToRefetch([listedPrint, vol2Print, listedKindle], mushokuQuery, 1), [printId],
+  "the cap still applies, siblings of a counted edition first");
 eq(catalogFromVolumes([listedKindle, listedPrint], mushokuQuery)[0].pages, 267,
   "without that refetch the Kindle count is all that's left");
 
@@ -258,16 +276,19 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify(piranesiDoc));
     return;
   }
-  if (url.pathname === "/volumes/9qGQEAAAQBAJ") {
+  if (url.pathname === "/volumes/9qGQEAAAQBAJ" || url.pathname === "/volumes/mushokuvol2prn") {
+    const id = url.pathname.endsWith("mushokuvol2prn") ? "mushokuvol2prn" : "9qGQEAAAQBAJ";
+    const vol = id === "9qGQEAAAQBAJ" ? "Vol. 1" : "Vol. 2";
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({
-      id: "9qGQEAAAQBAJ",
+      id,
       volumeInfo: {
-        title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
+        title: `Mushoku Tensei: Jobless Reincarnation (Light Novel) ${vol}`,
         authors: ["Rifujin Na Magonote"],
         publisher: "Seven Seas Entertainment",
         publishedDate: "2019-05-21",
-        pageCount: 320,
+        pageCount: id === "9qGQEAAAQBAJ" ? 320 : 336,
+        dimensions: { height: "18.00 cm", thickness: "2.50 cm" },
         imageLinks: { thumbnail: "http://books.google.com/x" },
         language: "en",
       },
@@ -315,6 +336,27 @@ const server = createServer((req, res) => {
           imageLinks: { thumbnail: "http://books.google.com/x" },
         },
       },
+      {
+        id: "mushokuvol2kin",
+        saleInfo: { isEbook: true },
+        volumeInfo: {
+          title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 2",
+          authors: ["Rifujin na Magonote"],
+          pageCount: 240,
+          language: "en",
+          imageLinks: { thumbnail: "http://books.google.com/x" },
+        },
+      },
+      {
+        id: "mushokuvol2prn",
+        volumeInfo: {
+          title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 2",
+          authors: ["Rifujin na Magonote"],
+          pageCount: 0,
+          language: "en",
+          imageLinks: { thumbnail: "http://books.google.com/x" },
+        },
+      },
     ];
   }
   res.writeHead(200, { "content-type": "application/json" });
@@ -346,7 +388,9 @@ try {
   const mushoku = await searchCatalog("Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1");
   eq(mushoku.works[0].pages, 320, "paperback page count comes from volumes.get, not the list's 0");
   eq(mushoku.works[0].googleBooksId, "9qGQEAAAQBAJ", "…and the row is the print volume, not the Kindle");
-  eq(mushoku.works.length, 1, "Kindle 267 and print 320 collapse to one row");
+  eq(mushoku.works.find((w) => w.title.endsWith("Vol. 2")).pages, 336,
+    "a later volume in the same search also uses its paperback count");
+  eq(mushoku.works.length, 2, "each volume collapses its Kindle listing into the paperback");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");

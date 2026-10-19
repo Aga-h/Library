@@ -5,6 +5,8 @@ import { googleVolumeIdOf } from "@/lib/google-books";
 import { searchCatalog } from "@/lib/book-catalog-service";
 import { libraryBookPlaces } from "@/lib/openlibrary-import";
 
+export const maxDuration = 60;
+
 /** Search Google Books: `?q=the hobbit` or an ISBN. */
 async function GETHandler(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";

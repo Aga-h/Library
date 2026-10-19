@@ -31,6 +31,8 @@ export interface GbVolume {
   language: string | null;
   /** saleInfo.isEbook — Kindle/e-pub listings use a different page count than the print book. */
   ebook: boolean;
+  /** volumeInfo.dimensions — a physical copy, not the Kindle file. */
+  printEdition: boolean;
 }
 
 type Raw = Record<string, unknown>;
@@ -123,6 +125,9 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
     ? raw.saleInfo
     : {}) as Raw;
   const kindle = /\bkindle\b/i.test(`${title} ${text(info.subtitle)}`);
+  const dims = info.dimensions;
+  const printEdition = !!dims && typeof dims === "object" && !Array.isArray(dims)
+    && ["height", "width", "thickness"].some((side) => text((dims as Raw)[side]));
   return {
     id,
     title,
@@ -134,6 +139,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
     publisher: text(info.publisher) || null,
     language: /^[a-z]{2,3}$/.test(lang) ? lang : null,
     ebook: sale.isEbook === true || kindle,
+    printEdition,
   };
 }
 
@@ -171,33 +177,44 @@ export function sameWork(a: { title: string; author: string }, b: { title: strin
   return false;
 }
 
+/** Blank rows from one search (two pages of results) that still need volumes.get. */
+export const REFILL_LIMIT = 80;
+
 /**
- * Search (`volumes.list`) reports 0 pages for a paperback that has no preview, and the real
- * count — the 320 Google's own book page shows — only comes back from `volumes.get`. Those
- * ids are worth a second request. Anything else with a blank count is left out.
+ * Search (`volumes.list`) reports 0 pages for a paperback that has no preview. The count on
+ * Google's own page comes back from `volumes.get`. Every blank row is looked up — a series
+ * search is many paperbacks, not only the closest title. Ones sitting next to a Kindle
+ * listing go first.
  */
-export function volumesToRefetch(volumes: GbVolume[], query: string, limit = 6): string[] {
-  const scores = volumes.map((volume) => queryFit(volume.title, query));
-  const best = scores.reduce((max, score) => Math.max(max, score), 0);
-  const close = new Set(
-    volumes.filter((_, i) => best > 0 && scores[i] >= best - 40).map((volume) => volume.id),
-  );
+export function volumesToRefetch(volumes: GbVolume[], query: string, limit = REFILL_LIMIT): string[] {
+  const ranked = volumes
+    .filter((volume) => volume.pages === null)
+    .map((volume, i) => ({
+      id: volume.id,
+      i,
+      score: queryFit(volume.title, query),
+      sibling: volumes.some((other) => other.id !== volume.id && other.pages !== null && sameWork(other, volume)),
+    }))
+    .sort((a, b) => Number(b.sibling) - Number(a.sibling) || b.score - a.score || a.i - b.i);
   const ids: string[] = [];
-  for (const volume of volumes) {
-    if (volume.pages !== null || ids.length >= limit) continue;
-    const sibling = volumes.some((other) =>
-      other.id !== volume.id && other.pages !== null && close.has(other.id) && sameWork(other, volume),
-    );
-    if (!close.has(volume.id) && !sibling) continue;
-    ids.push(volume.id);
+  const seen = new Set<string>();
+  for (const row of ranked) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    ids.push(row.id);
+    if (ids.length >= limit) break;
   }
   return ids;
 }
 
 function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
-  // Same novel: the paperback page count, not the Kindle one. Google marks nearly every
-  // volume isEbook, and the Kindle title often matches the query more closely, so format
-  // and pages have to beat queryFit here. Ranking across different novels still uses queryFit.
+  // Same novel: the paperback page count, not the Kindle one. A physical copy wins even
+  // when Google marks both as ebooks and the Kindle file lists more pages. Ranking across
+  // different novels still uses queryFit.
+  if (prev.printEdition !== next.printEdition) {
+    if (next.printEdition && next.pages) return next;
+    if (prev.printEdition && prev.pages) return prev;
+  }
   if (prev.ebook && !next.ebook && next.pages) return next;
   if (!prev.ebook && next.ebook && prev.pages) return prev;
   if (prev.pages && next.pages && next.pages !== prev.pages) {
