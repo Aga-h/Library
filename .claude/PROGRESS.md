@@ -1,7 +1,7 @@
 # Current state
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
-**Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
+**Branch:** `main` — the GitHub default and what Vercel deploys. 16 merged `cursor/*` branches are still on GitHub awaiting deletion (see Blocked).
 **Updated:** 2026-10-19 — books: choose a title, then its edition in a Cover Flow, then whether you own it, then import. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
@@ -625,6 +625,10 @@
 
 ## Blocked / needs the user
 
+- **Delete the 16 merged `cursor/*` branches on GitHub.** All are in `main` (14 as ancestors;
+  `books-list-editions-0646` and `soft-club-guideline-a2c6` landed as a cherry-pick and the #1
+  squash). Cloud sessions get a 403 on branch deletes, so do it at github.com/Aga-h/Library/branches
+  or locally with `git push origin --delete <branch>…`.
 - **Soft Club contrast (optional).** Should the cyan `<label>` text (2.9:1) and the grey title
   readout (4.2:1) move to `#17609f` and gray-600 to pass AA? It changes the look slightly.
   See `docs/design/soft-club.md` §12.
