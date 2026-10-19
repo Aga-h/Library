@@ -232,12 +232,14 @@
 
 - [ ] **Books: the 2006 Tor hardcover of Mistborn can't be found** (user, 2026-10-19, screenshot of
       ISBN 9780765311788 = volume `dlfOfxkm1PoC`, API publisher "Macmillan"). Measured: Google returns
-      it ONLY on page 1 of q=`mistborn`; never for "mistborn the final empire" or any edition query, so
-      that search's flow can't reach it. Every fielded query (`isbn:`, `intitle:`, `inauthor:`) returns
-      0 with the key (US/GB) → ISBN search is broken for all books. volumes.list 503s ~70% of calls
-      (5 tries still fails ~1 in 4); volumes.get 12/12 fine. Open Library unreachable from the container.
-      Recorded responses: scratchpad only (not saved). In progress: research workflow → fix queries,
-      retries, ISBN fallback.
+      it only for author-less queries ("mistborn", "the final empire"); never for "mistborn the final
+      empire" or any query with the author in it, so the edition picker can't reach it. Since ~1 Oct
+      2026 Google answers every fielded query (`isbn:`, `intitle:`, `inauthor:`) with 0 results
+      (widely reported; discuss.google.dev thread 401929, issuetracker 569300353).
+      Done (pushed): ISBN search falls back to Open Library (`lib/openlibrary-service.ts`) for the
+      title, then plain Google queries, keeping the listing with that ISBN; `country=US` on every
+      Google call. Next: author-less edition queries. NOTE: the ~70% 503 rate measured earlier is
+      this container's proxy route — with `curl --noproxy '*'` or Node fetch it's ~0%.
 - [x] **Books: editions from real Google data** (asked 2026-10-19: Portuguese titles, Hero of Ages
       under Book One, "Google Books didn't answer" live; then "only editions with covers").
       Tested with the real key (cloud env has `GOOGLE_BOOKS_API_KEY`; Google needs `country=US` from

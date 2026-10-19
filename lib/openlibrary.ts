@@ -104,6 +104,14 @@ export function isbnOf(query: string): string | null {
   return null;
 }
 
+/** The ISBN-13 form of an ISBN from isbnOf: an ISBN-10 gains "978" and a new check digit. */
+export function isbn13Of(isbn: string): string {
+  if (isbn.length === 13) return isbn;
+  const core = `978${isbn.slice(0, 9)}`;
+  const sum = [...core].reduce((total, digit, i) => total + Number(digit) * (i % 2 ? 3 : 1), 0);
+  return `${core}${(10 - (sum % 10)) % 10}`;
+}
+
 /** The query Open Library is asked: an ISBN, a pasted work key, or the words as typed. */
 export function searchQueryOf(query: string): string {
   const isbn = isbnOf(query);

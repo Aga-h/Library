@@ -6,7 +6,7 @@
 import {
   workIdOf, isbnOf, searchQueryOf, coverUrl, isOpenLibraryImage, authorsOf, yearOf, toWork,
   hasPages, normaliseAuthor, firstAuthor, authorsMatch, titleKeys, dominantScript, queryFit,
-  bestTitle, catalogOf, matchExisting, planImport, updatesFromWork, byYear, OL_IMAGE_HOST,
+  bestTitle, catalogOf, matchExisting, planImport, updatesFromWork, byYear, OL_IMAGE_HOST, isbn13Of,
 } from "../lib/openlibrary.ts";
 
 let pass = 0;
@@ -44,6 +44,9 @@ eq(isbnOf("978-0-439-70818-0"), "9780439708180", "ISBN-13, hyphens dropped");
 eq(isbnOf("0-439-70818-4"), "0439708184", "ISBN-10");
 eq(isbnOf("043970818X"), "043970818X", "ISBN-10 ending in X");
 eq(isbnOf("  9780439708180  "), "9780439708180", "ISBN-13 with spaces");
+eq(isbn13Of("076531178X"), "9780765311788", "ISBN-10 to 13: Mistborn's Tor hardcover");
+eq(isbn13Of("0439708184"), "9780439708180", "ISBN-10 to 13: a check digit of 0");
+eq(isbn13Of("9780765311788"), "9780765311788", "an ISBN-13 stays as it is");
 eq(isbnOf("1984"), null, "a year is not an ISBN");
 eq(isbnOf("1234567890"), "1234567890", "ten digits are taken as ISBN-10");
 eq(isbnOf("1234567890123"), null, "thirteen digits that are not 978/979 are refused");

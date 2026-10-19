@@ -7,11 +7,12 @@
 // Overridable GOOGLE_BOOKS_BASE_URL so the importer can be tested against a local stand-in;
 // production never sets it.
 
-import { BookCatalogError, MAX_IMPORT } from "@/lib/openlibrary";
+import { BookCatalogError, MAX_IMPORT, isbn13Of, isbnOf } from "@/lib/openlibrary";
 import {
-  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, toVolume, volumesToRefetch,
+  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, groupEditions, toVolume, volumesToRefetch,
   type GbVolume,
 } from "@/lib/google-books";
+import { bookByIsbn } from "@/lib/openlibrary-service";
 
 function baseUrl(): string {
   return (process.env.GOOGLE_BOOKS_BASE_URL ?? "https://www.googleapis.com/books/v1").replace(/\/$/, "");
@@ -29,8 +30,8 @@ function apiKey(): string | null {
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Pauses before asking again. Google Books answers a quick 503 to about half of all requests
- * (seen 2026-10-19, with a key) and the same request succeeds a moment later.
+ * Pauses before asking again. Since early October 2026 Google Books answers many searches with a
+ * quick 503 "Service temporarily unavailable"; the same request usually succeeds a moment later.
  */
 const RETRY_PAUSES = [300, 700, 1500, 3000];
 const PASSING = new Set([500, 502, 503, 504]);
@@ -38,6 +39,9 @@ const PASSING = new Set([500, 502, 503, 504]);
 async function get(path: string, params: Record<string, string> = {}): Promise<Raw> {
   const url = new URL(`${baseUrl()}${path}`);
   const search = new URLSearchParams(params);
+  // Google answers a server it can't place on the map with a 403 ("Cannot determine user
+  // location"). Saying where we are makes every server get the same, US, results.
+  search.set("country", "US");
   const key = apiKey();
   if (key) search.set("key", key);
   url.search = search.toString();
@@ -126,24 +130,53 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
     if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
   }
   const volumes = volumesOf({ items: rows });
+  if (asked.kind === "isbn" && volumes.length === 0) return volumesForIsbn(asked.value);
   return refillBlankPages(volumes, volumesToRefetch(volumes, asked.value));
 }
 
 /**
- * Listings of one book for the edition picker, `bookId` among them. The search's own list only
- * holds the editions that happened to rank among other books; this asks for the book itself,
- * under each title publishers give it (editionSearchQueries) — the full title and each half.
- * One page each (Google sends at most 20): the halves find what a second page would. Page counts the
- * list leaves out are not fetched here: the picker asks for the one edition you stop on, so none
- * is dropped for want of a count. A query Google keeps failing is left out; all of them failing
- * is an error.
+ * Google Books answers every `isbn:` search with nothing since about 1 Oct 2026 (plain words
+ * still work). Open Library says which book the ISBN is, that book is searched on Google the way
+ * the edition picker does, and the listing with the ISBN is the answer — else, if Google has no
+ * listing with it, the book's other listings, so it can still be found.
  */
-export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
+async function volumesForIsbn(isbn: string): Promise<GbVolume[]> {
+  const book = await bookByIsbn(isbn);
+  if (!book) return [];
+  const volumes = await bookVolumes(book);
+  const wanted = isbn13Of(isbn);
+  const exact = volumes.find((volume) => {
+    const theirs = volume.isbn ? isbnOf(volume.isbn) : null;
+    return theirs !== null && isbn13Of(theirs) === wanted;
+  });
+  // Grouped with everything found, so a bundle that names the book ("The Final Empire - The Well
+  // of Ascension - …") is known for one and isn't taken for an edition of it.
+  const group = groupEditions<{ title: string; author: string }>([book, ...volumes]).find((g) => g.includes(book)) ?? [];
+  const found = exact ? [exact] : (group.filter((row) => row !== book) as GbVolume[]);
+  return refillBlankPages(found, volumesToRefetch(found, book.title));
+}
+
+/**
+ * Listings of one book, asked for under each title publishers give it (editionSearchQueries),
+ * one page each (Google sends at most 20). A query Google keeps failing is left out; all of them
+ * failing is an error.
+ */
+async function bookVolumes(book: { title: string; author: string }): Promise<GbVolume[]> {
   const params = { maxResults: String(MAX_IMPORT), printType: "books", projection: "full" };
   const settled = await Promise.allSettled(editionSearchQueries(book).map((q) => get("/volumes", { ...params, q })));
   const bodies = settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
   if (bodies.length === 0) throw (settled[0] as PromiseRejectedResult).reason;
-  const volumes = volumesOf({ items: bodies.flatMap((body) => (Array.isArray(body.items) ? body.items : [])) });
+  return volumesOf({ items: bodies.flatMap((body) => (Array.isArray(body.items) ? body.items : [])) });
+}
+
+/**
+ * Listings of one book for the edition picker, `bookId` among them. The search's own list only
+ * holds the editions that happened to rank among other books; this asks for the book itself
+ * (bookVolumes). Page counts the list leaves out are not fetched here: the picker asks for the
+ * one edition you stop on, so none is dropped for want of a count.
+ */
+export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
+  const volumes = await bookVolumes(book);
   if (!volumes.some((volume) => volume.id === bookId)) {
     try {
       volumes.unshift(await volumeById(bookId));

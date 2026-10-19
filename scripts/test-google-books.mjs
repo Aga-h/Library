@@ -465,6 +465,27 @@ const server = createServer((req, res) => {
     res.end("no");
     return;
   }
+  // Open Library: which book an ISBN is.
+  if (url.pathname === "/isbn/9780765311788.json" || url.pathname === "/isbn/076531178X.json") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ title: "Mistborn", subtitle: "The Final Empire", authors: [{ key: "/authors/OL1394865A" }] }));
+    return;
+  }
+  if (url.pathname === "/isbn/9781635575637.json") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ title: "Piranesi", by_statement: "Susanna Clarke." }));
+    return;
+  }
+  if (url.pathname === "/authors/OL1394865A.json") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ name: "Brandon Sanderson" }));
+    return;
+  }
+  if (url.pathname.startsWith("/isbn/")) {
+    res.writeHead(404);
+    res.end(JSON.stringify({ error: "notfound" }));
+    return;
+  }
   if (url.pathname === `/volumes/${gbId}`) {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(piranesiDoc));
@@ -502,6 +523,18 @@ const server = createServer((req, res) => {
   const q = url.searchParams.get("q") ?? "";
   let items = [];
   if (q.toLowerCase().includes("piranesi") || q === `isbn:9781635575644`) items = [piranesiDoc];
+  // Google answers isbn: with nothing; the plain words find two Tor editions of the book.
+  if (/^mistborn/i.test(q)) {
+    items = [["mbTor2008pbk", "9780765350381", 2008, 672], ["dlfOfxkm1PoC", "9780765311788", 2006, 541]].map(([id, isbn, year, pageCount]) => ({
+      id,
+      volumeInfo: {
+        title: "Mistborn", subtitle: "The Final Empire", authors: ["Brandon Sanderson"], publisher: "Macmillan",
+        publishedDate: String(year), pageCount, language: "en", dimensions: { height: "24.00 cm" },
+        industryIdentifiers: [{ type: "ISBN_13", identifier: isbn }],
+        imageLinks: { thumbnail: "http://books.google.com/x" },
+      },
+    }));
+  }
   if (q.includes("Mushoku Tensei")) {
     items = [
       {
@@ -560,6 +593,7 @@ const server = createServer((req, res) => {
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const { port } = server.address();
 process.env.GOOGLE_BOOKS_BASE_URL = `http://127.0.0.1:${port}`;
+process.env.OPEN_LIBRARY_BASE_URL = `http://127.0.0.1:${port}`;
 delete process.env.GOOGLE_BOOKS_API_KEY;
   const { searchVolumes, volumeById, GoogleBooksError } = await import("../lib/google-books-service.ts");
   const { searchCatalog, searchEditions, catalogEdition } = await import("../lib/book-catalog-service.ts");
@@ -601,6 +635,11 @@ try {
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");
+  eq((await searchVolumes("0-7653-1178-X")).map((v) => v.id), ["dlfOfxkm1PoC"],
+    "isbn: finds nothing: Open Library names the book, the plain search's listing with the ISBN is the answer");
+  eq((await searchVolumes("978-1-63557-563-7")).map((v) => v.id), [gbId],
+    "…no listing has the ISBN: the book's other listings are shown");
+  eq(await searchVolumes("9780000000002"), [], "…an ISBN Open Library doesn't know finds nothing, without an error");
 
   const one = await volumeById(gbId);
   eq(one.pages, 272, "volumeById re-fetches the volume");
