@@ -207,10 +207,20 @@ export function volumesToRefetch(volumes: GbVolume[], query: string, limit = REF
   return ids;
 }
 
+/** English, or a volume Google did not tag. "eng" is the occasional three-letter code. */
+export function isEnglishListing(volume: { language: string | null }): boolean {
+  return volume.language === null || volume.language === "en" || volume.language === "eng";
+}
+
 function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
-  // Same novel: the paperback page count, not the Kindle one. A physical copy wins even
-  // when Google marks both as ebooks and the Kindle file lists more pages. Ranking across
-  // different novels still uses queryFit.
+  // Same novel: English paperback, not a translation with a longer page count
+  // ("Mistborn: O Império Final") and not the Kindle file.
+  const nextEnglish = next.language === "en" || next.language === "eng";
+  const prevEnglish = prev.language === "en" || prev.language === "eng";
+  if (nextEnglish !== prevEnglish) {
+    if (nextEnglish && next.pages) return next;
+    if (prevEnglish && prev.pages) return prev;
+  }
   if (prev.printEdition !== next.printEdition) {
     if (next.printEdition && next.pages) return next;
     if (prev.printEdition && prev.pages) return prev;
@@ -246,15 +256,15 @@ export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
 }
 
 /**
- * Add Book's list: Google's hits, collapsed to one row per novel, titles that fit the query
- * (English search → English title) first. Volumes with no page count are omitted — they cannot
- * be imported. Capped at MAX_IMPORT.
+ * Add Book's list: English editions only (a Portuguese or Spanish translation is left out),
+ * collapsed to one row per novel, titles that fit the query first. Volumes with no page count
+ * are omitted — they cannot be imported. Capped at MAX_IMPORT.
  */
 export function catalogFromVolumes(
   volumes: GbVolume[],
   query = "",
 ): Array<CatalogBook & { pages: number }> {
-  const unique = dedupeVolumes(volumes, query);
+  const unique = dedupeVolumes(volumes.filter(isEnglishListing), query);
   const seen = new Set<string>();
   const ranked = unique
     .map(fromGbVolume)

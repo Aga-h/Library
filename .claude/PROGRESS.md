@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: import and the book form can mark a physical copy and a Kindle copy separately. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: title search lists English editions only. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,9 @@
 
 ## Next
 
+- [x] **Books: English titles** (asked 2026-10-19: Mistborn came back as "O Império Final").
+      Title search asks Google Books for English only, and a tagged translation is dropped
+      even when it has more pages. An ISBN still opens that exact edition. On `main`.
 - [x] **Books: physical copy and Kindle** (asked 2026-10-19). Add Book can tick “A physical
       copy” and “It on Kindle” before import; new rows save both. The book form has the same
       two boxes. `owned` stays the physical copy; `ownedKindle` is new (037, default false).

@@ -91,12 +91,14 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
   }
   const q = asked.kind === "isbn" ? `isbn:${asked.value}` : asked.value;
   if (!q) return [];
-  const params = {
+  const params: Record<string, string> = {
     q,
     maxResults: String(MAX_IMPORT),
     printType: "books",
     projection: "full",
   };
+  // Title search stays in English. An ISBN or a volume id is a specific edition and is left as it is.
+  if (asked.kind === "text") params.langRestrict = "en";
   const first = await get("/volumes", params);
   const rows = Array.isArray(first.items) ? [...(first.items as Raw[])] : [];
   const total = Number(first.totalItems) || rows.length;
