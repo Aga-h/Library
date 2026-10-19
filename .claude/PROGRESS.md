@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — Books import tested against real Google Books: 503 retries, edition search fixed (quoted `inauthor:` found nothing), covers-only editions. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-19 — Books: the 2006 Mistborn hardcover is findable (bare edition queries, ISBN via Open Library, edition links); Google Books daily limit (1,000) ran out in testing — see Blocked. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,19 +230,23 @@
 
 ## Next
 
-- [ ] **Books: the 2006 Tor hardcover of Mistborn can't be found** (user, 2026-10-19, screenshot of
-      ISBN 9780765311788 = volume `dlfOfxkm1PoC`, API publisher "Macmillan"). Cause: Google returns it
-      only for author-less queries ("mistborn", "the final empire"), so the edition picker never got
-      it; and since ~1 Oct 2026 Google answers every fielded query (`isbn:`, `intitle:`, `inauthor:`)
-      with 0 (widely reported; discuss.google.dev thread 401929, issuetracker 569300353).
-      Pushed: ISBN → Open Library fallback (`lib/openlibrary-service.ts`), `country=US`.
-      Committed locally, under review before push: edition queries [full+A, rest+A, full, head, rest]
-      (one-part: [full+A, full, series+A]) — 27/31 editions on 6 books vs 23, finds the 2006
-      hardcover live; search retries 12× within 15s, volume lookups 3×; page 2 / `isbn:` failures
-      no longer kill a search; refills stop starting after 40s; google.com/books/edition/<name>/<id>
-      links; groupEditions: an author-less listing can't join two authors' books (live "piranesi"
-      merged Clarke + Penny + Samuel); daily-limit 429 says so. Research: scratchpad/wf/ (lost on reset).
-      The ~70% 503 rate is this container's proxy route (`--noproxy '*'` / Node fetch ≈ 0%).
+- [x] **Books: the 2006 Tor hardcover of Mistborn can't be found** (user, 2026-10-19, screenshot of
+      ISBN 9780765311788 = volume `dlfOfxkm1PoC`; Google calls the publisher "Macmillan"). Cause:
+      Google returns it only for author-less queries ("mistborn", "the final empire"), and since
+      ~1 Oct 2026 answers every `isbn:`/`intitle:`/`inauthor:` search with 0 (widely reported;
+      discuss.google.dev thread 401929, issuetracker 569300353). Fixed: edition queries
+      [full+A, rest+A, full, head, rest] (one-part: [full+A, full, series+A]) — 27/31 editions on 6
+      books vs 23; live, "mistborn the final empire" → picker shows the 2006 hardcover first.
+      ISBN → Open Library title → plain Google queries → the listing with that ISBN (else the book's
+      editions; Google's own error if nothing is found). google.com/books/edition/<name>/<id> links
+      on any Google domain. Searches retried 12× within 15s, volume lookups 3×; page 2 / `isbn:`
+      failures keep page 1; ISBN path fits 60s (52s worst measured). groupEditions: a listing with no
+      author joins only when one author's book matches. 3-lens adversarial review (6 agents): 7 real
+      findings, all fixed with tests that fail on the old code. `country=US` on every call.
+      Not done (worth a look): show the ISBN in the Cover Flow caption (Tor editions all say
+      "Macmillan"); "piranesi" ranks an art book above Clarke's novel; a listing titled "Dune. Frank
+      Herbert" becomes a row with no editions; the client search fetch has no .catch (a network
+      error leaves the spinner); page-count lookups are the biggest quota cost (up to 40 a search).
 - [x] **Books: editions from real Google data** (asked 2026-10-19: Portuguese titles, Hero of Ages
       under Book One, "Google Books didn't answer" live; then "only editions with covers").
       Tested with the real key (cloud env has `GOOGLE_BOOKS_API_KEY`; Google needs `country=US` from

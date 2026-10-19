@@ -47,6 +47,8 @@ eq(googleVolumeIdOf("https://www.google.com/books/edition/Mistborn/dlfOfxkm1PoC?
   "dlfOfxkm1PoC", "google.com/books/edition page, as a browser shows it today");
 eq(googleSearchQueryOf("https://www.google.com/books/edition/_/dlfOfxkm1PoC"), { kind: "id", value: "dlfOfxkm1PoC" },
   "…and searching for it opens that edition");
+eq(googleSearchQueryOf("https://www.google.co.uk/books/edition/Mistborn/dlfOfxkm1PoC?hl=en&gbpv=1"),
+  { kind: "id", value: "dlfOfxkm1PoC" }, "…on any Google domain");
 eq(googleVolumeIdOf("OL82563W"), null, "an Open Library work id is not a Google volume");
 eq(googleVolumeIdOf("9780439708180"), null, "an ISBN is not a Google volume id");
 eq(googleVolumeIdOf(""), null, "empty: unusable");
@@ -306,8 +308,24 @@ ok(!sameWork({ title: "Special Topics in Calamity Physics", author: "Marisha Pes
     pir("penny", "Piranesi", "Nicholas Penny"),
     pir("clarke2", "Piranesi", "Susanna Clarke"),
   ]).map((g) => g.map((r) => r.id));
-  eq(groups, [["samuel", "anon"], ["clarke", "clarke2"], ["penny"]],
-    "a listing with no author joins one book, never two authors' books to each other");
+  eq(groups, [["samuel"], ["anon"], ["clarke", "clarke2"], ["penny"]],
+    "a listing with no author never joins two authors' books to each other — nor one of them, picked by order");
+  const fe = [pir("fe", "Mistborn: The Final Empire", "Brandon Sanderson"), pir("anonFe", "The Final Empire", "Unknown"),
+    pir("kotke", "Ecotopia Rising", "William Kotke")];
+  for (const order of [fe, [...fe].reverse(), [fe[2], fe[0], fe[1]]]) {
+    eq(groupEditions(order).find((g) => g.some((r) => r.id === "anonFe")).map((r) => r.id).sort(), ["anonFe", "fe"],
+      `…but joins the one author's book it matches, whatever the order (${order.map((r) => r.id).join(",")})`);
+  }
+  eq(groupEditions([fe[0], fe[1], pir("kotke2", "The Final Empire: A Novel of the Future", "William Kotke")])
+    .find((g) => g.some((r) => r.id === "anonFe")).map((r) => r.id), ["anonFe"],
+    "…and none when two authors' books match it");
+  const bare = (id, title, pages) => ({ id, title, author: "Brandon Sanderson", pages, year: 2006 });
+  const series = [bare("bare541", "Mistborn", 541), bare("fe", "Mistborn: The Final Empire", 541),
+    bare("woa", "Mistborn: The Well of Ascension", 590), bare("omni", "Mistborn", 1984)];
+  for (const order of [series, [series[1], series[0], series[2], series[3]]]) {
+    ok(!groupEditions(order).some((g) => g.some((r) => r.id === "fe") && g.some((r) => r.id === "omni")),
+      `a bare 1984-page "Mistborn" (the series in one) never joins The Final Empire (${order.map((r) => r.id).join(",")})`);
+  }
 }
 
 // ── the edition search for the cover flow ────────────────────────────────────
@@ -502,14 +520,14 @@ const server = createServer((req, res) => {
     return;
   }
   // Open Library: which book an ISBN is.
-  if (url.pathname === "/isbn/9780765311788.json" || url.pathname === "/isbn/076531178X.json") {
+  if (["/isbn/9780765311788.json", "/isbn/076531178X.json", "/isbn/9780575089914.json"].includes(url.pathname)) {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ title: "Mistborn", subtitle: "The Final Empire", authors: [{ key: "/authors/OL1394865A" }] }));
     return;
   }
   if (url.pathname === "/isbn/9781635575637.json") {
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ title: "Piranesi", by_statement: "Susanna Clarke." }));
+    res.end(JSON.stringify({ title: "Piranesi", by_statement: "by Susanna Clarke ; illustrations by Someone Else." }));
     return;
   }
   if (url.pathname === "/authors/OL1394865A.json") {
@@ -561,7 +579,8 @@ const server = createServer((req, res) => {
   if (q.toLowerCase().includes("piranesi") || q === `isbn:9781635575644`) items = [piranesiDoc];
   // Google answers isbn: with nothing; the plain words find two Tor editions of the book.
   if (/^mistborn/i.test(q)) {
-    items = [["mbTor2008pbk", "9780765350381", 2008, 672], ["dlfOfxkm1PoC", "9780765311788", 2006, 541]].map(([id, isbn, year, pageCount]) => ({
+    items = [["mbTor2008pbk", "9780765350381", 2008, 672], ["dlfOfxkm1PoC", "9780765311788", 2006, 541],
+      ["noPagesGol09", "9780575089914", 2009, 0]].map(([id, isbn, year, pageCount]) => ({
       id,
       volumeInfo: {
         title: "Mistborn", subtitle: "The Final Empire", authors: ["Brandon Sanderson"], publisher: "Macmillan",
@@ -677,6 +696,8 @@ try {
   eq((await searchVolumes("978-1-63557-563-7")).map((v) => v.id), [gbId],
     "…no listing has the ISBN: the book's other listings are shown (and the isbn: probe 503ing didn't stop it)");
   eq(await searchVolumes("9780000000002"), [], "…an ISBN Open Library doesn't know finds nothing, without an error");
+  eq((await searchVolumes("9780575089914")).map((v) => v.id).sort(), ["dlfOfxkm1PoC", "mbTor2008pbk", "noPagesGol09"],
+    "…the ISBN's own listing has no page count anywhere: the book's other editions come too, so it can be added");
 
   const one = await volumeById(gbId);
   eq(one.pages, 272, "volumeById re-fetches the volume");
@@ -731,6 +752,13 @@ try {
     assert(e instanceof GoogleBooksError && e.status === 403, "forbidden is 403");
     assert(String(e.message).includes("check GOOGLE_BOOKS_API_KEY"), "bad key names the env var");
     assert(!String(e.message).includes("bad"), "the key itself is not in the message");
+  }
+  try {
+    await searchVolumes("9780000000002");
+    assert(false, "a refused key should not look like an empty ISBN search");
+  } catch (e) {
+    assert(e instanceof GoogleBooksError && e.status === 403,
+      "an ISBN search Google refuses and Open Library can't place says why, not 'nothing matches'");
   }
 } finally {
   delete process.env.GOOGLE_BOOKS_API_KEY;

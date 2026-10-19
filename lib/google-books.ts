@@ -78,7 +78,7 @@ export function googleVolumeIdOf(value: unknown): string | null {
 export function googleSearchQueryOf(query: string): { kind: "isbn" | "id" | "text"; value: string } {
   const isbn = isbnOf(query);
   if (isbn) return { kind: "isbn", value: isbn };
-  if (/google\.com|googleapis\.com/i.test(query) || /[?&]id=/.test(query) || /\/volumes\//.test(query)) {
+  if (/google\.|googleapis\.com/i.test(query) || /[?&]id=/.test(query) || /\/(?:volumes|books\/edition)\//.test(query)) {
     const id = googleVolumeIdOf(query);
     if (id) return { kind: "id", value: id };
   }
@@ -382,9 +382,9 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
   const ambiguous = ambiguousCores(listings);
   const titles = titlesOf(listings);
   const parent = listings.map((_, i) => i);
-  // Who each group is by, once a listing in it names an author. A listing with no author may join
-  // either of two books, but never joins them to each other: an anonymous "Piranesi" must not
-  // make Susanna Clarke's novel and Nicholas Penny's art book one book.
+  // Who each group is by, once a listing in it names an author. A listing with no author never
+  // joins two authors' books to each other: an anonymous "Piranesi" must not make Susanna Clarke's
+  // novel and Nicholas Penny's art book one book.
   const by = listings.map((l) => (l.author && l.author !== "unknown" ? l.author : null));
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const join = (i: number, j: number) => {
@@ -393,11 +393,19 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
     parent[b] = a;
     by[a] ??= by[b];
   };
+  // Listings that name their author first. Then each one with no author joins the books it is the
+  // same as — unless they are two authors' books, when which one it is can't be told.
   for (let i = 0; i < listings.length; i++) {
     for (let j = i + 1; j < listings.length; j++) {
-      if (sameBook(listings[i], listings[j], ambiguous, titles)) join(i, j);
+      if (by[i] && by[j] && sameBook(listings[i], listings[j], ambiguous, titles)) join(i, j);
     }
   }
+  listings.forEach((l, i) => {
+    if (by[i]) return;
+    const same = listings.flatMap((other, j) => (j !== i && sameBook(l, other, ambiguous, titles) ? [j] : []));
+    if (new Set(same.flatMap((j) => (by[j] ? [by[j]] : []))).size > 1) return;
+    for (const j of same) join(i, j);
+  });
 
   // The named books of each series: which number each is, how early it came out, how long it is.
   const numbered = new Map<string, Set<number>>();
@@ -415,6 +423,7 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
     if (l.row.pages) book.pages.push(l.row.pages);
     books.set(root, book);
   });
+  const placed = new Set<number>();
   listings.forEach((l, i) => {
     if (l.words.size || l.omnibus || !l.keys[0]) return;
     const series = l.keys[0];
@@ -430,12 +439,14 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
     const usual = median(books.get(target)?.pages ?? []);
     if (l.row.pages && usual && l.row.pages > usual * 1.5) return;
     join(i, target);
+    placed.add(i);
   });
-  // Bare listings left over: the same series name and number is one book.
+  // Bare listings left over: the same series name and number is one book. One placed above is not
+  // left over even when it became its book's root — else a one-volume series refused above slips in.
   listings.forEach((a, i) => {
-    if (a.words.size || a.omnibus || find(i) !== i) return;
+    if (a.words.size || a.omnibus || placed.has(i) || find(i) !== i) return;
     listings.forEach((b, j) => {
-      if (j <= i || b.words.size || b.omnibus || find(j) !== j) return;
+      if (j <= i || b.words.size || b.omnibus || placed.has(j) || find(j) !== j) return;
       if (a.author === b.author && a.keys[0] === b.keys[0]
         && (a.parsed.number ?? 1) === (b.parsed.number ?? 1)) join(i, j);
     });

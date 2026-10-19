@@ -64,10 +64,10 @@ async function get(path: string, params: Record<string, string> = {}): Promise<R
     } catch {
       res = null;
     }
-    // A 429 is asked once more; a brief outage, once per pause, while there is time.
+    // A 429 is asked once more; a brief outage, once per pause, while a try still has a second.
     const again = res === null || PASSING.has(res.status) ? attempt < pauses.length
       : res.status === 429 ? attempt === 0 : false;
-    if (!again || Date.now() + pauses[attempt] >= deadline) break;
+    if (!again || Date.now() + pauses[attempt] + 1000 >= deadline) break;
     await pause(pauses[attempt]);
   }
   if (!res) throw new GoogleBooksError("Couldn't reach Google Books — try again in a minute.", 502);
@@ -137,9 +137,12 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
   try {
     first = await get("/volumes", params);
   } catch (e) {
-    // isbn: finds nothing at the moment anyway, so Google refusing it isn't the end of it.
-    if (asked.kind === "isbn" && e instanceof GoogleBooksError) return volumesForIsbn(asked.value);
-    throw e;
+    // isbn: finds nothing at the moment anyway, so Google refusing it isn't the end of it — unless
+    // nothing else finds the book either: then why (no key, the day's limit, an outage) is the answer.
+    if (asked.kind !== "isbn" || !(e instanceof GoogleBooksError)) throw e;
+    const found = await volumesForIsbn(asked.value, started);
+    if (found.length === 0) throw e;
+    return found;
   }
   const rows = Array.isArray(first.items) ? [...(first.items as Raw[])] : [];
   // A second page so a paperback buried under Kindle listings can still be collapsed in. Not
@@ -154,7 +157,7 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
     }
   }
   const volumes = volumesOf({ items: rows });
-  if (asked.kind === "isbn" && volumes.length === 0) return volumesForIsbn(asked.value);
+  if (asked.kind === "isbn" && volumes.length === 0) return volumesForIsbn(asked.value, started);
   return refillBlankPages(volumes, volumesToRefetch(volumes, asked.value), started + REFILL_BY);
 }
 
@@ -162,9 +165,10 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
  * Google Books answers every `isbn:` search with nothing since about 1 Oct 2026 (plain words
  * still work). Open Library says which book the ISBN is, that book is searched on Google the way
  * the edition picker does, and the listing with the ISBN is the answer — else, if Google has no
- * listing with it, the book's other listings, so it can still be found.
+ * listing with it or no page count for it, the book's other listings, so it can still be added.
+ * Page counts are looked up only until REFILL_BY after the search `started`, like any search.
  */
-async function volumesForIsbn(isbn: string): Promise<GbVolume[]> {
+async function volumesForIsbn(isbn: string, started: number): Promise<GbVolume[]> {
   const book = await bookByIsbn(isbn);
   if (!book) return [];
   const volumes = await bookVolumes(book);
@@ -176,8 +180,13 @@ async function volumesForIsbn(isbn: string): Promise<GbVolume[]> {
   // Grouped with everything found, so a bundle that names the book ("The Final Empire - The Well
   // of Ascension - …") is known for one and isn't taken for an edition of it.
   const group = groupEditions<{ title: string; author: string }>([book, ...volumes]).find((g) => g.includes(book)) ?? [];
-  const found = exact ? [exact] : (group.filter((row) => row !== book) as GbVolume[]);
-  return refillBlankPages(found, volumesToRefetch(found, book.title), Date.now() + CALL_LIMIT);
+  const deadline = started + REFILL_BY;
+  if (exact) {
+    const [checked] = await refillBlankPages([exact], exact.pages ? [] : [exact.id], deadline);
+    if (checked.pages) return [checked];
+  }
+  const others = group.filter((row) => row !== book) as GbVolume[];
+  return refillBlankPages(others, volumesToRefetch(others, book.title), deadline);
 }
 
 /**
