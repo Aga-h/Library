@@ -30,6 +30,10 @@ const COAST = 0.25; // seconds a flick coasts before it snaps (§6)
 const VISIBLE = 8; // cards shown each side of the centre
 const REFLECTION = "below 3px linear-gradient(transparent 66%, rgb(255 255 255 / 0.32))";
 
+/** Google answers a cover it doesn't have with "image not available": 575×750 at zoom=2, 128×170 at zoom=1. */
+const isPlaceholder = (img: HTMLImageElement) =>
+  (img.naturalWidth === 575 && img.naturalHeight === 750) || (img.naturalWidth === 128 && img.naturalHeight === 170);
+
 type Drag = { pointer: number; x0: number; p0: number; moved: boolean; samples: { x: number; t: number }[] };
 
 function format(edition: FlowEdition): string {
@@ -58,12 +62,15 @@ export default function EditionCoverFlow({
   index,
   onIndex,
   complete = true,
+  onNoCover,
 }: {
   editions: FlowEdition[];
   index: number;
   onIndex: (index: number) => void;
   /** false while more editions may still arrive — then one edition is not "the only" one. */
   complete?: boolean;
+  /** An edition whose cover turned out to be Google's "image not available" at every size. */
+  onNoCover?: (googleBooksId: string) => void;
 }) {
   const id = useId();
   const stage = useRef<HTMLDivElement>(null);
@@ -96,18 +103,21 @@ export default function EditionCoverFlow({
     return () => observer.disconnect();
   }, []);
 
-  // When more editions arrive the list can reorder. The edition at the centre stays there: the
-  // row shifts by however far it moved, with no animation, and the new place is reported.
+  // When more editions arrive the list can reorder, and an edition with no real cover drops out.
+  // The edition at the centre stays there: the row shifts by however far it moved, with no
+  // animation, and the new place is reported. If the centre itself dropped out, its neighbour
+  // takes its place.
   const shownIds = useRef(editions.map((e) => e.googleBooksId));
   useEffect(() => {
     const before = shownIds.current;
     shownIds.current = editions.map((e) => e.googleBooksId);
-    const held = before[Math.round(target.current)];
-    const now = held ? shownIds.current.indexOf(held) : -1;
     const was = Math.round(target.current);
-    if (now === -1 || now === was) return;
+    const held = before[was];
+    const found = held ? shownIds.current.indexOf(held) : -1;
+    const now = found === -1 ? Math.max(0, Math.min(was, shownIds.current.length - 1)) : found;
+    if (now === was && found !== -1) return;
     pos.current += now - was;
-    target.current += now - was;
+    target.current = now;
     onIndexRef.current(now);
   }, [editions]);
 
@@ -285,6 +295,13 @@ export default function EditionCoverFlow({
                 <img src={src} alt="" draggable={false} decoding="async" className="w-full h-full object-cover pointer-events-none"
                   onError={(ev) => {
                     if (fallback && ev.currentTarget.src !== fallback) ev.currentTarget.src = fallback;
+                  }}
+                  onLoad={(ev) => {
+                    const img = ev.currentTarget;
+                    if (!isPlaceholder(img)) return;
+                    // No large cover: try the stored size before giving the edition up.
+                    if (fallback && img.src !== fallback) img.src = fallback;
+                    else onNoCover?.(edition.googleBooksId);
                   }} />
               ) : (
                 <div className="w-full h-full flex flex-col justify-between p-2.5 bg-gradient-to-br from-gray-50 to-gray-200">

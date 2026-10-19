@@ -250,52 +250,88 @@ export function parseTitle(title: string): ParsedTitle {
   return parsed;
 }
 
-interface Listing<T extends Titled> {
+/** Little words that don't tell titles apart: "Final Empire" is "The Final Empire". */
+const FILLER = new Set(["the", "a", "an", "of", "and"]);
+const keyOf = (segment: string) => segment.split(" ").filter((w) => w && !FILLER.has(w)).join(" ");
+
+type Row = Titled & { seriesNumber?: number | null; year?: number | null; pages?: number | null };
+
+interface Listing<T extends Row> {
   row: T;
   author: string;
   parsed: ParsedTitle;
-  /** The core without series names: what tells this book from the others in its series. */
+  /** The title's segments as keys: ["mistborn", "final empire"]. */
+  keys: string[];
+  /** The keys without series names: what tells this book from the others in its series. */
   words: Set<string>;
+  /** The series the title names, if any: "mistborn". */
+  series: string | null;
   /** Google's own series number, when it gives one. */
   googleNumber: number | null;
+  /** Several books in one: says so, or names two books of the list ("The Final Empire; The Well of Ascension"). */
+  omnibus: boolean;
 }
 
 const setKey = (words: Set<string>) => [...words].sort().join("|");
 const authorKey = (author: string) => normaliseAuthor(firstAuthor(author));
 
-function listingsOf<T extends Titled & { seriesNumber?: number | null }>(rows: readonly T[]): Listing<T>[] {
-  const parsed = rows.map((row) => ({ row, author: authorKey(row.author), parsed: parseTitle(row.title) }));
+/** Every key that is, on its own, the title of a book in the list. */
+function titlesOf<T extends Row>(listings: Listing<T>[]): Set<string> {
+  return new Set(listings.filter((l) => l.words.size === 1 && !l.omnibus).map((l) => `${l.author}|${[...l.words][0]}`));
+}
+
+function listingsOf<T extends Row>(rows: readonly T[]): Listing<T>[] {
+  const parsed = rows.map((row) => {
+    const p = parseTitle(row.title);
+    return { row, author: authorKey(row.author), parsed: p, keys: [...new Set(p.core.map(keyOf).filter(Boolean))] };
+  });
   // Series names, per author: a first segment that heads two different books ("Mistborn: The Final
   // Empire", "Mistborn: The Well of Ascension"), or one a position names that also heads a title.
   const rests = new Map<string, Set<string>>();
   const heads = new Set<string>();
-  for (const { author, parsed: p } of parsed) {
-    if (!p.core[0]) continue;
-    heads.add(`${author}|${p.core[0]}`);
-    if (p.core.length < 2) continue;
-    const key = `${author}|${p.core[0]}`;
-    const set = rests.get(key) ?? new Set<string>();
-    set.add(p.core.slice(1).join("|"));
-    rests.set(key, set);
+  for (const { author, keys } of parsed) {
+    if (!keys[0]) continue;
+    heads.add(`${author}|${keys[0]}`);
+    if (keys.length < 2) continue;
+    const set = rests.get(`${author}|${keys[0]}`) ?? new Set<string>();
+    set.add(keys.slice(1).join("|"));
+    rests.set(`${author}|${keys[0]}`, set);
   }
   const series = new Set([...rests].filter(([, set]) => set.size > 1).map(([key]) => key));
   for (const { author, parsed: p } of parsed) {
-    if (p.series && heads.has(`${author}|${p.series}`)) series.add(`${author}|${p.series}`);
+    const named = p.series ? keyOf(p.series) : "";
+    if (named && heads.has(`${author}|${named}`)) series.add(`${author}|${named}`);
   }
-  return parsed.map(({ row, author, parsed: p }) => ({
-    row,
-    author,
-    parsed: p,
-    words: new Set(p.core.filter((segment) => !series.has(`${author}|${segment}`))),
-    googleNumber: row.seriesNumber ?? null,
-  }));
+  const listings = parsed.map(({ row, author, parsed: p, keys }) => {
+    const names = [...series].filter((k) => k.startsWith(`${author}|`)).map((k) => k.slice(author.length + 1));
+    const words = new Set<string>();
+    for (const key of keys) {
+      if (names.includes(key)) continue;
+      // "Mistborn The Final Empire", with no colon: the series name leads the title.
+      const lead = names.find((name) => key.startsWith(`${name} `));
+      words.add(lead ? key.slice(lead.length + 1) : key);
+    }
+    const lead = names.find((name) => keys[0] === name || keys[0]?.startsWith(`${name} `));
+    return {
+      row, author, parsed: p, keys, words,
+      series: (p.series ? keyOf(p.series) : null) ?? lead ?? null,
+      googleNumber: row.seriesNumber ?? null,
+      omnibus: p.omnibus,
+    };
+  });
+  // A listing that names two books of the list is a bundle of them, not an edition of either.
+  const titles = titlesOf(listings);
+  for (const l of listings) {
+    if ([...l.words].filter((w) => titles.has(`${l.author}|${w}`)).length >= 2) l.omnibus = true;
+  }
+  return listings;
 }
 
 /**
  * Two smaller titles inside one larger: "Piranesi" in "Piranesi: A Novel" is the same book, but
  * "Mistborn" sits inside both "Mistborn: The Final Empire" and "Mistborn: The Well of Ascension".
  */
-function ambiguousCores<T extends Titled>(listings: Listing<T>[]): Set<string> {
+function ambiguousCores<T extends Row>(listings: Listing<T>[]): Set<string> {
   const supersets = new Map<string, Set<string>>();
   for (const a of listings) {
     if (!a.words.size) continue;
@@ -311,30 +347,38 @@ function ambiguousCores<T extends Titled>(listings: Listing<T>[]): Set<string> {
   return new Set([...supersets].filter(([, set]) => set.size > 1).map(([key]) => key));
 }
 
-function sameBook<T extends Titled>(a: Listing<T>, b: Listing<T>, ambiguous: Set<string>): boolean {
+function sameBook<T extends Row>(a: Listing<T>, b: Listing<T>, ambiguous: Set<string>, titles: Set<string>): boolean {
   if (!authorsMatch(a.row.author, b.row.author)) return false;
-  if (a.parsed.omnibus || b.parsed.omnibus) {
-    return a.parsed.omnibus && b.parsed.omnibus && setKey(a.words) === setKey(b.words);
-  }
+  if (a.omnibus || b.omnibus) return a.omnibus && b.omnibus && setKey(a.words) === setKey(b.words);
   if (a.parsed.number && b.parsed.number && a.parsed.number !== b.parsed.number) return false;
   if (!a.words.size || !b.words.size) return false;
   if (setKey(a.words) === setKey(b.words)) return true;
   const [small, big] = a.words.size < b.words.size ? [a, b] : [b, a];
   if (![...small.words].every((w) => big.words.has(w))) return false;
-  if ([...big.words].some((w) => !small.words.has(w) && FORMAT_WORDS.test(w))) return false;
+  // What the larger title adds must not be a format ("light novel") or another book's title.
+  const extra = [...big.words].filter((w) => !small.words.has(w));
+  if (extra.some((w) => FORMAT_WORDS.test(w) || titles.has(`${big.author}|${w}`))) return false;
   return !ambiguous.has(`${small.author}|${setKey(small.words)}`);
+}
+
+/** The middle value — the lower of the two middles, so one long outlier doesn't set the norm. */
+function median(values: number[]): number | null {
+  if (!values.length) return null;
+  const sorted = [...values].sort((x, y) => x - y);
+  return sorted[Math.floor((sorted.length - 1) / 2)];
 }
 
 /**
  * The listings grouped by book, in the order each book first appears. A bare series name
- * ("Mistborn", or "Mistborn: Collector's Tenth Anniversary Limited Edition") joins the series'
- * book of that number — the first, when it gives none — once another listing says which book
- * that is ("The Final Empire: Mistborn Book One", or Google's series number). Otherwise it is a
- * book of its own.
+ * ("Mistborn", "Mistborn: Mistborn Book One", "Mistborn: Collector's Tenth Anniversary Limited
+ * Edition") joins the series' book of that number — the first, when it gives none: the one a
+ * listing or Google's series number says is that number, else, for the first, the series' earliest
+ * book. Not when it is half again as long as that book: that is the series in one volume.
  */
-export function groupEditions<T extends Titled & { seriesNumber?: number | null }>(rows: readonly T[]): T[][] {
+export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
   const listings = listingsOf(rows);
   const ambiguous = ambiguousCores(listings);
+  const titles = titlesOf(listings);
   const parent = listings.map((_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const join = (i: number, j: number) => {
@@ -343,34 +387,48 @@ export function groupEditions<T extends Titled & { seriesNumber?: number | null 
   };
   for (let i = 0; i < listings.length; i++) {
     for (let j = i + 1; j < listings.length; j++) {
-      if (sameBook(listings[i], listings[j], ambiguous)) join(i, j);
+      if (sameBook(listings[i], listings[j], ambiguous, titles)) join(i, j);
     }
   }
 
-  // Which book is which number in a series: "mistborn|1" → the group holding The Final Empire.
+  // The named books of each series: which number each is, how early it came out, how long it is.
   const numbered = new Map<string, Set<number>>();
+  const books = new Map<number, { author: string; series: string; year: number; pages: number[] }>();
   listings.forEach((l, i) => {
-    if (!l.words.size || l.parsed.omnibus) return;
+    if (!l.words.size || l.omnibus || !l.series) return;
+    const root = find(i);
     const n = l.parsed.number ?? l.googleNumber;
-    const name = l.parsed.series ?? (l.parsed.core[0] && !l.words.has(l.parsed.core[0]) ? l.parsed.core[0] : null);
-    if (!n || !name) return;
-    const key = `${l.author}|${name}|${n}`;
-    const set = numbered.get(key) ?? new Set<number>();
-    set.add(find(i));
-    numbered.set(key, set);
+    if (n) {
+      const key = `${l.author}|${l.series}|${n}`;
+      numbered.set(key, (numbered.get(key) ?? new Set<number>()).add(root));
+    }
+    const book = books.get(root) ?? { author: l.author, series: l.series, year: Infinity, pages: [] };
+    if (l.row.year) book.year = Math.min(book.year, l.row.year);
+    if (l.row.pages) book.pages.push(l.row.pages);
+    books.set(root, book);
   });
   listings.forEach((l, i) => {
-    if (l.words.size || l.parsed.omnibus || !l.parsed.core[0]) return;
+    if (l.words.size || l.omnibus || !l.keys[0]) return;
+    const series = l.keys[0];
     const n = l.parsed.number ?? l.googleNumber ?? 1;
-    const groups = numbered.get(`${l.author}|${l.parsed.core[0]}|${n}`);
-    if (groups?.size === 1) join(i, [...groups][0]);
+    const known = numbered.get(`${l.author}|${series}|${n}`);
+    let target = known?.size === 1 ? [...known][0] : undefined;
+    if (target === undefined && n === 1) {
+      const dated = [...books].filter(([, b]) => b.author === l.author && b.series === series && b.year !== Infinity)
+        .sort(([, x], [, y]) => x.year - y.year);
+      if (dated.length && (dated.length === 1 || dated[0][1].year < dated[1][1].year)) target = dated[0][0];
+    }
+    if (target === undefined) return;
+    const usual = median(books.get(target)?.pages ?? []);
+    if (l.row.pages && usual && l.row.pages > usual * 1.5) return;
+    join(i, target);
   });
   // Bare listings left over: the same series name and number is one book.
   listings.forEach((a, i) => {
-    if (a.words.size || a.parsed.omnibus || find(i) !== i) return;
+    if (a.words.size || a.omnibus || find(i) !== i) return;
     listings.forEach((b, j) => {
-      if (j <= i || b.words.size || b.parsed.omnibus || find(j) !== j) return;
-      if (a.author === b.author && a.parsed.core[0] === b.parsed.core[0]
+      if (j <= i || b.words.size || b.omnibus || find(j) !== j) return;
+      if (a.author === b.author && a.keys[0] === b.keys[0]
         && (a.parsed.number ?? 1) === (b.parsed.number ?? 1)) join(i, j);
     });
   });
@@ -454,6 +512,8 @@ function betterListing(prev: GbVolume, next: GbVolume): GbVolume {
  */
 function sameListing(a: GbVolume, b: GbVolume): boolean {
   if (a.isbn && b.isbn) return a.isbn === b.isbn;
+  // Without ISBNs, only listings with enough details to compare: blanks aren't all one edition.
+  if (a.pages === null || (a.year === null && !a.publisher)) return false;
   return a.pages === b.pages && a.ebook === b.ebook && a.year === b.year
     && normaliseAuthor(a.publisher ?? "") === normaliseAuthor(b.publisher ?? "");
 }
@@ -501,11 +561,28 @@ export function editionOf(volume: GbVolume): CatalogEdition {
   };
 }
 
-/** The row shows an edition with a cover, a physical copy first, then anything not a Kindle file. */
-function faceOrder(a: GbVolume, b: GbVolume): number {
-  return Number(!!b.cover) - Number(!!a.cover)
-    || Number(b.printEdition) - Number(a.printEdition)
-    || Number(a.ebook) - Number(b.ebook);
+/**
+ * The edition a book's row shows: a print one with a cover and a page count — of those, the one
+ * closest to the book's usual length, so a 1000-page omnibus listed under its title isn't the face.
+ */
+function faceOf(listed: GbVolume[]): (GbVolume & { pages: number }) | undefined {
+  const paged = listed.filter(hasPages);
+  const usual = median(paged.map((v) => v.pages)) ?? 0;
+  const pools = [paged.filter((v) => v.cover && !v.ebook), paged.filter((v) => v.cover), paged];
+  const pool = pools.find((p) => p.length) ?? [];
+  return pool.reduce<(GbVolume & { pages: number }) | undefined>(
+    (best, v) => (!best || Math.abs(v.pages - usual) < Math.abs(best.pages - usual) ? v : best),
+    undefined,
+  );
+}
+
+/** Study guides and summaries of a novel ("BookCaps Study Guides"): never the book itself. */
+const STUDY_AID = /\b(study guides?|sparknotes|cliffs ?notes|bookcaps|supersummary|instaread|readtrepreneur)\b/i;
+
+function listable(volume: GbVolume): boolean {
+  return isEnglishListing(volume)
+    && !STUDY_AID.test(`${volume.publisher ?? ""} ${volume.author}`)
+    && !/\b(study guide|summary (?:of|and|&)|summary:|sparknotes|cliffs ?notes)\b/i.test(volume.title);
 }
 
 /** The picker lists print editions, oldest first, then the eBooks, oldest first. */
@@ -535,10 +612,10 @@ export function catalogFromVolumes(
   volumes: GbVolume[],
   query = "",
 ): Array<CatalogBook & { pages: number; editions: CatalogEdition[] }> {
-  const ranked = groupEditions(volumes.filter(isEnglishListing))
+  const ranked = groupEditions(volumes.filter(listable))
     .map((group) => {
       const listed = withoutDuplicates(group);
-      const face = listed.filter(hasPages).sort(faceOrder)[0];
+      const face = faceOf(listed);
       if (!face) return null;
       const rest = listed.filter((v) => v !== face && v.cover).sort(editionOrder);
       const book = {
@@ -580,7 +657,7 @@ export function editionSearchQueries(book: Titled): string[] {
 }
 
 function groupHolding(volumes: GbVolume[], id: string): GbVolume[] {
-  return groupEditions(volumes.filter(isEnglishListing)).find((group) => group.some((v) => v.id === id)) ?? [];
+  return groupEditions(volumes.filter(listable)).find((group) => group.some((v) => v.id === id)) ?? [];
 }
 
 /**

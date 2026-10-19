@@ -107,7 +107,8 @@ const ed1 = { ...piranesi, id: "AAAAAAAAAAAA", pages: null, cover: null };
 const ed2 = { ...piranesi, id: "BBBBBBBBBBBB", pages: 300, cover: coverFull };
 const ed3 = { ...piranesi, id: "CCCCCCCCCCCC", pages: 272, cover: coverFull };
 eq(dedupeVolumes([ed1, ed2, ed3]).map((v) => v.id), ["AAAAAAAAAAAA", "BBBBBBBBBBBB", "CCCCCCCCCCCC"], "different page counts stay; a blank count stays too");
-eq(dedupeVolumes([ed1, { ...ed1, id: "DDDDDDDDDDDD", cover: coverFull }]).map((v) => v.id), ["DDDDDDDDDDDD"], "…or the one with a cover if none have pages");
+eq(dedupeVolumes([ed1, { ...ed1, id: "DDDDDDDDDDDD", cover: coverFull }]).map((v) => v.id), ["AAAAAAAAAAAA", "DDDDDDDDDDDD"],
+  "two blank listings without ISBNs are not assumed to be one edition");
 eq(
   dedupeVolumes([piranesi, { ...piranesi, id: "subtitlevol001", title: "Piranesi: A Novel" }]).map((v) => v.id),
   [gbId],
@@ -248,25 +249,43 @@ const rows = catalogFromVolumes(shelf, "mistborn final empire");
 eq(rows[0].title, "Mistborn: The Final Empire", "the book searched for is first, under its usual title");
 eq(rows[0].editions.map((e) => e.googleBooksId).sort(), theFinalEmpire.map((v) => v.id).sort(),
   "every English edition of The Final Empire is one row: 'The Final Empire', 'Book One', the tenth anniversary");
-eq(rows[0].editions.map((e) => [e.ebook, e.year]),
-  [[false, 2006], [false, 2007], [false, 2009], [false, 2014], [false, 2016], [true, 2010]],
-  "…the paperback on the row, then print oldest first, then the eBook");
+eq(rows[0].editions.map((e) => [e.ebook, e.year, e.pages]),
+  [[false, 2007, 672], [false, 2006, 541], [false, 2009, 647], [false, 2014, 672], [false, 2016, 752], [true, 2010, 672]],
+  "…the row shows the print edition of the usual length, then print oldest first, then the eBook");
 eq(rows.find((w) => w.title.includes("Well of Ascension")).editions.length, 2, "The Well of Ascension is its own book, with its own two");
 ok(rows.some((w) => w.title.startsWith("Mistborn Trilogy Boxed Set")), "a boxed set is a book of its own, not an edition");
 ok(rows.some((w) => w.title.includes("Graphic Novel")), "the graphic novel is not an edition of the novel");
 ok(!rows.some((w) => w.title.includes("Império")), "the translation stays out");
 eq(rows[0].editions.filter((e) => e.pages === 672).length, 3, "three editions of 672 pages are three cards, not one");
-eq(rows[0].editions[0].coverLarge, googleCoverUrl("feTorHard2006", "large"), "the picker gets the 300px cover");
+eq(rows[0].editions[0].coverLarge, googleCoverUrl("feMacPaper007", "large"), "the picker gets the 300px cover");
 
-const bareMistborn = gb("bareMistborn1", "Mistborn", undefined, 1984, { year: 2015, publisher: "Tor Books" });
-const anonymousSeries = [bareMistborn, ...theFinalEmpire.slice(0, 2), restOfSeries[0]];
-eq(catalogFromVolumes(anonymousSeries, "mistborn").map((w) => w.editions.length).sort(), [1, 1, 2],
+const bareMistborn = gb("bareMistborn1", "Mistborn", undefined, 760, { publisher: "Tor Books" });
+const undatedSeries = [bareMistborn, gb("feUndated001", "Mistborn", "The Final Empire", 541, {}), gb("woaUndated01", "Mistborn", "The Well of Ascension", 590, {})];
+eq(catalogFromVolumes(undatedSeries, "mistborn").map((w) => w.editions.length).sort(), [1, 1, 1],
   "a bare 'Mistborn' stays its own book while nothing says which book of the series is the first");
-eq(catalogFromVolumes([...anonymousSeries, theFinalEmpire[5]], "mistborn").map((w) => w.editions.length).sort(), [1, 4],
+eq(catalogFromVolumes([...undatedSeries, theFinalEmpire[5]], "mistborn").map((w) => w.editions.length).sort(), [1, 3],
   "…and joins The Final Empire once a listing says that is Mistborn Book One");
-eq(catalogFromVolumes([bareMistborn, theFinalEmpire[0], restOfSeries[0],
-  gb("feTorEbook001", "Mistborn", "The Final Empire", 686, { year: 2010, publisher: "Macmillan", ebook: true, series: 1 })], "mistborn")
+eq(catalogFromVolumes([...undatedSeries,
+  gb("feTorEbook001", "Mistborn", "The Final Empire", 686, { ebook: true, series: 1 })], "mistborn")
   .map((w) => w.editions.length).sort(), [1, 3], "…or once Google's series number does");
+const bookOne = gb("mistbornBk1", "Mistborn", "Mistborn Book One", 752, { year: 2016, publisher: "Orion Publishing Group, Limited", isbn: "9781473216815" });
+eq(catalogFromVolumes([...theFinalEmpire.slice(0, 3), restOfSeries[0], restOfSeries[2], bookOne], "mistborn final empire")[0]
+  .editions.map((e) => e.googleBooksId).sort(), ["feMacPaper007", "feTorHard2006", "feTorPaper014", "mistbornBk1"],
+  "'Mistborn: Mistborn Book One' is the series' earliest book when nothing else says which is first");
+const omnibusMistborn = gb("mistbornAll1", "Mistborn", undefined, 1984, { year: 2015, publisher: "Tor Books" });
+eq(catalogFromVolumes([...theFinalEmpire.slice(0, 3), restOfSeries[0], omnibusMistborn], "mistborn").length, 3,
+  "…but a bare 'Mistborn' three times the book's length is the series in one volume, not an edition");
+eq(catalogFromVolumes([...theFinalEmpire.slice(0, 2), restOfSeries[0], gb("noColon00001", "Mistborn The Final Empire", undefined, 544, { year: 2010 })],
+  "mistborn")[0].editions.length, 3, "'Mistborn The Final Empire' with no colon is still The Final Empire");
+const twoInOne = gb("twoInOne0001", "Mistborn: The Final Empire; The Well of Ascension", undefined, 1240, { year: 2012 });
+eq(catalogFromVolumes([...theFinalEmpire.slice(0, 2), restOfSeries[0], twoInOne], "mistborn final empire")
+  .find((w) => w.editions.some((e) => e.googleBooksId === "feTorHard2006")).editions.length, 2,
+  "a listing naming two books of the series is a bundle, not an edition of the first");
+const studyGuide = toVolume(raw({ id: "bookCapsWoA1" }, {
+  title: "Mistborn: The Well of Ascension (Book Two)", authors: ["BookCaps"], publisher: "BookCaps Study Guides",
+  pageCount: 43, language: "en", imageLinks: { thumbnail: "http://x" },
+}));
+ok(!catalogFromVolumes([...shelf, studyGuide], "mistborn").some((w) => w.author === "BookCaps"), "a study guide is not a book to add");
 ok(sameWork(bareMistborn, finalEmpire), "with nothing else to go on, a bare title is its subtitled book");
 ok(sameWork({ title: "Educated", author: "Tara Westover" }, { title: "Educated: A Memoir", author: "Tara Westover" }),
   "'A Memoir' is dressing");

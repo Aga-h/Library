@@ -230,6 +230,13 @@
 
 ## Next
 
+- [x] **Books: editions, third pass** (asked 2026-10-19, live screenshots: "nothing really changed").
+      Google's "image not available" placeholder showed as covers — now detected (575×750 / 128×170)
+      and the edition dropped or shown at zoom=1; "Mistborn: Mistborn Book One" was its own row — a
+      bare series name now joins the series' earliest book; a two-book listing no longer joins either;
+      "Mistborn The Final Empire" without a colon matches; study guides dropped; the row's face is the
+      usual length, not a 1000-page omnibus. Stand-in reproduction: 10 editions in one flow. Still
+      unverified against live Google — the API may simply not return every edition the website lists.
 - [x] **Books: editions — English only, covers only, none lost for a page count** (asked 2026-10-19:
       the 2006 Tor hardcover, ISBN 9780765311788, was in no Final Empire flow). Its page count is
       missing from search results and the picker only refilled 12, so it was dropped. Now every

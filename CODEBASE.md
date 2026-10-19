@@ -198,9 +198,14 @@ an ISBN or a pasted volume id. Results start **unticked** — All/None are expli
 is edition-centric, and each publisher titles its edition its own way ("Mistborn: The Final Empire",
 "The Final Empire", "The Final Empire: Mistborn Book One", "Mistborn: Collector's Tenth Anniversary
 Limited Edition"). `groupEditions` reads a title as segments, sets aside edition dressing and series
-positions, drops series names, and groups what names the same book; a bare series name joins the
-series' book 1 once a listing (or Google's `seriesInfo`) says which that is. Volume numbers and
-format words keep "Vol. 1" from "Vol. 2" and the light novel from the manga; boxed sets stand alone.
+positions, drops series names (also as a title's lead word: "Mistborn The Final Empire"), and groups
+what names the same book. A bare series name ("Mistborn: Mistborn Book One") joins the book of that
+number a listing or Google's `seriesInfo` names — for book 1, else the series' earliest — unless it
+is half again as long (the series in one volume). Volume numbers and format words keep "Vol. 1" from
+"Vol. 2" and the light novel from the manga; boxed sets, and listings naming two books of the list,
+stand alone. Study guides (BookCaps, SparkNotes…) are dropped. A row's face is a print edition with a
+cover of the book's usual length. Google serves "image not available" (575×750 / 128×170 PNG) for a
+cover it lacks: the flow falls back to zoom=1, then drops the edition.
 Search is one row per book. Choosing it opens a Cover Flow
 (`docs/design/how-cover-flow-works.md`, `components/books/EditionCoverFlow.tsx`) of every English
 edition with a cover — print oldest first, then eBooks; only a listing with the same ISBN (or

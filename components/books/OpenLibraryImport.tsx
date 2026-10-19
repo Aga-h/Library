@@ -244,6 +244,13 @@ export default function OpenLibraryImport({
     return () => clearTimeout(timer);
   }, [needsPages]);
 
+  // Google said it has a cover for this edition, then served "image not available": leave it out.
+  function dropEdition(googleBooksId: string) {
+    const keep = (w: Work) => ({ ...w, editions: w.editions.filter((e) => e.googleBooksId !== googleBooksId) });
+    setPicking((p) => (p && p.editions.length > 1 ? keep(p) : p));
+    setResults((r) => (r ? r.map((w) => (w.editions.length > 1 ? keep(w) : w)) : r));
+  }
+
   async function confirmPick() {
     if (!picking) return;
     const edition = picking.editions[editionIndex] ?? picking.editions[0];
@@ -397,7 +404,7 @@ export default function OpenLibraryImport({
             <button type="button" onClick={() => setPicking(null)} className="text-xs font-semibold text-gray-500 hover:text-gray-800 min-h-10 px-2">Close</button>
           </div>
           <EditionCoverFlow editions={picking.editions} index={editionIndex} onIndex={setEditionIndex}
-            complete={editionSearch?.id !== picking.id || editionSearch.state !== "finding"} />
+            complete={editionSearch?.id !== picking.id || editionSearch.state !== "finding"} onNoCover={dropEdition} />
           {editionSearch?.id === picking.id && (
             <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500" role="status">
               {editionSearch.state === "finding"
