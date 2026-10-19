@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — reviewing Cursor's work (asked: "it didn't do a good job"). Sign-in page fixed in Soft Club. In progress: the edition Cover Flow (editions from Google Books wrong, UI rough), then the rest of Cursor's changes. Soft Club guideline is `docs/design/soft-club.md`. Remaining after that: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — reviewing Cursor's work (asked: "it didn't do a good job"). Sign-in page fixed in Soft Club. Edition Cover Flow fixed. In progress: the rest of Cursor's changes. Soft Club guideline is `docs/design/soft-club.md`. Remaining after that: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -232,10 +232,13 @@
 
 - [ ] **Review of Cursor's changes** (asked 2026-10-19). Done: Soft Club sign-in page was jammed into
       the corner over the data text with a lone icon (PR #1) — now a title block set in from the edge.
-      Next: the edition Cover Flow — Google Books editions wrong, `EditionCoverFlow` fails lint, never
-      stops animating, blurry zoom=5 thumbs, empty covers, a tab stop per cover. Then the rest of
-      Cursor's diff (phone shell, book import, Soft Club PR #1). Local run: Postgres 16 + `prisma db push`
-      + `scripts/phone-seed.mjs`; screenshots with playwright-core from the scratchpad.
+      Edition Cover Flow fixed: a bare "Mistborn" listing grouped the whole series as one book's
+      editions (could import the wrong book); Choose now runs an edition search (title + `inauthor:`)
+      and merges it; the flow was rebuilt (lint error, endless frame loop, blurry thumbs, empty covers,
+      tab stop per cover, lost mouse drags). Verified against a local Google Books stand-in in Chromium,
+      import checked in Postgres. Next: the rest of Cursor's diff (phone shell, book import routes,
+      Soft Club PR #1). Local run: Postgres 16 + `prisma db push` + `scripts/phone-seed.mjs`;
+      screenshots with playwright-core from the scratchpad.
 - [x] **Books: edition Cover Flow** (asked 2026-10-19: don't list every edition as its own
       search hit). Search stays one row per title. Choose opens a Cover Flow of that title's
       editions (different page counts), then physical / Kindle ownership, then import.
