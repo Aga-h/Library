@@ -193,27 +193,21 @@ with `progress` (chapters/volumes, capped at the series' totals); already-linked
 only). Requests go through `lib/fetch-retry.ts` (shared with the anime list import): up to 5 tries with
 5–45 s pauses on 429/5xx/connection loss; whatever still fails is offered again from the result.
 
-**Books from Open Library and Google Books.** "Add Book" searches both catalogues (Open Library
-`/search.json` and Google Books `/volumes`) for a title, an author, an ISBN or a pasted work/volume
-id. Results start **unticked** — All/None are explicit. A work on Open Library is the book itself
-(every paperback of *Philosopher's Stone* is `OL82563W`), so `Book.openLibraryId` is unique (035).
-Google Books is edition-centric, so search collapses volumes by title + author and stores at most
-one `googleBooksId` (036, unique). Hits for the same novel are merged (Open Library title/cover,
-Google Books publisher and a page count either source has); a Google-only title Open Library
-hasn't got still appears, lifted first when it matches the query. The listed title follows the
-search: Open Library's work title is often Japanese (無職転生) even for an English query, so the
-matching English edition (or Google Books volume) is shown instead, and those hits rank first.
-Tick one or several (a search
-for "harry potter" lists the seven novels first) into a series you pick, or standalone. Language
-is yours. "Read" marks every page; re-import only fills blanks. `matchExisting`: either catalogue
-id, else title + author even when the row is already linked to the *other* catalogue (so the two
-never duplicate). A work with no page count on either side is omitted from search — pages are
-required to import, so an unimportable hit is never shown. Goodreads has no public API. Covers hotlinked from covers.openlibrary.org or
-books.google.com, shown `unoptimized`, excluded from mirroring. A hand-added book's page has
-"Find in catalogues"; a linked one has "Check catalogues" (`refreshBook`) — cover, an author of
-"Unknown", and a publisher, only; title, pages, progress, rating, notes and language stay. Both
-catalogues are credited. Open Library needs no key. Google Books wants `GOOGLE_BOOKS_API_KEY`;
-without it a 403/429 leaves Open Library's list intact plus a notice.
+**Books from Google Books.** "Add Book" searches Google Books `/volumes` for a title, an author,
+an ISBN or a pasted volume id. Results start **unticked** — All/None are explicit. Google Books
+is edition-centric, so search collapses volumes by title + author and stores at most one
+`googleBooksId` (036, unique). Hits whose title is in the same script as the query (English
+search → English title, not 無職転生) rank first. Tick one or several into a series you pick, or
+standalone. Language is yours. "Read" marks every page; re-import only fills blanks.
+`matchExisting`: Google Books id, else title + author (including a row that still has an
+`openLibraryId` from an earlier import, so the two never duplicate). A volume with no page count
+is omitted from search — pages are required to import. Goodreads has no public API. Covers
+hotlinked from books.google.com (and leftover covers.openlibrary.org URLs), shown `unoptimized`,
+excluded from mirroring. A hand-added book's page has "Find on Google Books"; a linked one has
+"Check Google Books" (`refreshBook`) — cover, an author of "Unknown", and a publisher, only;
+title, pages, progress, rating, notes and language stay. Google is credited. Search wants
+`GOOGLE_BOOKS_API_KEY`; without it a 403/429 is an error. `Book.openLibraryId` (035) is kept on
+existing rows and is no longer written.
 
 **Finances.** `FinanceConfig` (budget), `Expense`, `AdditionalIncome`, `Subscription`. Expenses
 carry a unique `clientId` so the offline logger can retry without duplicating — a client-side
@@ -499,8 +493,8 @@ scripts/                node test scripts, graph sealing
 | `mal-list.ts` / `xlsx-lite.ts` | Whole-list import: what counts as a season, reading list files, matching title-only rows / reading an .xlsx (cells and hyperlinks) without a dependency |
 | `mal-manga-list.ts` / `fetch-retry.ts` | Whole manga list import: reading list files and ids, what is left out / the retrying fetch both list imports use |
 | `mal-manga.ts` / `mal-manga-import.ts` | Manga: reading MAL entries, format/credits/ongoing and the fill-blanks rules / landing, linking and checking one in the database |
-| `openlibrary.ts` / `openlibrary-service.ts` / `openlibrary-import.ts` | Books: reading Open Library works, ISBNs, covers and the fill-blanks merge (either catalogue id, or title+author) / the API client / landing, linking and checking them |
-| `google-books.ts` / `google-books-service.ts` / `book-catalog-service.ts` | Books: reading Google Books volumes, covers, collapsing editions, merging with Open Library / the API client (`GOOGLE_BOOKS_API_KEY` optional) / searching both and fetching mixed ids |
+| `openlibrary.ts` / `openlibrary-import.ts` | Books: fill-blanks merge (Google Books id, or title+author, including leftover Open Library ids) / landing, linking and checking them |
+| `google-books.ts` / `google-books-service.ts` / `book-catalog-service.ts` | Books: reading Google Books volumes, covers, collapsing editions / the API client (`GOOGLE_BOOKS_API_KEY`) / searching and fetching volumes |
 | `themes.ts` / `theme-client.ts` | The looks and the cookie that picks one / applying a look in the browser |
 | `goals.ts` / `goal-schema.ts` | Weekly-goal arithmetic and its wording / the zod rule both goal routes share |
 | `review.ts` / `review-service.ts` | The daily review's rules — day boundaries, streaks, level-ups / its queries |
@@ -520,7 +514,7 @@ scripts/                node test scripts, graph sealing
 
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
-report token, the Comic Vine, TMDB (film and TV), MyAnimeList (anime and manga) and Open Library / Google Books (books) merge rules, the shopping
+report token, the Comic Vine, TMDB (film and TV), MyAnimeList (anime and manga) and Google Books (books) merge rules, the shopping
 rules (addresses, categories, line codes), the finance pots (carryover per source, balances), and installment splits. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only

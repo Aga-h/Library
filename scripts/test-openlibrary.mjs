@@ -1,6 +1,6 @@
-// Books from Open Library. A work is one book. The rules: work ids, ISBNs, covers only from
-// Open Library's CDN, page-count median, matching a hand-added row by title + author, and —
-// when it's already in the library — fill blanks, never overwrite what you entered.
+// Library matching for catalogue books: work ids leftover from Open Library, ISBNs, covers,
+// matching a hand-added row by title + author, and — when it's already in the library — fill
+// blanks, never overwrite what you entered.
 //
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-openlibrary.mjs
 import {
@@ -237,115 +237,6 @@ eq(
 );
 
 console.log(`${pass} passed, ${failures.length} failed`);
-if (failures.length) {
-  for (const f of failures) console.log("  ✗ " + f);
-  process.exit(1);
-}
-
-// ── stand-in speaking Open Library's documented search.json ─────────────────
-import { createServer } from "node:http";
-
-const stoneDoc = {
-  key: "/works/OL82563W",
-  title: "Harry Potter and the Philosopher's Stone",
-  author_name: ["J. K. Rowling"],
-  first_publish_year: 1997,
-  cover_i: art,
-  number_of_pages_median: 302,
-};
-const nopagesDoc = {
-  key: "/works/OL1W",
-  title: "A Poster Book",
-  author_name: ["Anon"],
-  first_publish_year: 2001,
-};
-
-const server = createServer((req, res) => {
-  const url = new URL(req.url ?? "/", "http://stand-in.test");
-  if (url.pathname !== "/search.json") {
-    res.writeHead(404);
-    res.end();
-    return;
-  }
-  const q = url.searchParams.get("q") ?? "";
-  if (q === "ratelimit") {
-    res.writeHead(429);
-    res.end();
-    return;
-  }
-  if (q === "down") {
-    res.writeHead(500);
-    res.end("no");
-    return;
-  }
-  if (req.headers["user-agent"]?.includes("MyPortal") !== true) {
-    res.writeHead(403);
-    res.end(JSON.stringify({ error: "no user-agent" }));
-    return;
-  }
-  let docs = [];
-  if (q === "harry potter" || q === "the philosopher") docs = [stoneDoc, nopagesDoc];
-  else if (q === "isbn:9780439708180" || q === "key:/works/OL82563W") docs = [stoneDoc];
-  else if (q === "key:/works/OL1W") docs = [nopagesDoc];
-  else if (q === "key:/works/OL404W") docs = [];
-  res.writeHead(200, { "content-type": "application/json" });
-  res.end(JSON.stringify({ docs, numFound: docs.length }));
-});
-
-await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-const { port } = server.address();
-process.env.OPENLIBRARY_BASE_URL = `http://127.0.0.1:${port}`;
-const { searchWorks, workById, workDetails, OpenLibraryError } = await import("../lib/openlibrary-service.ts");
-
-function assert(cond, label) {
-  if (cond) pass++;
-  else failures.push(label);
-}
-
-try {
-  const found = await searchWorks("harry potter");
-  eq(found.length, 2, "stand-in search returns both works");
-  eq(found[0].id, "OL82563W", "…Philosopher's Stone first");
-  eq(found[1].pages, null, "…a poster book has no pages");
-
-  const byIsbn = await searchWorks("978-0-439-70818-0");
-  eq(byIsbn.map((w) => w.id), ["OL82563W"], "ISBN lookup");
-
-  const one = await workById("OL82563W");
-  eq(one.pages, 302, "workById re-fetches the work");
-
-  try {
-    await workById("OL404W");
-    assert(false, "missing work should 404");
-  } catch (e) {
-    assert(e instanceof OpenLibraryError && e.status === 404, "missing work is 404");
-  }
-
-  const details = await workDetails(["OL82563W", "OL1W", "OL404W"]);
-  eq(details.works.map((w) => w.id), ["OL82563W"], "only works with pages are imported");
-  eq(details.failed.map((f) => f.openLibraryId).sort(), ["OL1W", "OL404W"], "missing pages and missing works are reported");
-  eq(details.failed.find((f) => f.openLibraryId === "OL1W").reason.includes("page count"), true, "no page count has a plain reason");
-
-  try {
-    await searchWorks("ratelimit");
-    assert(false, "429 should throw");
-  } catch (e) {
-    assert(e instanceof OpenLibraryError && e.status === 429, "rate limit is 429, message has no URL");
-    assert(!String(e.message).includes("127.0.0.1"), "the stand-in URL is not in the 429 message");
-  }
-
-  try {
-    await searchWorks("down");
-    assert(false, "500 should throw");
-  } catch (e) {
-    assert(e instanceof OpenLibraryError && e.status === 502, "Open Library 500 is a 502 to us");
-    assert(!String(e.message).includes("127.0.0.1"), "the stand-in URL is not in the 502 message");
-  }
-} finally {
-  await new Promise((resolve) => server.close(resolve));
-}
-
-console.log(`${pass} passed, ${failures.length} failed (with stand-in)`);
 if (failures.length) {
   for (const f of failures) console.log("  ✗ " + f);
   process.exit(1);

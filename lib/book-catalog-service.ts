@@ -1,55 +1,29 @@
-// Searching both book catalogues at once, and fetching the rows an import needs. Server-only.
-// Open Library is required; Google Books is best-effort — a 403/429 there must not hide Open
-// Library hits. Pure merge rules live in lib/google-books.ts.
+// Searching Google Books and fetching the rows an import needs. Server-only.
+// Pure list rules live in lib/google-books.ts.
 
-import { BookCatalogError, hasPages, type CatalogBook, type OlWork } from "@/lib/openlibrary";
-import { combineSources, mergeCatalog, type GbVolume } from "@/lib/google-books";
-import { OpenLibraryError, searchWorks, workById } from "@/lib/openlibrary-service";
+import { hasPages, type CatalogBook } from "@/lib/openlibrary";
+import { catalogFromVolumes, fromGbVolume } from "@/lib/google-books";
 import { GoogleBooksError, searchVolumes, volumeById } from "@/lib/google-books-service";
 
 const CONCURRENCY = 3;
 
 export interface CatalogItem {
-  openLibraryId?: string;
-  googleBooksId?: string;
-  /** Title shown in search — kept on import so a Japanese work title is not stored. */
+  googleBooksId: string;
+  /** Title shown in search — kept on import so Google's edition title is what you picked. */
   title?: string;
 }
 
 export interface CatalogSearch {
   works: Array<CatalogBook & { pages: number }>;
-  /** Set when Google Books could not be searched, so Open Library-only results are explained. */
-  notice: string | null;
 }
 
 function catalogIdOf(item: CatalogItem): string {
-  return item.openLibraryId ?? (item.googleBooksId ? `gb:${item.googleBooksId}` : "");
+  return item.googleBooksId ? `gb:${item.googleBooksId}` : "";
 }
 
-/**
- * Works matching a search that have a page count (required to import). Open Library and Google
- * Books run together; Google Books failing (no key, quota, outage) leaves Open Library's list
- * intact plus a notice. Both failing is still an error.
- */
+/** Volumes matching a search that have a page count (required to import). */
 export async function searchCatalog(query: string): Promise<CatalogSearch> {
-  const [ol, gb] = await Promise.allSettled([searchWorks(query), searchVolumes(query)]);
-  const olWorks = ol.status === "fulfilled" ? ol.value : [];
-  const gbVolumes = gb.status === "fulfilled" ? gb.value : [];
-
-  if (ol.status === "rejected" && gb.status === "rejected") {
-    const err = ol.reason;
-    if (err instanceof BookCatalogError) throw err;
-    throw err;
-  }
-
-  let notice: string | null = null;
-  if (gb.status === "rejected") {
-    notice = gb.reason instanceof GoogleBooksError
-      ? gb.reason.message
-      : "Google Books couldn't be searched — showing Open Library only.";
-  }
-
-  return { works: mergeCatalog(olWorks, gbVolumes, query), notice };
+  return { works: catalogFromVolumes(await searchVolumes(query), query) };
 }
 
 export interface CatalogDetails {
@@ -58,9 +32,8 @@ export interface CatalogDetails {
 }
 
 /**
- * Each item's details, a few at a time. A source that 404s is skipped if the other source
- * still has the book; a missing page count is reported rather than failing the batch. A rate
- * limit or outage on a source still throws when that source is the only one for the item.
+ * Each item's details, a few at a time. A missing volume or page count is reported rather than
+ * failing the batch. A rate limit or outage still throws.
  */
 export async function catalogDetails(items: CatalogItem[]): Promise<CatalogDetails> {
   const unique: CatalogItem[] = [];
@@ -70,8 +43,7 @@ export async function catalogDetails(items: CatalogItem[]): Promise<CatalogDetai
     if (!id || seen.has(id)) continue;
     seen.add(id);
     unique.push({
-      ...(item.openLibraryId ? { openLibraryId: item.openLibraryId } : {}),
-      ...(item.googleBooksId ? { googleBooksId: item.googleBooksId } : {}),
+      googleBooksId: item.googleBooksId,
       ...(item.title?.trim() ? { title: item.title.trim() } : {}),
     });
   }
@@ -82,42 +54,25 @@ export async function catalogDetails(items: CatalogItem[]): Promise<CatalogDetai
 
   async function one(item: CatalogItem): Promise<void> {
     const id = catalogIdOf(item);
-    let ol: OlWork | null = null;
-    let gb: GbVolume | null = null;
-
-    if (item.openLibraryId) {
-      try {
-        ol = await workById(item.openLibraryId);
-      } catch (e) {
-        if (!(e instanceof OpenLibraryError) || (e.status !== 404 && e.status !== 400)) throw e;
+    let volume;
+    try {
+      volume = await volumeById(item.googleBooksId);
+    } catch (e) {
+      if (e instanceof GoogleBooksError && (e.status === 404 || e.status === 400)) {
+        failed.push({ id, reason: "not found on Google Books" });
+        return;
       }
-    }
-    if (item.googleBooksId) {
-      try {
-        gb = await volumeById(item.googleBooksId);
-      } catch (e) {
-        if (e instanceof GoogleBooksError && (e.status === 404 || e.status === 400)) {
-          gb = null;
-        } else if (ol && hasPages(ol)) {
-          gb = null;
-        } else {
-          throw e;
-        }
-      }
+      throw e;
     }
 
-    let combined = combineSources(ol, gb, item.title ?? "");
-    if (!combined) {
-      failed.push({ id, reason: "not found in the catalogues" });
-      return;
-    }
+    let book = fromGbVolume(volume);
     const preferred = item.title?.trim();
-    if (preferred) combined = { ...combined, title: preferred };
-    if (!hasPages(combined)) {
-      failed.push({ id, reason: "No page count on Open Library or Google Books — add it by hand" });
+    if (preferred) book = { ...book, title: preferred };
+    if (!hasPages(book)) {
+      failed.push({ id, reason: "No page count on Google Books — add it by hand" });
       return;
     }
-    works.push(combined);
+    works.push(book);
   }
 
   async function worker() {

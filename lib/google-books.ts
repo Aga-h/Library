@@ -1,14 +1,13 @@
-// Google Books as the second book catalogue: reading a volume, covers from books.google.com,
-// and merging its hits with Open Library's so a title one of them hasn't got still appears.
+// Google Books is the book catalogue: reading a volume and covers from books.google.com.
 //
 // Pure and dependency-free (scripts/test-google-books.mjs). The API client is
 // lib/google-books-service.ts. Google Books is edition-centric — the same novel is many
-// volumes — so search results are collapsed by title + author before they meet Open Library.
+// volumes — so search results are collapsed by title + author.
 
 import {
-  MAX_IMPORT, authorsMatch, authorsOf, firstAuthor, fromOlWork, hasPages, isbnOf, normaliseAuthor,
+  MAX_IMPORT, authorsMatch, authorsOf, hasPages, isbnOf,
   queryFit, titleKeys, workIdOf, yearOf,
-  type CatalogBook, type OlWork,
+  type CatalogBook,
 } from "@/lib/openlibrary";
 
 export const GB_IMAGE_HOSTS = ["books.google.com", "books.googleusercontent.com"] as const;
@@ -146,46 +145,9 @@ export function fromGbVolume(volume: GbVolume): CatalogBook {
   };
 }
 
-function pickCloser(a: string, b: string, query: string, fallback: string): string {
-  if (!query.trim()) return fallback;
-  return queryFit(a, query) >= queryFit(b, query) ? a : b;
-}
-
-/** Open Library title/cover/year win unless Google Books is closer to what was searched. */
-export function combineSources(ol: OlWork | null, gb: GbVolume | null, query = ""): CatalogBook | null {
-  if (!ol && !gb) return null;
-  if (ol && !gb) return fromOlWork(ol);
-  if (!ol && gb) return fromGbVolume(gb);
-  const work = ol!;
-  const volume = gb!;
-  const title = pickCloser(work.title, volume.title, query, work.title);
-  const author = work.author !== "Unknown"
-    ? pickCloser(work.author, volume.author, query, work.author)
-    : volume.author;
-  const preferGb = title === volume.title && title !== work.title;
-  return {
-    id: work.id,
-    title,
-    author,
-    year: work.year ?? volume.year,
-    pages: work.pages ?? volume.pages,
-    cover: preferGb ? (volume.cover ?? work.cover) : (work.cover ?? volume.cover),
-    coverThumb: preferGb ? (volume.coverThumb ?? work.coverThumb) : (work.coverThumb ?? volume.coverThumb),
-    publisher: volume.publisher,
-    openLibraryId: work.id,
-    googleBooksId: volume.id,
-  };
-}
-
-function volumeIdentity(volume: GbVolume): string {
-  const title = titleKeys(volume.title)[0] ?? "";
-  const author = volume.author === "Unknown" ? "" : normaliseAuthor(firstAuthor(volume.author));
-  return `${title}\0${author}`;
-}
-
 /**
- * Same novel across catalogues: any title key overlaps (so a subtitle doesn't split it) and
- * the authors match. Used only to merge search hits — library rows still match on the full title.
+ * Same novel: any title key overlaps (so a subtitle doesn't split it) and the authors match.
+ * Used only to collapse search hits — library rows still match on the full title.
  */
 export function sameWork(a: { title: string; author: string }, b: { title: string; author: string }): boolean {
   const titles = new Set(titleKeys(a.title));
@@ -207,47 +169,31 @@ function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
 
 /** Collapse Google Books' edition soup: one volume per title + author, keeping pages then a cover. */
 export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
-  const best = new Map<string, GbVolume>();
-  const order: string[] = [];
+  const best: GbVolume[] = [];
   for (const volume of volumes) {
-    const key = volumeIdentity(volume);
-    const prev = best.get(key);
-    if (!prev) {
-      best.set(key, volume);
-      order.push(key);
+    const idx = best.findIndex((prev) => sameWork(prev, volume));
+    if (idx === -1) {
+      best.push(volume);
       continue;
     }
-    best.set(key, betterVolume(prev, volume, query));
+    best[idx] = betterVolume(best[idx], volume, query);
   }
-  return order.map((key) => best.get(key)!);
+  return best;
 }
 
 /**
- * One list for Add Book: Open Library's order (a series search lists its books), with Google
- * Books ids attached when the same novel is there, then Google-only titles Open Library missed.
- * Hits whose title is in the same script as the query (English search → English title, not
- * 無職転生) are listed first. A work with no page count on either side is omitted — it cannot
+ * Add Book's list: Google's hits, collapsed to one row per novel, titles that fit the query
+ * (English search → English title) first. Volumes with no page count are omitted — they cannot
  * be imported. Capped at MAX_IMPORT.
  */
-export function mergeCatalog(
-  olWorks: OlWork[],
-  gbVolumes: GbVolume[],
+export function catalogFromVolumes(
+  volumes: GbVolume[],
   query = "",
 ): Array<CatalogBook & { pages: number }> {
-  const gbUnique = dedupeVolumes(gbVolumes, query);
-  const used = new Set<string>();
-  const merged: CatalogBook[] = [];
-  for (const work of olWorks) {
-    const gb = gbUnique.find((v) => !used.has(v.id) && sameWork(work, v));
-    if (gb) used.add(gb.id);
-    merged.push(combineSources(work, gb ?? null, query)!);
-  }
-  for (const volume of gbUnique) {
-    if (used.has(volume.id)) continue;
-    merged.push(fromGbVolume(volume));
-  }
+  const unique = dedupeVolumes(volumes, query);
   const seen = new Set<string>();
-  const ranked = merged
+  const ranked = unique
+    .map(fromGbVolume)
     .filter(hasPages)
     .map((book, i) => ({ book, i, score: queryFit(book.title, query) }))
     .sort((a, b) => b.score - a.score || a.i - b.i);

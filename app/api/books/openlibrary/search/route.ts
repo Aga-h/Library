@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withErrors } from "@/lib/api-errors";
-import { BookCatalogError, isbnOf, workIdOf } from "@/lib/openlibrary";
+import { BookCatalogError, isbnOf } from "@/lib/openlibrary";
 import { googleVolumeIdOf } from "@/lib/google-books";
 import { searchCatalog } from "@/lib/book-catalog-service";
 import { libraryBookPlaces } from "@/lib/openlibrary-import";
 
-/** Search Open Library and Google Books: `?q=the hobbit` or an ISBN. */
+/** Search Google Books: `?q=the hobbit` or an ISBN. */
 async function GETHandler(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
-  const keyed = isbnOf(q) !== null || workIdOf(q) !== null || googleVolumeIdOf(q) !== null;
+  const keyed = isbnOf(q) !== null || googleVolumeIdOf(q) !== null;
   if (!keyed && q.length < 2) return NextResponse.json({ error: "Type at least two letters to search." }, { status: 400 });
   if (q.length > 200) return NextResponse.json({ error: "That search is too long." }, { status: 400 });
 
   try {
-    const { works, notice } = await searchCatalog(q);
+    const { works } = await searchCatalog(q);
     const places = await libraryBookPlaces(works);
     return NextResponse.json({
       works: works.map((w) => ({ ...w, place: places.get(w.id) ?? null })),
-      notice,
     });
   } catch (e) {
     if (e instanceof BookCatalogError) return NextResponse.json({ error: e.message }, { status: e.status });

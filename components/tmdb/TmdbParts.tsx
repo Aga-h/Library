@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { Film } from "lucide-react";
 import { TMDB_NOTICE } from "@/lib/tmdb";
-import { OL_NOTICE, OL_NOTICE_HREF } from "@/lib/openlibrary";
 import { GB_NOTICE, GB_NOTICE_HREF } from "@/lib/google-books";
 
 /** A search-result poster thumbnail, straight from the source's CDN (TMDB or MyAnimeList). */
@@ -65,17 +64,7 @@ export function MalNotice({ className = "", kind = "Anime" }: { className?: stri
   );
 }
 
-/** Open Library's attribution, shown wherever its data is used. */
-export function OlNotice({ className = "" }: { className?: string }) {
-  return (
-    <p className={`text-[11px] text-gray-400 ${className}`}>
-      {OL_NOTICE}{" "}
-      <a href={OL_NOTICE_HREF} target="_blank" rel="noreferrer" className="underline">openlibrary.org</a>.
-    </p>
-  );
-}
-
-/** Google Books' attribution. */
+/** Google Books' attribution, on Add Book and the book page. */
 export function GbNotice({ className = "" }: { className?: string }) {
   return (
     <p className={`text-[11px] text-gray-400 ${className}`}>
@@ -85,12 +74,6 @@ export function GbNotice({ className = "" }: { className?: string }) {
   );
 }
 
-/** Both catalogues, on Add Book and the book page. */
 export function CatalogNotice({ className = "" }: { className?: string }) {
-  return (
-    <div className={`space-y-1 ${className}`}>
-      <OlNotice />
-      <GbNotice />
-    </div>
-  );
+  return <GbNotice className={className} />;
 }

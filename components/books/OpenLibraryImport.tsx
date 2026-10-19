@@ -31,7 +31,7 @@ interface Work {
   coverThumb: string | null;
   publisher: string | null;
   openLibraryId: string | null;
-  googleBooksId: string | null;
+  googleBooksId: string;
   place: Place | null;
 }
 
@@ -73,11 +73,10 @@ function plural(n: number, one: string, many = `${one}s`) {
 }
 
 /**
- * Find a book on Open Library or Google Books and add it — author, page count and cover come
- * with it. One already in the library is opened, never added twice; one you added by hand under
- * the same title is linked instead. Tick several (a search for a series lists its books) to
- * import them into the series you pick. Matches start unticked. With `link`, picking a work
- * links that book.
+ * Find a book on Google Books and add it — author, page count and cover come with it. One
+ * already in the library is opened, never added twice; one you added by hand under the same
+ * title is linked instead. Tick several (a search for a series lists its books) to import them
+ * into the series you pick. Matches start unticked. With `link`, picking a volume links that book.
  */
 export default function OpenLibraryImport({
   seriesOptions,
@@ -101,7 +100,6 @@ export default function OpenLibraryImport({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | "bulk" | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
   const targetId = target || null;
   const targetName = seriesOptions.find((s) => s.id === target)?.name ?? null;
@@ -112,7 +110,6 @@ export default function OpenLibraryImport({
     setSearching(true);
     setError(null);
     setSummary(null);
-    setNotice(null);
     const res = await fetch(`/api/books/openlibrary/search?${new URLSearchParams({ q: query.trim() })}`);
     const data = await res.json().catch(() => ({}));
     setSearching(false);
@@ -124,7 +121,6 @@ export default function OpenLibraryImport({
     const works: Work[] = data.works;
     setResults(works);
     setSelected(new Set());
-    setNotice(typeof data.notice === "string" && data.notice ? data.notice : null);
   }
 
   function placed(works: Work[], report: ReportLine[]): Work[] {
@@ -153,8 +149,7 @@ export default function OpenLibraryImport({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         items: works.map((w) => ({
-          ...(w.openLibraryId ? { openLibraryId: w.openLibraryId } : {}),
-          ...(w.googleBooksId ? { googleBooksId: w.googleBooksId } : {}),
+          googleBooksId: w.googleBooksId,
           title: w.title,
         })),
         read,
@@ -265,7 +260,6 @@ export default function OpenLibraryImport({
       </form>
 
       {error && <div ref={reveal} role="alert" className={`bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm break-words ${revealCls}`}>{error}</div>}
-      {notice && !error && <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{notice}</p>}
 
       {summary && (
         <div ref={reveal} className={`bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-900 space-y-1 ${revealCls}`}>
@@ -302,7 +296,7 @@ export default function OpenLibraryImport({
       )}
 
       {results && (results.length === 0 ? (
-        <p className="text-sm text-gray-500">Nothing with a page count on Open Library or Google Books matches that. Try fewer words, or an ISBN.</p>
+        <p className="text-sm text-gray-500">Nothing with a page count on Google Books matches that. Try fewer words, or an ISBN.</p>
       ) : (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {!link && (

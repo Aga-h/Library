@@ -1,11 +1,11 @@
-// Google Books as the second book catalogue. Volume ids, covers from books.google.com, collapsing
-// edition soup by title + author, merging with Open Library, and matching a library row that
-// already has the other catalogue's id so the two never duplicate.
+// Google Books as the book catalogue. Volume ids, covers from books.google.com, collapsing
+// edition soup by title + author, and matching a library row that already has an Open Library
+// id so the two never duplicate.
 //
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-google-books.mjs
 import {
   googleVolumeIdOf, googleSearchQueryOf, googleCoverUrl, isGoogleBooksImage, yearFromDate,
-  toVolume, fromGbVolume, combineSources, sameWork, dedupeVolumes, mergeCatalog, GB_IMAGE_HOSTS,
+  toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, GB_IMAGE_HOSTS,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
 
@@ -83,20 +83,6 @@ const olPiranesi = toWork({
   key: "/works/OL28154936W", title: "Piranesi", author_name: ["Susanna Clarke"],
   first_publish_year: 2020, cover_i: 15155833, number_of_pages_median: 245,
 });
-const combined = combineSources(olPiranesi, piranesi);
-eq(combined.id, "OL28154936W", "merged row keeps the Open Library id as its key");
-eq(combined.googleBooksId, gbId, "…and the Google Books id");
-eq(combined.pages, 245, "Open Library page median wins when both have pages");
-eq(combined.publisher, "Bloomsbury", "publisher comes from Google Books");
-eq(combined.cover.startsWith("https://covers.openlibrary.org"), true, "Open Library cover wins");
-
-const olNoPages = toWork({
-  key: "/works/OL1W", title: "Piranesi", author_name: ["Susanna Clarke"], first_publish_year: 2020,
-});
-eq(combineSources(olNoPages, piranesi).pages, 272, "Google Books fills a missing page count");
-eq(combineSources(null, piranesi).id, `gb:${gbId}`, "Google-only when Open Library missed it");
-eq(combineSources(olPiranesi, null).googleBooksId, null, "Open Library-only when Google missed it");
-eq(combineSources(null, null), null, "neither source: nothing");
 
 ok(sameWork(olPiranesi, piranesi), "same title and author: same work");
 ok(sameWork({ title: "Piranesi", author: "Susanna Clarke" }, { title: "Piranesi: A Novel", author: "S. Clarke" }) === false, "different normalised author: not merged");
@@ -108,51 +94,31 @@ const ed2 = { ...piranesi, id: "BBBBBBBBBBBB", pages: 300, cover: coverFull };
 const ed3 = { ...piranesi, id: "CCCCCCCCCCCC", pages: 272, cover: coverFull };
 eq(dedupeVolumes([ed1, ed2, ed3]).map((v) => v.id), ["BBBBBBBBBBBB"], "edition soup: keep the one with pages");
 eq(dedupeVolumes([ed1, { ...ed1, id: "DDDDDDDDDDDD", cover: coverFull }]).map((v) => v.id), ["DDDDDDDDDDDD"], "…or the one with a cover if none have pages");
+eq(
+  dedupeVolumes([piranesi, { ...piranesi, id: "subtitlevol001", title: "Piranesi: A Novel" }]).map((v) => v.id),
+  [gbId],
+  "a subtitle does not split edition soup",
+);
 
-const olStone = toWork({
-  key: "/works/OL82563W", title: "Harry Potter and the Philosopher's Stone",
-  author_name: ["J. K. Rowling"], first_publish_year: 1997, number_of_pages_median: 302, cover_i: 1,
-});
 const gbOnly = toVolume(raw({ id: "zyTCAlFPjgYC" }, { title: "A Missing Novel", authors: ["Pat"] }));
-const merged = mergeCatalog([olStone], [piranesi, gbOnly], "a missing novel");
-eq(merged[0].title, "A Missing Novel", "a Google-only hit matching the query is listed first");
-eq(merged[1].id, "OL82563W", "…then Open Library's order");
-ok(merged.some((w) => w.title === "Piranesi"), "unrelated Google-only hits still appear after");
-const withPiranesi = mergeCatalog([olPiranesi], [piranesi], "piranesi");
-eq(withPiranesi.length, 1, "the same novel from both catalogues is one row");
-eq(withPiranesi[0].openLibraryId, "OL28154936W", "…Open Library id kept");
-eq(withPiranesi[0].googleBooksId, gbId, "…Google Books id attached");
-
-const olListed = mergeCatalog([olStone], [gbOnly], "harry potter");
-eq(olListed[0].id, "OL82563W", "a query that matches Open Library does not bury it under Google-only extras");
-eq(olListed.some((w) => w.googleBooksId === "zyTCAlFPjgYC"), true, "…Google-only extras still appear after");
+const listed = catalogFromVolumes([piranesi, gbOnly], "a missing novel");
+eq(listed[0].title, "A Missing Novel", "a hit matching the query is listed first");
+eq(listed[1].googleBooksId, gbId, "…then Google's remaining order");
+eq(catalogFromVolumes([piranesi], "piranesi").length, 1, "one novel is one row");
+eq(catalogFromVolumes([{ ...piranesi, pages: null }]).length, 0, "no page count is omitted from search");
 
 const mushokuQuery = "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1";
-const olMushoku = toWork({
-  key: "/works/OL20094984W",
-  title: "無職転生 ~異世界行ったら本気だす~ 1 (light novel)",
-  author_name: ["理不尽な孫の手"],
-  first_publish_year: 2014,
-  number_of_pages_median: 320,
-});
+const gbMushokuJp = toVolume(raw({ id: "mushokutensej" }, {
+  title: "無職転生 ~異世界行ったら本気だす~ 1 (light novel)", authors: ["Rifujin na Magonote"],
+  pageCount: 320, imageLinks: { thumbnail: "http://x" },
+}));
 const gbMushoku = toVolume(raw({ id: "mushokutense1" }, {
   title: mushokuQuery, authors: ["Rifujin na Magonote"], publisher: "Seven Seas", pageCount: 320,
   imageLinks: { thumbnail: "http://x" }, language: "en",
 }));
-const mushokuHits = mergeCatalog([olMushoku], [gbMushoku], mushokuQuery);
+const mushokuHits = catalogFromVolumes([gbMushokuJp, gbMushoku], mushokuQuery);
 eq(mushokuHits[0].title, mushokuQuery, "English Mushoku Tensei is listed before 無職転生");
-ok(!mushokuHits[0].title.includes("無職"), "the first hit is not the Japanese work title");
-eq(combineSources(olMushoku, gbMushoku, mushokuQuery).title, mushokuQuery,
-  "merging prefers the English title when that is what was searched");
-
-eq(mergeCatalog([olNoPages], []).length, 0, "Open Library-only with no pages is omitted from search");
-eq(mergeCatalog([], [{ ...piranesi, pages: null }]).length, 0, "Google-only with no pages is omitted from search");
-const filledPages = mergeCatalog([olNoPages], [piranesi], "piranesi");
-eq(filledPages.length, 1, "…unless the other catalogue has a page count");
-eq(filledPages[0].pages, 272, "…filled from Google Books");
-eq(filledPages[0].openLibraryId, "OL1W", "…Open Library id kept on the filled row");
-eq(mergeCatalog([olNoPages], [{ ...piranesi, pages: null }]).length, 0,
-  "the same novel with no pages on either side is omitted");
+ok(!mushokuHits[0].title.includes("無職"), "the first hit is not the Japanese title");
 
 // ── already in the library: the other catalogue must not duplicate ───────────
 const library = [
@@ -253,7 +219,8 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const { port } = server.address();
 process.env.GOOGLE_BOOKS_BASE_URL = `http://127.0.0.1:${port}`;
 delete process.env.GOOGLE_BOOKS_API_KEY;
-const { searchVolumes, volumeById, GoogleBooksError } = await import("../lib/google-books-service.ts");
+  const { searchVolumes, volumeById, GoogleBooksError } = await import("../lib/google-books-service.ts");
+  const { searchCatalog } = await import("../lib/book-catalog-service.ts");
 
 function assert(cond, label) {
   if (cond) pass++;
@@ -265,6 +232,10 @@ try {
   eq(found.length, 1, "stand-in search returns the volume");
   eq(found[0].id, gbId, "…Piranesi");
   eq(found[0].publisher, "Bloomsbury", "…publisher");
+
+  const catalog = await searchCatalog("piranesi");
+  eq(catalog.works.map((w) => w.googleBooksId), [gbId], "searchCatalog is Google Books only");
+  eq(catalog.works[0].pages, 272, "…and drops nothing that has pages");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");
@@ -280,10 +251,10 @@ try {
   }
 
   try {
-    await searchVolumes("ratelimit");
+    await searchCatalog("ratelimit");
     assert(false, "429 should throw");
   } catch (e) {
-    assert(e instanceof GoogleBooksError && e.status === 429, "rate limit is 429");
+    assert(e instanceof GoogleBooksError && e.status === 429, "searchCatalog fails when Google Books 429s");
     assert(String(e.message).includes("GOOGLE_BOOKS_API_KEY"), "no-key 429 mentions the env var");
     assert(!String(e.message).includes("127.0.0.1"), "the stand-in URL is not in the 429 message");
   }
@@ -313,54 +284,6 @@ try {
 }
 
 console.log(`${pass} passed, ${failures.length} failed (with stand-in)`);
-if (failures.length) {
-  for (const f of failures) console.log("  ✗ " + f);
-  process.exit(1);
-}
-
-// ── combined search: Google Books 429 must not hide Open Library ─────────────
-const olDoc = {
-  key: "/works/OL82563W",
-  title: "Harry Potter and the Philosopher's Stone",
-  author_name: ["J. K. Rowling"],
-  first_publish_year: 1997,
-  cover_i: 1,
-  number_of_pages_median: 302,
-};
-const olServer = createServer((req, res) => {
-  const url = new URL(req.url ?? "/", "http://stand-in.test");
-  if (url.pathname !== "/search.json") {
-    res.writeHead(404);
-    res.end();
-    return;
-  }
-  res.writeHead(200, { "content-type": "application/json" });
-  res.end(JSON.stringify({ docs: [olDoc], numFound: 1 }));
-});
-const gbDown = createServer((req, res) => {
-  res.writeHead(429);
-  res.end(JSON.stringify({ error: { code: 429 } }));
-});
-await new Promise((resolve) => olServer.listen(0, "127.0.0.1", resolve));
-await new Promise((resolve) => gbDown.listen(0, "127.0.0.1", resolve));
-process.env.OPENLIBRARY_BASE_URL = `http://127.0.0.1:${olServer.address().port}`;
-process.env.GOOGLE_BOOKS_BASE_URL = `http://127.0.0.1:${gbDown.address().port}`;
-
-try {
-  const { searchCatalog } = await import("../lib/book-catalog-service.ts");
-  const { searchWorks } = await import("../lib/openlibrary-service.ts");
-  const olOnly = await searchWorks("harry potter");
-  eq(olOnly[0].id, "OL82563W", "Open Library stand-in still answers");
-  const both = await searchCatalog("harry potter");
-  eq(both.works[0].id, "OL82563W", "combined search still returns Open Library when Google Books 429s");
-  ok(typeof both.notice === "string" && both.notice.length > 0, "…and explains that Google Books was limited");
-  assert(!both.notice.includes("127.0.0.1"), "the notice has no stand-in URL");
-} finally {
-  await new Promise((resolve) => olServer.close(resolve));
-  await new Promise((resolve) => gbDown.close(resolve));
-}
-
-console.log(`${pass} passed, ${failures.length} failed (combined search)`);
 if (failures.length) {
   for (const f of failures) console.log("  ✗ " + f);
   process.exit(1);

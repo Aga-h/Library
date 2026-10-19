@@ -7,7 +7,7 @@ import { refreshBook } from "@/lib/openlibrary-import";
 
 const schema = z.object({ bookId: z.string().min(1) });
 
-/** "Check catalogues": a cover, author or publisher it was missing. */
+/** "Check Google Books": a cover, author or publisher it was missing. */
 async function POSTHandler(request: NextRequest) {
   const result = schema.safeParse(await request.json().catch(() => null));
   if (!result.success) {

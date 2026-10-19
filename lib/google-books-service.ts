@@ -2,7 +2,8 @@
 // a browser. Pure rules live in lib/google-books.ts.
 //
 // Only documented endpoints: GET /books/v1/volumes (search) and GET /books/v1/volumes/{id}.
-// The key is optional — public data still answers without it until the anonymous quota dies.
+// The key is optional until Google's anonymous quota dies; Add Book has no other catalogue,
+// so a 403/429 without a key is an error, not a partial list.
 // Overridable GOOGLE_BOOKS_BASE_URL so the importer can be tested against a local stand-in;
 // production never sets it.
 
@@ -47,7 +48,7 @@ async function get(path: string, params: Record<string, string> = {}): Promise<R
     throw new GoogleBooksError(
       apiKey()
         ? "Google Books is rate-limiting requests — wait a moment and try again."
-        : "Google Books is limited without GOOGLE_BOOKS_API_KEY — some titles may be missing.",
+        : "Google Books needs GOOGLE_BOOKS_API_KEY — set it in Vercel, enable the Books API, and redeploy.",
       429,
     );
   }
@@ -55,7 +56,7 @@ async function get(path: string, params: Record<string, string> = {}): Promise<R
     throw new GoogleBooksError(
       apiKey()
         ? "Google Books refused the API key — enable the Books API and check GOOGLE_BOOKS_API_KEY."
-        : "Google Books is limited without GOOGLE_BOOKS_API_KEY — some titles may be missing.",
+        : "Google Books needs GOOGLE_BOOKS_API_KEY — set it in Vercel, enable the Books API, and redeploy.",
       403,
     );
   }
@@ -94,7 +95,7 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
     q,
     maxResults: String(MAX_IMPORT),
     printType: "books",
-    projection: "lite",
+    projection: "full",
   });
   return volumesOf(body);
 }
@@ -103,7 +104,7 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
 export async function volumeById(id: string): Promise<GbVolume> {
   const key = googleVolumeIdOf(id);
   if (!key) throw new GoogleBooksError("That isn't a Google Books volume id.", 400);
-  const found = toVolume(await get(`/volumes/${encodeURIComponent(key)}`, { projection: "lite" }));
+  const found = toVolume(await get(`/volumes/${encodeURIComponent(key)}`, { projection: "full" }));
   if (!found || found.id !== key) throw new GoogleBooksError("That isn't on Google Books.", 404);
   return found;
 }

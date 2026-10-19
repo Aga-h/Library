@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: search hides hits with no page count (they cannot be imported). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: Google Books only (Open Library dropped from search/import). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,11 @@
 
 ## Next
 
+- [x] **Books: Google Books only** (asked 2026-10-19: drop Open Library). Add Book searches
+      Google Books `/volumes` only; import and "Check Google Books" never call Open Library.
+      Hits without a page count are still omitted. Existing `openLibraryId` rows stay and
+      match by title+author so a Google Books import does not duplicate them. Search needs
+      `GOOGLE_BOOKS_API_KEY` (no OL fallback). Tests: OL matching 92, Google Books 71. On `main`.
 - [x] **Books: hide hits with no page count** (asked 2026-10-19: cannot add them to the library).
       Combined search omits a work unless Open Library or Google Books has pages; a page count
       from the other catalogue still shows the row. Add Book no longer lists “No page count”.
@@ -578,9 +583,9 @@
 
 - **Books: run `035-book-openlibrary.sql` then `036-book-google-books.sql`** in the Supabase SQL
   Editor NOW — the book pages error until 035 has run; 036 is additive (`Book.googleBooksId`)
-  and the new import reads it. Both safe to re-run. For the titles Open Library hasn't got,
-  set `GOOGLE_BOOKS_API_KEY` in Vercel (Google Cloud → Credentials → API key, enable Books API)
-  and redeploy. Never in chat. Open Library still works with no key.
+  and search/import read it. Both safe to re-run. Set `GOOGLE_BOOKS_API_KEY` in Vercel (Google
+  Cloud → Credentials → API key, enable Books API) and redeploy — Add Book has no other
+  catalogue. Never in chat.
 
 - **Study: run `034-flashcards-quick-tests.sql`** in the Supabase SQL Editor NOW — the SAT Vocabulary
   pages error until it has run. Additive, safe to re-run.

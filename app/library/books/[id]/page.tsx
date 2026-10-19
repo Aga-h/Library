@@ -132,7 +132,6 @@ export default async function BookDetailPage({ params }: PageProps) {
           <OpenLibraryPanel
             bookId={book.id}
             title={book.title}
-            openLibraryId={book.openLibraryId}
             googleBooksId={book.googleBooksId}
             language={book.language as LanguageKey}
             seriesOptions={seriesOpts}

@@ -1,29 +1,16 @@
-// Importing books: reading Open Library's search answers, and the rules for landing a work in
-// the library. A work is the book itself (every paperback of Philosopher's Stone is the same
-// work), so `Book.openLibraryId` is unique. Google Books is the second catalogue (`googleBooksId`)
-// for titles Open Library hasn't got; same fill-blanks merge, matched by either id or title+author.
+// Rules for landing a catalogue book in the library: title + author matching, fill-blanks
+// merge, page counts required. Search and import talk to Google Books (`googleBooksId`);
+// `openLibraryId` is still unique on existing rows so a Google Books import of the same novel
+// does not duplicate one added earlier.
 //
-// Pure and dependency-free, so the tests exercise every rule without a network or a database
-// (scripts/test-openlibrary.mjs). The API client is lib/openlibrary-service.ts; the database
-// side is lib/openlibrary-import.ts. Google Books parsing is lib/google-books.ts.
-//
-// Open Library is the official API of a project of the Internet Archive: no key, work-level
-// identity, ISBN lookup, covers, and a page-count median across editions. Google Books is
-// edition-centric (the same novel is many volumes) and wants an API key — search still works
-// without it, and a 403/429 there must not hide Open Library hits. Goodreads has no public API.
-// Publisher is taken from Google Books (one edition, one name), never from Open Library (a work
-// lists every edition's publisher and the first is rarely the one you'd pick).
+// Pure and dependency-free (scripts/test-openlibrary.mjs). The database side is
+// lib/openlibrary-import.ts. Google Books parsing is lib/google-books.ts. Goodreads has no
+// public API.
 
 import type { LanguageKey } from "@/lib/constants/languages";
 import { normaliseTitle, type Outcome } from "@/lib/tmdb";
 
 export const OL_IMAGE_HOST = "covers.openlibrary.org";
-
-/** Open Library's attribution, shown wherever its data is used. */
-export const OL_NOTICE =
-  "Book data from Open Library, a project of the Internet Archive.";
-
-export const OL_NOTICE_HREF = "https://openlibrary.org";
 
 /** How many works one import may bring in. A search never offers more than this. */
 export const MAX_IMPORT = 40;
@@ -42,8 +29,8 @@ export interface OlWork {
 }
 
 /**
- * One row in Add Book, after Open Library and Google Books have been merged. `id` is the Open
- * Library work id when we have one, otherwise `gb:{googleBooksId}`.
+ * One row in Add Book. `id` is `gb:{googleBooksId}`. `openLibraryId` is null on new hits
+ * and kept on library rows that already have one.
  */
 export interface CatalogBook {
   id: string;
