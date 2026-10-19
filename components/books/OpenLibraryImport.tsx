@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Download, Link2, Loader2, Search } from "lucide-react";
@@ -223,13 +223,34 @@ export default function OpenLibraryImport({
     setEditionSearch((s) => (s?.id === work.id ? (found ? null : { id: work.id, state: "failed" }) : s));
   }
 
+  // A search can leave a print edition's page count out. Once the flow stops on one, ask
+  // volumes.get for it — one request for the edition looked at, rather than for every edition.
+  const centred = picking?.editions[editionIndex];
+  const needsPages = centred && centred.pages === null && centred.pagesState !== "none" ? centred.googleBooksId : null;
+  useEffect(() => {
+    if (!needsPages) return;
+    const timer = setTimeout(async () => {
+      const res = await fetch(`/api/books/openlibrary/edition?${new URLSearchParams({ id: needsPages })}`).catch(() => null);
+      const data = res?.ok ? await res.json().catch(() => null) : null;
+      const found = data?.edition as FlowEdition | undefined;
+      const state: FlowEdition["pagesState"] = found?.pages ? undefined : res?.ok || res?.status === 404 ? "none" : "failed";
+      const patch = (e: FlowEdition): FlowEdition => {
+        if (e.googleBooksId !== needsPages) return e;
+        return found?.pages ? { ...e, pages: found.pages, pagesState: undefined } : { ...e, pagesState: state };
+      };
+      setPicking((p) => (p ? { ...p, editions: p.editions.map(patch) } : p));
+      setResults((r) => (r ? r.map((w) => ({ ...w, editions: w.editions.map(patch) })) : r));
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [needsPages]);
+
   async function confirmPick() {
     if (!picking) return;
     const edition = picking.editions[editionIndex] ?? picking.editions[0];
     const chosen: Work = {
       ...picking,
       googleBooksId: edition.googleBooksId,
-      pages: edition.pages,
+      pages: edition.pages ?? picking.pages,
       year: edition.year,
       publisher: edition.publisher,
       cover: edition.cover,
@@ -399,7 +420,7 @@ export default function OpenLibraryImport({
             </div>
           )}
           <div className="flex justify-center">
-            <button type="button" onClick={confirmPick} disabled={busy !== null}
+            <button type="button" onClick={confirmPick} disabled={busy !== null || !picking.editions[editionIndex]?.pages}
               className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50">
               {busy === picking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               {link || (picking.place && !picking.place.linked) ? "Link this edition" : picking.place ? "Move it here" : "Import this edition"}

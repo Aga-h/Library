@@ -6,7 +6,10 @@ import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 /** One edition on the flow: its own cover, page count and Google Books volume. */
 export interface FlowEdition {
   googleBooksId: string;
-  pages: number;
+  /** null until fetched: a search can leave a print edition's count out. */
+  pages: number | null;
+  /** Why `pages` is still null once asked for: Google has none, or didn't answer. */
+  pagesState?: "none" | "failed";
   year: number | null;
   publisher: string | null;
   cover: string | null;
@@ -31,6 +34,13 @@ type Drag = { pointer: number; x0: number; p0: number; moved: boolean; samples: 
 
 function format(edition: FlowEdition): string {
   return edition.ebook ? "eBook" : "Print";
+}
+
+function pagesOf(edition: FlowEdition): string {
+  if (edition.pages) return `${edition.pages} pages`;
+  if (edition.pagesState === "none") return "no page count on Google Books";
+  if (edition.pagesState === "failed") return "page count unavailable right now";
+  return "finding the page count…";
 }
 
 /** The card width that suits the stage: three covers fit across a phone, more on a wide screen. */
@@ -233,7 +243,7 @@ export default function EditionCoverFlow({
   const height = Math.round(width * 1.5);
   const shown = editions[Math.min(centre, last)];
   const caption = shown
-    ? [format(shown), shown.publisher, shown.year, `${shown.pages} pages`].filter(Boolean).join(" · ")
+    ? [format(shown), shown.publisher, shown.year, pagesOf(shown)].filter(Boolean).join(" · ")
     : "";
   const stepCls = "flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-30 disabled:hover:bg-transparent transition-colors";
 
@@ -265,7 +275,7 @@ export default function EditionCoverFlow({
               }}
               role="option"
               aria-selected={i === centre}
-              aria-label={`${format(edition)}, ${edition.pages} pages${edition.year ? `, ${edition.year}` : ""}${edition.publisher ? `, ${edition.publisher}` : ""}`}
+              aria-label={`${format(edition)}, ${pagesOf(edition)}${edition.year ? `, ${edition.year}` : ""}${edition.publisher ? `, ${edition.publisher}` : ""}`}
               data-edition={i}
               className="absolute left-1/2 top-3 rounded-[3px] bg-gray-100 shadow-lg overflow-hidden will-change-transform"
               style={{ width, height, marginLeft: -width / 2, visibility: "hidden", WebkitBoxReflect: REFLECTION } as CSSProperties}
@@ -280,7 +290,7 @@ export default function EditionCoverFlow({
                 <div className="w-full h-full flex flex-col justify-between p-2.5 bg-gradient-to-br from-gray-50 to-gray-200">
                   <BookOpen className="w-5 h-5 text-gray-400" />
                   <span className="text-[11px] leading-tight text-gray-500">
-                    <span className="block text-base font-semibold text-gray-800">{edition.pages}</span>
+                    <span className="block text-base font-semibold text-gray-800">{edition.pages ?? "—"}</span>
                     pages · {format(edition)}
                   </span>
                 </div>

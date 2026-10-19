@@ -6,7 +6,7 @@
 import {
   googleVolumeIdOf, googleSearchQueryOf, googleCoverUrl, isGoogleBooksImage, yearFromDate,
   toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, volumesToRefetch,
-  isEnglishListing, GB_IMAGE_HOSTS, editionSearchQueries, editionsToRefetch, editionsFromVolumes,
+  isEnglishListing, GB_IMAGE_HOSTS, editionSearchQueries, editionsFromVolumes,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
 
@@ -281,13 +281,20 @@ eq(editionSearchQueries({ title: "Mistborn: The Final Empire", author: "Brandon 
 ], "edition search: the whole title, and each half on its own, by the first author");
 eq(editionSearchQueries({ title: "Piranesi", author: "Unknown" }), ["Piranesi"], "…an unknown author is left out");
 const fePaperBlank = gb("finalEmpPapr1", "Mistborn", "The Final Empire", 0, { year: 2010, publisher: "Tor Books", isbn: "9780765365439" });
-const editionHits = [...shelf, fePaperBlank];
-eq(editionsToRefetch(editionHits, "feTorHard2006"), ["finalEmpPapr1"], "only this book's blank counts are refetched");
+const feNoCover = { ...gb("finalEmpNoCov", "Mistborn", "The Final Empire", 560, { year: 2008, publisher: "Tor Teen", isbn: "9780765360960" }), cover: null, coverThumb: null };
+const feUntaggedEs = { ...gb("finalEmpSpan1", "Mistborn", "El imperio final", 688, { year: 2008, publisher: "Nova" }), language: "un" };
+const pickerEditions = editionsFromVolumes([...shelf, fePaperBlank, feNoCover, feUntaggedEs], "feGollancz009");
 eq(
-  editionsFromVolumes([...shelf, { ...fePaperBlank, pages: 541 }], "feGollancz009").map((e) => e.googleBooksId),
+  pickerEditions.map((e) => e.googleBooksId),
   ["feTorHard2006", "feMacPaper007", "feGollancz009", "finalEmpPapr1", "feTorPaper014", "feTenthAnniv1", "feOrionEbook1"],
-  "editions of the book the listing belongs to: print oldest first, then eBooks; no other book, no translation",
+  "editions of the book the listing belongs to: print oldest first, then eBooks; no other book, no translation, none without a cover",
 );
+eq(pickerEditions.find((e) => e.googleBooksId === "finalEmpPapr1").pages, null,
+  "an edition the search gave no page count is still listed, its count left for the picker to fetch");
+eq(catalogFromVolumes([...shelf, fePaperBlank], "mistborn final empire")[0].editions.some((e) => e.googleBooksId === "finalEmpPapr1"), true,
+  "…and rides along on the search row too");
+eq(isEnglishListing(feUntaggedEs), false, "an untagged title in Spanish is not English");
+eq(isEnglishListing({ ...theFinalEmpire[0], language: null }), true, "an untagged title in English is");
 eq(editionsFromVolumes([theFinalEmpire[0], { ...theFinalEmpire[0], id: "feTorHardDup1" }], "feTorHard2006").length, 1,
   "the same ISBN listed twice is one edition");
 
@@ -496,7 +503,7 @@ const { port } = server.address();
 process.env.GOOGLE_BOOKS_BASE_URL = `http://127.0.0.1:${port}`;
 delete process.env.GOOGLE_BOOKS_API_KEY;
   const { searchVolumes, volumeById, GoogleBooksError } = await import("../lib/google-books-service.ts");
-  const { searchCatalog, searchEditions } = await import("../lib/book-catalog-service.ts");
+  const { searchCatalog, searchEditions, catalogEdition } = await import("../lib/book-catalog-service.ts");
 
 function assert(cond, label) {
   if (cond) pass++;
@@ -525,8 +532,9 @@ try {
     title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
     author: "Rifujin na Magonote",
   }, "zPWKDwAAQBAJ");
-  eq(vol1Editions.map((e) => [e.googleBooksId, e.pages]), [["9qGQEAAAQBAJ", 320], ["zPWKDwAAQBAJ", 267]],
-    "searchEditions: Vol. 1's paperback (count from volumes.get) then its Kindle — not Vol. 2");
+  eq(vol1Editions.map((e) => [e.googleBooksId, e.pages]), [["9qGQEAAAQBAJ", null], ["zPWKDwAAQBAJ", 267]],
+    "searchEditions: Vol. 1's paperback (count not fetched up front) then its Kindle — not Vol. 2");
+  eq((await catalogEdition("9qGQEAAAQBAJ")).pages, 320, "catalogEdition: the paperback's count, from volumes.get");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");

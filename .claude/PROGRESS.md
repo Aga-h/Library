@@ -230,6 +230,12 @@
 
 ## Next
 
+- [x] **Books: editions — English only, covers only, none lost for a page count** (asked 2026-10-19:
+      the 2006 Tor hardcover, ISBN 9780765311788, was in no Final Empire flow). Its page count is
+      missing from search results and the picker only refilled 12, so it was dropped. Now every
+      English edition with a cover is listed; the count is fetched when the flow stops on it (one
+      `volumes.get`), Import waits. Untagged listings must have an English title. Reproduced and fixed
+      against a stand-in; not checked against live Google (anonymous quota spent).
 - [x] **Books: every edition in the Cover Flow** (asked 2026-10-19, with screenshots of Google's
       "Other editions" for The Final Empire). Editions were split into separate books ("The Final
       Empire", "…: Mistborn Book One", the tenth anniversary) and cut to one per page count. Now

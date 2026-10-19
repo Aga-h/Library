@@ -9,8 +9,8 @@
 
 import { BookCatalogError, MAX_IMPORT } from "@/lib/openlibrary";
 import {
-  editionSearchQueries, editionsToRefetch, googleSearchQueryOf, googleVolumeIdOf, toVolume,
-  volumesToRefetch, type GbVolume,
+  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, toVolume, volumesToRefetch,
+  type GbVolume,
 } from "@/lib/google-books";
 
 function baseUrl(): string {
@@ -115,16 +115,18 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
 /**
  * Listings of one book for the edition picker, `bookId` among them. The search's own list only
  * holds the editions that happened to rank among other books; this asks for the book itself,
- * under each title publishers give it (editionSearchQueries), one page each. Blank page counts
- * of that book's listings are filled in.
+ * under each title publishers give it (editionSearchQueries) — two pages for the full title, one
+ * for each half. Page counts the list leaves out are not fetched here: the picker asks for the
+ * one edition you stop on, so none is dropped for want of a count.
  */
 export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
-  const bodies = await Promise.all(editionSearchQueries(book).map((q) => get("/volumes", {
-    q,
-    maxResults: String(MAX_IMPORT),
-    printType: "books",
-    projection: "full",
-  })));
+  const params = { maxResults: String(MAX_IMPORT), printType: "books", projection: "full" };
+  const [full, ...halves] = editionSearchQueries(book);
+  const bodies = await Promise.all([
+    get("/volumes", { ...params, q: full }),
+    get("/volumes", { ...params, q: full, startIndex: String(MAX_IMPORT) }),
+    ...halves.map((q) => get("/volumes", { ...params, q })),
+  ]);
   const volumes = volumesOf({ items: bodies.flatMap((body) => (Array.isArray(body.items) ? body.items : [])) });
   if (!volumes.some((volume) => volume.id === bookId)) {
     try {
@@ -133,7 +135,7 @@ export async function editionVolumes(book: { title: string; author: string }, bo
       if (!(e instanceof GoogleBooksError)) throw e;
     }
   }
-  return refillBlankPages(volumes, editionsToRefetch(volumes, bookId));
+  return volumes;
 }
 
 /**

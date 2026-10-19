@@ -202,13 +202,16 @@ positions, drops series names, and groups what names the same book; a bare serie
 series' book 1 once a listing (or Google's `seriesInfo`) says which that is. Volume numbers and
 format words keep "Vol. 1" from "Vol. 2" and the light novel from the manga; boxed sets stand alone.
 Search is one row per book. Choosing it opens a Cover Flow
-(`docs/design/how-cover-flow-works.md`, `components/books/EditionCoverFlow.tsx`) of every edition —
-print oldest first, then eBooks; only a listing with the same ISBN (or identical details) is a
-duplicate — and whether you own a physical copy or a Kindle, and only then is it imported. The search
-only holds the editions that ranked among other books, so Choose also asks
-`/api/books/openlibrary/editions` (the row's volume id; the title, and each half of a "Series: Title",
-with `inauthor:` — three list calls and at most 12 `volumes.get` refills) and merges what it finds; the
-centred edition stays centred as the list grows. The picker shows Google's 300px cover (zoom=2). `volumes.list` reports 0 pages for a paperback with no preview;
+(`docs/design/how-cover-flow-works.md`, `components/books/EditionCoverFlow.tsx`) of every English
+edition with a cover — print oldest first, then eBooks; only a listing with the same ISBN (or
+identical details) is a duplicate — and whether you own a physical copy or a Kindle, and only then is
+it imported. English means tagged `en`, or untagged/`un` with an English title (no "el", "der"…). The
+search only holds the editions that ranked among other books, so Choose also asks
+`/api/books/openlibrary/editions` (the row's volume id; two pages for the title, one each for the
+halves of a "Series: Title", with `inauthor:`) and merges what it finds; the centred edition stays
+centred as the list grows. A page count the list left out is fetched only for the edition the flow
+stops on (`/api/books/openlibrary/edition`), and Import waits for it. The picker shows Google's 300px
+cover (zoom=2). `volumes.list` reports 0 pages for a paperback with no preview;
 every such row is fetched again with `volumes.get`. One `googleBooksId` (036, unique) is stored.
 Google's title and subtitle are joined (Mistborn + The Final Empire), and a tagged
 translation is left out. `langRestrict=en` is not sent: it drops books Google tagged `un`

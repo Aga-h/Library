@@ -5,7 +5,7 @@
 // volumes — so search results are grouped into books (groupEditions).
 
 import {
-  MAX_IMPORT, authorsMatch, authorsOf, firstAuthor, hasPages, isbnOf, normaliseAuthor,
+  MAX_IMPORT, authorsMatch, authorsOf, dominantScript, firstAuthor, hasPages, isbnOf, normaliseAuthor,
   queryFit, workIdOf, yearOf,
   type CatalogBook,
 } from "@/lib/openlibrary";
@@ -425,13 +425,19 @@ export function volumesToRefetch(volumes: GbVolume[], query: string, limit = REF
   return ids;
 }
 
+/** Function words that mark a title as another language: "Mistborn: El imperio final". */
+const FOREIGN_WORDS = /(?:^|\s)(el|la|los|las|del|una|le|les|des|du|der|das|und|ein|eine|il|gli|della|di|os|um|uma|dos|het|een|och|og|ve|bir|ile)(?:\s|$)/;
+
 /**
- * Shown in search. English, a missing tag, or "un"/"und" (undetermined — Google uses that
- * for a lot of English books, and langRestrict=en drops them). A tagged translation is not.
+ * Shown in search and the edition picker: English only. Tagged English, or — since Google tags a
+ * lot of English books "un"/"und" (undetermined) or not at all, and langRestrict=en drops them —
+ * untagged with a title in English. A tagged translation never is.
  */
-export function isEnglishListing(volume: { language: string | null }): boolean {
-  return volume.language === null || volume.language === "en" || volume.language === "eng"
-    || volume.language === "un" || volume.language === "und";
+export function isEnglishListing(volume: { language: string | null; title?: string }): boolean {
+  if (volume.language === "en" || volume.language === "eng") return true;
+  if (volume.language !== null && volume.language !== "un" && volume.language !== "und") return false;
+  const title = normaliseTitle(volume.title ?? "");
+  return dominantScript(title) === "latin" && !FOREIGN_WORDS.test(title);
 }
 
 /** Of two listings of one edition, the one worth keeping: a page count, then a cover. */
@@ -471,7 +477,8 @@ export function dedupeVolumes(volumes: GbVolume[]): GbVolume[] {
 /** One Google Books edition of a novel: its own page count, cover and volume id. */
 export interface CatalogEdition {
   googleBooksId: string;
-  pages: number;
+  /** null where the search left it out; the picker asks volumes.get once the edition is centred. */
+  pages: number | null;
   year: number | null;
   publisher: string | null;
   cover: string | null;
@@ -481,7 +488,7 @@ export interface CatalogEdition {
   ebook: boolean;
 }
 
-function editionOf(volume: GbVolume & { pages: number }): CatalogEdition {
+export function editionOf(volume: GbVolume): CatalogEdition {
   return {
     googleBooksId: volume.id,
     pages: volume.pages,
@@ -494,9 +501,10 @@ function editionOf(volume: GbVolume & { pages: number }): CatalogEdition {
   };
 }
 
-/** The row shows a physical copy first, then anything that is not a Kindle file. */
+/** The row shows an edition with a cover, a physical copy first, then anything not a Kindle file. */
 function faceOrder(a: GbVolume, b: GbVolume): number {
-  return Number(b.printEdition) - Number(a.printEdition)
+  return Number(!!b.cover) - Number(!!a.cover)
+    || Number(b.printEdition) - Number(a.printEdition)
     || Number(a.ebook) - Number(b.ebook);
 }
 
@@ -518,9 +526,10 @@ function bookTitle(group: GbVolume[], query: string): string {
 }
 
 /**
- * Add Book's list: one row per book. Every edition of it in the results rides along on
- * `editions` for the cover flow — print, then eBook — rather than being an extra row. The row
- * shows a physical copy. Listings with no page count are omitted. Capped at MAX_IMPORT.
+ * Add Book's list: one row per book. Every edition of it in the results that has a cover rides
+ * along on `editions` for the cover flow — print, then eBook — rather than being an extra row,
+ * including ones whose page count the search left out. The row shows a physical copy with a page
+ * count; a book with none is omitted. Capped at MAX_IMPORT.
  */
 export function catalogFromVolumes(
   volumes: GbVolume[],
@@ -528,10 +537,10 @@ export function catalogFromVolumes(
 ): Array<CatalogBook & { pages: number; editions: CatalogEdition[] }> {
   const ranked = groupEditions(volumes.filter(isEnglishListing))
     .map((group) => {
-      const listed = withoutDuplicates(group).filter(hasPages);
-      if (listed.length === 0) return null;
-      const face = [...listed].sort(faceOrder)[0];
-      const rest = listed.filter((v) => v !== face).sort(editionOrder);
+      const listed = withoutDuplicates(group);
+      const face = listed.filter(hasPages).sort(faceOrder)[0];
+      if (!face) return null;
+      const rest = listed.filter((v) => v !== face && v.cover).sort(editionOrder);
       const book = {
         ...fromGbVolume(face),
         id: `gb:${face.id}`,
@@ -574,22 +583,15 @@ function groupHolding(volumes: GbVolume[], id: string): GbVolume[] {
   return groupEditions(volumes.filter(isEnglishListing)).find((group) => group.some((v) => v.id === id)) ?? [];
 }
 
-/** Blank-count listings of this one book in an edition search, for volumes.get. */
-export function editionsToRefetch(volumes: GbVolume[], bookId: string, limit = 12): string[] {
-  return withoutDuplicates(groupHolding(volumes, bookId))
-    .filter((volume) => volume.pages === null)
-    .slice(0, limit)
-    .map((volume) => volume.id);
-}
-
 /**
  * The editions of one book — the one listing `bookId` is part of — among an edition search's
- * volumes: English listings with a page count, print oldest first, then eBooks. Other books the
- * search also returned are left out.
+ * volumes: English listings with a cover, print oldest first, then eBooks. A page count the
+ * search left out stays null for the picker to fetch. Other books the search also returned are
+ * left out.
  */
 export function editionsFromVolumes(volumes: GbVolume[], bookId: string): CatalogEdition[] {
   return withoutDuplicates(groupHolding(volumes, bookId))
-    .filter(hasPages)
+    .filter((volume) => volume.cover)
     .sort(editionOrder)
     .map(editionOf);
 }
