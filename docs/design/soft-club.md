@@ -329,7 +329,10 @@ From back to front:
   - asymmetric and left-anchored
   - long horizontals that run off to the right
   - plenty of haze between groups instead of boxes
-- **Sign-in and the missing page** are left-anchored. The icon is a thin cyan mark, not a filled badge.
+- **Sign-in and the missing page** are a sleeve's title block: left-anchored but set in clear of the
+  data text down the left edge, a fifth of the way down. The title is large; a glowing rule runs from
+  it off the page. The icon gives way, as it does in the brand — a lone small icon read as a broken
+  image.
 - **Avoid:** a centred, evenly spaced grid of equal cards. That is the "corporate slop" layout.
   A month title sitting between Previous and Next stays centred, because it is the destination
   between the two controls.

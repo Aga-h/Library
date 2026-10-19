@@ -1297,24 +1297,48 @@ h2.text-2xl,
 [data-theme="softclub"] input.font-bold.text-4xl::placeholder {
   color: var(--color-gray-400);
 }
-/* Sign-in and the missing page were a centred icon badge — Classic with new colours.
- * Left-anchored, and the icon is a thin cyan mark, not a filled plate. */
+/* Sign-in and the missing page are a sleeve's title block, not a centred badge: set in from the
+ * left, clear of the data text running down that edge, a fifth of the way down the screen. The
+ * name is the brand, so the icon gives way as it does in the sidebar; a glowing rule runs from
+ * the title off the page, and the form below is a band like any panel. */
 [data-theme="softclub"] .theme-gate {
   align-items: flex-start;
   justify-content: flex-start;
   text-align: left;
-  padding-top: 12vh;
+  overflow-x: clip;
+  padding: clamp(4rem, 20vh, 11rem) max(1.5rem, env(safe-area-inset-right)) 3rem
+    calc(clamp(4.75rem, 11vw, 9rem) + env(safe-area-inset-left));
+}
+[data-theme="softclub"] .theme-gate > .w-full {
+  max-width: 26rem;
 }
 [data-theme="softclub"] .theme-gate-intro {
   align-items: flex-start;
+  margin-bottom: 2.75rem;
 }
-[data-theme="softclub"] .theme-gate-mark.bg-gray-900 {
-  background: transparent;
-  color: var(--sc-cyan);
-  box-shadow: none;
-  border-radius: 0;
-  margin-bottom: 0.75rem;
-  padding: 0;
+[data-theme="softclub"] .theme-gate-mark {
+  display: none;
+}
+[data-theme="softclub"] .theme-gate h1 {
+  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+  line-height: 1.05;
+}
+[data-theme="softclub"] :is(.theme-gate-intro, .theme-gate > p) {
+  position: relative;
+}
+[data-theme="softclub"] :is(.theme-gate-intro, .theme-gate > p)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1.25rem;
+  width: 100vw;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.95) 35%, rgb(42 150 212 / 0.45) 65%, transparent);
+  background-origin: border-box;
+  box-shadow: 0 0 6px 1px rgb(255 255 255 / 0.8);
+}
+[data-theme="softclub"] .theme-gate > p + a {
+  margin-top: 2.75rem;
 }
 [data-theme="softclub"] ::selection {
   background: rgb(42 150 212 / 0.28);
