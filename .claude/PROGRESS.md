@@ -230,6 +230,15 @@
 
 ## Next
 
+- [ ] **Books: editions from real Google data** (asked 2026-10-19: Portuguese titles shown, Hero of Ages
+      under "Mistborn: Mistborn Book One", Book One its own row; "Google Books didn't answer" live).
+      Docs read (reference + discovery doc): no editions endpoint; `seriesInfo` (seriesId, orderNumber,
+      shortSeriesBookTitle) via `volumes.get?includeNonComicsSeries=true`; `series.membership.get`;
+      `imageLinks` lists the sizes that exist; `fields=` trims; ~1 req/s per user, ~1000/day default.
+      Plan: 1) language codes like "pt-BR" (were read as untagged) 2) drop the year guess for book
+      numbers 3) far fewer, slower requests + retry a 429 once 4) NEEDS THE KEY HERE: record real
+      Mistborn responses, resolve "Book One" via seriesInfo, decide `langRestrict=en`, confirm the
+      real no-cover placeholder, save responses as test fixtures. Steps 1–3 done this session.
 - [x] **Books: editions, third pass** (asked 2026-10-19, live screenshots: "nothing really changed").
       Google's "image not available" placeholder showed as covers — now detected (575×750 / 128×170)
       and the edition dropped or shown at zoom=1; "Mistborn: Mistborn Book One" was its own row — a
