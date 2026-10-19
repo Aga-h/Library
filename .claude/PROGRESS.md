@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — reviewing Cursor's work (asked: "it didn't do a good job"). Sign-in page fixed in Soft Club. Edition Cover Flow fixed. In progress: the rest of Cursor's changes. Soft Club guideline is `docs/design/soft-club.md`. Remaining after that: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — Cursor's work reviewed and fixed (sign-in page, edition Cover Flow, duplicate editions, Quick test, PhoneSheet). Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,15 +230,20 @@
 
 ## Next
 
-- [ ] **Review of Cursor's changes** (asked 2026-10-19). Done: Soft Club sign-in page was jammed into
-      the corner over the data text with a lone icon (PR #1) — now a title block set in from the edge.
-      Edition Cover Flow fixed: a bare "Mistborn" listing grouped the whole series as one book's
-      editions (could import the wrong book); Choose now runs an edition search (title + `inauthor:`)
-      and merges it; the flow was rebuilt (lint error, endless frame loop, blurry thumbs, empty covers,
-      tab stop per cover, lost mouse drags). Verified against a local Google Books stand-in in Chromium,
-      import checked in Postgres. Next: the rest of Cursor's diff (phone shell, book import routes,
-      Soft Club PR #1). Local run: Postgres 16 + `prisma db push` + `scripts/phone-seed.mjs`;
-      screenshots with playwright-core from the scratchpad.
+- [x] **Review of Cursor's changes** (asked 2026-10-19: "it didn't do a good job"). On `main`:
+      - Soft Club sign-in (and 404) was jammed in the corner over the data text under a lone icon
+        (PR #1) — now a title block set in from the edge. Confirmed on the live site.
+      - Edition Cover Flow: a bare "Mistborn" listing grouped the whole series as one book's
+        editions (`sharedShortTitles`); Choose now runs an edition search (title + `inauthor:`,
+        `/api/books/openlibrary/editions`) and merges it; the flow was rebuilt (lint error, endless
+        frame loop, blurry zoom=5 thumbs, empty covers, a tab stop per cover, lost mouse drags).
+      - Picking another edition of a book already in the library added it twice (Google ids are
+        per edition) — now matched as the same book; ownership boxes hidden for such a book.
+      - Quick test's restart control never moved below the question on a phone (`order` in a block).
+      - PhoneSheet locked desktop scrolling during an inline confirm.
+      Checked in Chromium against Postgres and a Google Books stand-in; import verified in the DB.
+      Not changed: `scripts/phone-audit.mjs` needs `playwright-core` (not a dependency) and a
+      Chrome path that isn't here — a dev tool, left as is.
 - [x] **Books: edition Cover Flow** (asked 2026-10-19: don't list every edition as its own
       search hit). Search stays one row per title. Choose opens a Cover Flow of that title's
       editions (different page counts), then physical / Kindle ownership, then import.
@@ -759,6 +764,13 @@
   Postgres *and* prove it can fail before handing it over.
 
 ## Notes for the next session
+
+- **Seeing the app here.** Postgres 16 is installed: `pg_ctlcluster 16 main start`, a database +
+  `.env` with `DATABASE_URL`/`AUTH_PASSWORD`/`AUTH_SECRET`, `npx prisma db push`, then
+  `node scripts/phone-seed.mjs`. Google Books' anonymous quota is usually spent, so point
+  `GOOGLE_BOOKS_BASE_URL` at a local stand-in. Chromium is at `/opt/pw-browsers`; install
+  `playwright-core` in the scratchpad, not the repo. The live site (www.otuzbir.world) serves
+  `/login` without a session, so the sign-in page can be checked after a deploy.
 
 - **Always merge finished work into `main`.** Vercel production is `main` only — other branches
   are not published as the site. Fast-forward when possible; don't leave a completed feature
