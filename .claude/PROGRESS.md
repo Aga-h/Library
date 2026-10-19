@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — Cursor's work reviewed and fixed (sign-in page, edition Cover Flow, duplicate editions, Quick test, PhoneSheet). Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-19 — Cover Flow now shows every edition of a book (Google titles them many ways; `groupEditions`). Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,6 +230,13 @@
 
 ## Next
 
+- [x] **Books: every edition in the Cover Flow** (asked 2026-10-19, with screenshots of Google's
+      "Other editions" for The Final Empire). Editions were split into separate books ("The Final
+      Empire", "…: Mistborn Book One", the tenth anniversary) and cut to one per page count. Now
+      `groupEditions` parses titles (series names, positions, edition dressing, format words, boxed
+      sets) and keeps every edition; the picker searches the title and each half by author; covers are
+      zoom=2. Checked against a stand-in serving those real listings: all 9 editions in one flow.
+      Can't be checked against live Google from here — the anonymous quota is spent.
 - [x] **Review of Cursor's changes** (asked 2026-10-19: "it didn't do a good job"). On `main`:
       - Soft Club sign-in (and 404) was jammed in the corner over the data text under a lone icon
         (PR #1) — now a title block set in from the edge. Confirmed on the live site.

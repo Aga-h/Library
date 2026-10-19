@@ -195,16 +195,20 @@ only). Requests go through `lib/fetch-retry.ts` (shared with the anime list impo
 
 **Books from Google Books.** "Add Book" searches Google Books `/volumes` for a title, an author,
 an ISBN or a pasted volume id. Results start **unticked** — All/None are explicit. Google Books
-is edition-centric. Search is one row per novel. Choosing that row opens a Cover Flow
-(`docs/design/how-cover-flow-works.md`, `components/books/EditionCoverFlow.tsx`) of its editions
-— a different page count is a different card — and whether you own a physical copy or a Kindle,
-and only then is it imported. The search only holds the editions that ranked among other books, so
-Choose also asks `/api/books/openlibrary/editions` (the title's words + `inauthor:`, one page, at
-most 12 `volumes.get` refills) and merges what it finds: the row's edition stays first, print before
-eBook, and the centred edition stays centred as the list grows. Folding "Piranesi" into "Piranesi:
-A Novel" only happens when no other subtitled book in the list shares the short title
-(`sharedShortTitles`) — a bare "Mistborn" would otherwise pull the whole series in as editions of
-one book. `volumes.list` reports 0 pages for a paperback with no preview;
+is edition-centric, and each publisher titles its edition its own way ("Mistborn: The Final Empire",
+"The Final Empire", "The Final Empire: Mistborn Book One", "Mistborn: Collector's Tenth Anniversary
+Limited Edition"). `groupEditions` reads a title as segments, sets aside edition dressing and series
+positions, drops series names, and groups what names the same book; a bare series name joins the
+series' book 1 once a listing (or Google's `seriesInfo`) says which that is. Volume numbers and
+format words keep "Vol. 1" from "Vol. 2" and the light novel from the manga; boxed sets stand alone.
+Search is one row per book. Choosing it opens a Cover Flow
+(`docs/design/how-cover-flow-works.md`, `components/books/EditionCoverFlow.tsx`) of every edition —
+print oldest first, then eBooks; only a listing with the same ISBN (or identical details) is a
+duplicate — and whether you own a physical copy or a Kindle, and only then is it imported. The search
+only holds the editions that ranked among other books, so Choose also asks
+`/api/books/openlibrary/editions` (the row's volume id; the title, and each half of a "Series: Title",
+with `inauthor:` — three list calls and at most 12 `volumes.get` refills) and merges what it finds; the
+centred edition stays centred as the list grows. The picker shows Google's 300px cover (zoom=2). `volumes.list` reports 0 pages for a paperback with no preview;
 every such row is fetched again with `volumes.get`. One `googleBooksId` (036, unique) is stored.
 Google's title and subtitle are joined (Mistborn + The Final Empire), and a tagged
 translation is left out. `langRestrict=en` is not sent: it drops books Google tagged `un`

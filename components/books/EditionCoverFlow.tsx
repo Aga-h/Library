@@ -11,6 +11,8 @@ export interface FlowEdition {
   publisher: string | null;
   cover: string | null;
   coverThumb: string | null;
+  /** 300px, sharp on a retina screen; falls back to `cover` where Google has no larger one. */
+  coverLarge: string | null;
   ebook: boolean;
 }
 
@@ -45,10 +47,13 @@ export default function EditionCoverFlow({
   editions,
   index,
   onIndex,
+  complete = true,
 }: {
   editions: FlowEdition[];
   index: number;
   onIndex: (index: number) => void;
+  /** false while more editions may still arrive — then one edition is not "the only" one. */
+  complete?: boolean;
 }) {
   const id = useId();
   const stage = useRef<HTMLDivElement>(null);
@@ -249,7 +254,8 @@ export default function EditionCoverFlow({
         style={{ height: Math.round(height * 1.34) + 12, perspective: `${Math.round(width * 3.6)}px` }}
       >
         {editions.map((edition, i) => {
-          const src = edition.cover ?? edition.coverThumb;
+          const src = edition.coverLarge ?? edition.cover ?? edition.coverThumb;
+          const fallback = edition.cover ?? edition.coverThumb;
           return (
             <div
               key={edition.googleBooksId}
@@ -266,7 +272,10 @@ export default function EditionCoverFlow({
             >
               {src ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={src} alt="" draggable={false} decoding="async" className="w-full h-full object-cover pointer-events-none" />
+                <img src={src} alt="" draggable={false} decoding="async" className="w-full h-full object-cover pointer-events-none"
+                  onError={(ev) => {
+                    if (fallback && ev.currentTarget.src !== fallback) ev.currentTarget.src = fallback;
+                  }} />
               ) : (
                 <div className="w-full h-full flex flex-col justify-between p-2.5 bg-gradient-to-br from-gray-50 to-gray-200">
                   <BookOpen className="w-5 h-5 text-gray-400" />
@@ -290,7 +299,7 @@ export default function EditionCoverFlow({
         <div className="min-w-0 text-center px-1" aria-live="polite">
           <p className="text-sm font-medium text-gray-700">{caption}</p>
           <p className="text-[11px] text-gray-500">
-            {last > 0 ? `Edition ${Math.min(centre, last) + 1} of ${editions.length}` : "The only edition Google Books lists"}
+            {last > 0 ? `Edition ${Math.min(centre, last) + 1} of ${editions.length}` : complete ? "The only edition Google Books lists" : "\u00a0"}
           </p>
         </div>
         {last > 0 && (

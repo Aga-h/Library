@@ -9,7 +9,7 @@
 
 import { BookCatalogError, MAX_IMPORT } from "@/lib/openlibrary";
 import {
-  editionSearchQuery, editionsToRefetch, googleSearchQueryOf, googleVolumeIdOf, toVolume,
+  editionSearchQueries, editionsToRefetch, googleSearchQueryOf, googleVolumeIdOf, toVolume,
   volumesToRefetch, type GbVolume,
 } from "@/lib/google-books";
 
@@ -113,19 +113,27 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
 }
 
 /**
- * Listings of one novel for the edition picker: its title and first author, one page of
- * results. The search's own list only holds the editions that happened to rank among other
- * books; this asks for the novel itself. Blank page counts of that novel are filled in.
+ * Listings of one book for the edition picker, `bookId` among them. The search's own list only
+ * holds the editions that happened to rank among other books; this asks for the book itself,
+ * under each title publishers give it (editionSearchQueries), one page each. Blank page counts
+ * of that book's listings are filled in.
  */
-export async function editionVolumes(book: { title: string; author: string }): Promise<GbVolume[]> {
-  const body = await get("/volumes", {
-    q: editionSearchQuery(book),
+export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
+  const bodies = await Promise.all(editionSearchQueries(book).map((q) => get("/volumes", {
+    q,
     maxResults: String(MAX_IMPORT),
     printType: "books",
     projection: "full",
-  });
-  const volumes = volumesOf(body);
-  return refillBlankPages(volumes, editionsToRefetch(volumes, book));
+  })));
+  const volumes = volumesOf({ items: bodies.flatMap((body) => (Array.isArray(body.items) ? body.items : [])) });
+  if (!volumes.some((volume) => volume.id === bookId)) {
+    try {
+      volumes.unshift(await volumeById(bookId));
+    } catch (e) {
+      if (!(e instanceof GoogleBooksError)) throw e;
+    }
+  }
+  return refillBlankPages(volumes, editionsToRefetch(volumes, bookId));
 }
 
 /**

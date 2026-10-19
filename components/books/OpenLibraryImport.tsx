@@ -75,17 +75,16 @@ function placeLabel(place: Place | null, target: string | null): { text: string;
 
 /**
  * The edition the row showed stays first; after it every other edition the two searches found,
- * print before eBook. One per page count — a listing with a cover beats a blank one.
+ * print oldest first, then eBooks oldest first — as the server orders them.
  */
 function mergeEditions(known: FlowEdition[], found: FlowEdition[]): FlowEdition[] {
-  const merged = [...known];
-  for (const edition of found) {
-    const same = merged.findIndex((e) => e.googleBooksId === edition.googleBooksId || e.pages === edition.pages);
-    if (same === -1) merged.push(edition);
-    else if (!merged[same].cover && edition.cover && merged[same].pages === edition.pages) merged[same] = edition;
-  }
-  const [face, ...rest] = merged;
-  return face ? [face, ...rest.sort((a, b) => Number(a.ebook) - Number(b.ebook))] : merged;
+  const [face, ...rest] = known;
+  if (!face) return found;
+  const others = [...rest, ...found].filter(
+    (edition, i, all) => edition.googleBooksId !== face.googleBooksId
+      && all.findIndex((e) => e.googleBooksId === edition.googleBooksId) === i,
+  );
+  return [face, ...others.sort((a, b) => Number(a.ebook) - Number(b.ebook) || (a.year ?? 9999) - (b.year ?? 9999))];
 }
 
 function plural(n: number, one: string, many = `${one}s`) {
@@ -147,7 +146,7 @@ export default function OpenLibraryImport({
       ...w,
       editions: w.editions?.length ? w.editions : [{
         googleBooksId: w.googleBooksId, pages: w.pages, year: w.year, publisher: w.publisher,
-        cover: w.cover, coverThumb: w.coverThumb, ebook: false,
+        cover: w.cover, coverThumb: w.coverThumb, coverLarge: null, ebook: false,
       }],
     }));
     setResults(works);
@@ -214,7 +213,7 @@ export default function OpenLibraryImport({
   // The title search only holds the editions that ranked among other books. Ask for this one.
   async function findEditions(work: Work) {
     setEditionSearch({ id: work.id, state: "finding" });
-    const params = new URLSearchParams({ title: work.title, author: work.author });
+    const params = new URLSearchParams({ id: work.googleBooksId, title: work.title, author: work.author });
     const res = await fetch(`/api/books/openlibrary/editions?${params}`).catch(() => null);
     const data = res?.ok ? await res.json().catch(() => null) : null;
     const found = Array.isArray(data?.editions) ? (data.editions as FlowEdition[]) : null;
@@ -376,7 +375,8 @@ export default function OpenLibraryImport({
             </div>
             <button type="button" onClick={() => setPicking(null)} className="text-xs font-semibold text-gray-500 hover:text-gray-800 min-h-10 px-2">Close</button>
           </div>
-          <EditionCoverFlow editions={picking.editions} index={editionIndex} onIndex={setEditionIndex} />
+          <EditionCoverFlow editions={picking.editions} index={editionIndex} onIndex={setEditionIndex}
+            complete={editionSearch?.id !== picking.id || editionSearch.state !== "finding"} />
           {editionSearch?.id === picking.id && (
             <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500" role="status">
               {editionSearch.state === "finding"

@@ -6,8 +6,7 @@
 import {
   googleVolumeIdOf, googleSearchQueryOf, googleCoverUrl, isGoogleBooksImage, yearFromDate,
   toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, volumesToRefetch,
-  isEnglishListing, GB_IMAGE_HOSTS, sharedShortTitles, editionSearchQuery, editionsToRefetch,
-  editionsFromVolumes,
+  isEnglishListing, GB_IMAGE_HOSTS, editionSearchQueries, editionsToRefetch, editionsFromVolumes,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
 
@@ -66,6 +65,7 @@ const piranesi = toVolume(raw());
 eq(piranesi, {
   id: gbId, title: "Piranesi", author: "Susanna Clarke", year: 2020, pages: 272,
   cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null, ebook: false, printEdition: false,
+  isbn: null, seriesNumber: null,
 }, "a volume document");
 eq(toVolume(raw({ saleInfo: { isEbook: true } })).ebook, true, "saleInfo.isEbook marks an ebook");
 eq(toVolume(raw({}, { dimensions: { height: "18.00 cm", thickness: "2.50 cm" } })).printEdition, true,
@@ -214,45 +214,82 @@ ok(mistbornList.some((w) => w.title === "Mistborn: Secret History"), "another En
 ok(!mistbornList.some((w) => w.title.includes("Império")), "the Portuguese edition stays out");
 ok(mistbornList.some((w) => w.title === "The Hobbit"), "a book Google left untagged still shows");
 
-// ── a bare series name does not pull the series in as one book's editions ─────
-const sanderson = (id, title, subtitle, pageCount, over = {}) => toVolume(raw({ id, ...over }, {
-  title, ...(subtitle ? { subtitle } : {}), authors: ["Brandon Sanderson"], pageCount, language: "en",
-  imageLinks: { thumbnail: "http://x" },
-}));
-const bareMistborn = sanderson("bareMistborn1", "Mistborn", null, 1984);
-const wellOfAscension = sanderson("wellOfAscens1", "Mistborn", "The Well of Ascension", 590);
-const finalEmpireEbook = sanderson("finalEmpireEb", "Mistborn", "The Final Empire", 672, { saleInfo: { isEbook: true } });
-const series = [bareMistborn, finalEmpire, wellOfAscension, finalEmpireEbook];
-eq([...sharedShortTitles(series)], ["brandonsanderson|mistborn"], "two subtitled Mistborn books share the short title");
-ok(sameWork(bareMistborn, finalEmpire), "with nothing else to go on, a bare title still folds into its subtitle");
-ok(!sameWork(bareMistborn, finalEmpire, sharedShortTitles(series)), "…but not when the list has two Mistborn: books");
-eq(
-  catalogFromVolumes(series, "mistborn").map((w) => [w.title, w.editions.map((e) => e.pages).sort()]),
-  [["Mistborn", [1984]], ["Mistborn: The Final Empire", [544, 672]], ["Mistborn: The Well of Ascension", [590]]],
-  "each Mistborn book is its own row with only its own editions",
-);
-ok(
-  sameWork({ title: "Piranesi", author: "Susanna Clarke" }, { title: "Piranesi: A Novel", author: "Susanna Clarke" },
-    sharedShortTitles([{ title: "Piranesi: A Novel", author: "Susanna Clarke" }])),
-  "one subtitle under a short title still merges",
-);
+// ── one book, however each publisher titled it ───────────────────────────────
+// The Final Empire's English editions as Google lists them ("Other editions"), title and subtitle
+// split the way the API returns them, with the rest of the series and some near misses.
+const gb = (id, title, subtitle, pageCount, { year, publisher, isbn, ebook = false, series, lang = "en" } = {}) => toVolume(raw(
+  { id, saleInfo: { isEbook: ebook } },
+  {
+    title, subtitle, authors: ["Brandon Sanderson"], publisher, publishedDate: String(year), pageCount, language: lang,
+    industryIdentifiers: isbn ? [{ type: "ISBN_13", identifier: isbn }] : undefined,
+    dimensions: ebook ? undefined : { height: "18.00 cm" },
+    seriesInfo: series ? { bookDisplayNumber: String(series) } : undefined,
+    imageLinks: { thumbnail: "http://x" },
+  },
+));
+const theFinalEmpire = [
+  gb("feTorHard2006", "Mistborn", "The Final Empire", 541, { year: 2006, publisher: "Tor Publishing Group", isbn: "9780765311788" }),
+  gb("feMacPaper007", "Mistborn", "The Final Empire", 672, { year: 2007, publisher: "Macmillan", isbn: "9780765350381" }),
+  gb("feTorPaper014", "Mistborn", "The Final Empire", 672, { year: 2014, publisher: "Tor Publishing Group", isbn: "9780765377135" }),
+  gb("feTenthAnniv1", "Mistborn", "Collector's Tenth Anniversary Limited Edition", 752, { year: 2016, publisher: "Orion", isbn: "9781473216815" }),
+  gb("feGollancz009", "The Final Empire", undefined, 647, { year: 2009, publisher: "Gollancz", isbn: "9780575089914" }),
+  gb("feOrionEbook1", "The Final Empire", "Mistborn Book One", 672, { year: 2010, publisher: "Orion", isbn: "9780575097742", ebook: true }),
+];
+const restOfSeries = [
+  gb("wellTor000001", "Mistborn", "The Well of Ascension", 590, { year: 2007, publisher: "Tor Books", isbn: "9780765316882" }),
+  gb("wellOrionEb01", "The Well of Ascension", "Mistborn Book Two", 784, { year: 2010, publisher: "Orion", isbn: "9780575097759", ebook: true }),
+  gb("heroTor000001", "Mistborn", "The Hero of Ages", 572, { year: 2008, publisher: "Tor Books", isbn: "9780765316899" }),
+  gb("boxedSet00001", "Mistborn Trilogy Boxed Set", undefined, 2000, { year: 2009, publisher: "Tor Books" }),
+  gb("graphicNov001", "Mistborn", "The Final Empire (Graphic Novel)", 160, { year: 2024, publisher: "Dynamite" }),
+  gb("ptImperio0001", "Mistborn", "O Império Final", 608, { year: 2014, publisher: "LeYa", lang: "pt" }),
+];
+const shelf = [...restOfSeries.slice(0, 2), ...theFinalEmpire, ...restOfSeries.slice(2)];
+const rows = catalogFromVolumes(shelf, "mistborn final empire");
+eq(rows[0].title, "Mistborn: The Final Empire", "the book searched for is first, under its usual title");
+eq(rows[0].editions.map((e) => e.googleBooksId).sort(), theFinalEmpire.map((v) => v.id).sort(),
+  "every English edition of The Final Empire is one row: 'The Final Empire', 'Book One', the tenth anniversary");
+eq(rows[0].editions.map((e) => [e.ebook, e.year]),
+  [[false, 2006], [false, 2007], [false, 2009], [false, 2014], [false, 2016], [true, 2010]],
+  "…the paperback on the row, then print oldest first, then the eBook");
+eq(rows.find((w) => w.title.includes("Well of Ascension")).editions.length, 2, "The Well of Ascension is its own book, with its own two");
+ok(rows.some((w) => w.title.startsWith("Mistborn Trilogy Boxed Set")), "a boxed set is a book of its own, not an edition");
+ok(rows.some((w) => w.title.includes("Graphic Novel")), "the graphic novel is not an edition of the novel");
+ok(!rows.some((w) => w.title.includes("Império")), "the translation stays out");
+eq(rows[0].editions.filter((e) => e.pages === 672).length, 3, "three editions of 672 pages are three cards, not one");
+eq(rows[0].editions[0].coverLarge, googleCoverUrl("feTorHard2006", "large"), "the picker gets the 300px cover");
+
+const bareMistborn = gb("bareMistborn1", "Mistborn", undefined, 1984, { year: 2015, publisher: "Tor Books" });
+const anonymousSeries = [bareMistborn, ...theFinalEmpire.slice(0, 2), restOfSeries[0]];
+eq(catalogFromVolumes(anonymousSeries, "mistborn").map((w) => w.editions.length).sort(), [1, 1, 2],
+  "a bare 'Mistborn' stays its own book while nothing says which book of the series is the first");
+eq(catalogFromVolumes([...anonymousSeries, theFinalEmpire[5]], "mistborn").map((w) => w.editions.length).sort(), [1, 4],
+  "…and joins The Final Empire once a listing says that is Mistborn Book One");
+eq(catalogFromVolumes([bareMistborn, theFinalEmpire[0], restOfSeries[0],
+  gb("feTorEbook001", "Mistborn", "The Final Empire", 686, { year: 2010, publisher: "Macmillan", ebook: true, series: 1 })], "mistborn")
+  .map((w) => w.editions.length).sort(), [1, 3], "…or once Google's series number does");
+ok(sameWork(bareMistborn, finalEmpire), "with nothing else to go on, a bare title is its subtitled book");
+ok(sameWork({ title: "Educated", author: "Tara Westover" }, { title: "Educated: A Memoir", author: "Tara Westover" }),
+  "'A Memoir' is dressing");
+ok(!sameWork({ title: "Special Topics in Calamity Physics", author: "Marisha Pessl" }, { title: "Calamity Physics", author: "Marisha Pessl" }),
+  "a main title is never dressing, even with 'special' in it");
 
 // ── the edition search for the cover flow ────────────────────────────────────
-eq(editionSearchQuery({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson, Someone Else" }),
-  'Mistborn The Final Empire inauthor:"Brandon Sanderson"', "edition search: title words and the first author");
-eq(editionSearchQuery({ title: "Piranesi", author: "Unknown" }), "Piranesi", "…an unknown author is left out");
-const fePaperBlank = { ...sanderson("finalEmpPapr1", "Mistborn", "The Final Empire", 0), printEdition: true };
-const fePortuguese = { ...sanderson("finalEmpPort1", "Mistborn", "O Império Final", 608), language: "pt" };
-const editionHits = [finalEmpireEbook, wellOfAscension, fePaperBlank, finalEmpire, fePortuguese, bareMistborn];
-eq(editionsToRefetch(editionHits, finalEmpire), ["finalEmpPapr1"], "only this book's blank counts are refetched");
+eq(editionSearchQueries({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson, Someone Else" }), [
+  'Mistborn The Final Empire inauthor:"Brandon Sanderson"',
+  'the final empire inauthor:"Brandon Sanderson"',
+  'mistborn inauthor:"Brandon Sanderson"',
+], "edition search: the whole title, and each half on its own, by the first author");
+eq(editionSearchQueries({ title: "Piranesi", author: "Unknown" }), ["Piranesi"], "…an unknown author is left out");
+const fePaperBlank = gb("finalEmpPapr1", "Mistborn", "The Final Empire", 0, { year: 2010, publisher: "Tor Books", isbn: "9780765365439" });
+const editionHits = [...shelf, fePaperBlank];
+eq(editionsToRefetch(editionHits, "feTorHard2006"), ["finalEmpPapr1"], "only this book's blank counts are refetched");
 eq(
-  editionsFromVolumes([...editionHits.filter((v) => v !== fePaperBlank), { ...fePaperBlank, pages: 541 }], finalEmpire)
-    .map((e) => [e.googleBooksId, e.pages, e.ebook]),
-  [["finalEmpPapr1", 541, false], ["finalempire01", 544, false], ["finalEmpireEb", 672, true]],
-  "editions of the one book: print first, the eBook last, no other book, no translation",
+  editionsFromVolumes([...shelf, { ...fePaperBlank, pages: 541 }], "feGollancz009").map((e) => e.googleBooksId),
+  ["feTorHard2006", "feMacPaper007", "feGollancz009", "finalEmpPapr1", "feTorPaper014", "feTenthAnniv1", "feOrionEbook1"],
+  "editions of the book the listing belongs to: print oldest first, then eBooks; no other book, no translation",
 );
-eq(editionsFromVolumes([finalEmpire, { ...finalEmpire, id: "finalEmpDupe1" }], finalEmpire).length, 1,
-  "one edition per page count");
+eq(editionsFromVolumes([theFinalEmpire[0], { ...theFinalEmpire[0], id: "feTorHardDup1" }], "feTorHard2006").length, 1,
+  "the same ISBN listed twice is one edition");
 
 const printId = "9qGQEAAAQBAJ";
 const kindleId = "zPWKDwAAQBAJ";
@@ -487,7 +524,7 @@ try {
   const vol1Editions = await searchEditions({
     title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
     author: "Rifujin na Magonote",
-  });
+  }, "zPWKDwAAQBAJ");
   eq(vol1Editions.map((e) => [e.googleBooksId, e.pages]), [["9qGQEAAAQBAJ", 320], ["zPWKDwAAQBAJ", 267]],
     "searchEditions: Vol. 1's paperback (count from volumes.get) then its Kindle — not Vol. 2");
 

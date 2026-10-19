@@ -26,9 +26,12 @@ export async function searchCatalog(query: string): Promise<CatalogSearch> {
   return { works: catalogFromVolumes(await searchVolumes(query), query) };
 }
 
-/** Every edition of one novel Google Books lists with a page count, for the cover flow. */
-export async function searchEditions(book: { title: string; author: string }): Promise<CatalogEdition[]> {
-  return editionsFromVolumes(await editionVolumes(book), book);
+/**
+ * Every edition, with a page count, that Google Books lists of the book `bookId` (one of its
+ * volumes) is — for the cover flow.
+ */
+export async function searchEditions(book: { title: string; author: string }, bookId: string): Promise<CatalogEdition[]> {
+  return editionsFromVolumes(await editionVolumes(book, bookId), bookId);
 }
 
 export interface CatalogDetails {
