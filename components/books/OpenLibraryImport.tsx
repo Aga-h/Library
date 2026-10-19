@@ -12,6 +12,7 @@ import {
 } from "@/components/tmdb/TmdbParts";
 import { Toggle } from "@/components/anime/MalImport";
 import { LANGUAGE_OPTIONS, type LanguageKey } from "@/lib/constants/languages";
+import EditionCoverFlow, { type FlowEdition } from "@/components/books/EditionCoverFlow";
 
 interface Place {
   bookId: string;
@@ -32,6 +33,7 @@ interface Work {
   publisher: string | null;
   openLibraryId: string | null;
   googleBooksId: string;
+  editions: FlowEdition[];
   place: Place | null;
 }
 
@@ -97,9 +99,11 @@ export default function OpenLibraryImport({
   const [error, setError] = useState<string | null>(null);
   const [target, setTarget] = useState<string>(initialSeriesId ?? "");
   const [read, setRead] = useState(false);
-  const [owned, setOwned] = useState(false);
-  const [ownedKindle, setOwnedKindle] = useState(false);
   const [language, setLanguage] = useState<LanguageKey>(defaultLanguage);
+  const [picking, setPicking] = useState<Work | null>(null);
+  const [editionIndex, setEditionIndex] = useState(0);
+  const [pickOwned, setPickOwned] = useState(false);
+  const [pickKindle, setPickKindle] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | "bulk" | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -121,8 +125,15 @@ export default function OpenLibraryImport({
       setResults(null);
       return;
     }
-    const works: Work[] = data.works;
+    const works: Work[] = (data.works as Work[]).map((w) => ({
+      ...w,
+      editions: w.editions?.length ? w.editions : [{
+        googleBooksId: w.googleBooksId, pages: w.pages, year: w.year, publisher: w.publisher,
+        cover: w.cover, coverThumb: w.coverThumb, ebook: false,
+      }],
+    }));
     setResults(works);
+    setPicking(null);
     setSelected(new Set());
   }
 
@@ -146,7 +157,7 @@ export default function OpenLibraryImport({
     );
   }
 
-  async function importWorks(works: Work[]): Promise<Summary | null> {
+  async function importWorks(works: Work[], ownership: { owned: boolean; ownedKindle: boolean }): Promise<Summary | null> {
     const res = await fetch("/api/books/openlibrary/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -156,8 +167,8 @@ export default function OpenLibraryImport({
           title: w.title,
         })),
         read,
-        owned,
-        ownedKindle,
+        owned: ownership.owned,
+        ownedKindle: ownership.ownedKindle,
         language,
         seriesId: targetId,
         ...(link ? { bookId: link.bookId } : {}),
@@ -171,13 +182,34 @@ export default function OpenLibraryImport({
     return data as Summary;
   }
 
-  async function addOne(work: Work) {
-    setBusy(work.id);
+  function openPicker(work: Work) {
+    setPicking(work);
+    setEditionIndex(0);
+    setPickOwned(false);
+    setPickKindle(false);
     setError(null);
     setSummary(null);
-    const done = await importWorks([work]);
+  }
+
+  async function confirmPick() {
+    if (!picking) return;
+    const edition = picking.editions[editionIndex] ?? picking.editions[0];
+    const chosen: Work = {
+      ...picking,
+      googleBooksId: edition.googleBooksId,
+      pages: edition.pages,
+      year: edition.year,
+      publisher: edition.publisher,
+      cover: edition.cover,
+      coverThumb: edition.coverThumb,
+    };
+    setBusy(picking.id);
+    setError(null);
+    setSummary(null);
+    const done = await importWorks([chosen], link ? { owned: false, ownedKindle: false } : { owned: pickOwned, ownedKindle: pickKindle });
     setBusy(null);
     if (!done) return;
+    setPicking(null);
     if (link) {
       router.refresh();
       return;
@@ -193,7 +225,7 @@ export default function OpenLibraryImport({
     setResults((r) => (r ? placed(r, done.report) : r));
     setSelected((s) => {
       const next = new Set(s);
-      next.delete(work.id);
+      next.delete(chosen.id);
       return next;
     });
     if (done.failed.length > 0 || done.report.some((line) => line.outcome === "elsewhere")) setSummary(done);
@@ -205,7 +237,7 @@ export default function OpenLibraryImport({
     setBusy("bulk");
     setError(null);
     setSummary(null);
-    const done = await importWorks(results.filter((w) => selected.has(w.id)));
+    const done = await importWorks(results.filter((w) => selected.has(w.id)), { owned: false, ownedKindle: false });
     setBusy(null);
     if (!done) return;
     if (done.failed.length === 0 && !done.report.some((line) => line.outcome === "elsewhere")) {
@@ -250,21 +282,6 @@ export default function OpenLibraryImport({
             <select id="book-language" value={language} onChange={(ev) => setLanguage(ev.target.value as LanguageKey)} className={inputCls}>
               {LANGUAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-          </div>
-          <div className="sm:col-span-3">
-            <span className="block text-xs font-semibold text-gray-500 mb-1">I have</span>
-            <div className="flex flex-wrap gap-x-5 gap-y-1">
-              <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
-                <input type="checkbox" checked={owned} onChange={(ev) => setOwned(ev.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400" />
-                <span className="text-sm text-gray-700">A physical copy</span>
-              </label>
-              <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
-                <input type="checkbox" checked={ownedKindle} onChange={(ev) => setOwnedKindle(ev.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400" />
-                <span className="text-sm text-gray-700">It on Kindle</span>
-              </label>
-            </div>
           </div>
         </div>
       )}
@@ -315,6 +332,40 @@ export default function OpenLibraryImport({
         </div>
       )}
 
+      {picking && (
+        <div className="border border-gray-200 rounded-lg bg-white px-3 py-3 space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{picking.title}</p>
+              <p className="text-xs text-gray-500">Pick the edition. Nothing is added until you import.</p>
+            </div>
+            <button type="button" onClick={() => setPicking(null)} className="text-xs font-semibold text-gray-500 hover:text-gray-800 min-h-10 px-2">Close</button>
+          </div>
+          <EditionCoverFlow editions={picking.editions} index={editionIndex} onIndex={setEditionIndex} />
+          {!link && (
+            <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center">
+              <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
+                <input type="checkbox" checked={pickOwned} onChange={(ev) => setPickOwned(ev.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300" />
+                <span className="text-sm text-gray-700">I own a physical copy</span>
+              </label>
+              <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
+                <input type="checkbox" checked={pickKindle} onChange={(ev) => setPickKindle(ev.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300" />
+                <span className="text-sm text-gray-700">I own it on Kindle</span>
+              </label>
+            </div>
+          )}
+          <div className="flex justify-center">
+            <button type="button" onClick={confirmPick} disabled={busy !== null}
+              className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50">
+              {busy === picking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {link ? "Link this edition" : "Import this edition"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {results && (results.length === 0 ? (
         <p className="text-sm text-gray-500">Nothing with a page count on Google Books matches that. Try fewer words, or an ISBN.</p>
       ) : (
@@ -348,7 +399,7 @@ export default function OpenLibraryImport({
                       <p className="text-xs text-gray-500 max-sm:break-words sm:truncate">{meta(w)}</p>
                     </div>
                     <div className="flex-shrink-0 max-sm:ml-0">
-                      <RowAction work={w} where={where} link={link} busy={busy} onPick={addOne} />
+                      <RowAction work={w} where={where} link={link} busy={busy} onPick={openPicker} />
                     </div>
                   </div>
                 </li>
@@ -357,7 +408,7 @@ export default function OpenLibraryImport({
           </ul>
           {!link && (
             <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <p className="text-[11px] text-gray-500">Nothing is ticked until you pick it. Physical copy and Kindle apply to books you add. Ones you already have only get their blanks filled in.</p>
+              <p className="text-[11px] text-gray-500">Choose a book to pick its edition before it is added. Import selected adds the paperback of each ticked book. Ones you already have only get their blanks filled in.</p>
               <button type="button" onClick={importSelected} disabled={busy !== null || selected.size === 0}
                 className="flex items-center justify-center gap-1.5 bg-gray-900 text-white px-3 py-3 sm:py-2 rounded-lg text-sm sm:text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
                 {busy === "bulk"
@@ -400,7 +451,7 @@ function RowAction({ work: w, where, link, busy, onPick }: {
     );
   }
   const linking = !!link || (!!w.place && !w.place.linked);
-  const label = linking ? (link ? "Link" : "Link yours") : "Add";
+  const label = linking ? (link ? "Choose" : "Link yours") : "Choose";
   return (
     <button type="button" onClick={() => onPick(w)} disabled={busy !== null} aria-label={`${label}: ${w.title}`}
       title={w.place && !w.place.linked && !link ? `Links "${w.place.title}", which you added by hand` : undefined}

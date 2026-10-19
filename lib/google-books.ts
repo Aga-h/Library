@@ -276,27 +276,70 @@ export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
   return best;
 }
 
+/** One Google Books edition of a novel: its own page count, cover and volume id. */
+export interface CatalogEdition {
+  googleBooksId: string;
+  pages: number;
+  year: number | null;
+  publisher: string | null;
+  cover: string | null;
+  coverThumb: string | null;
+  ebook: boolean;
+}
+
+function editionOf(volume: GbVolume & { pages: number }): CatalogEdition {
+  return {
+    googleBooksId: volume.id,
+    pages: volume.pages,
+    year: volume.year,
+    publisher: volume.publisher,
+    cover: volume.cover,
+    coverThumb: volume.coverThumb,
+    ebook: volume.ebook,
+  };
+}
+
+/** Paperback first, then a physical copy, then anything that is not a Kindle file. */
+function editionOrder(a: GbVolume, b: GbVolume): number {
+  return Number(b.printEdition) - Number(a.printEdition)
+    || Number(a.ebook) - Number(b.ebook);
+}
+
 /**
- * Add Book's list: English editions, one row per page count, titles that fit the query first.
- * A paperback and a Kindle of the same novel are both listed. Volumes with no page count are
- * omitted — they cannot be imported. Capped at MAX_IMPORT.
+ * Add Book's list: one row per novel. Editions with different page counts ride along on
+ * `editions` for the cover flow — they are not extra search rows. The row itself shows the
+ * paperback. Volumes with no page count are omitted. Capped at MAX_IMPORT.
  */
 export function catalogFromVolumes(
   volumes: GbVolume[],
   query = "",
-): Array<CatalogBook & { pages: number }> {
+): Array<CatalogBook & { pages: number; editions: CatalogEdition[] }> {
   const unique = dedupeVolumes(volumes.filter(isEnglishListing), query).filter(hasPages);
-  const ranked = unique
-    .map((volume, i) => ({ volume, i, score: queryFit(volume.title, query) }))
-    .sort((a, b) =>
-      b.score - a.score
-      || Number(b.volume.printEdition) - Number(a.volume.printEdition)
-      || Number(a.volume.ebook) - Number(b.volume.ebook)
-      || a.i - b.i);
+  const groups: Array<Array<GbVolume & { pages: number }>> = [];
+  for (const volume of unique) {
+    const group = groups.find((rows) => sameWork(rows[0], volume));
+    if (group) group.push(volume);
+    else groups.push([volume]);
+  }
+  const ranked = groups
+    .map((group) => {
+      const editions = [...group].sort(editionOrder);
+      const face = editions[0];
+      const titled = editions.reduce((best, volume) =>
+        queryFit(volume.title, query) > queryFit(best.title, query) ? volume : best);
+      const book = {
+        ...fromGbVolume(face),
+        id: `gb:${face.id}`,
+        title: titled.title,
+        pages: face.pages,
+        editions: editions.map(editionOf),
+      };
+      return { book, score: queryFit(book.title, query) };
+    })
+    .sort((a, b) => b.score - a.score);
   const seen = new Set<string>();
-  const out: Array<CatalogBook & { pages: number }> = [];
-  for (const { volume } of ranked) {
-    const book = { ...fromGbVolume(volume), pages: volume.pages };
+  const out: Array<CatalogBook & { pages: number; editions: CatalogEdition[] }> = [];
+  for (const { book } of ranked) {
     if (seen.has(book.id)) continue;
     seen.add(book.id);
     out.push(book);

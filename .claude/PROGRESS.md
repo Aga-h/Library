@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: search lists each edition of a title (paperback and Kindle stay separate). Soft Club is the only look that gets visual work (`AGENTS.md`); the guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: choose a title, then its edition in a Cover Flow, then whether you own it, then import. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -230,10 +230,10 @@
 
 ## Next
 
-- [x] **Books: editions of one title** (asked 2026-10-19). Search no longer folds every copy
-      of a novel into one row. A different page count is its own row (paperback 320 and
-      Kindle 267). Two listings of the same count still collapse. The paperback is listed
-      first. On `main`.
+- [x] **Books: edition Cover Flow** (asked 2026-10-19: don't list every edition as its own
+      search hit). Search stays one row per title. Choose opens a Cover Flow of that title's
+      editions (different page counts), then physical / Kindle ownership, then import.
+      Notes: `docs/design/how-cover-flow-works.md`. On `main`. No browser check here (no Postgres).
 - [x] **Books: Mistborn: The Final Empire missing** (asked 2026-10-19). Google stores the
       title as "Mistborn" and the subtitle as "The Final Empire", so search showed "Mistborn"
       and folded it into other Mistborn books. Subtitle is now part of the title. `langRestrict=en`

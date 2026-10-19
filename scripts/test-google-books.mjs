@@ -115,7 +115,8 @@ eq(
 const kindle = { ...piranesi, id: "kindlevolume1", pages: 267, ebook: true };
 const print = { ...piranesi, id: "printvolume01", pages: 320, ebook: false };
 eq(dedupeVolumes([kindle, print]).map((v) => v.id), ["kindlevolume1", "printvolume01"], "Kindle and paperback are both kept");
-eq(catalogFromVolumes([kindle, print], "piranesi").map((w) => w.pages), [320, 267], "search lists the print edition, then the Kindle");
+eq(catalogFromVolumes([kindle, print], "piranesi").map((w) => w.pages), [320], "search is one row, showing the paperback");
+eq(catalogFromVolumes([kindle, print], "piranesi")[0].editions.map((e) => e.pages).sort(), [267, 320], "both editions ride along for the cover flow");
 eq(dedupeVolumes([kindle, { ...print, pages: null }]).map((v) => v.id), ["kindlevolume1", "printvolume01"], "a blank paperback is not dropped for the Kindle");
 eq(dedupeVolumes([
   { ...piranesi, id: "longkindle001", pages: 400, ebook: true, printEdition: false },
@@ -133,9 +134,9 @@ eq(
   catalogFromVolumes([
     { ...piranesi, id: "kindlevolume1", title: "Piranesi: A Novel", pages: 267, ebook: true },
     { ...piranesi, id: "printvolume01", title: "Piranesi", pages: 320, ebook: true },
-  ], "Piranesi: A Novel").map((w) => w.pages).sort(),
+  ], "Piranesi: A Novel")[0].editions.map((e) => e.pages).sort(),
   [267, 320],
-  "both editions are listed when the Kindle title fits the query",
+  "both editions stay on the one title when the Kindle title fits the query",
 );
 eq(
   dedupeVolumes([print, { ...print, id: "printvolume02" }]).map((v) => v.id),
@@ -171,8 +172,9 @@ const mushokuPrint = toVolume(raw({ id: "mushokuprint1", saleInfo: { isEbook: fa
   title: mushokuQuery, authors: ["Rifujin na Magonote"], publisher: "Seven Seas", pageCount: 320,
   imageLinks: { thumbnail: "http://x" }, language: "en",
 }));
-eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery).map((w) => w.pages), [320, 267],
-  "Mushoku Tensei Vol. 1 lists the paperback and the Kindle");
+eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery).length, 1, "Mushoku Tensei Vol. 1 is one search row");
+eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery)[0].editions.map((e) => e.pages).sort(), [267, 320],
+  "…with the paperback and the Kindle as editions");
 
 const mistbornPt = toVolume(raw({ id: "mistbornport01" }, {
   title: "Mistborn: O Império Final", authors: ["Brandon Sanderson"], pageCount: 857, language: "pt",
@@ -427,13 +429,12 @@ try {
   eq(catalog.works[0].pages, 272, "…and drops nothing that has pages");
 
   const mushoku = await searchCatalog("Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1");
-  eq(mushoku.works[0].pages, 320, "paperback page count comes from volumes.get, not the list's 0");
-  eq(mushoku.works[0].googleBooksId, "9qGQEAAAQBAJ", "the paperback is listed before the Kindle");
-  eq(mushoku.works.filter((w) => w.title.endsWith("Vol. 1")).map((w) => w.pages).sort(), [267, 320],
-    "Vol. 1 keeps both editions");
-  eq(mushoku.works.find((w) => w.title.endsWith("Vol. 2")).pages, 336,
-    "a later volume's paperback count still comes from volumes.get");
-  eq(mushoku.works.length, 4, "each volume lists its paperback and its Kindle");
+  eq(mushoku.works.length, 2, "one search row per volume, not per edition");
+  eq(mushoku.works[0].pages, 320, "the row shows the paperback page count from volumes.get");
+  eq(mushoku.works[0].googleBooksId, "9qGQEAAAQBAJ", "the row points at the paperback");
+  eq(mushoku.works[0].editions.map((e) => e.pages).sort(), [267, 320], "Vol. 1 carries both editions");
+  eq(mushoku.works.find((w) => w.title.endsWith("Vol. 2")).editions.map((e) => e.pages).sort(), [240, 336],
+    "Vol. 2 carries its paperback and its Kindle");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");
