@@ -84,7 +84,10 @@ function mergeEditions(known: FlowEdition[], found: FlowEdition[]): FlowEdition[
     (edition, i, all) => edition.googleBooksId !== face.googleBooksId
       && all.findIndex((e) => e.googleBooksId === edition.googleBooksId) === i,
   );
-  return [face, ...others.sort((a, b) => Number(a.ebook) - Number(b.ebook) || (a.year ?? 9999) - (b.year ?? 9999))];
+  const merged = [face, ...others.sort((a, b) => Number(a.ebook) - Number(b.ebook) || (a.year ?? 9999) - (b.year ?? 9999))];
+  // Only editions with a cover are shown. A book with none keeps its one card, so it can still be added.
+  const covered = merged.filter((edition) => edition.cover);
+  return covered.length ? covered : merged;
 }
 
 function plural(n: number, one: string, many = `${one}s`) {

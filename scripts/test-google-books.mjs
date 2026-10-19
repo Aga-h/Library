@@ -9,6 +9,7 @@ import {
   isEnglishListing, GB_IMAGE_HOSTS, editionSearchQueries, editionsFromVolumes,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
+import { readFileSync } from "node:fs";
 
 let pass = 0;
 const failures = [];
@@ -294,9 +295,9 @@ ok(!sameWork({ title: "Special Topics in Calamity Physics", author: "Marisha Pes
 
 // ── the edition search for the cover flow ────────────────────────────────────
 eq(editionSearchQueries({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson, Someone Else" }), [
-  'Mistborn The Final Empire inauthor:"Brandon Sanderson"',
-  'the final empire inauthor:"Brandon Sanderson"',
-  'mistborn inauthor:"Brandon Sanderson"',
+  "Mistborn The Final Empire Brandon Sanderson",
+  "the final empire Brandon Sanderson",
+  "mistborn Brandon Sanderson",
 ], "edition search: the whole title, and each half on its own, by the first author");
 eq(editionSearchQueries({ title: "Piranesi", author: "Unknown" }), ["Piranesi"], "…an unknown author is left out");
 const fePaperBlank = gb("finalEmpPapr1", "Mistborn", "The Final Empire", 0, { year: 2010, publisher: "Tor Books", isbn: "9780765365439" });
@@ -394,6 +395,30 @@ eq(newGb.create[0], {
   coverImage: coverFull, publisher: "Bloomsbury", openLibraryId: null, googleBooksId: gbId,
 }, "a Google-only new row, marked read");
 
+{
+  const bare = { ...gb("feBareCover01", "Mistborn", "The Final Empire", 541, { year: 2006, publisher: "Tor" }), cover: null, coverThumb: null };
+  const kindle = gb("feKindleEd001", "Mistborn", "The Final Empire", 0, { year: 2010, publisher: "Tor", ebook: true });
+  const [row] = catalogFromVolumes([bare, kindle], "mistborn the final empire");
+  eq(row.googleBooksId, "feBareCover01", "a row whose only page count has no cover still shows it");
+  eq(row.editions.map((e) => e.googleBooksId), ["feKindleEd001"], "…but only editions with a cover are in its flow");
+  eq(catalogFromVolumes([bare], "mistborn the final empire")[0].editions, [], "…none when no edition has one");
+}
+
+// ── real Google answers (scripts/fixtures/google-books-mistborn.json) ────────
+{
+  const fixture = JSON.parse(readFileSync(new URL("./fixtures/google-books-mistborn.json", import.meta.url), "utf8"));
+  const volumesOf = (items) => [...new Map(items.map(toVolume).filter(Boolean).map((v) => [v.id, v])).values()];
+  const search = catalogFromVolumes(volumesOf(fixture.search), "mistborn");
+  eq(search.filter((b) => b.title === "Mistborn: The Final Empire").length, 1, "real search: one Final Empire row");
+  eq(search.find((b) => b.googleBooksId === "X9q_7-nWisgC")?.title, "The Hero of Ages: Mistborn Book Three",
+    "real search: Hero of Ages is its own row, not under Book One");
+  ok(!search.some((b) => /Império|imperio/i.test(b.title)), "real search: no Portuguese or Spanish rows");
+  const editions = volumesOf(fixture.editions);
+  eq(editionsFromVolumes([...volumesOf(fixture.search), ...editions], "dlfOfxkm1PoC").map((e) => e.googleBooksId),
+    ["dlfOfxkm1PoC", "q0pF7ly_vTEC", "UEhoPgAACAAJ", "JlTPjwEACAAJ", "t_ZYYXZq4RgC"],
+    "real editions of The Final Empire: the Tor, the Gollancz (Book One) and the anniversary print, then the eBook");
+}
+
 console.log(`${pass} passed, ${failures.length} failed`);
 if (failures.length) {
   for (const f of failures) console.log("  ✗ " + f);
@@ -415,6 +440,7 @@ const piranesiDoc = {
   },
 };
 
+let flaky = 0;
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://stand-in.test");
   if (url.searchParams.get("key") === "bad") {
@@ -425,6 +451,13 @@ const server = createServer((req, res) => {
   if (url.pathname === "/volumes" && (url.searchParams.get("q") ?? "").includes("ratelimit")) {
     res.writeHead(429);
     res.end(JSON.stringify({ error: { code: 429, message: "quota" } }));
+    return;
+  }
+  // Google's quick 503: this query fails twice, then answers.
+  if (url.pathname === "/volumes" && (url.searchParams.get("q") ?? "") === "piranesi" && flaky > 0) {
+    flaky--;
+    res.writeHead(503);
+    res.end(JSON.stringify({ error: { code: 503, message: "Service temporarily unavailable." } }));
     return;
   }
   if (url.pathname === "/volumes" && (url.searchParams.get("q") ?? "") === "down") {
@@ -541,6 +574,10 @@ try {
   eq(found.length, 1, "stand-in search returns the volume");
   eq(found[0].id, gbId, "…Piranesi");
   eq(found[0].publisher, "Bloomsbury", "…publisher");
+
+  flaky = 2;
+  eq((await searchVolumes("piranesi")).map((v) => v.id), [gbId], "two quick 503s are asked again, not an error");
+  eq(flaky, 0, "…both were used up");
 
   const catalog = await searchCatalog("piranesi");
   eq(catalog.works.map((w) => w.googleBooksId), [gbId], "searchCatalog is Google Books only");

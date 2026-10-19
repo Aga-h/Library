@@ -1,0 +1,2912 @@
+{
+ "_about": "Real Google Books volumes.list items, 2026-10-19, trimmed to the fields toVolume reads. search: q=mistborn, pages 1-2. editions: Google's answers to edition searches for Mistborn: The Final Empire.",
+ "search": [
+  {
+   "id": "dlfOfxkm1PoC",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2006-07-25",
+    "pageCount": 542,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=dlfOfxkm1PoC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765311788"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "076531178X"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "pYtVEAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2022-09-20",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=pYtVEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250859143"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "125085914X"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "DQ2WDwAAQBAJ",
+   "volumeInfo": {
+    "title": "A Royal Embarrassment",
+    "subtitle": "A Sweet Royal Romance",
+    "authors": [
+     "Emma Lea"
+    ],
+    "publisher": "Emma Lea",
+    "pageCount": 294,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=DQ2WDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    }
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "X9q_7-nWisgC",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "Book Three of Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2008-10-14",
+    "pageCount": 573,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=X9q_7-nWisgC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765316899"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0765316897"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Ca1TvgEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2007",
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "OTHER",
+      "identifier": "OCLC:456681026"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "UBCYZwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire - The Well of Ascension - The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2011-11-24",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UBCYZwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575118563"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575118560"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "zJNJNs1aggkC",
+   "volumeInfo": {
+    "title": "The Alloy of Law",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "St. Martin's Press",
+    "publishedDate": "2012-10-30",
+    "pageCount": 420,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=zJNJNs1aggkC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765368544"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765368546"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "F8u01NaEZU0C",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy",
+    "subtitle": "The Final Empire, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2011-02-01",
+    "pageCount": 1414,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=F8u01NaEZU0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429989817"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429989815"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "sNfZwQEACAAJ",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "Book Three of Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2019-11-26",
+    "pageCount": 784,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=sNfZwQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1250318629"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250318626"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "2oL5zgEACAAJ",
+   "volumeInfo": {
+    "title": "The Lost Metal",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2022",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=2oL5zgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1250880963"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250880963"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "csVVEQAAQBAJ",
+   "volumeInfo": {
+    "title": "Flutter Solutions for Web Development",
+    "subtitle": "Modern web development with Flutter, Dart, and AI integration (English Edition)",
+    "authors": [
+     "Zaid Kamil"
+    ],
+    "publisher": "BPB Publications",
+    "publishedDate": "2025-04-15",
+    "pageCount": 669,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=csVVEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9789365898248"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "9365898242"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "4xh8PgAACAAJ",
+   "volumeInfo": {
+    "title": "The Well of Ascension",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Orion",
+    "publishedDate": "2009",
+    "pageCount": 781,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=4xh8PgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575089938"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575089938"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "_sMS0gEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn. Historia Secreta / Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "NOVA",
+    "publishedDate": "2026-11-17",
+    "pageCount": 0,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=_sMS0gEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "8410466651"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9788410466654"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "xjFIxgEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn Set",
+    "subtitle": "Mistborn, the Well of Ascension, the Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2020-03-31",
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=xjFIxgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "125026717X"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250267177"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "vlc5BAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy Boxed Set",
+    "subtitle": "Mistborn, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2014-09-25",
+    "pageCount": 2697,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=vlc5BAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473211070"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473211077"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "9apLswEACAAJ",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "Mistborn Book Three",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2018-09-20",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=9apLswEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473223059"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473223059"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "7UsmnwEACAAJ",
+   "volumeInfo": {
+    "title": "Shadows of Self",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-10-06",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=7UsmnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473208238"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473208230"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "KD9pEQAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: O Império Final",
+    "subtitle": "Livro 1 de Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Trama",
+    "publishedDate": "2025-06-30",
+    "pageCount": 857,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=KD9pEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9786581339241"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "6581339245"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "tGGREAAAQBAJ",
+   "volumeInfo": {
+    "title": "El metal perdido / The Lost Metal: A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "National Geographic Books",
+    "publishedDate": "2023-03-21",
+    "pageCount": 0,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=tGGREAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788418037733"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8418037733"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "6gI4DAAAQBAJ",
+   "volumeInfo": {
+    "title": "Arcanum Unbounded",
+    "subtitle": "The Cosmere Collection",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2016-11-24",
+    "pageCount": 787,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=6gI4DAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473218062"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473218063"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "HwVDDwAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: segunda era",
+    "subtitle": "As sombras de si mesmo",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "LEYA",
+    "publishedDate": "2017-11-01",
+    "pageCount": 381,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=HwVDDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788544106488"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "854410648X"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Jj9pEQAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: O Poço da Ascensão",
+    "subtitle": "Livro 2 de Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Trama",
+    "publishedDate": "2025-06-30",
+    "pageCount": 1021,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=Jj9pEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9786581339258"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "6581339253"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "fgTZrQEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy TPB Boxed Set",
+    "subtitle": "Mistborn, The Hero of Ages, and The Well of Ascension",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Teen",
+    "publishedDate": "2015-09-01",
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=fgTZrQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765381524"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765381521"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Kj9pEQAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: O Herói das Eras",
+    "subtitle": "Livro 3 de Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Trama",
+    "publishedDate": "2025-06-30",
+    "pageCount": 954,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=Kj9pEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9786581339265"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "6581339261"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "AELnEAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: The Wax & Wayne Series",
+    "subtitle": "Alloy of Law, Shadows of Self, Bands of Mourning, The Lost Metal",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2023-12-19",
+    "pageCount": 916,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=AELnEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250360830"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1250360838"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "-684AwAAQBAJ",
+   "volumeInfo": {
+    "title": "El Pozo de la Ascensión (Trilogía Original Mistborn 2)",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "NOVA",
+    "publishedDate": "2012-12-20",
+    "pageCount": 987,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=-684AwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788490192252"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8490192251"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "0EgBEAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: Pramen povýšení",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Talpress",
+    "publishedDate": "2009-01-01",
+    "pageCount": 774,
+    "language": "cs",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=0EgBEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788071973683"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8071973688"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "pVwzoQusG9sC",
+   "volumeInfo": {
+    "title": "The Alloy of Law: Prologue - Chapter 6",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2011-09-06",
+    "pageCount": 158,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=pVwzoQusG9sC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429965989"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429965983"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "iux7DQAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn. Uppstigningens brunn. Del 1",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Modernista",
+    "pageCount": 342,
+    "language": "sv",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=iux7DQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9789177016519"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "9177016513"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "ouUKEgAAQBAJ",
+   "volumeInfo": {
+    "title": "MISTBORN: O METAL PERDIDO",
+    "subtitle": "Livro 4 de Mistborn Wax & Wayne",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Trama",
+    "publishedDate": "2026-09-21",
+    "pageCount": 699,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=ouUKEgAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9786581339906"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "6581339903"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "3zuOngEACAAJ",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Teen",
+    "publishedDate": "2014-10-07",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=3zuOngEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765377152"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765377159"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "bP1bEQAAQBAJ",
+   "volumeInfo": {
+    "title": "Box Mistborn",
+    "subtitle": "A Trilogia Original",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Trama",
+    "publishedDate": "2025-05-09",
+    "pageCount": 2832,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=bP1bEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9786581339234"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "6581339237"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "89oTmwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn RPG",
+    "authors": [
+     "Crafty Games",
+     "Brandon Sanderson",
+     "Alex Flagg",
+     "Will Hindmarch",
+     "Ben McSweeney",
+     "Shivam Bhatt",
+     "Logan Bonner",
+     "David Hill",
+     "Jeremy Keller",
+     "John Snead",
+     "Filamena Young"
+    ],
+    "publishedDate": "2012-07-01",
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=89oTmwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "098268438X"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780982684382"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "xm-REAAAQBAJ",
+   "volumeInfo": {
+    "title": "Brazales de fuego/ The Bands of Mourning",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "National Geographic Books",
+    "publishedDate": "2013-09-01",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=xm-REAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788466659628"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8466659625"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "rGvfAwAAQBAJ",
+   "volumeInfo": {
+    "title": "Brandon Sanderson Sampler",
+    "subtitle": "The Way of Kings and Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2014-07-15",
+    "pageCount": 304,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=rGvfAwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781466877726"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1466877723"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "S4wJCAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: primeira era",
+    "subtitle": "Nascidos da bruma: O poço da ascensão",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Leya",
+    "publishedDate": "2015-04-01",
+    "pageCount": 810,
+    "language": "pt-BR",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=S4wJCAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788544101339"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "854410133X"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "SyfhEQAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn. Historia secreta",
+    "subtitle": "Una novela de Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "NOVA",
+    "publishedDate": "2026-07-02",
+    "pageCount": 219,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=SyfhEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788410466661"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "841046666X"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "Oo4ivgAACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire: Tenth Anniversary Dragonsteel Leather Edition",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2016-12-01",
+    "pageCount": 696,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1938570138"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781938570131"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "1cLaCwAAQBAJ",
+   "volumeInfo": {
+    "title": "Calamity",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Delacorte Press",
+    "publishedDate": "2016-02-16",
+    "pageCount": 434,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=1cLaCwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780385743600"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0385743602"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "dQ1pEAAAQBAJ",
+   "volumeInfo": {
+    "title": "MISTBORN #2. Il pozzo dell'ascensione - The Well of Ascension",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Edizioni Mondadori",
+    "publishedDate": "2022-05-24",
+    "pageCount": 910,
+    "language": "it",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=dQ1pEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788835717553"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8835717558"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  }
+ ],
+ "editions": [
+  {
+   "id": "t_ZYYXZq4RgC",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2010-04-01",
+    "pageCount": 686,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=t_ZYYXZq4RgC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429914567"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429914564"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "UBCYZwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire - The Well of Ascension - The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2011-11-24",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UBCYZwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575118563"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575118560"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "UEhoPgAACAAJ",
+   "volumeInfo": {
+    "title": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2009",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UEhoPgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575089911"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575089914"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "pHaREAAAQBAJ",
+   "volumeInfo": {
+    "title": "El imperio final / The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "National Geographic Books",
+    "publishedDate": "2008-09-01",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=pHaREAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788498726138"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8498726131"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "d3ewPoqF04kC",
+   "volumeInfo": {
+    "title": "The Well of Ascension",
+    "subtitle": "Mistborn Book Two",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2010-03-30",
+    "pageCount": 898,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=d3ewPoqF04kC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575097759"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0575097752"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "F8u01NaEZU0C",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy",
+    "subtitle": "The Final Empire, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2011-02-01",
+    "pageCount": 1414,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=F8u01NaEZU0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429989817"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429989815"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "vlc5BAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy Boxed Set",
+    "subtitle": "Mistborn, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2014-09-25",
+    "pageCount": 2697,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=vlc5BAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473211070"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473211077"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "q0pF7ly_vTEC",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2008-06-03",
+    "pageCount": 676,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=q0pF7ly_vTEC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765360969"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765360960"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Oo4ivgAACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire: Tenth Anniversary Dragonsteel Leather Edition",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2016-12-01",
+    "pageCount": 696,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1938570138"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781938570131"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "sYtVEAAAQBAJ",
+   "volumeInfo": {
+    "title": "The Bands of Mourning",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2023-09-05",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=sYtVEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250862457"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1250862450"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "7UsmnwEACAAJ",
+   "volumeInfo": {
+    "title": "Shadows of Self",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-10-06",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=7UsmnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473208238"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473208230"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "zJNJNs1aggkC",
+   "volumeInfo": {
+    "title": "The Alloy of Law",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "St. Martin's Press",
+    "publishedDate": "2012-10-30",
+    "pageCount": 420,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=zJNJNs1aggkC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765368544"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765368546"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "_sMS0gEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn. Historia Secreta / Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "NOVA",
+    "publishedDate": "2026-11-17",
+    "pageCount": 0,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=_sMS0gEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "8410466651"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9788410466654"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "UTcyEAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn #1. L'ultimo impero - The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Edizioni Mondadori",
+    "publishedDate": "2021-11-23",
+    "pageCount": 774,
+    "language": "it",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UTcyEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788835711124"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8835711126"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "JlTPjwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "Collector's Tenth Anniversary Limited Edition",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-09-15",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=JlTPjwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473216818"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473216815"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Df6WDgAAQBAJ",
+   "volumeInfo": {
+    "title": "Brandon Sanderson's Fantasy Firsts",
+    "subtitle": "(The Way of Kings, Mistborn: The Final Empire, Rithmatist, Alcatraz vs. The Evil Librarians)",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2017-06-13",
+    "pageCount": 2738,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=Df6WDgAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765399557"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0765399555"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "LC4p0AEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn 7 Books Collection Set by Brandon Sanderson (Final Empire, Well of Ascension, Hero of Ages, Band of Mourning, Alloy of Law, Shadows of Self & the Lost Metal)",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2023-09",
+    "pageCount": 0,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1637990634"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781637990636"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "sNfZwQEACAAJ",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "Book Three of Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2019-11-26",
+    "pageCount": 784,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=sNfZwQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1250318629"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250318626"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "MFnADAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2016-08-01",
+    "pageCount": 190,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=MFnADAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473221789"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473221781"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "YImkEAAAQBAJ",
+   "volumeInfo": {
+    "title": "The Frugal Wizard’s Handbook for Surviving Medieval England",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Dragonsteel, LLC",
+    "publishedDate": "2023-04-11",
+    "pageCount": 395,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=YImkEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781938570384"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1938570383"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "t_ZYYXZq4RgC",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2010-04-01",
+    "pageCount": 686,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=t_ZYYXZq4RgC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429914567"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429914564"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "UEhoPgAACAAJ",
+   "volumeInfo": {
+    "title": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2009",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UEhoPgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575089911"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575089914"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "UBCYZwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire - The Well of Ascension - The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2011-11-24",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UBCYZwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575118563"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575118560"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "pHaREAAAQBAJ",
+   "volumeInfo": {
+    "title": "El imperio final / The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "National Geographic Books",
+    "publishedDate": "2008-09-01",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=pHaREAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788498726138"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8498726131"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "vlc5BAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy Boxed Set",
+    "subtitle": "Mistborn, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2014-09-25",
+    "pageCount": 2697,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=vlc5BAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473211070"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473211077"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "d3ewPoqF04kC",
+   "volumeInfo": {
+    "title": "The Well of Ascension",
+    "subtitle": "Mistborn Book Two",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2010-03-30",
+    "pageCount": 898,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=d3ewPoqF04kC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575097759"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0575097752"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "F8u01NaEZU0C",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy",
+    "subtitle": "The Final Empire, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2011-02-01",
+    "pageCount": 1414,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=F8u01NaEZU0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429989817"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429989815"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "q0pF7ly_vTEC",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2008-06-03",
+    "pageCount": 676,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=q0pF7ly_vTEC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765360969"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765360960"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Oo4ivgAACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire: Tenth Anniversary Dragonsteel Leather Edition",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2016-12-01",
+    "pageCount": 696,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1938570138"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781938570131"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "0Hag0QEACAAJ",
+   "volumeInfo": {
+    "title": "The Final Empire, the Well of Ascension, the Hero of Ages, Alloy of Law, Shadows of Self, the Bands of Mourning & the Lost Metal - 7 Books Set",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2025-08-15",
+    "pageCount": 0,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1964960738"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781964960739"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "UTcyEAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn #1. L'ultimo impero - The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Edizioni Mondadori",
+    "publishedDate": "2021-11-23",
+    "pageCount": 774,
+    "language": "it",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UTcyEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788835711124"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8835711126"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "7UsmnwEACAAJ",
+   "volumeInfo": {
+    "title": "Shadows of Self",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-10-06",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=7UsmnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473208238"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473208230"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Df6WDgAAQBAJ",
+   "volumeInfo": {
+    "title": "Brandon Sanderson's Fantasy Firsts",
+    "subtitle": "(The Way of Kings, Mistborn: The Final Empire, Rithmatist, Alcatraz vs. The Evil Librarians)",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2017-06-13",
+    "pageCount": 2738,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=Df6WDgAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765399557"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0765399555"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "sYtVEAAAQBAJ",
+   "volumeInfo": {
+    "title": "The Bands of Mourning",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2023-09-05",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=sYtVEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250862457"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1250862450"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "LC4p0AEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn 7 Books Collection Set by Brandon Sanderson (Final Empire, Well of Ascension, Hero of Ages, Band of Mourning, Alloy of Law, Shadows of Self & the Lost Metal)",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2023-09",
+    "pageCount": 0,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1637990634"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781637990636"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "uTt-H5MAGT0C",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "Book Three of Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2008-10-14",
+    "pageCount": 788,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=uTt-H5MAGT0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429960304"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429960302"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "_sMS0gEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn. Historia Secreta / Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "NOVA",
+    "publishedDate": "2026-11-17",
+    "pageCount": 0,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=_sMS0gEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "8410466651"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9788410466654"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "_Y1FPgAACAAJ",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2010",
+    "pageCount": 748,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=_Y1FPgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575089946"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575089945"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "St2UvgEACAAJ",
+   "volumeInfo": {
+    "title": "The Alloy of Law",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2027-10-12",
+    "pageCount": 416,
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765394790"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765394798"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "JlTPjwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "Collector's Tenth Anniversary Limited Edition",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-09-15",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=JlTPjwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473216818"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473216815"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "MFnADAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2016-08-01",
+    "pageCount": 190,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=MFnADAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473221789"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473221781"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "zJNJNs1aggkC",
+   "volumeInfo": {
+    "title": "The Alloy of Law",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "St. Martin's Press",
+    "publishedDate": "2012-10-30",
+    "pageCount": 420,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=zJNJNs1aggkC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0765368544"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780765368546"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "t_ZYYXZq4RgC",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Macmillan",
+    "publishedDate": "2010-04-01",
+    "pageCount": 686,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=t_ZYYXZq4RgC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429914567"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429914564"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "UBCYZwEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "subtitle": "The Final Empire - The Well of Ascension - The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2011-11-24",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=UBCYZwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575118563"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575118560"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "d3ewPoqF04kC",
+   "volumeInfo": {
+    "title": "The Well of Ascension",
+    "subtitle": "Mistborn Book Two",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2010-03-30",
+    "pageCount": 898,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=d3ewPoqF04kC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575097759"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "0575097752"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "2oL5zgEACAAJ",
+   "volumeInfo": {
+    "title": "The Lost Metal",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2022",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=2oL5zgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1250880963"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250880963"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "_sMS0gEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn. Historia Secreta / Mistborn: Secret History",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "NOVA",
+    "publishedDate": "2026-11-17",
+    "pageCount": 0,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=_sMS0gEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "8410466651"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9788410466654"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "F8u01NaEZU0C",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy",
+    "subtitle": "The Final Empire, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2011-02-01",
+    "pageCount": 1414,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=F8u01NaEZU0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429989817"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429989815"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  },
+  {
+   "id": "6gI4DAAAQBAJ",
+   "volumeInfo": {
+    "title": "Arcanum Unbounded",
+    "subtitle": "The Cosmere Collection",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2016-11-24",
+    "pageCount": 787,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=6gI4DAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473218062"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473218063"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "7UsmnwEACAAJ",
+   "volumeInfo": {
+    "title": "Shadows of Self",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-10-06",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=7UsmnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473208238"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473208230"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Ca1TvgEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2007",
+    "language": "en",
+    "industryIdentifiers": [
+     {
+      "type": "OTHER",
+      "identifier": "OCLC:456681026"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "sYtVEAAAQBAJ",
+   "volumeInfo": {
+    "title": "The Bands of Mourning",
+    "subtitle": "A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2023-09-05",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=sYtVEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250862457"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1250862450"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "woNTYgEACAAJ",
+   "volumeInfo": {
+    "title": "The Alloy of Law",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2011",
+    "pageCount": 332,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=woNTYgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575105801"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575105805"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "tGGREAAAQBAJ",
+   "volumeInfo": {
+    "title": "El metal perdido / The Lost Metal: A Mistborn Novel",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "National Geographic Books",
+    "publishedDate": "2023-03-21",
+    "pageCount": 0,
+    "language": "es",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=tGGREAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788418037733"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8418037733"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "vlc5BAAAQBAJ",
+   "volumeInfo": {
+    "title": "Mistborn Trilogy Boxed Set",
+    "subtitle": "Mistborn, The Well of Ascension, The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Hachette UK",
+    "publishedDate": "2014-09-25",
+    "pageCount": 2697,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=vlc5BAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473211070"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1473211077"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "pHaREAAAQBAJ",
+   "volumeInfo": {
+    "title": "El imperio final / The Final Empire",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "National Geographic Books",
+    "publishedDate": "2008-09-01",
+    "pageCount": 0,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=pHaREAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9788498726138"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "8498726131"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "_Y1FPgAACAAJ",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2010",
+    "pageCount": 748,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=_Y1FPgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "0575089946"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9780575089945"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "xjFIxgEACAAJ",
+   "volumeInfo": {
+    "title": "Mistborn Set",
+    "subtitle": "Mistborn, the Well of Ascension, the Hero of Ages",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publishedDate": "2020-03-31",
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=xjFIxgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "125026717X"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781250267177"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "Qa5FnwEACAAJ",
+   "volumeInfo": {
+    "title": "Untitled Mistborn 2 Of 2",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Gollancz",
+    "publishedDate": "2016-01-27",
+    "pageCount": 320,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=Qa5FnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_10",
+      "identifier": "1473208262"
+     },
+     {
+      "type": "ISBN_13",
+      "identifier": "9781473208261"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": false
+   }
+  },
+  {
+   "id": "uTt-H5MAGT0C",
+   "volumeInfo": {
+    "title": "The Hero of Ages",
+    "subtitle": "Book Three of Mistborn",
+    "authors": [
+     "Brandon Sanderson"
+    ],
+    "publisher": "Tor Books",
+    "publishedDate": "2008-10-14",
+    "pageCount": 788,
+    "language": "en",
+    "imageLinks": {
+     "thumbnail": "http://books.google.com/books/content?id=uTt-H5MAGT0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+    },
+    "industryIdentifiers": [
+     {
+      "type": "ISBN_13",
+      "identifier": "9781429960304"
+     },
+     {
+      "type": "ISBN_10",
+      "identifier": "1429960302"
+     }
+    ]
+   },
+   "saleInfo": {
+    "isEbook": true
+   }
+  }
+ ]
+}

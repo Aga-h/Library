@@ -26,6 +26,15 @@ function apiKey(): string | null {
   return key || null;
 }
 
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Pauses before asking again. Google Books answers a quick 503 to about half of all requests
+ * (seen 2026-10-19, with a key) and the same request succeeds a moment later.
+ */
+const RETRY_PAUSES = [300, 700, 1500, 3000];
+const PASSING = new Set([500, 502, 503, 504]);
+
 async function get(path: string, params: Record<string, string> = {}): Promise<Raw> {
   const url = new URL(`${baseUrl()}${path}`);
   const search = new URLSearchParams(params);
@@ -33,16 +42,24 @@ async function get(path: string, params: Record<string, string> = {}): Promise<R
   if (key) search.set("key", key);
   url.search = search.toString();
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(15_000),
-      cache: "no-store",
-    });
-  } catch {
-    throw new GoogleBooksError("Couldn't reach Google Books — try again in a minute.", 502);
+  let res: Response | null = null;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(15_000),
+        cache: "no-store",
+      });
+    } catch {
+      res = null;
+    }
+    // A 429 is asked once more; a brief outage, up to RETRY_PAUSES times.
+    const again = res === null || PASSING.has(res.status) ? attempt < RETRY_PAUSES.length
+      : res.status === 429 ? attempt === 0 : false;
+    if (!again) break;
+    await pause(RETRY_PAUSES[attempt]);
   }
+  if (!res) throw new GoogleBooksError("Couldn't reach Google Books — try again in a minute.", 502);
 
   if (res.status === 404) throw new GoogleBooksError("That isn't on Google Books.", 404);
   if (res.status === 429) {
@@ -102,9 +119,9 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
   // an empty list for an English novel. Translations are removed afterwards in catalogFromVolumes.
   const first = await get("/volumes", params);
   const rows = Array.isArray(first.items) ? [...(first.items as Raw[])] : [];
-  const total = Number(first.totalItems) || rows.length;
-  // A second page so a paperback buried under Kindle listings can still be collapsed in.
-  if (total > rows.length) {
+  // A second page so a paperback buried under Kindle listings can still be collapsed in. Not
+  // gated on totalItems: Google says 1 while sending 20. It sends at most 20 per page.
+  if (rows.length > 0) {
     const second = await get("/volumes", { ...params, startIndex: String(rows.length) });
     if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
   }
@@ -115,18 +132,17 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
 /**
  * Listings of one book for the edition picker, `bookId` among them. The search's own list only
  * holds the editions that happened to rank among other books; this asks for the book itself,
- * under each title publishers give it (editionSearchQueries) — two pages for the full title, one
- * for each half. Page counts the list leaves out are not fetched here: the picker asks for the
- * one edition you stop on, so none is dropped for want of a count.
+ * under each title publishers give it (editionSearchQueries) — the full title and each half.
+ * One page each (Google sends at most 20): the halves find what a second page would. Page counts the
+ * list leaves out are not fetched here: the picker asks for the one edition you stop on, so none
+ * is dropped for want of a count. A query Google keeps failing is left out; all of them failing
+ * is an error.
  */
 export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
   const params = { maxResults: String(MAX_IMPORT), printType: "books", projection: "full" };
-  const [full, ...halves] = editionSearchQueries(book);
-  const bodies = await Promise.all([
-    get("/volumes", { ...params, q: full }),
-    get("/volumes", { ...params, q: full, startIndex: String(MAX_IMPORT) }),
-    ...halves.map((q) => get("/volumes", { ...params, q })),
-  ]);
+  const settled = await Promise.allSettled(editionSearchQueries(book).map((q) => get("/volumes", { ...params, q })));
+  const bodies = settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+  if (bodies.length === 0) throw (settled[0] as PromiseRejectedResult).reason;
   const volumes = volumesOf({ items: bodies.flatMap((body) => (Array.isArray(body.items) ? body.items : [])) });
   if (!volumes.some((volume) => volume.id === bookId)) {
     try {
@@ -158,7 +174,7 @@ async function refillBlankPages(volumes: GbVolume[], pending: string[]): Promise
       }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(8, pending.length) }, () => worker()));
+  await Promise.all(Array.from({ length: Math.min(4, pending.length) }, () => worker()));
   if (updates.size === 0) return volumes;
   return volumes.map((volume) => updates.get(volume.id) ?? volume);
 }

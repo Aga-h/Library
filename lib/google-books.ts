@@ -608,8 +608,9 @@ function bookTitle(group: GbVolume[], query: string): string {
 /**
  * Add Book's list: one row per book. Every edition of it in the results that has a cover rides
  * along on `editions` for the cover flow — print, then eBook — rather than being an extra row,
- * including ones whose page count the search left out. The row shows a physical copy with a page
- * count; a book with none is omitted. Capped at MAX_IMPORT.
+ * including ones whose page count the search left out. Only editions with a cover: the row's own,
+ * too. The row shows a physical copy with a page count; a book with none is omitted. Capped at
+ * MAX_IMPORT.
  */
 export function catalogFromVolumes(
   volumes: GbVolume[],
@@ -626,7 +627,7 @@ export function catalogFromVolumes(
         id: `gb:${face.id}`,
         title: bookTitle(group, query),
         pages: face.pages,
-        editions: [face, ...rest].map(editionOf),
+        editions: (face.cover ? [face, ...rest] : rest).map(editionOf),
       };
       return { book, score: queryFit(book.title, query) };
     })
@@ -647,12 +648,16 @@ export function catalogFromVolumes(
  * What to ask Google Books for every edition of one book, by its first author: the title as
  * shown, and — for "Mistborn: The Final Empire" — each half on its own, since one publisher calls
  * it "The Final Empire" and another just "Mistborn". Punctuation goes, so "Mistborn:" can't read
- * as a search keyword.
+ * as a search keyword. The author goes in as plain words, not `inauthor:` — Google answers
+ * `inauthor:"Brandon Sanderson"` with nothing, and `inauthor:Sanderson` with nothing for "The Hero
+ * of Ages" (2026-10-19). groupEditions keeps other authors' books out.
  */
 export function editionSearchQueries(book: Titled): string[] {
-  const author = firstAuthor(book.author).replace(/"/g, "").trim();
-  const by = author && normaliseAuthor(author) !== "unknown" ? ` inauthor:"${author}"` : "";
   const words = (title: string) => title.replace(/[^\p{L}\p{N}'’]+/gu, " ").trim();
+  const author = words(firstAuthor(book.author));
+  const by = author && normaliseAuthor(author) !== "unknown"
+    ? ` ${author}`
+    : "";
   const { core } = parseTitle(book.title);
   const queries = [`${words(book.title)}${by}`];
   if (by && core.length > 1) queries.push(`${core.slice(1).join(" ")}${by}`, `${core[0]}${by}`);

@@ -30,9 +30,12 @@ const COAST = 0.25; // seconds a flick coasts before it snaps (§6)
 const VISIBLE = 8; // cards shown each side of the centre
 const REFLECTION = "below 3px linear-gradient(transparent 66%, rgb(255 255 255 / 0.32))";
 
-/** Google answers a cover it doesn't have with "image not available": 575×750 at zoom=2, 128×170 at zoom=1. */
-const isPlaceholder = (img: HTMLImageElement) =>
-  (img.naturalWidth === 575 && img.naturalHeight === 750) || (img.naturalWidth === 128 && img.naturalHeight === 170);
+/**
+ * Google answers a cover it doesn't have with "image not available": 575×750 at zoom=2, 128×170 at
+ * zoom=1. One it has only small is 300×391 at zoom=2, and real at zoom=1.
+ */
+const PLACEHOLDERS = ["575x750", "128x170", "300x391"];
+const isPlaceholder = (img: HTMLImageElement) => PLACEHOLDERS.includes(`${img.naturalWidth}x${img.naturalHeight}`);
 
 type Drag = { pointer: number; x0: number; p0: number; moved: boolean; samples: { x: number; t: number }[] };
 
