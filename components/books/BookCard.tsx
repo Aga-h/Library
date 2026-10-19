@@ -12,6 +12,7 @@ interface Book {
   author: string;
   status: string;
   owned: boolean;
+  ownedKindle: boolean;
   language: string;
   publisher: string | null;
   pages: number;
@@ -51,7 +52,12 @@ export default function BookCard({ book }: { book: Book }) {
         <div className="absolute top-2 inset-x-2 flex flex-wrap items-start gap-1">
           {book.owned && (
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex items-center gap-1">
-              <Package className="w-3 h-3" /> Owned
+              <Package className="w-3 h-3" /> Physical
+            </span>
+          )}
+          {book.ownedKindle && (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-900 text-white">
+              Kindle
             </span>
           )}
           <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${status.className}`}>

@@ -108,7 +108,12 @@ export default async function BookDetailPage({ params }: PageProps) {
               </span>
               {book.owned && (
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-100 text-purple-700">
-                  Physical Copy
+                  Physical copy
+                </span>
+              )}
+              {book.ownedKindle && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-900 text-white">
+                  Kindle
                 </span>
               )}
               {book.rating !== null && (

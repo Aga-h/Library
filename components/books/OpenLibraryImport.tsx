@@ -96,6 +96,8 @@ export default function OpenLibraryImport({
   const [error, setError] = useState<string | null>(null);
   const [target, setTarget] = useState<string>(initialSeriesId ?? "");
   const [read, setRead] = useState(false);
+  const [owned, setOwned] = useState(false);
+  const [ownedKindle, setOwnedKindle] = useState(false);
   const [language, setLanguage] = useState<LanguageKey>(defaultLanguage);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | "bulk" | null>(null);
@@ -153,6 +155,8 @@ export default function OpenLibraryImport({
           title: w.title,
         })),
         read,
+        owned,
+        ownedKindle,
         language,
         seriesId: targetId,
         ...(link ? { bookId: link.bookId } : {}),
@@ -246,6 +250,21 @@ export default function OpenLibraryImport({
               {LANGUAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
+          <div className="sm:col-span-3">
+            <span className="block text-xs font-semibold text-gray-500 mb-1">I have</span>
+            <div className="flex flex-wrap gap-x-5 gap-y-1">
+              <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
+                <input type="checkbox" checked={owned} onChange={(ev) => setOwned(ev.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400" />
+                <span className="text-sm text-gray-700">A physical copy</span>
+              </label>
+              <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
+                <input type="checkbox" checked={ownedKindle} onChange={(ev) => setOwnedKindle(ev.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400" />
+                <span className="text-sm text-gray-700">It on Kindle</span>
+              </label>
+            </div>
+          </div>
         </div>
       )}
 
@@ -337,7 +356,7 @@ export default function OpenLibraryImport({
           </ul>
           {!link && (
             <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <p className="text-[11px] text-gray-500">Nothing is ticked until you pick it. Books you already have only get their blanks filled in.</p>
+              <p className="text-[11px] text-gray-500">Nothing is ticked until you pick it. Physical copy and Kindle apply to books you add. Ones you already have only get their blanks filled in.</p>
               <button type="button" onClick={importSelected} disabled={busy !== null || selected.size === 0}
                 className="flex items-center justify-center gap-1.5 bg-gray-900 text-white px-3 py-3 sm:py-2 rounded-lg text-sm sm:text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
                 {busy === "bulk"

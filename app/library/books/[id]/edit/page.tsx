@@ -47,6 +47,7 @@ export default async function EditBookPage({ params }: PageProps) {
             seriesId: book.seriesId ?? "",
             author: book.author,
             owned: book.owned,
+            ownedKindle: book.ownedKindle,
             language: book.language,
             publisher: book.publisher ?? "",
             pages: book.pages.toString(),

@@ -17,7 +17,7 @@ import { LANGUAGE_VALUES } from "@/lib/constants/languages";
 const GRID = "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4";
 
 const CARD_FIELDS = {
-  id: true, title: true, author: true, status: true, owned: true,
+  id: true, title: true, author: true, status: true, owned: true, ownedKindle: true,
   language: true, pages: true, pagesRead: true, coverImage: true, rating: true,
   timesReread: true, publisher: true,
 } as const;

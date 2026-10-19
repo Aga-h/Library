@@ -55,6 +55,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `034-flashcards-quick-tests.sql` | Adds `VocabRunKind` / `VocabCardState`, `VocabCard` and `VocabReview` for SAT flashcards, plus `kind`/`pool` on `VocabRun` so a quick test never becomes the full run. Additive — run **before** (or right as) the deploy; the SAT Vocabulary pages error until it has run. |
 | `035-book-openlibrary.sql` | Adds `Book.openLibraryId` (unique) — on Open Library a work is the book itself, so the link is per row. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 | `036-book-google-books.sql` | Adds `Book.googleBooksId` (unique) — Google Books is edition-centric, so search collapses volumes by title + author and a row remembers at most one. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
+| `037-book-owned-kindle.sql` | Adds `Book.ownedKindle` (default false). `owned` stays the physical copy. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 
 ## How 019 was verified
 

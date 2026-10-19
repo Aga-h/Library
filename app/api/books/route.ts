@@ -10,6 +10,7 @@ const createBookSchema = z.object({
   title: z.string().min(1, "Title is required"),
   author: z.string().min(1, "Author is required"),
   owned: z.boolean().default(false),
+  ownedKindle: z.boolean().default(false),
   language: z.enum(LANGUAGE_VALUES)
     .default("ENGLISH"),
   publisher: z.string().optional(),
@@ -65,6 +66,7 @@ async function POSTHandler(request: NextRequest) {
       // Derived from the counts, never taken from the request.
       status: deriveStatus(bookProgress(data), BOOK_STATUS),
       owned: data.owned,
+      ownedKindle: data.ownedKindle,
       language: data.language,
       publisher: data.publisher ?? null,
       pages: data.pages,

@@ -10,6 +10,7 @@ const updateBookSchema = z.object({
   title: z.string().min(1).optional(),
   author: z.string().min(1).optional(),
   owned: z.boolean().optional(),
+  ownedKindle: z.boolean().optional(),
   language: z.enum(LANGUAGE_VALUES)
     .optional(),
   publisher: z.string().optional().nullable(),

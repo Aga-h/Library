@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: every search result uses the paperback page count, not only the closest hit. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: import and the book form can mark a physical copy and a Kindle copy separately. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,10 @@
 
 ## Next
 
+- [x] **Books: physical copy and Kindle** (asked 2026-10-19). Add Book can tick “A physical
+      copy” and “It on Kindle” before import; new rows save both. The book form has the same
+      two boxes. `owned` stays the physical copy; `ownedKindle` is new (037, default false).
+      Re-import does not change either. On `main`.
 - [x] **Books: paperback page count on every search hit** (asked 2026-10-19, after Vol. 1
       was fixed). The blank-count refetch only covered the closest few titles, so the rest
       of a search still showed Kindle pages. Every paperback the list reports as 0 pages is
@@ -585,9 +589,10 @@
 
 ## Blocked / needs the user
 
-- **Books: run `035-book-openlibrary.sql` then `036-book-google-books.sql`** in the Supabase SQL
-  Editor NOW — the book pages error until 035 has run; 036 is additive (`Book.googleBooksId`)
-  and search/import read it. Both safe to re-run. Set `GOOGLE_BOOKS_API_KEY` in Vercel (Google
+- **Books: run `035-book-openlibrary.sql`, then `036-book-google-books.sql`, then
+  `037-book-owned-kindle.sql`** in the Supabase SQL Editor NOW — the book pages error until
+  035 has run; 036 adds `googleBooksId`; 037 adds `ownedKindle` (Kindle, separate from the
+  physical `owned` flag). All safe to re-run. Set `GOOGLE_BOOKS_API_KEY` in Vercel (Google
   Cloud → Credentials → API key, enable Books API) and redeploy — Add Book has no other
   catalogue. Never in chat.
 

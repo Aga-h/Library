@@ -16,6 +16,7 @@ interface BookFormData {
   seriesId: string;
   author: string;
   owned: boolean;
+  ownedKindle: boolean;
   language: string;
   publisher: string;
   pages: string;
@@ -40,6 +41,7 @@ const DEFAULT_DATA: BookFormData = {
   title: "",
   author: "",
   owned: false,
+  ownedKindle: false,
   language: "ENGLISH",
   publisher: "",
   pages: "",
@@ -97,6 +99,7 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
       title: form.title,
       author: form.author,
       owned: form.owned,
+      ownedKindle: form.ownedKindle,
       language: form.language,
       publisher: form.publisher || clearable,
       seriesId: form.seriesId || clearable,
@@ -258,16 +261,26 @@ export default function BookForm({ seriesOptions, initialData, mode, authorOptio
         </Field>
       </div>
 
-      {/* Owned checkbox */}
-      <label className="flex items-center gap-3 max-sm:min-h-10 cursor-pointer select-none">
-        <input
-          type="checkbox"
-          checked={form.owned}
-          onChange={(e) => update("owned", e.target.checked)}
-          className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
-        />
-        <span className="text-sm text-gray-700">I own a physical copy</span>
-      </label>
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <label className="flex items-center gap-3 max-sm:min-h-10 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={form.owned}
+            onChange={(e) => update("owned", e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
+          />
+          <span className="text-sm text-gray-700">I own a physical copy</span>
+        </label>
+        <label className="flex items-center gap-3 max-sm:min-h-10 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={form.ownedKindle}
+            onChange={(e) => update("ownedKindle", e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
+          />
+          <span className="text-sm text-gray-700">I own it on Kindle</span>
+        </label>
+      </div>
 
       {/* Notes */}
       <Field label="Notes">

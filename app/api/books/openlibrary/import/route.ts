@@ -16,6 +16,8 @@ const itemSchema = z.object({
 const schema = z.object({
   items: z.array(itemSchema).min(1).max(MAX_IMPORT),
   read: z.boolean().default(false),
+  owned: z.boolean().default(false),
+  ownedKindle: z.boolean().default(false),
   language: z.enum(LANGUAGE_VALUES).default("ENGLISH"),
   seriesId: z.string().min(1).nullable().default(null),
   /** Link this book, already in the library, to the volume instead. */

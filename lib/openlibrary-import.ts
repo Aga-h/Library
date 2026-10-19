@@ -69,15 +69,18 @@ const LINK_FIELDS = {
 
 /**
  * Brings Google Books volumes into the library — into `seriesId`, or standalone when it is null.
- * New books get `language` and are marked read when asked; books already there keep theirs, and
- * only have blanks filled: see planImport. With `bookId`, that row is linked, whatever its title.
+ * New books get `language`, and are marked read, physically owned, or owned on Kindle when asked.
+ * Books already there keep theirs, and only have blanks filled: see planImport. With `bookId`,
+ * that row is linked, whatever its title.
  */
 export async function importWorks(
   items: CatalogItem[],
-  { read, language, seriesId, bookId }: {
+  { read, language, seriesId, owned, ownedKindle, bookId }: {
     read: boolean;
     language: LanguageKey;
     seriesId: string | null;
+    owned: boolean;
+    ownedKindle: boolean;
     bookId?: string;
   },
 ): Promise<ImportResult> {
@@ -102,6 +105,8 @@ export async function importWorks(
         data: plan.create.map((book, i) => ({
           ...book,
           language,
+          owned,
+          ownedKindle,
           seriesId,
           status: deriveStatus(bookProgress(book), BOOK_STATUS),
           createdAt: new Date(now + i),
