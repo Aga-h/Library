@@ -6,7 +6,7 @@
 // volumes — so search results are collapsed by title + author before they meet Open Library.
 
 import {
-  MAX_IMPORT, authorsMatch, authorsOf, firstAuthor, fromOlWork, isbnOf, normaliseAuthor,
+  MAX_IMPORT, authorsMatch, authorsOf, firstAuthor, fromOlWork, hasPages, isbnOf, normaliseAuthor,
   queryFit, titleKeys, workIdOf, yearOf,
   type CatalogBook, type OlWork,
 } from "@/lib/openlibrary";
@@ -226,9 +226,14 @@ export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
  * One list for Add Book: Open Library's order (a series search lists its books), with Google
  * Books ids attached when the same novel is there, then Google-only titles Open Library missed.
  * Hits whose title is in the same script as the query (English search → English title, not
- * 無職転生) are listed first. Capped at MAX_IMPORT.
+ * 無職転生) are listed first. A work with no page count on either side is omitted — it cannot
+ * be imported. Capped at MAX_IMPORT.
  */
-export function mergeCatalog(olWorks: OlWork[], gbVolumes: GbVolume[], query = ""): CatalogBook[] {
+export function mergeCatalog(
+  olWorks: OlWork[],
+  gbVolumes: GbVolume[],
+  query = "",
+): Array<CatalogBook & { pages: number }> {
   const gbUnique = dedupeVolumes(gbVolumes, query);
   const used = new Set<string>();
   const merged: CatalogBook[] = [];
@@ -243,9 +248,10 @@ export function mergeCatalog(olWorks: OlWork[], gbVolumes: GbVolume[], query = "
   }
   const seen = new Set<string>();
   const ranked = merged
+    .filter(hasPages)
     .map((book, i) => ({ book, i, score: queryFit(book.title, query) }))
     .sort((a, b) => b.score - a.score || a.i - b.i);
-  const out: CatalogBook[] = [];
+  const out: Array<CatalogBook & { pages: number }> = [];
   for (const { book } of ranked) {
     if (seen.has(book.id)) continue;
     seen.add(book.id);

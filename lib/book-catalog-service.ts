@@ -17,7 +17,7 @@ export interface CatalogItem {
 }
 
 export interface CatalogSearch {
-  works: CatalogBook[];
+  works: Array<CatalogBook & { pages: number }>;
   /** Set when Google Books could not be searched, so Open Library-only results are explained. */
   notice: string | null;
 }
@@ -27,9 +27,9 @@ function catalogIdOf(item: CatalogItem): string {
 }
 
 /**
- * Works matching a search. Open Library and Google Books run together; Google Books failing
- * (no key, quota, outage) leaves Open Library's list intact plus a notice. Both failing is
- * still an error.
+ * Works matching a search that have a page count (required to import). Open Library and Google
+ * Books run together; Google Books failing (no key, quota, outage) leaves Open Library's list
+ * intact plus a notice. Both failing is still an error.
  */
 export async function searchCatalog(query: string): Promise<CatalogSearch> {
   const [ol, gb] = await Promise.allSettled([searchWorks(query), searchVolumes(query)]);

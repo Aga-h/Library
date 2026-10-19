@@ -26,7 +26,7 @@ interface Work {
   title: string;
   author: string;
   year: number | null;
-  pages: number | null;
+  pages: number;
   cover: string | null;
   coverThumb: string | null;
   publisher: string | null;
@@ -56,7 +56,7 @@ function meta(w: Work): string {
   return [
     w.author !== "Unknown" ? w.author : null,
     w.year,
-    w.pages ? `${w.pages} pages` : "no page count",
+    `${w.pages} pages`,
   ].filter(Boolean).join(" · ");
 }
 
@@ -302,7 +302,7 @@ export default function OpenLibraryImport({
       )}
 
       {results && (results.length === 0 ? (
-        <p className="text-sm text-gray-500">Nothing on Open Library or Google Books matches that. Try fewer words, or an ISBN.</p>
+        <p className="text-sm text-gray-500">Nothing with a page count on Open Library or Google Books matches that. Try fewer words, or an ISBN.</p>
       ) : (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {!link && (
@@ -310,7 +310,7 @@ export default function OpenLibraryImport({
               <span className="text-gray-500">{selected.size} selected</span>
               <span className={tinyButtonsCls}>
                 <button type="button"
-                  onClick={() => setSelected(new Set(results.filter((w) => w.pages).map((w) => w.id)))}
+                  onClick={() => setSelected(new Set(results.map((w) => w.id)))}
                   className={tinyButtonCls}>All</button>
                 <button type="button" onClick={() => setSelected(new Set())} className={tinyButtonCls}>None</button>
               </span>
@@ -323,7 +323,7 @@ export default function OpenLibraryImport({
                 <li key={w.id} className="flex items-center max-sm:flex-wrap gap-3 max-sm:gap-y-2 px-3 py-2 bg-white">
                   {!link && (
                     <input type="checkbox" checked={selected.has(w.id)} onChange={() => toggle(w.id)}
-                      disabled={!w.pages || (where ? !where.importable : false)}
+                      disabled={where ? !where.importable : false}
                       className="w-4 h-4 rounded border-gray-300 flex-shrink-0"
                       aria-label={`Select ${w.title}`} />
                   )}
@@ -343,7 +343,7 @@ export default function OpenLibraryImport({
           </ul>
           {!link && (
             <div className="px-3 py-2.5 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <p className="text-[11px] text-gray-500">Nothing is ticked until you pick it. Books you already have only get their blanks filled in. A work with no page count has to be added by hand.</p>
+              <p className="text-[11px] text-gray-500">Nothing is ticked until you pick it. Books you already have only get their blanks filled in.</p>
               <button type="button" onClick={importSelected} disabled={busy !== null || selected.size === 0}
                 className="flex items-center justify-center gap-1.5 bg-gray-900 text-white px-3 py-3 sm:py-2 rounded-lg text-sm sm:text-xs font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors flex-shrink-0">
                 {busy === "bulk"
@@ -384,9 +384,6 @@ function RowAction({ work: w, where, link, busy, onPick }: {
         <Check className="w-3 h-3 flex-shrink-0" /> {where.text}
       </Link>
     );
-  }
-  if (!w.pages && !link) {
-    return <span className={`${pillCls} bg-gray-100 text-gray-500`}>No page count</span>;
   }
   const linking = !!link || (!!w.place && !w.place.linked);
   const label = linking ? (link ? "Link" : "Link yours") : "Add";

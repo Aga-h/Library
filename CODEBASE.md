@@ -207,8 +207,8 @@ Tick one or several (a search
 for "harry potter" lists the seven novels first) into a series you pick, or standalone. Language
 is yours. "Read" marks every page; re-import only fills blanks. `matchExisting`: either catalogue
 id, else title + author even when the row is already linked to the *other* catalogue (so the two
-never duplicate). A work with no page count on either side is listed and not imported — pages are
-required. Goodreads has no public API. Covers hotlinked from covers.openlibrary.org or
+never duplicate). A work with no page count on either side is omitted from search — pages are
+required to import, so an unimportable hit is never shown. Goodreads has no public API. Covers hotlinked from covers.openlibrary.org or
 books.google.com, shown `unoptimized`, excluded from mirroring. A hand-added book's page has
 "Find in catalogues"; a linked one has "Check catalogues" (`refreshBook`) — cover, an author of
 "Unknown", and a publisher, only; title, pages, progress, rating, notes and language stay. Both

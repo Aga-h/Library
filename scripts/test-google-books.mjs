@@ -145,6 +145,15 @@ ok(!mushokuHits[0].title.includes("無職"), "the first hit is not the Japanese 
 eq(combineSources(olMushoku, gbMushoku, mushokuQuery).title, mushokuQuery,
   "merging prefers the English title when that is what was searched");
 
+eq(mergeCatalog([olNoPages], []).length, 0, "Open Library-only with no pages is omitted from search");
+eq(mergeCatalog([], [{ ...piranesi, pages: null }]).length, 0, "Google-only with no pages is omitted from search");
+const filledPages = mergeCatalog([olNoPages], [piranesi], "piranesi");
+eq(filledPages.length, 1, "…unless the other catalogue has a page count");
+eq(filledPages[0].pages, 272, "…filled from Google Books");
+eq(filledPages[0].openLibraryId, "OL1W", "…Open Library id kept on the filled row");
+eq(mergeCatalog([olNoPages], [{ ...piranesi, pages: null }]).length, 0,
+  "the same novel with no pages on either side is omitted");
+
 // ── already in the library: the other catalogue must not duplicate ───────────
 const library = [
   {

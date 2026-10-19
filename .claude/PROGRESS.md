@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: search title follows the query (English Mushoku Tensei, not 無職転生). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: search hides hits with no page count (they cannot be imported). On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,10 @@
 
 ## Next
 
+- [x] **Books: hide hits with no page count** (asked 2026-10-19: cannot add them to the library).
+      Combined search omits a work unless Open Library or Google Books has pages; a page count
+      from the other catalogue still shows the row. Add Book no longer lists “No page count”.
+      On `main`.
 - [x] **Books: search title follows the query's language** (asked 2026-10-19: Mushoku Tensei
       English title came back in Chinese/Japanese). Open Library's work title is 無職転生;
       English lives on the edition. Prefer the edition/Google Books title in the same script
@@ -225,7 +229,8 @@
       start unticked — All/None stay explicit. `Book.googleBooksId` unique (036).
       `GOOGLE_BOOKS_API_KEY` optional: without it GB may 403/429 and search still returns Open
       Library, with a notice. Publisher filled from GB when blank. Importable if either source
-      has a page count. Tests: OL 98, GB + combined search 83. Build green. On `main`.
+      has a page count; search only lists those. Tests: OL 98, GB + combined search. Build green.
+      On `main`.
       **Needs 036 + the API key** (see Blocked). No browser e2e here (no Postgres).
 - [x] **Books from Open Library** (asked 2026-10-18: auto-import like the other library sections).
       Open Library Search API — no key. A work is one book (`Book.openLibraryId` unique, 035).
