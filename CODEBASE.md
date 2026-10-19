@@ -349,6 +349,9 @@ presentation attributes can't read CSS variables. Classic has no rules — Tailw
 Inspired by the Aesthetics Wiki's pages (behind a Cloudflare challenge, so researched via web search
 and the CARI / daisyUI trend write-ups); everything is drawn in CSS and inline SVG, no images.
 
+Soft Club's design rules (the idea, tokens, surfaces, motion, and how to build a new page in the
+look) are in `docs/design/soft-club.md`; what follows is how they are built.
+
 Soft Club was redrawn twice from the owner's own reference images. The second pass followed their
 note to look at Blur's "blur" sleeve and the "Gen X / contemporary soft club" collage: there are no
 outlines anywhere. A rule sets every border transparent. The third pass, prompted by "the white
