@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — Soft Club is the only look that gets visual work (`AGENTS.md`). The guideline in `docs/design/soft-club.md` is the spec. Corrections against it are on `cursor/soft-club-guideline-a2c6`: labels that used `tracking-wider` or hardcoded caps, LED figures past 2xl, sign-in and the missing page, dotted column rules, checks, disabled glow, cover zoom, station bounce. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: search lists each edition of a title (paperback and Kindle stay separate). Soft Club is the only look that gets visual work (`AGENTS.md`); the guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -230,6 +230,10 @@
 
 ## Next
 
+- [x] **Books: editions of one title** (asked 2026-10-19). Search no longer folds every copy
+      of a novel into one row. A different page count is its own row (paperback 320 and
+      Kindle 267). Two listings of the same count still collapse. The paperback is listed
+      first. On `main`.
 - [x] **Books: Mistborn: The Final Empire missing** (asked 2026-10-19). Google stores the
       title as "Mistborn" and the subtitle as "The Final Empire", so search showed "Mistborn"
       and folded it into other Mistborn books. Subtitle is now part of the title. `langRestrict=en`

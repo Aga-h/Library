@@ -254,11 +254,19 @@ function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
   return prev;
 }
 
-/** Collapse Google Books' edition soup: one volume per novel, preferring print page counts. */
+/**
+ * Same listing twice (two hits for the 320-page paperback). A different page count is a
+ * different edition and stays — Kindle 267 and paperback 320 are both shown.
+ */
+function sameEdition(a: GbVolume, b: GbVolume): boolean {
+  return sameWork(a, b) && a.pages === b.pages;
+}
+
+/** Drop duplicate listings of one edition. Different page counts are kept. */
 export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
   const best: GbVolume[] = [];
   for (const volume of volumes) {
-    const idx = best.findIndex((prev) => sameWork(prev, volume));
+    const idx = best.findIndex((prev) => sameEdition(prev, volume));
     if (idx === -1) {
       best.push(volume);
       continue;
@@ -269,23 +277,26 @@ export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
 }
 
 /**
- * Add Book's list: English editions only (a Portuguese or Spanish translation is left out),
- * collapsed to one row per novel, titles that fit the query first. Volumes with no page count
- * are omitted — they cannot be imported. Capped at MAX_IMPORT.
+ * Add Book's list: English editions, one row per page count, titles that fit the query first.
+ * A paperback and a Kindle of the same novel are both listed. Volumes with no page count are
+ * omitted — they cannot be imported. Capped at MAX_IMPORT.
  */
 export function catalogFromVolumes(
   volumes: GbVolume[],
   query = "",
 ): Array<CatalogBook & { pages: number }> {
-  const unique = dedupeVolumes(volumes.filter(isEnglishListing), query);
-  const seen = new Set<string>();
+  const unique = dedupeVolumes(volumes.filter(isEnglishListing), query).filter(hasPages);
   const ranked = unique
-    .map(fromGbVolume)
-    .filter(hasPages)
-    .map((book, i) => ({ book, i, score: queryFit(book.title, query) }))
-    .sort((a, b) => b.score - a.score || a.i - b.i);
+    .map((volume, i) => ({ volume, i, score: queryFit(volume.title, query) }))
+    .sort((a, b) =>
+      b.score - a.score
+      || Number(b.volume.printEdition) - Number(a.volume.printEdition)
+      || Number(a.volume.ebook) - Number(b.volume.ebook)
+      || a.i - b.i);
+  const seen = new Set<string>();
   const out: Array<CatalogBook & { pages: number }> = [];
-  for (const { book } of ranked) {
+  for (const { volume } of ranked) {
+    const book = { ...fromGbVolume(volume), pages: volume.pages };
     if (seen.has(book.id)) continue;
     seen.add(book.id);
     out.push(book);

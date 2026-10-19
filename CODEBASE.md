@@ -195,11 +195,10 @@ only). Requests go through `lib/fetch-retry.ts` (shared with the anime list impo
 
 **Books from Google Books.** "Add Book" searches Google Books `/volumes` for a title, an author,
 an ISBN or a pasted volume id. Results start **unticked** — All/None are explicit. Google Books
-is edition-centric, so search collapses volumes by title + author and keeps the paperback
-page count, not the Kindle file's. `volumes.list` reports 0 pages for a paperback with no
-preview; every such row in the search is fetched again with `volumes.get`, which has the count
-on the Google Books page. A physical copy (dimensions) wins over a longer Kindle listing.
-One `googleBooksId` (036, unique) is stored.
+is edition-centric, so search lists each edition of a title that has its own page count
+(a 320-page paperback and a 267-page Kindle are both rows; two listings of the same count
+collapse). `volumes.list` reports 0 pages for a paperback with no preview; every such row is
+fetched again with `volumes.get`. One `googleBooksId` (036, unique) is stored per row.
 Google's title and subtitle are joined (Mistborn + The Final Empire), and a tagged
 translation is left out. `langRestrict=en` is not sent: it drops books Google tagged `un`
 and can return nothing. A book with no language tag still shows. Hits whose title fits the

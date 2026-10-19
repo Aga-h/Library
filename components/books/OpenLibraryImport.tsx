@@ -56,6 +56,7 @@ function meta(w: Work): string {
   return [
     w.author !== "Unknown" ? w.author : null,
     w.year,
+    w.publisher,
     `${w.pages} pages`,
   ].filter(Boolean).join(" · ");
 }
