@@ -93,7 +93,8 @@ export default function QuickTest({
   const after = useBringIntoReach<HTMLDivElement>(outcome);
 
   return (
-    <div className="space-y-5">
+    // A column rather than space-y, so the phone's restart control can be ordered below the question.
+    <div className="flex flex-col gap-5">
       {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
 
       {result && !question && (
@@ -176,7 +177,7 @@ export default function QuickTest({
               </div>
             </div>
             <button type="button" onClick={() => setStarting(true)}
-              className="text-xs font-semibold text-gray-500 hover:text-gray-800 whitespace-nowrap max-sm:order-1 max-sm:py-3">
+              className="text-xs font-semibold text-gray-500 hover:text-gray-800 whitespace-nowrap max-sm:order-1 max-sm:self-center max-sm:py-3">
               Start a different one
             </button>
           </div>
