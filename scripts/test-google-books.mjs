@@ -6,7 +6,8 @@
 import {
   googleVolumeIdOf, googleSearchQueryOf, googleCoverUrl, isGoogleBooksImage, yearFromDate,
   toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, volumesToRefetch,
-  isEnglishListing, GB_IMAGE_HOSTS,
+  isEnglishListing, GB_IMAGE_HOSTS, sharedShortTitles, editionSearchQuery, editionsToRefetch,
+  editionsFromVolumes,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
 
@@ -213,6 +214,46 @@ ok(mistbornList.some((w) => w.title === "Mistborn: Secret History"), "another En
 ok(!mistbornList.some((w) => w.title.includes("Império")), "the Portuguese edition stays out");
 ok(mistbornList.some((w) => w.title === "The Hobbit"), "a book Google left untagged still shows");
 
+// ── a bare series name does not pull the series in as one book's editions ─────
+const sanderson = (id, title, subtitle, pageCount, over = {}) => toVolume(raw({ id, ...over }, {
+  title, ...(subtitle ? { subtitle } : {}), authors: ["Brandon Sanderson"], pageCount, language: "en",
+  imageLinks: { thumbnail: "http://x" },
+}));
+const bareMistborn = sanderson("bareMistborn1", "Mistborn", null, 1984);
+const wellOfAscension = sanderson("wellOfAscens1", "Mistborn", "The Well of Ascension", 590);
+const finalEmpireEbook = sanderson("finalEmpireEb", "Mistborn", "The Final Empire", 672, { saleInfo: { isEbook: true } });
+const series = [bareMistborn, finalEmpire, wellOfAscension, finalEmpireEbook];
+eq([...sharedShortTitles(series)], ["brandonsanderson|mistborn"], "two subtitled Mistborn books share the short title");
+ok(sameWork(bareMistborn, finalEmpire), "with nothing else to go on, a bare title still folds into its subtitle");
+ok(!sameWork(bareMistborn, finalEmpire, sharedShortTitles(series)), "…but not when the list has two Mistborn: books");
+eq(
+  catalogFromVolumes(series, "mistborn").map((w) => [w.title, w.editions.map((e) => e.pages).sort()]),
+  [["Mistborn", [1984]], ["Mistborn: The Final Empire", [544, 672]], ["Mistborn: The Well of Ascension", [590]]],
+  "each Mistborn book is its own row with only its own editions",
+);
+ok(
+  sameWork({ title: "Piranesi", author: "Susanna Clarke" }, { title: "Piranesi: A Novel", author: "Susanna Clarke" },
+    sharedShortTitles([{ title: "Piranesi: A Novel", author: "Susanna Clarke" }])),
+  "one subtitle under a short title still merges",
+);
+
+// ── the edition search for the cover flow ────────────────────────────────────
+eq(editionSearchQuery({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson, Someone Else" }),
+  'Mistborn The Final Empire inauthor:"Brandon Sanderson"', "edition search: title words and the first author");
+eq(editionSearchQuery({ title: "Piranesi", author: "Unknown" }), "Piranesi", "…an unknown author is left out");
+const fePaperBlank = { ...sanderson("finalEmpPapr1", "Mistborn", "The Final Empire", 0), printEdition: true };
+const fePortuguese = { ...sanderson("finalEmpPort1", "Mistborn", "O Império Final", 608), language: "pt" };
+const editionHits = [finalEmpireEbook, wellOfAscension, fePaperBlank, finalEmpire, fePortuguese, bareMistborn];
+eq(editionsToRefetch(editionHits, finalEmpire), ["finalEmpPapr1"], "only this book's blank counts are refetched");
+eq(
+  editionsFromVolumes([...editionHits.filter((v) => v !== fePaperBlank), { ...fePaperBlank, pages: 541 }], finalEmpire)
+    .map((e) => [e.googleBooksId, e.pages, e.ebook]),
+  [["finalEmpPapr1", 541, false], ["finalempire01", 544, false], ["finalEmpireEb", 672, true]],
+  "editions of the one book: print first, the eBook last, no other book, no translation",
+);
+eq(editionsFromVolumes([finalEmpire, { ...finalEmpire, id: "finalEmpDupe1" }], finalEmpire).length, 1,
+  "one edition per page count");
+
 const printId = "9qGQEAAAQBAJ";
 const kindleId = "zPWKDwAAQBAJ";
 const listedPrint = toVolume(raw({ id: printId, saleInfo: { isEbook: false } }, {
@@ -411,7 +452,7 @@ const { port } = server.address();
 process.env.GOOGLE_BOOKS_BASE_URL = `http://127.0.0.1:${port}`;
 delete process.env.GOOGLE_BOOKS_API_KEY;
   const { searchVolumes, volumeById, GoogleBooksError } = await import("../lib/google-books-service.ts");
-  const { searchCatalog } = await import("../lib/book-catalog-service.ts");
+  const { searchCatalog, searchEditions } = await import("../lib/book-catalog-service.ts");
 
 function assert(cond, label) {
   if (cond) pass++;
@@ -435,6 +476,13 @@ try {
   eq(mushoku.works[0].editions.map((e) => e.pages).sort(), [267, 320], "Vol. 1 carries both editions");
   eq(mushoku.works.find((w) => w.title.endsWith("Vol. 2")).editions.map((e) => e.pages).sort(), [240, 336],
     "Vol. 2 carries its paperback and its Kindle");
+
+  const vol1Editions = await searchEditions({
+    title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
+    author: "Rifujin na Magonote",
+  });
+  eq(vol1Editions.map((e) => [e.googleBooksId, e.pages]), [["9qGQEAAAQBAJ", 320], ["zPWKDwAAQBAJ", 267]],
+    "searchEditions: Vol. 1's paperback (count from volumes.get) then its Kindle — not Vol. 2");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");

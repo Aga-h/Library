@@ -198,7 +198,13 @@ an ISBN or a pasted volume id. Results start **unticked** — All/None are expli
 is edition-centric. Search is one row per novel. Choosing that row opens a Cover Flow
 (`docs/design/how-cover-flow-works.md`, `components/books/EditionCoverFlow.tsx`) of its editions
 — a different page count is a different card — and whether you own a physical copy or a Kindle,
-and only then is it imported. `volumes.list` reports 0 pages for a paperback with no preview;
+and only then is it imported. The search only holds the editions that ranked among other books, so
+Choose also asks `/api/books/openlibrary/editions` (the title's words + `inauthor:`, one page, at
+most 12 `volumes.get` refills) and merges what it finds: the row's edition stays first, print before
+eBook, and the centred edition stays centred as the list grows. Folding "Piranesi" into "Piranesi:
+A Novel" only happens when no other subtitled book in the list shares the short title
+(`sharedShortTitles`) — a bare "Mistborn" would otherwise pull the whole series in as editions of
+one book. `volumes.list` reports 0 pages for a paperback with no preview;
 every such row is fetched again with `volumes.get`. One `googleBooksId` (036, unique) is stored.
 Google's title and subtitle are joined (Mistborn + The Final Empire), and a tagged
 translation is left out. `langRestrict=en` is not sent: it drops books Google tagged `un`

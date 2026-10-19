@@ -34,6 +34,8 @@ interface Work {
   openLibraryId: string | null;
   googleBooksId: string;
   editions: FlowEdition[];
+  /** The editions came from an edition search of this book, not only from the title search. */
+  allEditions?: boolean;
   place: Place | null;
 }
 
@@ -71,6 +73,21 @@ function placeLabel(place: Place | null, target: string | null): { text: string;
   return { text: `In ${place.seriesName ?? "another series"}`, importable: false };
 }
 
+/**
+ * The edition the row showed stays first; after it every other edition the two searches found,
+ * print before eBook. One per page count — a listing with a cover beats a blank one.
+ */
+function mergeEditions(known: FlowEdition[], found: FlowEdition[]): FlowEdition[] {
+  const merged = [...known];
+  for (const edition of found) {
+    const same = merged.findIndex((e) => e.googleBooksId === edition.googleBooksId || e.pages === edition.pages);
+    if (same === -1) merged.push(edition);
+    else if (!merged[same].cover && edition.cover && merged[same].pages === edition.pages) merged[same] = edition;
+  }
+  const [face, ...rest] = merged;
+  return face ? [face, ...rest.sort((a, b) => Number(a.ebook) - Number(b.ebook))] : merged;
+}
+
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
@@ -104,6 +121,7 @@ export default function OpenLibraryImport({
   const [editionIndex, setEditionIndex] = useState(0);
   const [pickOwned, setPickOwned] = useState(false);
   const [pickKindle, setPickKindle] = useState(false);
+  const [editionSearch, setEditionSearch] = useState<{ id: string; state: "finding" | "failed" } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | "bulk" | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -189,6 +207,21 @@ export default function OpenLibraryImport({
     setPickKindle(false);
     setError(null);
     setSummary(null);
+    setEditionSearch(null);
+    if (!work.allEditions) void findEditions(work);
+  }
+
+  // The title search only holds the editions that ranked among other books. Ask for this one.
+  async function findEditions(work: Work) {
+    setEditionSearch({ id: work.id, state: "finding" });
+    const params = new URLSearchParams({ title: work.title, author: work.author });
+    const res = await fetch(`/api/books/openlibrary/editions?${params}`).catch(() => null);
+    const data = res?.ok ? await res.json().catch(() => null) : null;
+    const found = Array.isArray(data?.editions) ? (data.editions as FlowEdition[]) : null;
+    const update = (w: Work) => (w.id === work.id && found ? { ...w, editions: mergeEditions(w.editions, found), allEditions: true } : w);
+    setResults((r) => (r ? r.map(update) : r));
+    setPicking((p) => (p ? update(p) : p));
+    setEditionSearch((s) => (s?.id === work.id ? (found ? null : { id: work.id, state: "failed" }) : s));
   }
 
   async function confirmPick() {
@@ -333,15 +366,24 @@ export default function OpenLibraryImport({
       )}
 
       {picking && (
-        <div className="border border-gray-200 rounded-lg bg-white px-3 py-3 space-y-2">
+        <div key={picking.id} ref={reveal} className={`border border-gray-200 rounded-lg bg-white px-3 py-3 space-y-2 ${revealCls}`}>
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-gray-900">{picking.title}</p>
-              <p className="text-xs text-gray-500">Pick the edition. Nothing is added until you import.</p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-900 break-words">{picking.title}</p>
+              <p className="text-xs text-gray-500">
+                {picking.author !== "Unknown" && `${picking.author} · `}Pick the edition. Nothing is added until you import.
+              </p>
             </div>
             <button type="button" onClick={() => setPicking(null)} className="text-xs font-semibold text-gray-500 hover:text-gray-800 min-h-10 px-2">Close</button>
           </div>
           <EditionCoverFlow editions={picking.editions} index={editionIndex} onIndex={setEditionIndex} />
+          {editionSearch?.id === picking.id && (
+            <p className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500" role="status">
+              {editionSearch.state === "finding"
+                ? <><Loader2 className="w-3 h-3 animate-spin" /> Looking for more editions…</>
+                : "Google Books didn't answer, so these are the editions from your search."}
+            </p>
+          )}
           {!link && (
             <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center">
               <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">

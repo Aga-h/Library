@@ -5,7 +5,7 @@
 // volumes — so search results are collapsed by title + author.
 
 import {
-  MAX_IMPORT, authorsMatch, authorsOf, hasPages, isbnOf,
+  MAX_IMPORT, authorsMatch, authorsOf, firstAuthor, hasPages, isbnOf, normaliseAuthor,
   queryFit, titleKeys, workIdOf, yearOf,
   type CatalogBook,
 } from "@/lib/openlibrary";
@@ -167,13 +167,39 @@ export function fromGbVolume(volume: GbVolume): CatalogBook {
   };
 }
 
+type Titled = { title: string; author: string };
+
+function shortTitleKey(row: Titled, short: string): string {
+  return `${normaliseAuthor(firstAuthor(row.author))}|${short}`;
+}
+
+/**
+ * Short titles that head more than one subtitled book in a list — "Mistborn: The Final Empire"
+ * and "Mistborn: The Well of Ascension". A bare "Mistborn" could be either, so sameWork must not
+ * fold it into one of them (it would pull the whole series in as editions of one book).
+ */
+export function sharedShortTitles(rows: readonly Titled[]): Set<string> {
+  const fulls = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const [full, short] = titleKeys(row.title);
+    if (!short) continue;
+    const key = shortTitleKey(row, short);
+    const set = fulls.get(key) ?? new Set<string>();
+    set.add(full);
+    fulls.set(key, set);
+  }
+  return new Set([...fulls].filter(([, set]) => set.size > 1).map(([key]) => key));
+}
+
 /**
  * Same novel for collapsing search hits: authors match, and either the full titles match or
  * one is the other with only a subtitle ("Piranesi" / "Piranesi: A Novel"). The short key
- * before a colon is not enough on its own — that would merge every Mushoku Tensei volume.
- * Library rows still match on the full title.
+ * before a colon is not enough on its own — that would merge every Mushoku Tensei volume —
+ * and a bare short title is only folded in when `shared` (sharedShortTitles of the list) says
+ * no other subtitled book in the list starts the same way. Library rows still match on the
+ * full title.
  */
-export function sameWork(a: { title: string; author: string }, b: { title: string; author: string }): boolean {
+export function sameWork(a: Titled, b: Titled, shared?: ReadonlySet<string>): boolean {
   if (!authorsMatch(a.author, b.author)) return false;
   const aKeys = titleKeys(a.title);
   const bKeys = titleKeys(b.title);
@@ -181,8 +207,8 @@ export function sameWork(a: { title: string; author: string }, b: { title: strin
   const bFull = bKeys[0];
   if (!aFull || !bFull) return false;
   if (aFull === bFull) return true;
-  if (aKeys[1] && aKeys[1] === bFull) return true;
-  if (bKeys[1] && bKeys[1] === aFull) return true;
+  if (aKeys[1] && aKeys[1] === bFull && !shared?.has(shortTitleKey(a, aKeys[1]))) return true;
+  if (bKeys[1] && bKeys[1] === aFull && !shared?.has(shortTitleKey(b, bKeys[1]))) return true;
   return false;
 }
 
@@ -196,13 +222,14 @@ export const REFILL_LIMIT = 80;
  * listing go first.
  */
 export function volumesToRefetch(volumes: GbVolume[], query: string, limit = REFILL_LIMIT): string[] {
+  const shared = sharedShortTitles(volumes);
   const ranked = volumes
     .filter((volume) => volume.pages === null)
     .map((volume, i) => ({
       id: volume.id,
       i,
       score: queryFit(volume.title, query),
-      sibling: volumes.some((other) => other.id !== volume.id && other.pages !== null && sameWork(other, volume)),
+      sibling: volumes.some((other) => other.id !== volume.id && other.pages !== null && sameWork(other, volume, shared)),
     }))
     .sort((a, b) => Number(b.sibling) - Number(a.sibling) || b.score - a.score || a.i - b.i);
   const ids: string[] = [];
@@ -258,15 +285,15 @@ function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
  * Same listing twice (two hits for the 320-page paperback). A different page count is a
  * different edition and stays — Kindle 267 and paperback 320 are both shown.
  */
-function sameEdition(a: GbVolume, b: GbVolume): boolean {
-  return sameWork(a, b) && a.pages === b.pages;
+function sameEdition(a: GbVolume, b: GbVolume, shared: ReadonlySet<string>): boolean {
+  return sameWork(a, b, shared) && a.pages === b.pages;
 }
 
 /** Drop duplicate listings of one edition. Different page counts are kept. */
-export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
+export function dedupeVolumes(volumes: GbVolume[], query = "", shared = sharedShortTitles(volumes)): GbVolume[] {
   const best: GbVolume[] = [];
   for (const volume of volumes) {
-    const idx = best.findIndex((prev) => sameEdition(prev, volume));
+    const idx = best.findIndex((prev) => sameEdition(prev, volume, shared));
     if (idx === -1) {
       best.push(volume);
       continue;
@@ -314,10 +341,12 @@ export function catalogFromVolumes(
   volumes: GbVolume[],
   query = "",
 ): Array<CatalogBook & { pages: number; editions: CatalogEdition[] }> {
-  const unique = dedupeVolumes(volumes.filter(isEnglishListing), query).filter(hasPages);
+  const english = volumes.filter(isEnglishListing);
+  const shared = sharedShortTitles(english);
+  const unique = dedupeVolumes(english, query, shared).filter(hasPages);
   const groups: Array<Array<GbVolume & { pages: number }>> = [];
   for (const volume of unique) {
-    const group = groups.find((rows) => sameWork(rows[0], volume));
+    const group = groups.find((rows) => rows.some((row) => sameWork(row, volume, shared)));
     if (group) group.push(volume);
     else groups.push([volume]);
   }
@@ -346,4 +375,37 @@ export function catalogFromVolumes(
     if (out.length >= MAX_IMPORT) break;
   }
   return out;
+}
+
+/**
+ * What to ask Google Books for every edition of one novel: its title words and its first
+ * author. Punctuation goes, so "Mistborn: The Final Empire" can't read as a "mistborn:" keyword.
+ */
+export function editionSearchQuery(book: Titled): string {
+  const words = book.title.replace(/[^\p{L}\p{N}'’]+/gu, " ").trim();
+  const author = firstAuthor(book.author).replace(/"/g, "").trim();
+  return author && normaliseAuthor(author) !== "unknown" ? `${words} inauthor:"${author}"` : words;
+}
+
+/** Blank-count listings of this one novel in an edition search, for volumes.get. */
+export function editionsToRefetch(volumes: GbVolume[], book: Titled, limit = 12): string[] {
+  const shared = sharedShortTitles([book, ...volumes]);
+  return volumes
+    .filter((volume) => volume.pages === null && isEnglishListing(volume) && sameWork(book, volume, shared))
+    .slice(0, limit)
+    .map((volume) => volume.id);
+}
+
+/**
+ * The editions of one novel among an edition search's volumes: English listings of the same
+ * work with a page count, one per page count, paperback first. Other books by the author that
+ * the search also returned are left out.
+ */
+export function editionsFromVolumes(volumes: GbVolume[], book: Titled): CatalogEdition[] {
+  const shared = sharedShortTitles([book, ...volumes]);
+  const mine = volumes.filter((volume) => isEnglishListing(volume) && sameWork(book, volume, shared));
+  return dedupeVolumes(mine, book.title, shared)
+    .filter(hasPages)
+    .sort(editionOrder)
+    .map(editionOf);
 }

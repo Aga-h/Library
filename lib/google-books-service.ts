@@ -9,7 +9,8 @@
 
 import { BookCatalogError, MAX_IMPORT } from "@/lib/openlibrary";
 import {
-  googleSearchQueryOf, googleVolumeIdOf, toVolume, volumesToRefetch, type GbVolume,
+  editionSearchQuery, editionsToRefetch, googleSearchQueryOf, googleVolumeIdOf, toVolume,
+  volumesToRefetch, type GbVolume,
 } from "@/lib/google-books";
 
 function baseUrl(): string {
@@ -107,15 +108,31 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
     const second = await get("/volumes", { ...params, startIndex: String(rows.length) });
     if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
   }
-  return refillBlankPages(volumesOf({ items: rows }), asked.value);
+  const volumes = volumesOf({ items: rows });
+  return refillBlankPages(volumes, volumesToRefetch(volumes, asked.value));
+}
+
+/**
+ * Listings of one novel for the edition picker: its title and first author, one page of
+ * results. The search's own list only holds the editions that happened to rank among other
+ * books; this asks for the novel itself. Blank page counts of that novel are filled in.
+ */
+export async function editionVolumes(book: { title: string; author: string }): Promise<GbVolume[]> {
+  const body = await get("/volumes", {
+    q: editionSearchQuery(book),
+    maxResults: String(MAX_IMPORT),
+    printType: "books",
+    projection: "full",
+  });
+  const volumes = volumesOf(body);
+  return refillBlankPages(volumes, editionsToRefetch(volumes, book));
 }
 
 /**
  * `volumes.list` often says a paperback has no page count. `volumes.get` for that same id
  * has the count the Google Books site shows. A failure here leaves the list as it was.
  */
-async function refillBlankPages(volumes: GbVolume[], query: string): Promise<GbVolume[]> {
-  const pending = volumesToRefetch(volumes, query);
+async function refillBlankPages(volumes: GbVolume[], pending: string[]): Promise<GbVolume[]> {
   if (pending.length === 0) return volumes;
   const updates = new Map<string, GbVolume>();
   let next = 0;

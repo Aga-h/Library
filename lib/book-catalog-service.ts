@@ -2,8 +2,8 @@
 // Pure list rules live in lib/google-books.ts.
 
 import { hasPages, type CatalogBook } from "@/lib/openlibrary";
-import { catalogFromVolumes, fromGbVolume } from "@/lib/google-books";
-import { GoogleBooksError, searchVolumes, volumeById } from "@/lib/google-books-service";
+import { catalogFromVolumes, editionsFromVolumes, fromGbVolume, type CatalogEdition } from "@/lib/google-books";
+import { GoogleBooksError, editionVolumes, searchVolumes, volumeById } from "@/lib/google-books-service";
 
 const CONCURRENCY = 3;
 
@@ -24,6 +24,11 @@ function catalogIdOf(item: CatalogItem): string {
 /** Volumes matching a search that have a page count (required to import). */
 export async function searchCatalog(query: string): Promise<CatalogSearch> {
   return { works: catalogFromVolumes(await searchVolumes(query), query) };
+}
+
+/** Every edition of one novel Google Books lists with a page count, for the cover flow. */
+export async function searchEditions(book: { title: string; author: string }): Promise<CatalogEdition[]> {
+  return editionsFromVolumes(await editionVolumes(book), book);
 }
 
 export interface CatalogDetails {
