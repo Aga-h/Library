@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-18 — books: Google Books alongside Open Library; search results start unticked. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — books: English search was showing Japanese/Chinese work titles. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–036, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -215,6 +215,11 @@
 
 ## Next
 
+- [ ] **Books: search title follows the query's language** (asked 2026-10-19: Mushoku Tensei
+      English title came back in Chinese/Japanese). Open Library's work title is 無職転生;
+      English lives on the edition. Prefer the edition/Google Books title in the same script
+      as the query, and list those first. Import keeps that title. Branch
+      `cursor/books-search-title-language-0646`, then merge to `main`.
 - [x] **Books: Google Books + no auto-tick** (asked 2026-10-18: Open Library missed a title;
       search ticked every match). Search Open Library and Google Books together; merge by
       title+author; GB-only hits still show (lifted first when they match the query). Results
