@@ -229,8 +229,7 @@
       start unticked — All/None stay explicit. `Book.googleBooksId` unique (036).
       `GOOGLE_BOOKS_API_KEY` optional: without it GB may 403/429 and search still returns Open
       Library, with a notice. Publisher filled from GB when blank. Importable if either source
-      has a page count; search only lists those. Tests: OL 98, GB + combined search. Build green.
-      On `main`.
+      has a page count; search only lists those. Tests: OL 105, GB + combined search 92. On `main`.
       **Needs 036 + the API key** (see Blocked). No browser e2e here (no Postgres).
 - [x] **Books from Open Library** (asked 2026-10-18: auto-import like the other library sections).
       Open Library Search API — no key. A work is one book (`Book.openLibraryId` unique, 035).
