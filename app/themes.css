@@ -72,11 +72,11 @@ h2.text-2xl,
  * the "Gen X / contemporary soft club" collage, Tresor's Globus Mix, Ambient Lounge, Kaskade, Nine
  * Days, Bowienet, Jazzy Chill Out. The city seen from a moving train, in one icy cyan cast.
  *
- * Nothing has an outline. A panel is a field of brighter haze that glows out into the haze around
- * it and smears sideways, as if passed at speed; shapes are told apart by colour and by soft
- * streaks, never by a border. The lines are the graphics laid over the photograph — glowing
- * hairline frames, long rules, columns of data text, a subway map — not boxes round things.
- * Lists of sections read as a CD's tracklist; the open page is a roll sign blurred by speed.
+ * Nothing has an outline. A panel is a band of pale film between hairline rules, open at the sides
+ * (Ambient Lounge), not a white card. Shapes are told apart by colour, haze and soft streaks.
+ * The lines are the graphics laid over the photograph — glowing hairline frames, long rules,
+ * columns of data text, a subway map — not boxes round things. Lists of sections read as a CD's
+ * tracklist; the open page is a roll sign. The rules live in docs/design/soft-club.md.
  * ═════════════════════════════════════════════════════════════════════════════ */
 
 :root[data-theme="softclub"] {
@@ -211,22 +211,49 @@ h2.text-2xl,
   color: var(--sc-lime);
   font-weight: 700;
 }
-[data-theme="softclub"] .uppercase.tracking-wide {
+/* Labels, including the later pages that used tracking-wider and so skipped this treatment.
+ * Weight 400: a release note, not a bold eyebrow. On a navy sign the caption is the light ink,
+ * since cyan on navy fails. */
+[data-theme="softclub"] :is(.uppercase.tracking-wide, .uppercase.tracking-wider) {
   text-transform: lowercase;
   letter-spacing: 0.02em;
+  font-weight: 400;
   color: var(--sc-cyan);
 }
-[data-theme="softclub"] .uppercase.tracking-wide::before {
+[data-theme="softclub"] :is(.uppercase.tracking-wide, .uppercase.tracking-wider)::before {
   content: "<";
   opacity: 0.6;
 }
-[data-theme="softclub"] .uppercase.tracking-wide::after {
+[data-theme="softclub"] :is(.uppercase.tracking-wide, .uppercase.tracking-wider)::after {
   content: ">";
   opacity: 0.6;
 }
-[data-theme="softclub"] .uppercase.tracking-wide:has(> svg)::before,
-[data-theme="softclub"] .uppercase.tracking-wide:has(> svg)::after {
+[data-theme="softclub"] :is(.uppercase.tracking-wide, .uppercase.tracking-wider):has(> svg)::before,
+[data-theme="softclub"] :is(.uppercase.tracking-wide, .uppercase.tracking-wider):has(> svg)::after {
   content: none;
+}
+[data-theme="softclub"] .bg-gray-900 :is(.uppercase.tracking-wide, .uppercase.tracking-wider) {
+  color: #f4f8fb;
+}
+/* "TOTAL LEVEL" / "LEVEL" are caps in the markup, with tracking-wide but no uppercase class,
+ * so the rule above never saw them. */
+[data-theme="softclub"] p.font-semibold.tracking-wide:not(.uppercase) {
+  font-family: var(--theme-font-label);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: #17609f;
+}
+[data-theme="softclub"] p.font-semibold.tracking-wide:not(.uppercase)::before {
+  content: "<";
+  opacity: 0.6;
+}
+[data-theme="softclub"] p.font-semibold.tracking-wide:not(.uppercase)::after {
+  content: ">";
+  opacity: 0.6;
+}
+[data-theme="softclub"] .bg-gray-900 p.font-semibold.tracking-wide:not(.uppercase) {
+  color: #f4f8fb;
 }
 /* The line under a page title is a technical readout. */
 [data-theme="softclub"] :is(h1, h2.text-2xl) + p {
@@ -235,11 +262,35 @@ h2.text-2xl,
   letter-spacing: 0.01em;
   color: var(--color-gray-500);
 }
-/* Big numbers read out in LED dot-matrix, like a platform board. */
-[data-theme="softclub"] :is(span, p).text-2xl.font-bold {
+/* Big numbers read out in LED dot-matrix, like a platform board (Ratty, T.M.Revolution).
+ * text-2xl is the stat figure; text-3xl and text-4xl are the level, the score, the stopwatch
+ * and the expense amount. A word set as an h2 is a title, not a figure, and is not caught here. */
+[data-theme="softclub"] :is(span, p).font-bold:is(.text-2xl, .text-3xl, .text-4xl),
+[data-theme="softclub"] input.font-bold.text-4xl {
   font-family: var(--font-dotgothic), var(--theme-font-label), monospace;
   font-weight: 400;
   letter-spacing: 0.04em;
+}
+[data-theme="softclub"] :is(span, p).font-bold:is(.text-2xl, .text-3xl, .text-4xl) * {
+  font-family: inherit;
+  font-weight: 400;
+}
+/* The word under test, and the module on a running session, are titles: thin, wide, lowercase.
+ * No lime full stop — a period would look like part of the word. On the navy session sign the
+ * title stays the light ink. */
+[data-theme="softclub"] :is(h2.text-3xl, h2.text-4xl, h3.text-2xl) {
+  font-family: var(--theme-font-display);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  text-transform: lowercase;
+  color: var(--sc-ink);
+}
+[data-theme="softclub"] .bg-gray-900 :is(h2.text-3xl, h2.text-4xl, h3.text-2xl) {
+  color: #f4f8fb;
+}
+[data-theme="softclub"] .text-center:has(> :is(h2.text-3xl, h2.text-4xl)) {
+  align-items: flex-start;
+  text-align: left;
 }
 
 /* ── Panels ── not cards. A panel is a band of tinted film held between hairline rules and open at
@@ -395,8 +446,24 @@ h2.text-2xl,
   background-origin: border-box;
 }
 
+/* A season or "emulated" chip is a small roll sign, not a hard dark pill. */
+[data-theme="softclub"] :is(.bg-gray-900\/80, .bg-gray-800).rounded-full {
+  background: rgb(19 40 58 / 0.9);
+  color: #f4f8fb;
+  border-radius: 6px;
+  font-family: var(--theme-font-label);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  box-shadow: 0 0 8px 3px rgb(19 40 58 / 0.5);
+}
+
 /* Photographs and covers fade into the haze at their edges, like the layered stills in the
- * Gen X collage, instead of ending at a hard line. */
+ * Gen X collage, instead of ending at a hard line. The generic cover zoom is a card trick;
+ * the picture stays still and the edges stay soft. */
+[data-theme="softclub"] .group:hover img.object-cover {
+  transform: none;
+}
 [data-theme="softclub"] img.object-cover {
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, transparent, #000 5%, #000 84%, transparent);
   -webkit-mask-composite: source-in;
@@ -404,15 +471,42 @@ h2.text-2xl,
   mask-composite: intersect;
 }
 
-/* Rows are divided by a dotted rule, like the columns on Bowienet's page. */
-[data-theme="softclub"] :is(.divide-y) > :not(:last-child) {
+/* Rows are divided by a dotted rule, and columns by the vertical dotted rules on Bowienet.
+ * A grid that divides both ways needs both rules on the same child, or the later one wins. */
+[data-theme="softclub"] .divide-y > :not(:last-child) {
   background-image: repeating-linear-gradient(90deg, rgb(42 150 212 / 0.5) 0 1px, transparent 1px 4px);
   background-size: 100% 1px;
   background-position: bottom;
   background-repeat: no-repeat;
 }
+[data-theme="softclub"] .divide-x > :not(:last-child) {
+  background-image: repeating-linear-gradient(180deg, rgb(42 150 212 / 0.5) 0 1px, transparent 1px 4px);
+  background-size: 1px 100%;
+  background-position: right;
+  background-repeat: no-repeat;
+}
+[data-theme="softclub"] .divide-x.divide-y > :not(:last-child) {
+  background-image:
+    repeating-linear-gradient(90deg, rgb(42 150 212 / 0.5) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(180deg, rgb(42 150 212 / 0.5) 0 1px, transparent 1px 4px);
+  background-size: 100% 1px, 1px 100%;
+  background-position: bottom, right;
+  background-repeat: no-repeat;
+}
+/* Detail cells in that grid were a centred stat row. Left-anchored, like a column of credits. */
+[data-theme="softclub"] .divide-x.divide-y > .flex-col.items-center.text-center {
+  align-items: flex-start;
+  text-align: left;
+}
 
-/* ── Controls ── a field to type in is a cooler tint with a blurred cyan underline. */
+/* ── Controls ── a field to type in is a cooler tint with a blurred cyan underline.
+ * Checks keep a visible mark: the universal transparent border would otherwise wash them out.
+ * accent-color is the check, in the brand blue that passes for small marks. */
+[data-theme="softclub"] :is(input[type="checkbox"], input[type="radio"]) {
+  accent-color: #17609f;
+  border-color: rgb(23 96 159 / 0.55);
+  background-color: rgb(214 236 249 / 0.85);
+}
 [data-theme="softclub"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), select, textarea) {
   border-radius: 3px;
   background-color: rgb(214 236 249 / 0.6);
@@ -504,6 +598,10 @@ h2.text-2xl,
 }
 [data-theme="softclub"] .theme-brand * {
   color: inherit;
+}
+/* The brand is the name, the smear and the lime tag — not an icon in a badge. */
+[data-theme="softclub"] :is(.theme-brand, .theme-topbar-brand) > svg {
+  display: none;
 }
 [data-theme="softclub"] .theme-brand span {
   font-weight: 300;
@@ -609,6 +707,13 @@ h2.text-2xl,
     display: none;
   }
 }
+/* Beside a sidebar the target lives under the menu, so the dots can sit in the corner.
+ * Below lg the target is back in the corner and the dots keep clear of it. */
+@media (min-width: 64rem) {
+  :root[data-theme="softclub"]:has(.theme-sidebar) .theme-header::after {
+    right: 1.75rem;
+  }
+}
 
 /* ── On a phone ── the top bar stays put while the page passes beneath it, so it is frosted: a
  * strip of the same haze that blurs what slides under it (and the target in the corner). The
@@ -620,16 +725,24 @@ h2.text-2xl,
   backdrop-filter: blur(18px) saturate(1.15);
 }
 [data-theme="softclub"] .theme-topbar-brand {
+  position: relative;
   color: var(--sc-ink);
-}
-[data-theme="softclub"] .theme-topbar-brand svg {
-  color: var(--sc-cyan);
 }
 [data-theme="softclub"] .theme-topbar-brand span {
   font-weight: 300;
   text-transform: lowercase;
   letter-spacing: -0.04em;
   color: inherit;
+}
+[data-theme="softclub"] .theme-topbar-brand::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sc-lime), rgb(169 210 44 / 0.45) 70%, transparent);
+  filter: blur(0.8px);
 }
 [data-theme="softclub"] .theme-topbar-sep {
   display: none;
@@ -952,8 +1065,7 @@ h2.text-2xl,
   from { transform: scaleY(0); }
 }
 @keyframes sc-station {
-  0% { opacity: 0; transform: scale(0.3); }
-  60% { opacity: 1; transform: scale(1.3); }
+  from { opacity: 0; transform: scale(0.6); }
 }
 
 /* ── Motion ── the city seen from a moving train. Things travel sideways, never up; they arrive
@@ -1035,7 +1147,7 @@ h2.text-2xl,
   [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br):nth-child(n + 8) { --sc-delay: 465ms; }
 
   /* The LED figures warm up as their carriage stops. */
-  [data-theme="softclub"] :is(:is(span, p).text-2xl.font-bold, a.bg-gradient-to-br p.text-lg.font-bold),
+  [data-theme="softclub"] :is(:is(span, p).font-bold:is(.text-2xl, .text-3xl, .text-4xl), a.bg-gradient-to-br p.text-lg.font-bold, input.font-bold.text-4xl),
   [data-theme="softclub"] :is(.theme-tile, a.bg-gradient-to-br)::before {
     animation: sc-led 0.7s linear calc(var(--sc-delay, 0ms) + 260ms) backwards;
   }
@@ -1158,8 +1270,54 @@ h2.text-2xl,
   background-size: 100% 2px;
 }
 
+/* A disabled control loses the glow. The glow rules are more specific than a plain
+ * :disabled, so this has to win outright; the markup already dims it with opacity. */
+[data-theme="softclub"] :is(button, a, input):disabled {
+  box-shadow: none !important;
+}
+/* The expense amount is a platform figure, not a tinted field. The scanning underline stays. */
+[data-theme="softclub"] input.font-bold.text-4xl {
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+[data-theme="softclub"] .border-b-2:has(> input.text-4xl),
+[data-theme="softclub"] .border-b-2:has(input.text-4xl) {
+  background-image: linear-gradient(90deg, rgb(255 255 255 / 0.95), rgb(42 150 212 / 0.35) 70%, transparent);
+  background-size: 100% 1px;
+  background-position: bottom;
+  background-repeat: no-repeat;
+}
+/* DotGothic has no lira, so the mark stays in the house sans beside the LED amount. */
+[data-theme="softclub"] .border-b-2 > span.text-3xl.font-bold {
+  font-family: var(--theme-font-body);
+  font-weight: 300;
+  color: var(--sc-ink);
+}
+[data-theme="softclub"] input.font-bold.text-4xl::placeholder {
+  color: var(--color-gray-400);
+}
+/* Sign-in and the missing page were a centred icon badge — Classic with new colours.
+ * Left-anchored, and the icon is a thin cyan mark, not a filled plate. */
+[data-theme="softclub"] .theme-gate {
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  padding-top: 12vh;
+}
+[data-theme="softclub"] .theme-gate-intro {
+  align-items: flex-start;
+}
+[data-theme="softclub"] .theme-gate-mark.bg-gray-900 {
+  background: transparent;
+  color: var(--sc-cyan);
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 0.75rem;
+  padding: 0;
+}
 [data-theme="softclub"] ::selection {
-  background: var(--sc-lime);
+  background: rgb(42 150 212 / 0.28);
   background-origin: border-box;
   color: var(--sc-ink);
 }

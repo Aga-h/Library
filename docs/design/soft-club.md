@@ -197,10 +197,11 @@ in §12, so that one page doesn't mix two cyans.
 | Role | Face | How it is set |
 |---|---|---|
 | Titles (`h1`, `h2.text-2xl`, brand) | **Lexend Exa** | Weight 300, **lowercase**, tracking −0.045em, `--sc-ink`, ending in a **lime full stop** at 700: "books." |
+| The word under test, and the module on a running session (`h2` at `text-3xl`/`text-4xl`, `h3.text-2xl`) | Lexend Exa | The same title, with no lime full stop — a period would read as part of the word. On the navy session sign the ink is `#f4f8fb` |
 | Reading text | **Helvetica Neue / Helvetica**, falling back to Archivo | The house sans |
-| Labels (`.uppercase.tracking-wide`) | **Share Tech Mono** | Lowercase, tracking 0.02em, wrapped in `<angle brackets>` at 60% opacity, like a release note |
+| Labels (`.uppercase.tracking-wide`, and `.uppercase.tracking-wider`) | **Share Tech Mono** | Lowercase, weight 400, tracking 0.02em, wrapped in `<angle brackets>` at 60% opacity, like a release note. On a navy sign the words are `#f4f8fb`, not cyan |
 | The line under a title | Share Tech Mono | 0.8rem, grey: a technical readout |
-| Big figures (`.text-2xl.font-bold`) | **DotGothic16** | Weight 400, tracking 0.04em: an LED platform board |
+| Big figures (`.text-2xl.font-bold`, and the same at `text-3xl` / `text-4xl`, including the expense amount) | **DotGothic16** | Weight 400, tracking 0.04em: an LED platform board. A word set as an `h2` is a title, not a figure |
 | Small codes (menu numbers, tags) | Share Tech Mono | 9–10px; menu numbers in cyan, the active one in lime |
 
 Fonts load through `next/font` with `preload: false`, so only the active look's faces download.
@@ -234,7 +235,7 @@ catches ordinary Tailwind classes, so pages get the look without being edited.
 | **A row or header strip** | A **light bar**: a bright 1px top edge over a pale streak that fades out to the right | Junkie XL | `.bg-gray-50` |
 | **A tinted box or strip** | A bar of its own colour (`--sc-blob`) fading out to the right | The tracklist | `.bg-{hue}-50/100` |
 | **A stat** (figure over label) | A **colour blob**: a radial wash of its tint with no edge at all | Kaskade | tinted `.flex-col.items-center.justify-center` |
-| **A divider** | A **dotted rule**: cyan at 50%, 1px on and 3px off | Bowienet | `divide-y` |
+| **A divider** | A **dotted rule**: cyan at 50%, 1px on and 3px off. Rows run across; columns run down, the way Bowienet's columns do | Bowienet | `divide-y`, `divide-x` |
 | **A list of sections** | A **CD tracklist**: one streak per track, numbered in LED, washed with the section's colour at its start. Columns are number 2.75rem, title up to 13rem, meta, then arrow 1.25rem | CD singles | `.theme-tile`, `a.bg-gradient-to-br` |
 | **Categories and their members** | A **metro map**: each category is a glowing line with a ring badge, each member a station with a code (`C01`) | Tokyo strip maps | Shopping, `.shop-line-*` |
 | **Something floating over the page** (dialog, dropdown, menu) | Nearly opaque pale film, `rgb(244 250 253 / 0.97)`. Legibility beats haze here | — | `.fixed`, `.absolute`, `.theme-picker-menu` |
@@ -272,8 +273,8 @@ panel. New frosted surfaces need the same care.
 
 - **Keyboard focus** is a 2px cyan outline at 70%, offset 3px. It is the one hard line in the look,
   and it stays: accessibility outranks rule 1.
-- **Disabled controls** (guidance for new work) lose their glow and their hover. Dim them with
-  opacity, not with grey borders.
+- **Disabled controls** lose their glow. Dim them with opacity, not with grey borders. The
+  markup's `disabled:opacity-50` does the dimming; the skin clears the glow.
 
 ---
 
@@ -328,7 +329,10 @@ From back to front:
   - asymmetric and left-anchored
   - long horizontals that run off to the right
   - plenty of haze between groups instead of boxes
+- **Sign-in and the missing page** are left-anchored. The icon is a thin cyan mark, not a filled badge.
 - **Avoid:** a centred, evenly spaced grid of equal cards. That is the "corporate slop" layout.
+  A month title sitting between Previous and Next stays centred, because it is the destination
+  between the two controls.
 
 ---
 
@@ -438,8 +442,8 @@ Soft Club is softer, cooler, earthbound and urban.
    - `bg-gray-50` → a light bar
    - `divide-y` → dotted rules
    - `.theme-tile` → a track
-   - `uppercase tracking-wide` → a `<label>`
-   - `text-2xl font-bold` → LED figures
+   - `uppercase tracking-wide` or `uppercase tracking-wider` → a `<label>`
+   - `text-2xl font-bold` (and `text-3xl` / `text-4xl` on a `span`, `p` or the amount field) → LED figures
    - `bg-gray-900` → the roll sign
 
    Use the same classes the other looks use, so each look keeps working.

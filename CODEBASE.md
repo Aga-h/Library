@@ -461,8 +461,8 @@ grid over the existing markup (`display: contents` on the icon row). Masks clip 
 overflows, so they are only used on tracks, menu items and images, never on panels that may hold a
 dropdown or dialog. Floating panels (`.fixed`, `.absolute`, the look menu) are near-opaque. The
 theme's glows replace Tailwind's ring shadows, so keyboard focus is an outline. Type stays as before:
-lowercase Lexend Exa light titles with a lime full stop, Share Tech Mono `<labels>`, DotGothic16 LED
-numbers. The open menu item and the dark badges are navy roll signs, blurred. The lime target sits
+lowercase Lexend Exa light titles with a lime full stop, Share Tech Mono `<labels>` (both
+`tracking-wide` and `tracking-wider`), DotGothic16 LED numbers at 2xl–4xl. Sign-in is left-anchored. The open menu item and the dark badges are navy roll signs, blurred. The lime target sits
 under the sidebar menu, or in the corner on pages without a sidebar, beside a row of fading orange
 dots.
 The other three looks are first drafts and are to be redone the same way, from references.

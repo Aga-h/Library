@@ -60,3 +60,14 @@ as the section above describes. Hand work (SQL, env vars) goes under "Blocked / 
 
 **Use judgment.** When there is a sensible default, pick it and say what you chose. Ask only when
 the decision is the user's: product direction, or a tradeoff where either choice loses something.
+
+# Soft Club
+
+Visual work is for the **Soft Club** look only. Acid, Early Cyber, Cyberdelia and Classic stay as
+they are.
+
+Before adding or changing anything that shows on the site, read `docs/design/soft-club.md` and the
+reference images in `docs/design/references/softclub/`. Follow those rules. Where an image and the
+document disagree, follow the image and update the document. Put the styling in the Soft Club
+section of `app/themes.css` (and `scripts/theme-palettes.mjs` if a colour changes) so the other
+looks are untouched.
