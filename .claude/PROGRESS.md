@@ -231,15 +231,18 @@
 ## Next
 
 - [ ] **Books: the 2006 Tor hardcover of Mistborn can't be found** (user, 2026-10-19, screenshot of
-      ISBN 9780765311788 = volume `dlfOfxkm1PoC`, API publisher "Macmillan"). Measured: Google returns
-      it only for author-less queries ("mistborn", "the final empire"); never for "mistborn the final
-      empire" or any query with the author in it, so the edition picker can't reach it. Since ~1 Oct
-      2026 Google answers every fielded query (`isbn:`, `intitle:`, `inauthor:`) with 0 results
-      (widely reported; discuss.google.dev thread 401929, issuetracker 569300353).
-      Done (pushed): ISBN search falls back to Open Library (`lib/openlibrary-service.ts`) for the
-      title, then plain Google queries, keeping the listing with that ISBN; `country=US` on every
-      Google call. Next: author-less edition queries. NOTE: the ~70% 503 rate measured earlier is
-      this container's proxy route — with `curl --noproxy '*'` or Node fetch it's ~0%.
+      ISBN 9780765311788 = volume `dlfOfxkm1PoC`, API publisher "Macmillan"). Cause: Google returns it
+      only for author-less queries ("mistborn", "the final empire"), so the edition picker never got
+      it; and since ~1 Oct 2026 Google answers every fielded query (`isbn:`, `intitle:`, `inauthor:`)
+      with 0 (widely reported; discuss.google.dev thread 401929, issuetracker 569300353).
+      Pushed: ISBN → Open Library fallback (`lib/openlibrary-service.ts`), `country=US`.
+      Committed locally, under review before push: edition queries [full+A, rest+A, full, head, rest]
+      (one-part: [full+A, full, series+A]) — 27/31 editions on 6 books vs 23, finds the 2006
+      hardcover live; search retries 12× within 15s, volume lookups 3×; page 2 / `isbn:` failures
+      no longer kill a search; refills stop starting after 40s; google.com/books/edition/<name>/<id>
+      links; groupEditions: an author-less listing can't join two authors' books (live "piranesi"
+      merged Clarke + Penny + Samuel); daily-limit 429 says so. Research: scratchpad/wf/ (lost on reset).
+      The ~70% 503 rate is this container's proxy route (`--noproxy '*'` / Node fetch ≈ 0%).
 - [x] **Books: editions from real Google data** (asked 2026-10-19: Portuguese titles, Hero of Ages
       under Book One, "Google Books didn't answer" live; then "only editions with covers").
       Tested with the real key (cloud env has `GOOGLE_BOOKS_API_KEY`; Google needs `country=US` from
@@ -683,6 +686,11 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Google Books daily limit is 1,000 queries** (project 931263747605, the key in the cloud env).
+  It ran out on 2026-10-19 during testing (resets 07:00 UTC). If Vercel uses the same key, Add Book
+  fails until the reset. Ask Google Cloud → Books API → Quotas for more, or use a separate key for
+  testing. A search costs ~15–45 queries (2 pages + page-count lookups), opening editions ~5.
 
 - **Soft Club contrast (optional).** Should the cyan `<label>` text (2.9:1) and the grey title
   readout (4.2:1) move to `#17609f` and gray-600 to pass AA? It changes the look slightly.
