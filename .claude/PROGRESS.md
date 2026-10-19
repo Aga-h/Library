@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch. Leftover `claude/phone-wip`, `claude/anime-list-import-alt`, and `cursor/phone-interface-a49b` were merged or deleted; `main` is the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — books: Mistborn shows as "Mistborn: The Final Empire" (subtitle was dropped, and langRestrict hid untagged English books). Soft Club design guideline written (`docs/design/soft-club.md`), reference images indexed. On `main`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
+**Updated:** 2026-10-19 — Soft Club is the only look that gets visual work (`AGENTS.md`). The guideline in `docs/design/soft-club.md` is the spec. Corrections against it are on `cursor/soft-club-guideline-a2c6`: labels that used `tracking-wider` or hardcoded caps, LED figures past 2xl, sign-in and the missing page, dotted column rules, checks, disabled glow, cover zoom, station bounce. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user.
 
 ## Done
 
@@ -212,6 +212,21 @@
       so the new code runs fine against a database that still has them: verified that every comics
       page renders with none of the old values leaking, and a stale client still sending them is
       accepted with the fields ignored.
+
+- [x] **Soft Club, guideline pass** (asked 2026-10-19: only restyle Soft Club, follow the new
+      doc and reference images, then correct the look's mistakes). Standing rule is in `AGENTS.md`.
+      What was wrong, against `docs/design/soft-club.md`:
+      - `tracking-wider` labels (study, flashcards, quick tests, APs) stayed bold caps with no
+        brackets. "TOTAL LEVEL" / "LEVEL" were caps in the text, so the label rule never saw them.
+      - Levels, scores, the stopwatch and the expense amount are figures but only `text-2xl` was
+        LED. The word under test was a bold centred headline.
+      - Sign-in and the missing page were a centred icon badge.
+      - `divide-x` columns had no dotted rule (Bowienet's are vertical). Detail cells were centred.
+      - Checks inherited a transparent border. Disabled controls kept their glow. Cover hover
+        zoomed. Shopping stations bounced in. Selection was a lime fill. Header dots kept a hole
+        for a target that, beside a sidebar, sits in the menu. Season chips were hard dark pills.
+      Label contrast (cyan at 2.9:1) is still the owner's call, as the guideline says.
+      On `cursor/soft-club-guideline-a2c6`.
 
 ## Next
 

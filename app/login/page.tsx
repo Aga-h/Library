@@ -44,10 +44,10 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="theme-gate min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-gray-900 text-white p-3 rounded-xl mb-4">
+        <div className="theme-gate-intro flex flex-col items-center mb-8">
+          <div className="theme-gate-mark bg-gray-900 text-white p-3 rounded-xl mb-4">
             <Library className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-bold text-gray-900">MyLibrary</h1>
