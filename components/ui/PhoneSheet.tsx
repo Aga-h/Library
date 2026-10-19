@@ -30,26 +30,35 @@ const FOCUSABLE =
 export default function PhoneSheet({ label, onDismiss, children }: Props) {
   const panel = useRef<HTMLDivElement>(null);
 
+  // Callers mount the sheet at every width and it hides itself from sm up, where their inline
+  // version is showing. So the sheet only takes over the page — scroll, focus, Escape — while
+  // the screen is under sm; otherwise a desktop page would stop scrolling during a confirm.
   useEffect(() => {
+    const phone = window.matchMedia("(width < 40rem)");
     const previouslyFocused = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
     const root = document.documentElement;
     const overflow = root.style.overflow;
-    root.style.overflow = "hidden";
+    const lock = () => {
+      root.style.overflow = phone.matches ? "hidden" : overflow;
+    };
+    lock();
+    phone.addEventListener("change", lock);
 
-    const first = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
-    first?.focus();
+    const moveFocus = phone.matches;
+    if (moveFocus) panel.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
 
     return () => {
+      phone.removeEventListener("change", lock);
       root.style.overflow = overflow;
-      previouslyFocused?.focus();
+      if (moveFocus) previouslyFocused?.focus();
     };
   }, []);
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "Escape" && !e.defaultPrevented) {
+      if (e.key === "Escape" && !e.defaultPrevented && window.matchMedia("(width < 40rem)").matches) {
         e.preventDefault();
         onDismiss();
       }
