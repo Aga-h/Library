@@ -5,7 +5,7 @@
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-google-books.mjs
 import {
   googleVolumeIdOf, googleSearchQueryOf, googleCoverUrl, isGoogleBooksImage, yearFromDate,
-  toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, GB_IMAGE_HOSTS,
+  toVolume, fromGbVolume, sameWork, dedupeVolumes, catalogFromVolumes, volumesToRefetch, GB_IMAGE_HOSTS,
 } from "../lib/google-books.ts";
 import { matchExisting, planImport, toWork, OL_IMAGE_HOST } from "../lib/openlibrary.ts";
 
@@ -164,6 +164,22 @@ eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery)[0].pages, 320
 eq(catalogFromVolumes([mushokuKindle, mushokuPrint], mushokuQuery)[0].googleBooksId, "mushokuprint1",
   "…and keeps the print volume id");
 
+const printId = "9qGQEAAAQBAJ";
+const kindleId = "zPWKDwAAQBAJ";
+const listedPrint = toVolume(raw({ id: printId, saleInfo: { isEbook: false } }, {
+  title: mushokuQuery, authors: ["Rifujin Na Magonote"], pageCount: 0,
+  imageLinks: { thumbnail: "http://x" },
+}));
+const listedKindle = toVolume(raw({ id: kindleId, saleInfo: { isEbook: true } }, {
+  title: mushokuQuery, authors: ["Rifujin na Magonote"], pageCount: 267,
+  imageLinks: { thumbnail: "http://x" },
+}));
+eq(listedPrint.pages, null, "search lists the paperback as 0 pages");
+eq(volumesToRefetch([listedKindle, listedPrint], mushokuQuery), [printId],
+  "the paperback with a blank count is fetched again");
+eq(catalogFromVolumes([listedKindle, listedPrint], mushokuQuery)[0].pages, 267,
+  "without that refetch the Kindle count is all that's left");
+
 // ── already in the library: the other catalogue must not duplicate ───────────
 const library = [
   {
@@ -242,6 +258,22 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify(piranesiDoc));
     return;
   }
+  if (url.pathname === "/volumes/9qGQEAAAQBAJ") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({
+      id: "9qGQEAAAQBAJ",
+      volumeInfo: {
+        title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
+        authors: ["Rifujin Na Magonote"],
+        publisher: "Seven Seas Entertainment",
+        publishedDate: "2019-05-21",
+        pageCount: 320,
+        imageLinks: { thumbnail: "http://books.google.com/x" },
+        language: "en",
+      },
+    }));
+    return;
+  }
   if (url.pathname.startsWith("/volumes/") && url.pathname !== "/volumes") {
     res.writeHead(404);
     res.end(JSON.stringify({ error: { code: 404, message: "not found" } }));
@@ -255,6 +287,36 @@ const server = createServer((req, res) => {
   const q = url.searchParams.get("q") ?? "";
   let items = [];
   if (q.toLowerCase().includes("piranesi") || q === `isbn:9781635575644`) items = [piranesiDoc];
+  if (q.includes("Mushoku Tensei")) {
+    items = [
+      {
+        id: "zPWKDwAAQBAJ",
+        saleInfo: { isEbook: true },
+        volumeInfo: {
+          title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
+          authors: ["Rifujin na Magonote"],
+          publisher: "Seven Seas Entertainment",
+          publishedDate: "2019-04-04",
+          pageCount: 267,
+          language: "en",
+          imageLinks: { thumbnail: "http://books.google.com/x" },
+        },
+      },
+      {
+        id: "9qGQEAAAQBAJ",
+        saleInfo: { isEbook: false },
+        volumeInfo: {
+          title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
+          authors: ["Rifujin Na Magonote"],
+          publisher: "Seven Seas Entertainment",
+          publishedDate: "2019-05-21",
+          pageCount: 0,
+          language: "en",
+          imageLinks: { thumbnail: "http://books.google.com/x" },
+        },
+      },
+    ];
+  }
   res.writeHead(200, { "content-type": "application/json" });
   res.end(JSON.stringify({ items, totalItems: items.length }));
 });
@@ -280,6 +342,11 @@ try {
   const catalog = await searchCatalog("piranesi");
   eq(catalog.works.map((w) => w.googleBooksId), [gbId], "searchCatalog is Google Books only");
   eq(catalog.works[0].pages, 272, "…and drops nothing that has pages");
+
+  const mushoku = await searchCatalog("Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1");
+  eq(mushoku.works[0].pages, 320, "paperback page count comes from volumes.get, not the list's 0");
+  eq(mushoku.works[0].googleBooksId, "9qGQEAAAQBAJ", "…and the row is the print volume, not the Kindle");
+  eq(mushoku.works.length, 1, "Kindle 267 and print 320 collapse to one row");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");

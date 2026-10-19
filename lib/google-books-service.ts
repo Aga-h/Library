@@ -9,7 +9,7 @@
 
 import { BookCatalogError, MAX_IMPORT } from "@/lib/openlibrary";
 import {
-  googleSearchQueryOf, googleVolumeIdOf, toVolume, type GbVolume,
+  googleSearchQueryOf, googleVolumeIdOf, toVolume, volumesToRefetch, type GbVolume,
 } from "@/lib/google-books";
 
 function baseUrl(): string {
@@ -105,7 +105,33 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
     const second = await get("/volumes", { ...params, startIndex: String(rows.length) });
     if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
   }
-  return volumesOf({ items: rows });
+  return refillBlankPages(volumesOf({ items: rows }), asked.value);
+}
+
+/**
+ * `volumes.list` often says a paperback has no page count. `volumes.get` for that same id
+ * has the count the Google Books site shows. A failure here leaves the list as it was.
+ */
+async function refillBlankPages(volumes: GbVolume[], query: string): Promise<GbVolume[]> {
+  const pending = volumesToRefetch(volumes, query);
+  if (pending.length === 0) return volumes;
+  const updates = new Map<string, GbVolume>();
+  let next = 0;
+  async function worker() {
+    while (next < pending.length) {
+      const id = pending[next++];
+      try {
+        const full = await volumeById(id);
+        if (full.pages) updates.set(id, full);
+      } catch (e) {
+        if (e instanceof GoogleBooksError) continue;
+        throw e;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(4, pending.length) }, () => worker()));
+  if (updates.size === 0) return volumes;
+  return volumes.map((volume) => updates.get(volume.id) ?? volume);
 }
 
 /** One volume, by its Google Books id. */

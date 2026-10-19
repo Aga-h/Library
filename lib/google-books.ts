@@ -171,6 +171,29 @@ export function sameWork(a: { title: string; author: string }, b: { title: strin
   return false;
 }
 
+/**
+ * Search (`volumes.list`) reports 0 pages for a paperback that has no preview, and the real
+ * count — the 320 Google's own book page shows — only comes back from `volumes.get`. Those
+ * ids are worth a second request. Anything else with a blank count is left out.
+ */
+export function volumesToRefetch(volumes: GbVolume[], query: string, limit = 6): string[] {
+  const scores = volumes.map((volume) => queryFit(volume.title, query));
+  const best = scores.reduce((max, score) => Math.max(max, score), 0);
+  const close = new Set(
+    volumes.filter((_, i) => best > 0 && scores[i] >= best - 40).map((volume) => volume.id),
+  );
+  const ids: string[] = [];
+  for (const volume of volumes) {
+    if (volume.pages !== null || ids.length >= limit) continue;
+    const sibling = volumes.some((other) =>
+      other.id !== volume.id && other.pages !== null && close.has(other.id) && sameWork(other, volume),
+    );
+    if (!close.has(volume.id) && !sibling) continue;
+    ids.push(volume.id);
+  }
+  return ids;
+}
+
 function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
   // Same novel: the paperback page count, not the Kindle one. Google marks nearly every
   // volume isEbook, and the Kindle title often matches the query more closely, so format
