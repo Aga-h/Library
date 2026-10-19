@@ -302,8 +302,9 @@ export interface ExistingBook {
 /**
  * A book already in the library that this work is — by Open Library id, by Google Books id,
  * or else by title + author. A row linked to the *other* catalogue still matches (so importing
- * from Google Books does not duplicate one already linked to Open Library). A row already
- * linked to a *different* work at this source is left alone.
+ * from Google Books does not duplicate one already linked to Open Library). A row linked to a
+ * *different* Open Library work is left alone. A Google Books id names an edition, not a book,
+ * so a row linked to another edition of the same title and author is still this book.
  */
 export function matchExisting<T extends ExistingBook>(work: OlWork | CatalogBook, library: readonly T[]): T | null {
   const cat = catalogOf(work);
@@ -319,7 +320,6 @@ export function matchExisting<T extends ExistingBook>(work: OlWork | CatalogBook
   return (
     library.find((x) => {
       if (cat.openLibraryId && x.openLibraryId && x.openLibraryId !== cat.openLibraryId) return false;
-      if (cat.googleBooksId && x.googleBooksId && x.googleBooksId !== cat.googleBooksId) return false;
       if (normaliseTitle(x.title) !== title) return false;
       return authorsMatch(x.author, cat.author);
     }) ?? null

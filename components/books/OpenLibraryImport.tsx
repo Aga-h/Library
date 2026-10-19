@@ -384,7 +384,7 @@ export default function OpenLibraryImport({
                 : "Google Books didn't answer, so these are the editions from your search."}
             </p>
           )}
-          {!link && (
+          {!link && !picking.place && (
             <div className="flex flex-wrap gap-x-5 gap-y-1 justify-center">
               <label className="flex items-center gap-2 min-h-10 cursor-pointer select-none">
                 <input type="checkbox" checked={pickOwned} onChange={(ev) => setPickOwned(ev.target.checked)}
@@ -402,7 +402,7 @@ export default function OpenLibraryImport({
             <button type="button" onClick={confirmPick} disabled={busy !== null}
               className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50">
               {busy === picking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {link ? "Link this edition" : "Import this edition"}
+              {link || (picking.place && !picking.place.linked) ? "Link this edition" : picking.place ? "Move it here" : "Import this edition"}
             </button>
           </div>
         </div>

@@ -43,7 +43,8 @@ export async function libraryBookPlaces(works: CatalogBook[]): Promise<Map<strin
   for (const work of works) {
     const found = matchExisting(work, library);
     if (found) {
-      const linked = work.googleBooksId !== null && found.googleBooksId === work.googleBooksId;
+      // Linked to Google Books at all — any edition — is in the library, not a hand-added row.
+      const linked = found.googleBooksId !== null;
       places.set(work.id, {
         bookId: found.id,
         title: found.title,

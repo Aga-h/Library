@@ -303,6 +303,13 @@ const gbHobbit = toVolume(raw({ id: "hobbitvolume1" }, {
 }));
 eq(matchExisting(fromGbVolume(gbHobbit), library)?.id, "hand", "a hand-added row still matches Google Books by title + author");
 
+const otherEdition = { ...fromGbVolume(piranesi), id: "gb:piranesiHard1", googleBooksId: "piranesiHard1", pages: 304 };
+const linkedRow = { ...library[0], id: "gb-row", openLibraryId: null, googleBooksId: gbId };
+eq(matchExisting(otherEdition, [linkedRow])?.id, "gb-row",
+  "a row linked to one edition is the same book when another edition is chosen");
+eq(planImport([linkedRow], [otherEdition], null, { read: false }).report.map((r) => r.outcome), ["already"],
+  "…so importing that edition does not add the book twice");
+
 const gbPlan = planImport(library, [{ ...fromGbVolume(piranesi), pages: 272 }], null, { read: false });
 eq(gbPlan.create.length, 0, "does not add a second Piranesi");
 eq(gbPlan.update[0].data.googleBooksId, gbId, "…attaches the Google Books id");
