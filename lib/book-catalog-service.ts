@@ -12,6 +12,8 @@ const CONCURRENCY = 3;
 export interface CatalogItem {
   openLibraryId?: string;
   googleBooksId?: string;
+  /** Title shown in search — kept on import so a Japanese work title is not stored. */
+  title?: string;
 }
 
 export interface CatalogSearch {
@@ -70,6 +72,7 @@ export async function catalogDetails(items: CatalogItem[]): Promise<CatalogDetai
     unique.push({
       ...(item.openLibraryId ? { openLibraryId: item.openLibraryId } : {}),
       ...(item.googleBooksId ? { googleBooksId: item.googleBooksId } : {}),
+      ...(item.title?.trim() ? { title: item.title.trim() } : {}),
     });
   }
 
@@ -103,11 +106,13 @@ export async function catalogDetails(items: CatalogItem[]): Promise<CatalogDetai
       }
     }
 
-    const combined = combineSources(ol, gb);
+    let combined = combineSources(ol, gb, item.title ?? "");
     if (!combined) {
       failed.push({ id, reason: "not found in the catalogues" });
       return;
     }
+    const preferred = item.title?.trim();
+    if (preferred) combined = { ...combined, title: preferred };
     if (!hasPages(combined)) {
       failed.push({ id, reason: "No page count on Open Library or Google Books — add it by hand" });
       return;

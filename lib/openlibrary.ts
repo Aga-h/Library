@@ -160,20 +160,39 @@ export function yearOf(value: unknown): number | null {
   return Number.isInteger(n) && n >= 1000 && n <= 2100 ? n : null;
 }
 
-/** A search/work document, or null if it's unusable (no work id or no title). */
-export function toWork(raw: Raw | null | undefined): OlWork | null {
+function editionDocs(raw: Raw): Raw[] {
+  const editions = raw.editions;
+  if (!editions || typeof editions !== "object" || Array.isArray(editions)) return [];
+  const docs = (editions as Raw).docs;
+  return Array.isArray(docs) ? (docs as Raw[]) : [];
+}
+
+/**
+ * A search/work document, or null if it's unusable (no work id or no title).
+ * `query` picks an edition title in the same script as the search (Open Library's work title
+ * for a light novel is often Japanese even when you typed the English name).
+ */
+export function toWork(raw: Raw | null | undefined, query = ""): OlWork | null {
   if (!raw) return null;
   const id = workIdOf(raw.key);
-  const title = text(raw.title);
-  if (!id || !title) return null;
+  if (!id) return null;
+  const workTitle = text(raw.title);
+  const editions = editionDocs(raw);
+  const titles = [workTitle, ...editions.map((ed) => text(ed.title))].filter(Boolean);
+  const title = bestTitle(titles, query) || workTitle;
+  if (!title) return null;
+  const chosen = query.trim()
+    ? [raw, ...editions].find((row) => text((row as Raw).title) === title) ?? raw
+    : raw;
+  const coverId = chosen !== raw && chosen.cover_i != null ? chosen.cover_i : raw.cover_i;
   return {
     id,
     title,
     author: authorsOf(raw.author_name),
     year: yearOf(raw.first_publish_year),
     pages: positiveInt(raw.number_of_pages_median),
-    cover: coverUrl(raw.cover_i, "L"),
-    coverThumb: coverUrl(raw.cover_i, "M"),
+    cover: coverUrl(coverId, "L"),
+    coverThumb: coverUrl(coverId, "M"),
   };
 }
 
@@ -218,6 +237,66 @@ export function titleKeys(title: string): string[] {
   if (colon <= 0) return [full];
   const short = normaliseTitle(title.slice(0, colon));
   return short && short !== full ? [full, short] : [full];
+}
+
+export type TitleScript = "latin" | "cjk" | "arabic" | "cyrillic" | "other";
+
+/**
+ * The script most of the letters are in. Mixed titles like
+ * "無職転生 ~…~ 1 (light novel)" count as CJK so an English search doesn't treat them as Latin.
+ */
+export function dominantScript(text: string): TitleScript {
+  let latin = 0, cjk = 0, arabic = 0, cyrillic = 0;
+  for (const ch of text) {
+    const c = ch.codePointAt(0) ?? 0;
+    if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) || (c >= 0xc0 && c <= 0x24f) || (c >= 0x1e00 && c <= 0x1eff)) {
+      latin++;
+    } else if (
+      (c >= 0x3040 && c <= 0x30ff) || (c >= 0x3400 && c <= 0x9fff) ||
+      (c >= 0xac00 && c <= 0xd7af) || (c >= 0xf900 && c <= 0xfaff)
+    ) {
+      cjk++;
+    } else if (c >= 0x600 && c <= 0x6ff) {
+      arabic++;
+    } else if (c >= 0x400 && c <= 0x4ff) {
+      cyrillic++;
+    }
+  }
+  if (cjk > 0 && cjk >= latin && cjk >= arabic && cjk >= cyrillic) return "cjk";
+  if (arabic > 0 && arabic >= latin && arabic >= cyrillic) return "arabic";
+  if (cyrillic > 0 && cyrillic >= latin) return "cyrillic";
+  if (latin > 0) return "latin";
+  return "other";
+}
+
+/**
+ * How well a title matches what was typed: same script (English query → English title, not
+ * 無職転生), plus shared words. Used to pick an edition title and to rank search hits.
+ */
+export function queryFit(title: string, query: string): number {
+  const q = query.trim();
+  if (!q || !title) return 0;
+  let score = 0;
+  const qs = dominantScript(q);
+  const ts = dominantScript(title);
+  if (qs !== "other" && ts === qs) score += 100;
+  else if (qs !== "other" && ts !== "other" && ts !== qs) score -= 50;
+  const qn = normaliseTitle(q);
+  const keys = titleKeys(title);
+  if (keys.some((t) => t === qn)) score += 80;
+  else if (keys.some((t) => t.startsWith(qn) || qn.startsWith(t))) score += 40;
+  const haystack = keys[0] ?? "";
+  for (const tok of qn.split(" ").filter((t) => t.length > 1)) {
+    if (haystack.includes(tok)) score += 10;
+  }
+  return score;
+}
+
+export function bestTitle(titles: readonly string[], query: string): string {
+  const usable = titles.map((t) => t.trim()).filter(Boolean);
+  if (usable.length === 0) return "";
+  if (!query.trim()) return usable[0];
+  return usable.reduce((best, title) => (queryFit(title, query) > queryFit(best, query) ? title : best));
 }
 
 export interface ExistingBook {

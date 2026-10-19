@@ -63,7 +63,7 @@ eq(GB_IMAGE_HOSTS.includes("books.google.com"), true, "primary host listed for m
 const piranesi = toVolume(raw());
 eq(piranesi, {
   id: gbId, title: "Piranesi", author: "Susanna Clarke", year: 2020, pages: 272,
-  cover: coverFull, coverThumb, publisher: "Bloomsbury",
+  cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null,
 }, "a volume document");
 eq(toVolume(raw({}, { authors: ["Susanna Clarke", "Someone"] })).author, "Susanna Clarke, Someone", "several authors");
 eq(toVolume(raw({}, { authors: undefined })).author, "Unknown", "missing authors");
@@ -126,6 +126,24 @@ eq(withPiranesi[0].googleBooksId, gbId, "…Google Books id attached");
 const olListed = mergeCatalog([olStone], [gbOnly], "harry potter");
 eq(olListed[0].id, "OL82563W", "a query that matches Open Library does not bury it under Google-only extras");
 eq(olListed.some((w) => w.googleBooksId === "zyTCAlFPjgYC"), true, "…Google-only extras still appear after");
+
+const mushokuQuery = "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1";
+const olMushoku = toWork({
+  key: "/works/OL20094984W",
+  title: "無職転生 ~異世界行ったら本気だす~ 1 (light novel)",
+  author_name: ["理不尽な孫の手"],
+  first_publish_year: 2014,
+  number_of_pages_median: 320,
+});
+const gbMushoku = toVolume(raw({ id: "mushokutense1" }, {
+  title: mushokuQuery, authors: ["Rifujin na Magonote"], publisher: "Seven Seas", pageCount: 320,
+  imageLinks: { thumbnail: "http://x" }, language: "en",
+}));
+const mushokuHits = mergeCatalog([olMushoku], [gbMushoku], mushokuQuery);
+eq(mushokuHits[0].title, mushokuQuery, "English Mushoku Tensei is listed before 無職転生");
+ok(!mushokuHits[0].title.includes("無職"), "the first hit is not the Japanese work title");
+eq(combineSources(olMushoku, gbMushoku, mushokuQuery).title, mushokuQuery,
+  "merging prefers the English title when that is what was searched");
 
 // ── already in the library: the other catalogue must not duplicate ───────────
 const library = [

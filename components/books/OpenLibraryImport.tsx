@@ -155,6 +155,7 @@ export default function OpenLibraryImport({
         items: works.map((w) => ({
           ...(w.openLibraryId ? { openLibraryId: w.openLibraryId } : {}),
           ...(w.googleBooksId ? { googleBooksId: w.googleBooksId } : {}),
+          title: w.title,
         })),
         read,
         language,

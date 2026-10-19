@@ -5,8 +5,8 @@
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-openlibrary.mjs
 import {
   workIdOf, isbnOf, searchQueryOf, coverUrl, isOpenLibraryImage, authorsOf, yearOf, toWork,
-  hasPages, normaliseAuthor, firstAuthor, authorsMatch, titleKeys, catalogOf, matchExisting,
-  planImport, updatesFromWork, byYear, OL_IMAGE_HOST,
+  hasPages, normaliseAuthor, firstAuthor, authorsMatch, titleKeys, dominantScript, queryFit,
+  bestTitle, catalogOf, matchExisting, planImport, updatesFromWork, byYear, OL_IMAGE_HOST,
 } from "../lib/openlibrary.ts";
 
 let pass = 0;
@@ -81,6 +81,25 @@ eq(toWork(raw({ first_publish_year: 0 })).year, null, "year 0 is not a year");
 eq(toWork(raw({ first_publish_year: 1997.5 })).year, null, "a fractional year is refused");
 eq(toWork({ title: "x" }), null, "no work id: unusable");
 eq(toWork({ key: "/works/OL1W" }), null, "no title: unusable");
+eq(toWork({
+  key: "/works/OL20094984W",
+  title: "無職転生 ~異世界行ったら本気だす~ 1 (light novel)",
+  author_name: ["理不尽な孫の手"],
+  first_publish_year: 2014,
+  cover_i: 8758875,
+  number_of_pages_median: 320,
+  editions: { docs: [{ key: "/books/OL1M", title: "Mushoku Tensei: Jobless Reincarnation, Novel 1", cover_i: 14843031, language: ["eng"] }] },
+}, "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1").title,
+  "Mushoku Tensei: Jobless Reincarnation, Novel 1",
+  "search uses the English edition title, not 無職転生");
+eq(toWork({
+  key: "/works/OL20094984W",
+  title: "無職転生 ~異世界行ったら本気だす~ 1 (light novel)",
+  author_name: ["理不尽な孫の手"],
+  editions: { docs: [{ title: "Mushoku Tensei: Jobless Reincarnation, Novel 1", cover_i: 14843031 }] },
+}).title,
+  "無職転生 ~異世界行ったら本気だす~ 1 (light novel)",
+  "without a search query, the work title stays");
 eq(catalogOf(stone).openLibraryId, "OL82563W", "an Open Library work becomes a catalogue row");
 eq(catalogOf(stone).googleBooksId, null, "…with no Google Books id yet");
 eq(hasPages(stone), true, "302 pages: importable");
@@ -98,6 +117,16 @@ eq(firstAuthor("J. K. Rowling, Mary GrandPré"), "J. K. Rowling", "illustrator d
 eq(authorsMatch("J. K. Rowling, Mary GrandPré", "JK Rowling"), true, "first author matches despite extra credits");
 eq(titleKeys("Piranesi: A Novel"), ["piranesi a novel", "piranesi"], "subtitle is a second key");
 eq(titleKeys("The Hobbit"), ["the hobbit"], "no colon: one key");
+eq(dominantScript("Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1"), "latin", "English title is Latin");
+eq(dominantScript("無職転生 ~異世界行ったら本気だす~ 1 (light novel)"), "cjk", "Japanese work title with '(light novel)' is still CJK");
+eq(dominantScript("无职转生"), "cjk", "Chinese is CJK");
+ok(queryFit("Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1", "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1") >
+  queryFit("無職転生 ~異世界行ったら本気だす~ 1 (light novel)", "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1"),
+  "an English query fits the English title better than 無職転生");
+eq(bestTitle(
+  ["無職転生 ~異世界行ったら本気だす~ 1 (light novel)", "Mushoku Tensei: Jobless Reincarnation, Novel 1"],
+  "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
+), "Mushoku Tensei: Jobless Reincarnation, Novel 1", "pick the English edition title");
 
 // ── already in the library ───────────────────────────────────────────────────
 const library = [

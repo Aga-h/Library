@@ -200,7 +200,10 @@ id. Results start **unticked** — All/None are explicit. A work on Open Library
 Google Books is edition-centric, so search collapses volumes by title + author and stores at most
 one `googleBooksId` (036, unique). Hits for the same novel are merged (Open Library title/cover,
 Google Books publisher and a page count either source has); a Google-only title Open Library
-hasn't got still appears, lifted first when it matches the query. Tick one or several (a search
+hasn't got still appears, lifted first when it matches the query. The listed title follows the
+search: Open Library's work title is often Japanese (無職転生) even for an English query, so the
+matching English edition (or Google Books volume) is shown instead, and those hits rank first.
+Tick one or several (a search
 for "harry potter" lists the seven novels first) into a series you pick, or standalone. Language
 is yours. "Read" marks every page; re-import only fills blanks. `matchExisting`: either catalogue
 id, else title + author even when the row is already linked to the *other* catalogue (so the two

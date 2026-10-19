@@ -6,7 +6,7 @@
 // production never sets it.
 
 import {
-  BookCatalogError, MAX_IMPORT, byYear, hasPages, searchQueryOf, toWork, workIdOf,
+  BookCatalogError, MAX_IMPORT, byYear, hasPages, isbnOf, searchQueryOf, toWork, workIdOf,
   type OlWork,
 } from "@/lib/openlibrary";
 
@@ -15,8 +15,10 @@ const BASE_URL = (process.env.OPENLIBRARY_BASE_URL ?? "https://openlibrary.org")
 /** Open Library asks that automated clients identify themselves. */
 const USER_AGENT = "MyPortal/1.0 (https://github.com/Aga-h/Library; personal media library)";
 
-/** Search fields we actually use. `*` is expensive and pulls every edition's ISBN list. */
-const FIELDS = "key,title,author_name,first_publish_year,cover_i,number_of_pages_median";
+/** Search fields we actually use. `*` is expensive and pulls every edition's ISBN list.
+ *  `editions` is the matching edition (often the English one when you searched in English) —
+ *  the work title itself stays in the original script. */
+const FIELDS = "key,title,author_name,first_publish_year,cover_i,number_of_pages_median,editions";
 
 /** Requests in flight at once. Open Library does not publish a hard limit; this stays gentle. */
 const CONCURRENCY = 3;
@@ -47,12 +49,12 @@ async function get(path: string, params: Record<string, string>): Promise<Raw> {
   return body;
 }
 
-function docsOf(body: Raw): OlWork[] {
+function docsOf(body: Raw, query = ""): OlWork[] {
   const rows = Array.isArray(body.docs) ? (body.docs as Raw[]) : [];
   const works: OlWork[] = [];
   const seen = new Set<string>();
   for (const row of rows) {
-    const work = toWork(row);
+    const work = toWork(row, query);
     if (!work || seen.has(work.id)) continue;
     seen.add(work.id);
     works.push(work);
@@ -67,7 +69,9 @@ export async function searchWorks(query: string): Promise<OlWork[]> {
     fields: FIELDS,
     limit: String(MAX_IMPORT),
   });
-  return docsOf(body);
+  // A work id or ISBN lookup isn't a language hint — keep the catalogue's own title.
+  const keyed = workIdOf(query) !== null || isbnOf(query) !== null;
+  return docsOf(body, keyed ? "" : query);
 }
 
 /** One work, by its Open Library id. */

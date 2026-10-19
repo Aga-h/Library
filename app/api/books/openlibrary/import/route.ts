@@ -11,6 +11,7 @@ export const maxDuration = 60;
 const itemSchema = z.object({
   openLibraryId: z.string().regex(/^OL\d+W$/i).optional(),
   googleBooksId: z.string().regex(/^[A-Za-z0-9_-]{8,20}$/).optional(),
+  title: z.string().trim().min(1).max(300).optional(),
 }).refine((v) => v.openLibraryId || v.googleBooksId);
 
 const schema = z.object({
@@ -34,6 +35,7 @@ async function POSTHandler(request: NextRequest) {
       items.map((item) => ({
         ...(item.openLibraryId ? { openLibraryId: item.openLibraryId.toUpperCase() } : {}),
         ...(item.googleBooksId ? { googleBooksId: item.googleBooksId } : {}),
+        ...(item.title ? { title: item.title } : {}),
       })),
       options,
     );

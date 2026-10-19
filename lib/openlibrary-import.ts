@@ -172,8 +172,10 @@ async function fetchCatalogItem(item: CatalogItem): Promise<CatalogBook> {
       }
     }
   }
-  const combined = combineSources(ol, gb);
+  let combined = combineSources(ol, gb, item.title ?? "");
   if (!combined) throw new OpenLibraryError("That isn't in the catalogues.", 404);
+  const preferred = item.title?.trim();
+  if (preferred) combined = { ...combined, title: preferred };
   return combined;
 }
 

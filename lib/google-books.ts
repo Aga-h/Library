@@ -7,10 +7,9 @@
 
 import {
   MAX_IMPORT, authorsMatch, authorsOf, firstAuthor, fromOlWork, isbnOf, normaliseAuthor,
-  titleKeys, workIdOf, yearOf,
+  queryFit, titleKeys, workIdOf, yearOf,
   type CatalogBook, type OlWork,
 } from "@/lib/openlibrary";
-import { normaliseTitle } from "@/lib/tmdb";
 
 export const GB_IMAGE_HOSTS = ["books.google.com", "books.googleusercontent.com"] as const;
 
@@ -29,6 +28,8 @@ export interface GbVolume {
   cover: string | null;
   coverThumb: string | null;
   publisher: string | null;
+  /** ISO 639-1 from volumeInfo.language, e.g. "en". */
+  language: string | null;
 }
 
 type Raw = Record<string, unknown>;
@@ -116,6 +117,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
   const title = text(info.title);
   if (!id || !title) return null;
   const pictured = hasImageLinks(info);
+  const lang = text(info.language).toLowerCase();
   return {
     id,
     title,
@@ -125,6 +127,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
     cover: pictured ? googleCoverUrl(id, "full") : null,
     coverThumb: pictured ? googleCoverUrl(id, "thumb") : null,
     publisher: text(info.publisher) || null,
+    language: /^[a-z]{2,3}$/.test(lang) ? lang : null,
   };
 }
 
@@ -143,21 +146,31 @@ export function fromGbVolume(volume: GbVolume): CatalogBook {
   };
 }
 
-/** Open Library title/cover/year win; Google Books fills pages, publisher, and its id. */
-export function combineSources(ol: OlWork | null, gb: GbVolume | null): CatalogBook | null {
+function pickCloser(a: string, b: string, query: string, fallback: string): string {
+  if (!query.trim()) return fallback;
+  return queryFit(a, query) >= queryFit(b, query) ? a : b;
+}
+
+/** Open Library title/cover/year win unless Google Books is closer to what was searched. */
+export function combineSources(ol: OlWork | null, gb: GbVolume | null, query = ""): CatalogBook | null {
   if (!ol && !gb) return null;
   if (ol && !gb) return fromOlWork(ol);
   if (!ol && gb) return fromGbVolume(gb);
   const work = ol!;
   const volume = gb!;
+  const title = pickCloser(work.title, volume.title, query, work.title);
+  const author = work.author !== "Unknown"
+    ? pickCloser(work.author, volume.author, query, work.author)
+    : volume.author;
+  const preferGb = title === volume.title && title !== work.title;
   return {
     id: work.id,
-    title: work.title,
-    author: work.author !== "Unknown" ? work.author : volume.author,
+    title,
+    author,
     year: work.year ?? volume.year,
     pages: work.pages ?? volume.pages,
-    cover: work.cover ?? volume.cover,
-    coverThumb: work.coverThumb ?? volume.coverThumb,
+    cover: preferGb ? (volume.cover ?? work.cover) : (work.cover ?? volume.cover),
+    coverThumb: preferGb ? (volume.coverThumb ?? work.coverThumb) : (work.coverThumb ?? volume.coverThumb),
     publisher: volume.publisher,
     openLibraryId: work.id,
     googleBooksId: volume.id,
@@ -180,7 +193,12 @@ export function sameWork(a: { title: string; author: string }, b: { title: strin
   return authorsMatch(a.author, b.author);
 }
 
-function betterVolume(prev: GbVolume, next: GbVolume): GbVolume {
+function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
+  if (query.trim()) {
+    const delta = queryFit(next.title, query) - queryFit(prev.title, query);
+    if (delta > 0) return next;
+    if (delta < 0) return prev;
+  }
   if (!prev.pages && next.pages) return next;
   if (prev.pages && !next.pages) return prev;
   if (!prev.cover && next.cover) return next;
@@ -188,7 +206,7 @@ function betterVolume(prev: GbVolume, next: GbVolume): GbVolume {
 }
 
 /** Collapse Google Books' edition soup: one volume per title + author, keeping pages then a cover. */
-export function dedupeVolumes(volumes: GbVolume[]): GbVolume[] {
+export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
   const best = new Map<string, GbVolume>();
   const order: string[] = [];
   for (const volume of volumes) {
@@ -199,44 +217,36 @@ export function dedupeVolumes(volumes: GbVolume[]): GbVolume[] {
       order.push(key);
       continue;
     }
-    best.set(key, betterVolume(prev, volume));
+    best.set(key, betterVolume(prev, volume, query));
   }
   return order.map((key) => best.get(key)!);
-}
-
-function closeTitle(book: CatalogBook, query: string): boolean {
-  const q = query.trim();
-  if (q.length < 2 || isbnOf(q)) return false;
-  const qn = normaliseTitle(q);
-  if (!qn) return false;
-  return titleKeys(book.title).some((t) => t === qn || t.startsWith(qn));
 }
 
 /**
  * One list for Add Book: Open Library's order (a series search lists its books), with Google
  * Books ids attached when the same novel is there, then Google-only titles Open Library missed.
- * A Google-only hit whose title is the query itself is lifted to the front, so a missing book
- * is not buried under 40 Open Library near-misses. Capped at MAX_IMPORT.
+ * Hits whose title is in the same script as the query (English search → English title, not
+ * 無職転生) are listed first. Capped at MAX_IMPORT.
  */
 export function mergeCatalog(olWorks: OlWork[], gbVolumes: GbVolume[], query = ""): CatalogBook[] {
-  const gbUnique = dedupeVolumes(gbVolumes);
+  const gbUnique = dedupeVolumes(gbVolumes, query);
   const used = new Set<string>();
-  const fromOl: CatalogBook[] = [];
+  const merged: CatalogBook[] = [];
   for (const work of olWorks) {
     const gb = gbUnique.find((v) => !used.has(v.id) && sameWork(work, v));
     if (gb) used.add(gb.id);
-    fromOl.push(combineSources(work, gb ?? null)!);
+    merged.push(combineSources(work, gb ?? null, query)!);
   }
-  const leftover = gbUnique.filter((v) => !used.has(v.id)).map(fromGbVolume);
-  const exact: CatalogBook[] = [];
-  const rest: CatalogBook[] = [];
-  for (const book of leftover) {
-    if (closeTitle(book, query)) exact.push(book);
-    else rest.push(book);
+  for (const volume of gbUnique) {
+    if (used.has(volume.id)) continue;
+    merged.push(fromGbVolume(volume));
   }
   const seen = new Set<string>();
+  const ranked = merged
+    .map((book, i) => ({ book, i, score: queryFit(book.title, query) }))
+    .sort((a, b) => b.score - a.score || a.i - b.i);
   const out: CatalogBook[] = [];
-  for (const book of [...exact, ...fromOl, ...rest]) {
+  for (const { book } of ranked) {
     if (seen.has(book.id)) continue;
     seen.add(book.id);
     out.push(book);
