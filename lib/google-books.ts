@@ -135,7 +135,8 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
   const title = volumeTitle(info);
   if (!id || !title) return null;
   const pictured = hasImageLinks(info);
-  const lang = text(info.language).toLowerCase();
+  // Google sends region-qualified codes too ("pt-BR", "en-GB"): the language is the first part.
+  const lang = text(info.language).toLowerCase().split("-")[0];
   const sale = (raw.saleInfo && typeof raw.saleInfo === "object" && !Array.isArray(raw.saleInfo)
     ? raw.saleInfo
     : {}) as Raw;
@@ -483,8 +484,10 @@ export function volumesToRefetch(volumes: GbVolume[], query: string, limit = REF
   return ids;
 }
 
-/** Function words that mark a title as another language: "Mistborn: El imperio final". */
-const FOREIGN_WORDS = /(?:^|\s)(el|la|los|las|del|una|le|les|des|du|der|das|und|ein|eine|il|gli|della|di|os|um|uma|dos|het|een|och|og|ve|bir|ile)(?:\s|$)/;
+/** Words that mark a title as another language: "Mistborn: El imperio final", "Livro 1 de Mistborn". */
+const FOREIGN_WORDS = /(?:^|\s)(el|la|los|las|del|una|le|les|des|du|der|das|und|ein|eine|il|gli|della|di|de|os|um|uma|dos|het|een|och|og|ve|bir|ile|livro|libro|livre|tomo|buch|teil)(?:\s|$)/;
+/** Letters English titles don't use: "Império", "Sueño", "Kinder der Straße". */
+const FOREIGN_LETTERS = /[ãõçñßøåœæğışăîâêôûàèìòùáíóúéëïüöä]/i;
 
 /**
  * Shown in search and the edition picker: English only. Tagged English, or — since Google tags a
@@ -495,7 +498,7 @@ export function isEnglishListing(volume: { language: string | null; title?: stri
   if (volume.language === "en" || volume.language === "eng") return true;
   if (volume.language !== null && volume.language !== "un" && volume.language !== "und") return false;
   const title = normaliseTitle(volume.title ?? "");
-  return dominantScript(title) === "latin" && !FOREIGN_WORDS.test(title);
+  return dominantScript(title) === "latin" && !FOREIGN_WORDS.test(title) && !FOREIGN_LETTERS.test(volume.title ?? "");
 }
 
 /** Of two listings of one edition, the one worth keeping: a page count, then a cover. */

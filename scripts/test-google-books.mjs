@@ -314,6 +314,13 @@ eq(catalogFromVolumes([...shelf, fePaperBlank], "mistborn final empire")[0].edit
   "…and rides along on the search row too");
 eq(isEnglishListing(feUntaggedEs), false, "an untagged title in Spanish is not English");
 eq(isEnglishListing({ ...theFinalEmpire[0], language: null }), true, "an untagged title in English is");
+eq(toVolume(raw({ id: "ptBrImperio1" }, { title: "Mistborn: O Império Final", subtitle: "Livro 1 de Mistborn", language: "pt-BR" })).language,
+  "pt", "Google's 'pt-BR' is Portuguese, not untagged");
+eq(isEnglishListing(toVolume(raw({ id: "ptBrSombras1" }, { title: "MISTBORN:AS SOMBRAS DE SI MESMO", subtitle: "Livro 2 de Mistborn", language: "pt-BR" }))),
+  false, "a Brazilian edition is not English");
+eq(isEnglishListing({ language: null, title: "Mistborn: O Império Final" }), false, "untagged with Portuguese letters is not English");
+eq(isEnglishListing({ language: "un", title: "As Sombras de Si Mesmo: Livro 2 de Mistborn" }), false, "untagged with 'Livro … de' is not English");
+eq(toVolume(raw({ id: "enGbFinalEmp" }, { language: "en-GB" })).language, "en", "'en-GB' is English");
 eq(editionsFromVolumes([theFinalEmpire[0], { ...theFinalEmpire[0], id: "feTorHardDup1" }], "feTorHard2006").length, 1,
   "the same ISBN listed twice is one edition");
 
