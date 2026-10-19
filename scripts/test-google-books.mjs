@@ -66,6 +66,7 @@ eq(piranesi, {
   cover: coverFull, coverThumb, publisher: "Bloomsbury", language: null, ebook: false,
 }, "a volume document");
 eq(toVolume(raw({ saleInfo: { isEbook: true } })).ebook, true, "saleInfo.isEbook marks an ebook");
+eq(toVolume(raw({}, { subtitle: "Kindle Edition" })).ebook, true, "Kindle in the subtitle is an ebook");
 eq(toVolume(raw({}, { authors: ["Susanna Clarke", "Someone"] })).author, "Susanna Clarke, Someone", "several authors");
 eq(toVolume(raw({}, { authors: undefined })).author, "Unknown", "missing authors");
 eq(toVolume(raw({}, { pageCount: 0 })).pages, null, "0 pages means unknown");
@@ -113,6 +114,22 @@ const print = { ...piranesi, id: "printvolume01", pages: 320, ebook: false };
 eq(dedupeVolumes([kindle, print]).map((v) => v.id), ["printvolume01"], "print edition beats the Kindle listing of the same novel");
 eq(catalogFromVolumes([kindle, print], "piranesi")[0].pages, 320, "…search lists the print page count");
 eq(dedupeVolumes([kindle, { ...print, pages: null }]).map((v) => v.id), ["kindlevolume1"], "ebook with pages beats print without");
+eq(
+  dedupeVolumes([
+    { ...piranesi, id: "kindlevolume1", pages: 267, ebook: true },
+    { ...piranesi, id: "playvolume001", pages: 320, ebook: true },
+  ]).map((v) => v.id),
+  ["playvolume001"],
+  "when Google marks both as ebooks, the higher page count wins",
+);
+eq(
+  catalogFromVolumes([
+    { ...piranesi, id: "kindlevolume1", title: "Piranesi: A Novel", pages: 267, ebook: true },
+    { ...piranesi, id: "printvolume01", title: "Piranesi", pages: 320, ebook: true },
+  ], "Piranesi: A Novel")[0].pages,
+  320,
+  "more pages win even when the Kindle title fits the query better",
+);
 
 const gbOnly = toVolume(raw({ id: "zyTCAlFPjgYC" }, { title: "A Missing Novel", authors: ["Pat"] }));
 const listed = catalogFromVolumes([piranesi, gbOnly], "a missing novel");

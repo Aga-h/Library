@@ -122,6 +122,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
   const sale = (raw.saleInfo && typeof raw.saleInfo === "object" && !Array.isArray(raw.saleInfo)
     ? raw.saleInfo
     : {}) as Raw;
+  const kindle = /\bkindle\b/i.test(`${title} ${text(info.subtitle)}`);
   return {
     id,
     title,
@@ -132,7 +133,7 @@ export function toVolume(raw: Raw | null | undefined): GbVolume | null {
     coverThumb: pictured ? googleCoverUrl(id, "thumb") : null,
     publisher: text(info.publisher) || null,
     language: /^[a-z]{2,3}$/.test(lang) ? lang : null,
-    ebook: sale.isEbook === true,
+    ebook: sale.isEbook === true || kindle,
   };
 }
 
@@ -171,22 +172,26 @@ export function sameWork(a: { title: string; author: string }, b: { title: strin
 }
 
 function betterVolume(prev: GbVolume, next: GbVolume, query: string): GbVolume {
+  // Same novel: the paperback page count, not the Kindle one. Google marks nearly every
+  // volume isEbook, and the Kindle title often matches the query more closely, so format
+  // and pages have to beat queryFit here. Ranking across different novels still uses queryFit.
+  if (prev.ebook && !next.ebook && next.pages) return next;
+  if (!prev.ebook && next.ebook && prev.pages) return prev;
+  if (prev.pages && next.pages && next.pages !== prev.pages) {
+    return next.pages > prev.pages ? next : prev;
+  }
+  if (!prev.pages && next.pages) return next;
+  if (prev.pages && !next.pages) return prev;
   if (query.trim()) {
     const delta = queryFit(next.title, query) - queryFit(prev.title, query);
     if (delta > 0) return next;
     if (delta < 0) return prev;
   }
-  // Print page counts are the ones Google's site (and a physical copy) show; Kindle listings
-  // of the same novel are often ~50 pages short.
-  if (prev.ebook && !next.ebook && next.pages) return next;
-  if (!prev.ebook && next.ebook && prev.pages) return prev;
-  if (!prev.pages && next.pages) return next;
-  if (prev.pages && !next.pages) return prev;
   if (!prev.cover && next.cover) return next;
   return prev;
 }
 
-/** Collapse Google Books' edition soup: one volume per novel, preferring print over ebook. */
+/** Collapse Google Books' edition soup: one volume per novel, preferring print page counts. */
 export function dedupeVolumes(volumes: GbVolume[], query = ""): GbVolume[] {
   const best: GbVolume[] = [];
   for (const volume of volumes) {

@@ -91,13 +91,21 @@ export async function searchVolumes(query: string): Promise<GbVolume[]> {
   }
   const q = asked.kind === "isbn" ? `isbn:${asked.value}` : asked.value;
   if (!q) return [];
-  const body = await get("/volumes", {
+  const params = {
     q,
     maxResults: String(MAX_IMPORT),
     printType: "books",
     projection: "full",
-  });
-  return volumesOf(body);
+  };
+  const first = await get("/volumes", params);
+  const rows = Array.isArray(first.items) ? [...(first.items as Raw[])] : [];
+  const total = Number(first.totalItems) || rows.length;
+  // A second page so a paperback buried under Kindle listings can still be collapsed in.
+  if (total > rows.length) {
+    const second = await get("/volumes", { ...params, startIndex: String(rows.length) });
+    if (Array.isArray(second.items)) rows.push(...(second.items as Raw[]));
+  }
+  return volumesOf({ items: rows });
 }
 
 /** One volume, by its Google Books id. */
