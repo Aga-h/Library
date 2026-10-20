@@ -95,6 +95,14 @@ function mergeEditions(known: FlowEdition[], found: FlowEdition[], elsewhere: st
   return covered.length ? covered : merged;
 }
 
+/** The book a pick links instead of adding one; `replace` swaps the edition it is linked to. */
+interface LinkTo {
+  bookId: string;
+  title: string;
+  replace?: boolean;
+  onDone?: () => void;
+}
+
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
@@ -103,7 +111,8 @@ function plural(n: number, one: string, many = `${one}s`) {
  * Find a book on Google Books and add it — author, page count and cover come with it. One
  * already in the library is opened, never added twice; one you added by hand under the same
  * title is linked instead. Tick several (a search for a series lists its books) to import them
- * into the series you pick. Matches start unticked. With `link`, picking a volume links that book.
+ * into the series you pick. Matches start unticked. With `link`, picking a volume links that book
+ * — or, with `replace`, switches it to that edition.
  */
 export default function OpenLibraryImport({
   seriesOptions,
@@ -114,7 +123,7 @@ export default function OpenLibraryImport({
   seriesOptions: HierarchyOption[];
   initialSeriesId: string | null;
   defaultLanguage: LanguageKey;
-  link?: { bookId: string; title: string };
+  link?: LinkTo;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState(link?.title ?? "");
@@ -196,7 +205,7 @@ export default function OpenLibraryImport({
         ownedKindle: ownership.ownedKindle,
         language,
         seriesId: targetId,
-        ...(link ? { bookId: link.bookId } : {}),
+        ...(link ? { bookId: link.bookId, replace: !!link.replace } : {}),
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -291,6 +300,7 @@ export default function OpenLibraryImport({
     if (!done) return;
     setPicking(null);
     if (link) {
+      link.onDone?.();
       router.refresh();
       return;
     }
@@ -418,7 +428,7 @@ export default function OpenLibraryImport({
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 break-words">{picking.title}</p>
               <p className="text-xs text-gray-500">
-                {picking.author !== "Unknown" && `${picking.author} · `}Pick the edition. Nothing is added until you import.
+                {picking.author !== "Unknown" && `${picking.author} · `}Pick the edition. {link?.replace ? "Nothing changes until you use it." : "Nothing is added until you import."}
               </p>
             </div>
             <button type="button" onClick={() => setPicking(null)} className="text-xs font-semibold text-gray-500 hover:text-gray-800 min-h-10 px-2">Close</button>
@@ -450,7 +460,7 @@ export default function OpenLibraryImport({
             <button type="button" onClick={confirmPick} disabled={busy !== null || !picking.editions[editionIndex]?.pages}
               className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50">
               {busy === picking.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {link || (picking.place && !picking.place.linked) ? "Link this edition" : picking.place ? "Move it here" : "Import this edition"}
+              {link?.replace ? "Use this edition" : link || (picking.place && !picking.place.linked) ? "Link this edition" : picking.place ? "Move it here" : "Import this edition"}
             </button>
           </div>
         </div>
@@ -521,7 +531,7 @@ const buttonCls = "flex items-center gap-1.5 border border-gray-200 text-gray-70
 function RowAction({ work: w, where, link, busy, onPick }: {
   work: Work;
   where: { text: string; importable: boolean } | null;
-  link?: { bookId: string; title: string };
+  link?: LinkTo;
   busy: string | "bulk" | null;
   onPick: (w: Work) => void;
 }) {

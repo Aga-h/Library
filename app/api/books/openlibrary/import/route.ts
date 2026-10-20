@@ -22,6 +22,8 @@ const schema = z.object({
   seriesId: z.string().min(1).nullable().default(null),
   /** Link this book, already in the library, to the volume instead. */
   bookId: z.string().min(1).optional(),
+  /** With bookId: switch it to this edition even if it was linked to another. */
+  replace: z.boolean().default(false),
 });
 
 /** Import books from Google Books. Re-import only fills blanks. */

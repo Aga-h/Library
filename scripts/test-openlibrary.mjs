@@ -7,6 +7,7 @@ import {
   workIdOf, isbnOf, searchQueryOf, coverUrl, isOpenLibraryImage, authorsOf, yearOf, toWork,
   hasPages, normaliseAuthor, firstAuthor, authorsMatch, titleKeys, dominantScript, queryFit,
   bestTitle, catalogOf, matchExisting, planImport, updatesFromWork, byYear, OL_IMAGE_HOST, isbn13Of,
+  pagesReadOnNewEdition,
 } from "../lib/openlibrary.ts";
 
 let pass = 0;
@@ -47,6 +48,11 @@ eq(isbnOf("  9780439708180  "), "9780439708180", "ISBN-13 with spaces");
 eq(isbn13Of("076531178X"), "9780765311788", "ISBN-10 to 13: Mistborn's Tor hardcover");
 eq(isbn13Of("0439708184"), "9780439708180", "ISBN-10 to 13: a check digit of 0");
 eq(isbn13Of("9780765311788"), "9780765311788", "an ISBN-13 stays as it is");
+eq(pagesReadOnNewEdition(544, 544, 541), 541, "changing edition: a finished book stays finished");
+eq(pagesReadOnNewEdition(300, 600, 540), 270, "…one under way keeps its share of the book");
+eq(pagesReadOnNewEdition(0, 544, 541), 0, "…an unread one stays unread");
+eq(pagesReadOnNewEdition(543, 544, 300), 299, "…and one under way stays under way, however it rounds");
+eq(pagesReadOnNewEdition(1, 1000, 100), 1, "…not back to unread either");
 eq(isbnOf("1984"), null, "a year is not an ISBN");
 eq(isbnOf("1234567890"), "1234567890", "ten digits are taken as ISBN-10");
 eq(isbnOf("1234567890123"), null, "thirteen digits that are not 978/979 are refused");

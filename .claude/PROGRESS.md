@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-20 — Books: Book One no longer lands under Hero of Ages; real jackets in the Cover Flow; page counts and ISBNs match Google's page. Google Books daily limit is 1,000 — see Blocked. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-20 — Books: "Change edition" on a book's page; Book One no longer lands under Hero of Ages; real jackets in the Cover Flow; page counts and ISBNs match Google's page. Google Books daily limit is 1,000 — see Blocked. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,6 +230,17 @@
 
 ## Next
 
+- [x] **Books: change a book's edition after importing** (user, 2026-10-20: "after you import a book
+      you can't import a different edition of it"; they had imported a 544-page "Mistborn: Mistborn
+      Book One"). Book page → "Change edition" opens the picker for that book (search, ISBN or a
+      Google Books link); "Use this edition" sends `replace: true` with `bookId` to the import route.
+      linkBook then swaps googleBooksId, pages, cover, publisher and the title it was picked under;
+      status/owned/Kindle/rating/notes/series stay; progress maps via `pagesReadOnNewEdition`
+      (finished stays finished, under way keeps its share). Checked in Chromium on the local app:
+      a read, Kindle "Mistborn: Mistborn Book One" (647p Gollancz) → 2006 Tor → "Mistborn: The
+      Final Empire", 541p, Macmillan, purple cover, still read (541/541), still Kindle.
+      Idea, not done: stored covers are still zoom=1 (128px, soft on the book page); the picker's
+      `fife=w400-h600` jacket would be sharp there too.
 - [x] **Books: "Hero of Ages under Book One", wrong page count, can't tell editions apart** (user,
       2026-10-20, live screenshots). (1) A bare "Mistborn: Mistborn Book One" was guessed into the
       series' earliest book in the list — The Hero of Ages (2008) when The Final Empire's early

@@ -4,7 +4,10 @@ import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/prisma-errors";
 import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 import type { LanguageKey } from "@/lib/constants/languages";
-import { BookCatalogError, matchExisting, planImport, updatesFromWork, type CatalogBook, type ExistingBook, type ReportLine } from "@/lib/openlibrary";
+import {
+  BookCatalogError, hasPages, matchExisting, pagesReadOnNewEdition, planImport, updatesFromWork,
+  type CatalogBook, type ExistingBook, type ReportLine,
+} from "@/lib/openlibrary";
 import { catalogDetails, type CatalogItem } from "@/lib/book-catalog-service";
 import { fromGbVolume } from "@/lib/google-books";
 import { volumeById } from "@/lib/google-books-service";
@@ -65,24 +68,26 @@ export interface ImportResult {
 
 const LINK_FIELDS = {
   id: true, title: true, author: true, openLibraryId: true, googleBooksId: true,
-  coverImage: true, publisher: true,
+  coverImage: true, publisher: true, pages: true, pagesRead: true,
 } as const;
 
 /**
  * Brings Google Books volumes into the library — into `seriesId`, or standalone when it is null.
  * New books get `language`, and are marked read, physically owned, or owned on Kindle when asked.
  * Books already there keep theirs, and only have blanks filled: see planImport. With `bookId`,
- * that row is linked, whatever its title.
+ * that row is linked, whatever its title — and with `replace`, switched to this edition if it
+ * was linked to another.
  */
 export async function importWorks(
   items: CatalogItem[],
-  { read, language, seriesId, owned, ownedKindle, bookId }: {
+  { read, language, seriesId, owned, ownedKindle, bookId, replace = false }: {
     read: boolean;
     language: LanguageKey;
     seriesId: string | null;
     owned: boolean;
     ownedKindle: boolean;
     bookId?: string;
+    replace?: boolean;
   },
 ): Promise<ImportResult> {
   if (seriesId) {
@@ -92,7 +97,7 @@ export async function importWorks(
 
   if (bookId) {
     if (items.length !== 1) throw new BookCatalogError("Link one book at a time.", 400);
-    return linkBook(bookId, items[0], seriesId);
+    return linkBook(bookId, items[0], seriesId, replace);
   }
 
   const { works, failed } = await catalogDetails(items);
@@ -148,12 +153,12 @@ async function fetchVolume(item: CatalogItem): Promise<CatalogBook> {
   return book;
 }
 
-async function linkBook(bookId: string, item: CatalogItem, seriesId: string | null): Promise<ImportResult> {
+async function linkBook(bookId: string, item: CatalogItem, seriesId: string | null, replace: boolean): Promise<ImportResult> {
   const work = await fetchVolume(item);
   const row = await db.book.findUnique({ where: { id: bookId }, select: LINK_FIELDS });
   if (!row) throw new BookCatalogError("Book not found.", 404);
 
-  if (work.googleBooksId && row.googleBooksId && row.googleBooksId !== work.googleBooksId) {
+  if (!replace && work.googleBooksId && row.googleBooksId && row.googleBooksId !== work.googleBooksId) {
     throw new BookCatalogError("This book is already linked to another Google Books volume.", 409);
   }
 
@@ -179,6 +184,39 @@ async function linkBook(bookId: string, item: CatalogItem, seriesId: string | nu
       select: { title: true },
     });
     if (taken) throw new BookCatalogError(`"${taken.title}" in your library is already that volume.`, 409);
+  }
+
+  // Another edition: its cover, length, publisher and the title it was picked under replace the
+  // old one's. What you did — read, owned, rating, notes, series — stays, progress scaled to it.
+  if (replace && row.googleBooksId) {
+    if (!hasPages(work)) throw new BookCatalogError("Google Books has no page count for that edition — pick another.", 400);
+    const pagesRead = pagesReadOnNewEdition(row.pagesRead, row.pages, work.pages);
+    try {
+      await db.book.update({
+        where: { id: row.id },
+        data: {
+          ...updatesFromWork(row, work),
+          googleBooksId: work.googleBooksId,
+          title: item.title?.trim() || row.title,
+          pages: work.pages,
+          pagesRead,
+          status: deriveStatus(bookProgress({ pages: work.pages, pagesRead }), BOOK_STATUS),
+          ...(work.cover ? { coverImage: work.cover } : {}),
+          ...(work.publisher ? { publisher: work.publisher } : {}),
+        },
+      });
+    } catch (e) {
+      if (isUniqueViolation(e)) throw new BookCatalogError("Another import ran at the same time — try again.", 409);
+      throw e;
+    }
+    return {
+      seriesId,
+      report: [{
+        id: work.id, openLibraryId: work.openLibraryId, googleBooksId: work.googleBooksId,
+        title: item.title?.trim() || row.title, year: work.year, outcome: "linked", bookId: row.id,
+      }],
+      failed: [],
+    };
   }
 
   const changes = updatesFromWork(row, work);
