@@ -333,8 +333,10 @@ export default function EditionCoverFlow({
         <div className="min-w-0 text-center px-1" aria-live="polite">
           <p className="text-sm font-medium text-gray-700">{caption}</p>
           <p className="text-[11px] text-gray-500">
-            {last > 0 ? `Edition ${Math.min(centre, last) + 1} of ${editions.length}` : complete ? "The only edition Google Books lists" : "\u00a0"}
-            {shown?.isbn ? ` · ISBN ${shown.isbn}` : ""}
+            {[
+              last > 0 ? `Edition ${Math.min(centre, last) + 1} of ${editions.length}` : complete ? "The only edition Google Books lists" : null,
+              shown?.isbn ? `ISBN ${shown.isbn}` : null,
+            ].filter(Boolean).join(" · ") || "\u00a0"}
           </p>
         </div>
         {last > 0 && (

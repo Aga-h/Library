@@ -243,6 +243,13 @@
       search's exact listing too. (4) The caption shows the ISBN; an eBook row says "eBook".
       Checked in Chromium (Soft Club) against recorded real answers: "mistborn" → Final Empire →
       "Print · Macmillan · 2006 · 541 pages / Edition 2 of 5 · ISBN 9780765311788", purple cover.
+      Review (6 agents) fixes: the edition search returns `elsewhere` (ids it placed in other books)
+      and the picker drops those from the row's editions (a 3-in-1 omnibus rode along); only a
+      number that names its series ("Book Three of Mistborn") rules a book out (A Dance with Dragons
+      had split in two); confirmed counts update the row too; a failed lookup stays "failed" (asked
+      again); no second lookup while one is in flight; counts from volumes.get come marked "checked";
+      series-title lookups only for English listings of the same number. Not done: a bilingual
+      "El imperio final / The Final Empire" (tagged en) still shows as its own row.
 - [x] **Books: the 2006 Tor hardcover of Mistborn can't be found** (user, 2026-10-19, screenshot of
       ISBN 9780765311788 = volume `dlfOfxkm1PoC`; Google calls the publisher "Macmillan"). Cause:
       Google returns it only for author-less queries ("mistborn", "the final empire"), and since

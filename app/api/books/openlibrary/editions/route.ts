@@ -18,7 +18,7 @@ async function GETHandler(request: NextRequest) {
   }
 
   try {
-    return NextResponse.json({ editions: await searchEditions({ title, author: author || "Unknown" }, id) });
+    return NextResponse.json(await searchEditions({ title, author: author || "Unknown" }, id));
   } catch (e) {
     if (e instanceof BookCatalogError) return NextResponse.json({ error: e.message }, { status: e.status });
     throw e;

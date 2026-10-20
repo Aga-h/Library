@@ -38,6 +38,8 @@ export interface GbVolume {
   isbn: string | null;
   /** volumeInfo.seriesInfo.bookDisplayNumber — where Google says the book sits in its series. */
   seriesNumber: number | null;
+  /** From volumes.get: `pages` is the count Google's own page shows and an import stores. */
+  checked?: boolean;
 }
 
 type Raw = Record<string, unknown>;
@@ -425,7 +427,9 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
       numbered.set(key, (numbered.get(key) ?? new Set<number>()).add(root));
     }
     const book = books.get(root) ?? { author: l.author, series: l.series, year: Infinity, pages: [], numbers: new Set<number>() };
-    if (n) book.numbers.add(n);
+    // Only a number that says whose it is: "Book Three of Mistborn" yes; the "Book Five" in "A Dance
+    // with Dragons (HBO Tie-in Edition): A Song of Ice and Fire: Book Five" is not A Dance with Dragons'.
+    if (n && (l.parsed.series || l.googleNumber)) book.numbers.add(n);
     if (l.row.year) book.year = Math.min(book.year, l.row.year);
     if (l.row.pages) book.pages.push(l.row.pages);
     books.set(root, book);
@@ -589,6 +593,8 @@ export interface CatalogEdition {
   ebook: boolean;
   /** Shown under the cover: Google calls every US Tor printing "Macmillan", so this tells them apart. */
   isbn: string | null;
+  /** "checked" when `pages` came from volumes.get, so the picker needn't ask again. */
+  pagesState?: "checked";
 }
 
 export function editionOf(volume: GbVolume): CatalogEdition {
@@ -602,6 +608,7 @@ export function editionOf(volume: GbVolume): CatalogEdition {
     coverLarge: volume.cover ? googleCoverUrl(volume.id, "large") : null,
     ebook: volume.ebook,
     isbn: volume.isbn,
+    ...(volume.checked ? { pagesState: "checked" as const } : {}),
   };
 }
 
@@ -724,6 +731,16 @@ function groupHolding(volumes: GbVolume[], id: string): GbVolume[] {
  * search left out stays null for the picker to fetch. Other books the search also returned are
  * left out.
  */
+/**
+ * Of an edition search's volumes, the ones it placed in other books. The picker drops these if the
+ * title search, with less to go on, had put them in this one (a three-in-one "Mistborn: The Final
+ * Empire - The Well of Ascension - …" in a sparse list). Ones it never saw are kept.
+ */
+export function elsewhereFromVolumes(volumes: GbVolume[], bookId: string): string[] {
+  const mine = new Set(groupHolding(volumes, bookId).map((volume) => volume.id));
+  return volumes.filter((volume) => !mine.has(volume.id)).map((volume) => volume.id);
+}
+
 export function editionsFromVolumes(volumes: GbVolume[], bookId: string): CatalogEdition[] {
   return withoutDuplicates(groupHolding(volumes, bookId))
     .filter((volume) => volume.cover)

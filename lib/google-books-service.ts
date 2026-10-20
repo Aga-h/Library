@@ -9,7 +9,8 @@
 
 import { BookCatalogError, MAX_IMPORT, isbn13Of, isbnOf } from "@/lib/openlibrary";
 import {
-  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, groupEditions, seriesOnly, toVolume, volumesToRefetch,
+  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, groupEditions, isEnglishListing, parseTitle, seriesOnly,
+  toVolume, volumesToRefetch,
   type GbVolume,
 } from "@/lib/google-books";
 import { bookByIsbn } from "@/lib/openlibrary-service";
@@ -212,7 +213,12 @@ async function bookVolumes(book: { title: string; author: string }): Promise<GbV
  */
 export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
   const fetched = await bookVolumes(book);
-  const unplaced = seriesOnly(fetched).filter((v) => v.pages === null && v.cover).map((v) => v.id);
+  // Only ones that could be this book: shown (English, with a cover) and of its number in the series.
+  const number = parseTitle(book.title).number ?? 1;
+  const unplaced = seriesOnly(fetched)
+    .filter((v) => v.pages === null && v.cover && isEnglishListing(v)
+      && (parseTitle(v.title).number ?? v.seriesNumber ?? 1) === number)
+    .map((v) => v.id);
   const volumes = await refillBlankPages(fetched, unplaced.slice(0, SERIES_LOOKUPS), Date.now() + CALL_LIMIT);
   if (!volumes.some((volume) => volume.id === bookId)) {
     try {
@@ -262,5 +268,5 @@ export async function volumeById(id: string): Promise<GbVolume> {
   if (!key) throw new GoogleBooksError("That isn't a Google Books volume id.", 400);
   const found = toVolume(await get(`/volumes/${encodeURIComponent(key)}`, { projection: "full" }));
   if (!found || found.id !== key) throw new GoogleBooksError("That isn't on Google Books.", 404);
-  return found;
+  return { ...found, checked: true };
 }

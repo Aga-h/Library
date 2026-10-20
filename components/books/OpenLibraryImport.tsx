@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Download, Link2, Loader2, Search } from "lucide-react";
@@ -77,12 +77,15 @@ function placeLabel(place: Place | null, target: string | null): { text: string;
 
 /**
  * The edition the row showed stays first; after it every other edition the two searches found,
- * print oldest first, then eBooks oldest first — as the server orders them.
+ * print oldest first, then eBooks oldest first — as the server orders them. One the edition
+ * search saw and placed in another book (`elsewhere`) is left out: it has more to go on than the
+ * title search had.
  */
-function mergeEditions(known: FlowEdition[], found: FlowEdition[]): FlowEdition[] {
+function mergeEditions(known: FlowEdition[], found: FlowEdition[], elsewhere: string[] = []): FlowEdition[] {
   const [face, ...rest] = known;
   if (!face) return found;
-  const others = [...rest, ...found].filter(
+  const other = new Set(elsewhere);
+  const others = [...rest.filter((edition) => !other.has(edition.googleBooksId)), ...found].filter(
     (edition, i, all) => edition.googleBooksId !== face.googleBooksId
       && all.findIndex((e) => e.googleBooksId === edition.googleBooksId) === i,
   );
@@ -222,7 +225,9 @@ export default function OpenLibraryImport({
     const res = await fetch(`/api/books/openlibrary/editions?${params}`).catch(() => null);
     const data = res?.ok ? await res.json().catch(() => null) : null;
     const found = Array.isArray(data?.editions) ? (data.editions as FlowEdition[]) : null;
-    const update = (w: Work) => (w.id === work.id && found ? { ...w, editions: mergeEditions(w.editions, found), allEditions: true } : w);
+    const elsewhere = Array.isArray(data?.elsewhere) ? (data.elsewhere as string[]) : [];
+    const update = (w: Work) => (w.id === work.id && found
+      ? { ...w, editions: mergeEditions(w.editions, found, elsewhere), allEditions: true } : w);
     setResults((r) => (r ? r.map(update) : r));
     setPicking((p) => (p ? update(p) : p));
     setEditionSearch((s) => (s?.id === work.id ? (found ? null : { id: work.id, state: "failed" }) : s));
@@ -234,20 +239,27 @@ export default function OpenLibraryImport({
   const centred = picking?.editions[editionIndex];
   const needsPages = centred && (centred.pagesState === undefined || centred.pagesState === "failed")
     ? centred.googleBooksId : null;
+  // Asked and not answered yet: flicking away and back doesn't ask a second time.
+  const asking = useRef(new Set<string>());
   useEffect(() => {
-    if (!needsPages) return;
+    if (!needsPages || asking.current.has(needsPages)) return;
     const timer = setTimeout(async () => {
+      asking.current.add(needsPages);
       const res = await fetch(`/api/books/openlibrary/edition?${new URLSearchParams({ id: needsPages })}`).catch(() => null);
       const data = res?.ok ? await res.json().catch(() => null) : null;
+      asking.current.delete(needsPages);
       const found = data?.edition as FlowEdition | undefined;
-      const state: FlowEdition["pagesState"] = res?.ok || res?.status === 404 ? "none" : "failed";
+      // Only an answer settles it: Google down or rate-limiting is asked again on the next stop.
+      const answered = !!res && (res.ok || res.status === 404);
       const patch = (e: FlowEdition): FlowEdition => {
         if (e.googleBooksId !== needsPages) return e;
         if (found?.pages) return { ...e, pages: found.pages, isbn: e.isbn ?? found.isbn ?? null, pagesState: "checked" };
-        return e.pages ? { ...e, pagesState: "checked" } : { ...e, pagesState: state };
+        return { ...e, pagesState: !answered ? "failed" : e.pages ? "checked" : "none" };
       };
-      setPicking((p) => (p ? { ...p, editions: p.editions.map(patch) } : p));
-      setResults((r) => (r ? r.map((w) => ({ ...w, editions: w.editions.map(patch) })) : r));
+      // The row shows the same edition's count: keep the two the same.
+      const own = <W extends Work>(w: W): W => (w.googleBooksId === needsPages && found?.pages ? { ...w, pages: found.pages } : w);
+      setPicking((p) => (p ? own({ ...p, editions: p.editions.map(patch) }) : p));
+      setResults((r) => (r ? r.map((w) => own({ ...w, editions: w.editions.map(patch) })) : r));
     }, 350);
     return () => clearTimeout(timer);
   }, [needsPages]);

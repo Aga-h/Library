@@ -355,6 +355,20 @@ ok(!sameWork({ title: "Special Topics in Calamity Physics", author: "Marisha Pes
     ["bookOne", "bookOneNoPages"], "…and one with no page count isn't guessed into another book either");
 }
 
+{
+  // A Song of Ice and Fire, recorded 2026-10-20: "A Dance with Dragons" heads two subtitles, so it reads
+  // as a series name; the HBO listing's "Book Five" is A Song of Ice and Fire's, not A Dance with Dragons'.
+  const m = (id, title, pages) => ({ id, title, author: "George R. R. Martin", pages, year: 2013 });
+  const groups = groupEditions([
+    m("JlSN", "A Dance with Dragons", 1153),
+    m("U7iW", "A Dance with Dragons (HBO Tie-in Edition): A Song of Ice and Fire: Book Five: A Novel", 1058),
+    m("LcNh", "A Dance With Dragons: Part 1 Dreams and Dust (A Song of Ice and Fire, Book 5)", 687),
+    m("fQKN", "A Clash of Kings: A Song of Ice and Fire: Book Two", 1009),
+  ]);
+  ok(groups.some((g) => g.some((r) => r.id === "JlSN") && g.some((r) => r.id === "U7iW")),
+    "a book's own 'Book Five' of another series doesn't keep its bare title out of it");
+}
+
 // ── the edition search for the cover flow ────────────────────────────────────
 eq(editionSearchQueries({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson, Someone Else" }), [
   "Mistborn The Final Empire Brandon Sanderson",
@@ -573,6 +587,12 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify({ error: "notfound" }));
     return;
   }
+  if (url.pathname === "/volumes/mbCollector") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ id: "mbCollector", volumeInfo: { title: "Mistborn", subtitle: "Collector's Tenth Anniversary Limited Edition",
+      authors: ["Brandon Sanderson"], publishedDate: "2016-09-15", pageCount: 752, language: "en", imageLinks: { thumbnail: "http://books.google.com/x" } } }));
+    return;
+  }
   // As Google does: the list says 542 pages, volumes.get (and Google's own page) 541.
   if (url.pathname === "/volumes/dlfOfxkm1PoC") {
     res.writeHead(200, { "content-type": "application/json" });
@@ -630,6 +650,14 @@ const server = createServer((req, res) => {
         imageLinks: { thumbnail: "http://books.google.com/x" },
       },
     }));
+    // The rest of the series: a collector's edition titled only "Mistborn" (no count in the list),
+    // another Mistborn book, the second novel, and all three in one.
+    const more = (id, title, subtitle, year, pageCount) => ({ id, volumeInfo: { title, subtitle, authors: ["Brandon Sanderson"],
+      publishedDate: String(year), pageCount, language: "en", imageLinks: { thumbnail: "http://books.google.com/x" } } });
+    items.push(more("mbCollector", "Mistborn", "Collector's Tenth Anniversary Limited Edition", 2016, 0),
+      more("mbSecretHis", "Mistborn", "Secret History", 2016, 190),
+      more("woa2009Orio", "The Well of Ascension", undefined, 2009, 781),
+      more("mbThreeIn1", "Mistborn", "The Final Empire - The Well of Ascension - The Hero of Ages", 2011, 1000));
   }
   if (q.includes("Mushoku Tensei")) {
     items = [
@@ -722,13 +750,22 @@ try {
   eq(mushoku.works.find((w) => w.title.endsWith("Vol. 2")).editions.map((e) => e.pages).sort(), [240, 336],
     "Vol. 2 carries its paperback and its Kindle");
 
-  const vol1Editions = await searchEditions({
+  const { editions: vol1Editions } = await searchEditions({
     title: "Mushoku Tensei: Jobless Reincarnation (Light Novel) Vol. 1",
     author: "Rifujin na Magonote",
   }, "zPWKDwAAQBAJ");
   eq(vol1Editions.map((e) => [e.googleBooksId, e.pages]), [["9qGQEAAAQBAJ", null], ["zPWKDwAAQBAJ", 267]],
     "searchEditions: Vol. 1's paperback (count not fetched up front) then its Kindle — not Vol. 2");
   eq((await catalogEdition("9qGQEAAAQBAJ")).pages, 320, "catalogEdition: the paperback's count, from volumes.get");
+  eq((await catalogEdition("9qGQEAAAQBAJ")).pagesState, "checked", "…marked so the picker doesn't ask again");
+
+  const fe = await searchEditions({ title: "Mistborn: The Final Empire", author: "Brandon Sanderson" }, "dlfOfxkm1PoC");
+  const collector = fe.editions.find((e) => e.googleBooksId === "mbCollector");
+  eq([collector?.pages, collector?.pagesState], [752, "checked"],
+    "the picker looks up a series-titled edition's count, and with it the edition joins its book");
+  ok(!fe.editions.some((e) => ["mbSecretHis", "mbThreeIn1", "woa2009Orio"].includes(e.googleBooksId)), "…and nothing else does");
+  ok(fe.elsewhere.includes("mbThreeIn1") && fe.elsewhere.includes("mbSecretHis") && !fe.elsewhere.includes("mbTor2008pbk"),
+    "the edition search says which listings it put in other books (the three-in-one among them), so the picker can drop them");
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");
