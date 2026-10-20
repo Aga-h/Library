@@ -9,7 +9,7 @@
 
 import { BookCatalogError, MAX_IMPORT, isbn13Of, isbnOf } from "@/lib/openlibrary";
 import {
-  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, groupEditions, toVolume, volumesToRefetch,
+  editionSearchQueries, googleSearchQueryOf, googleVolumeIdOf, groupEditions, seriesOnly, toVolume, volumesToRefetch,
   type GbVolume,
 } from "@/lib/google-books";
 import { bookByIsbn } from "@/lib/openlibrary-service";
@@ -182,7 +182,8 @@ async function volumesForIsbn(isbn: string, started: number): Promise<GbVolume[]
   const group = groupEditions<{ title: string; author: string }>([book, ...volumes]).find((g) => g.includes(book)) ?? [];
   const deadline = started + REFILL_BY;
   if (exact) {
-    const [checked] = await refillBlankPages([exact], exact.pages ? [] : [exact.id], deadline);
+    // volumes.get's count, the one Google's page shows and an import stores (the list can say 542 for 541).
+    const [checked] = await refillBlankPages([exact], [exact.id], deadline);
     if (checked.pages) return [checked];
   }
   const others = group.filter((row) => row !== book) as GbVolume[];
@@ -205,11 +206,14 @@ async function bookVolumes(book: { title: string; author: string }): Promise<GbV
 /**
  * Listings of one book for the edition picker, `bookId` among them. The search's own list only
  * holds the editions that happened to rank among other books; this asks for the book itself
- * (bookVolumes). Page counts the list leaves out are not fetched here: the picker asks for the
- * one edition you stop on, so none is dropped for want of a count.
+ * (bookVolumes). Page counts the list leaves out are not fetched here — the picker asks for the
+ * one edition you stop on — except for a few listings titled only by the series (seriesOnly):
+ * groupEditions places those by their length.
  */
 export async function editionVolumes(book: { title: string; author: string }, bookId: string): Promise<GbVolume[]> {
-  const volumes = await bookVolumes(book);
+  const fetched = await bookVolumes(book);
+  const unplaced = seriesOnly(fetched).filter((v) => v.pages === null && v.cover).map((v) => v.id);
+  const volumes = await refillBlankPages(fetched, unplaced.slice(0, SERIES_LOOKUPS), Date.now() + CALL_LIMIT);
   if (!volumes.some((volume) => volume.id === bookId)) {
     try {
       volumes.unshift(await volumeById(bookId));
@@ -219,6 +223,9 @@ export async function editionVolumes(book: { title: string; author: string }, bo
   }
   return volumes;
 }
+
+/** At most this many series-titled listings get their page count looked up for the picker. */
+const SERIES_LOOKUPS = 4;
 
 /** Page-count lookups start no later than this after a search began: the route has 60s. */
 const REFILL_BY = 40_000;

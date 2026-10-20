@@ -8,8 +8,11 @@ export interface FlowEdition {
   googleBooksId: string;
   /** null until fetched: a search can leave a print edition's count out. */
   pages: number | null;
-  /** Why `pages` is still null once asked for: Google has none, or didn't answer. */
-  pagesState?: "none" | "failed";
+  /**
+   * Once volumes.get was asked: "checked" — `pages` is its count, the one Google's own page shows
+   * and an import stores (a search can say 542 where both say 541) — or why `pages` is still null.
+   */
+  pagesState?: "checked" | "none" | "failed";
   year: number | null;
   publisher: string | null;
   cover: string | null;
@@ -17,6 +20,7 @@ export interface FlowEdition {
   /** 300px, sharp on a retina screen; falls back to `cover` where Google has no larger one. */
   coverLarge: string | null;
   ebook: boolean;
+  isbn: string | null;
 }
 
 // docs/design/how-cover-flow-works.md §4, in card widths. One number, the position p, places
@@ -31,8 +35,8 @@ const VISIBLE = 8; // cards shown each side of the centre
 const REFLECTION = "below 3px linear-gradient(transparent 66%, rgb(255 255 255 / 0.32))";
 
 /**
- * Google answers a cover it doesn't have with "image not available": 575×750 at zoom=2, 128×170 at
- * zoom=1. One it has only small is 300×391 at zoom=2, and real at zoom=1.
+ * Google answers a cover it doesn't have with "image not available": 128×170 at zoom=1, resized or
+ * not; 575×750 at zoom=2, and 300×391 there for one it has only small (covers once used zoom=2).
  */
 const PLACEHOLDERS = ["575x750", "128x170", "300x391"];
 const isPlaceholder = (img: HTMLImageElement) => PLACEHOLDERS.includes(`${img.naturalWidth}x${img.naturalHeight}`);
@@ -330,6 +334,7 @@ export default function EditionCoverFlow({
           <p className="text-sm font-medium text-gray-700">{caption}</p>
           <p className="text-[11px] text-gray-500">
             {last > 0 ? `Edition ${Math.min(centre, last) + 1} of ${editions.length}` : complete ? "The only edition Google Books lists" : "\u00a0"}
+            {shown?.isbn ? ` · ISBN ${shown.isbn}` : ""}
           </p>
         </div>
         {last > 0 && (

@@ -62,6 +62,8 @@ function meta(w: Work): string {
     w.year,
     w.publisher,
     `${w.pages} pages`,
+    // The row shows an eBook only when no print edition has a cover and a page count.
+    w.editions.find((e) => e.googleBooksId === w.googleBooksId)?.ebook ? "eBook" : null,
   ].filter(Boolean).join(" · ");
 }
 
@@ -149,7 +151,7 @@ export default function OpenLibraryImport({
       ...w,
       editions: w.editions?.length ? w.editions : [{
         googleBooksId: w.googleBooksId, pages: w.pages, year: w.year, publisher: w.publisher,
-        cover: w.cover, coverThumb: w.coverThumb, coverLarge: null, ebook: false,
+        cover: w.cover, coverThumb: w.coverThumb, coverLarge: null, ebook: false, isbn: null,
       }],
     }));
     setResults(works);
@@ -226,20 +228,23 @@ export default function OpenLibraryImport({
     setEditionSearch((s) => (s?.id === work.id ? (found ? null : { id: work.id, state: "failed" }) : s));
   }
 
-  // A search can leave a print edition's page count out. Once the flow stops on one, ask
-  // volumes.get for it — one request for the edition looked at, rather than for every edition.
+  // A search can leave a print edition's page count out, or give one Google's own page doesn't
+  // (542 for the 541-page 2006 Mistborn). Once the flow stops on an edition, ask volumes.get —
+  // the count an import stores — one request for the edition looked at, not for every edition.
   const centred = picking?.editions[editionIndex];
-  const needsPages = centred && centred.pages === null && centred.pagesState !== "none" ? centred.googleBooksId : null;
+  const needsPages = centred && (centred.pagesState === undefined || centred.pagesState === "failed")
+    ? centred.googleBooksId : null;
   useEffect(() => {
     if (!needsPages) return;
     const timer = setTimeout(async () => {
       const res = await fetch(`/api/books/openlibrary/edition?${new URLSearchParams({ id: needsPages })}`).catch(() => null);
       const data = res?.ok ? await res.json().catch(() => null) : null;
       const found = data?.edition as FlowEdition | undefined;
-      const state: FlowEdition["pagesState"] = found?.pages ? undefined : res?.ok || res?.status === 404 ? "none" : "failed";
+      const state: FlowEdition["pagesState"] = res?.ok || res?.status === 404 ? "none" : "failed";
       const patch = (e: FlowEdition): FlowEdition => {
         if (e.googleBooksId !== needsPages) return e;
-        return found?.pages ? { ...e, pages: found.pages, pagesState: undefined } : { ...e, pagesState: state };
+        if (found?.pages) return { ...e, pages: found.pages, isbn: e.isbn ?? found.isbn ?? null, pagesState: "checked" };
+        return e.pages ? { ...e, pagesState: "checked" } : { ...e, pagesState: state };
       };
       setPicking((p) => (p ? { ...p, editions: p.editions.map(patch) } : p));
       setResults((r) => (r ? r.map((w) => ({ ...w, editions: w.editions.map(patch) })) : r));

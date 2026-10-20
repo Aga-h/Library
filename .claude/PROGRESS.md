@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-19 — Books: the 2006 Mistborn hardcover is findable (bare edition queries, ISBN via Open Library, edition links); Google Books daily limit (1,000) ran out in testing — see Blocked. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-20 — Books: Book One no longer lands under Hero of Ages; real jackets in the Cover Flow; page counts and ISBNs match Google's page. Google Books daily limit is 1,000 — see Blocked. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,6 +230,19 @@
 
 ## Next
 
+- [x] **Books: "Hero of Ages under Book One", wrong page count, can't tell editions apart** (user,
+      2026-10-20, live screenshots). (1) A bare "Mistborn: Mistborn Book One" was guessed into the
+      series' earliest book in the list — The Hero of Ages (2008) when The Final Empire's early
+      listings were missing. Now: a book some listing numbers otherwise ("Book Three") is never the
+      guess, and a guess needs the bare listing's length to fit; else it stays its own row. The
+      picker looks up page counts of up to 4 series-only listings so they can be placed (`seriesOnly`).
+      (2) The flow's large cover was zoom=2, which for previewable books is a scan of page one — the
+      2006 hardcover showed a plain Tor title page, not its purple jacket. Now zoom=1 + `fife=w400-h600`
+      (real jacket, ~400×600). (3) Counts: the list says 542, Google's page and the import 541; the
+      picker now confirms the centred edition with volumes.get (`pagesState: "checked"`), an ISBN
+      search's exact listing too. (4) The caption shows the ISBN; an eBook row says "eBook".
+      Checked in Chromium (Soft Club) against recorded real answers: "mistborn" → Final Empire →
+      "Print · Macmillan · 2006 · 541 pages / Edition 2 of 5 · ISBN 9780765311788", purple cover.
 - [x] **Books: the 2006 Tor hardcover of Mistborn can't be found** (user, 2026-10-19, screenshot of
       ISBN 9780765311788 = volume `dlfOfxkm1PoC`; Google calls the publisher "Macmillan"). Cause:
       Google returns it only for author-less queries ("mistborn", "the final empire"), and since

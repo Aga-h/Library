@@ -264,7 +264,10 @@ ok(rows.some((w) => w.title.startsWith("Mistborn Trilogy Boxed Set")), "a boxed 
 ok(rows.some((w) => w.title.includes("Graphic Novel")), "the graphic novel is not an edition of the novel");
 ok(!rows.some((w) => w.title.includes("Império")), "the translation stays out");
 eq(rows[0].editions.filter((e) => e.pages === 672).length, 3, "three editions of 672 pages are three cards, not one");
-eq(rows[0].editions[0].coverLarge, googleCoverUrl("feMacPaper007", "large"), "the picker gets the 300px cover");
+eq(rows[0].editions[0].coverLarge, googleCoverUrl("feMacPaper007", "large"), "the picker gets the large cover");
+eq(googleCoverUrl("dlfOfxkm1PoC", "large"),
+  "https://books.google.com/books/content?id=dlfOfxkm1PoC&printsec=frontcover&img=1&zoom=1&fife=w400-h600&source=gbs_api",
+  "…the jacket resized, not zoom=2 — for the 2006 Mistborn that is a scan of its title page");
 
 const bareMistborn = gb("bareMistborn1", "Mistborn", undefined, 760, { publisher: "Tor Books" });
 const undatedSeries = [bareMistborn, gb("feUndated001", "Mistborn", "The Final Empire", 541, {}), gb("woaUndated01", "Mistborn", "The Well of Ascension", 590, {})];
@@ -326,6 +329,30 @@ ok(!sameWork({ title: "Special Topics in Calamity Physics", author: "Marisha Pes
     ok(!groupEditions(order).some((g) => g.some((r) => r.id === "fe") && g.some((r) => r.id === "omni")),
       `a bare 1984-page "Mistborn" (the series in one) never joins The Final Empire (${order.map((r) => r.id).join(",")})`);
   }
+}
+
+{
+  // The user's search, 2026-10-20: no listing names The Final Empire "Book One", its earliest listing
+  // is a 2010 eBook, and The Hero of Ages has a 2008 one — "Book One" went under The Hero of Ages.
+  const v = (id, title, year, pages, ebook = false) => ({ id, title, author: "Brandon Sanderson", year, pages, ebook });
+  const rows = [
+    v("bookOne", "Mistborn: Mistborn Book One", 2009, 647),
+    v("hoaBook3", "The Hero of Ages: Book Three of Mistborn", 2008, 573),
+    v("hoa2010", "The Hero of Ages", 2010, 748),
+    v("feEbook", "Mistborn: The Final Empire", 2010, 686, true),
+    v("fe2009", "The Final Empire", 2009, 647),
+    v("woaBook2", "The Well of Ascension: Mistborn Book Two", 2010, 784),
+    v("secret", "Mistborn: Secret History", 2016, 190),
+  ];
+  const holding = (groups, id) => groups.find((g) => g.some((r) => r.id === id)).map((r) => r.id).sort();
+  eq(holding(groupEditions(rows), "bookOne"), ["bookOne", "fe2009", "feEbook"],
+    "a bare 'Book One' joins The Final Empire, not The Hero of Ages that came out earlier but is 'Book Three'");
+  eq(holding(groupEditions(rows), "hoa2010"), ["hoa2010", "hoaBook3"], "…and The Hero of Ages keeps only its own");
+  const noFe = rows.filter((r) => !r.id.startsWith("fe"));
+  eq(holding(groupEditions(noFe), "bookOne"), ["bookOne"],
+    "…with no Final Empire in the list it stays a row of its own, not a 190-page Secret History");
+  eq(holding(groupEditions([...noFe, v("bookOneNoPages", "Mistborn: Mistborn Book One", 2011, null)]), "bookOneNoPages"),
+    ["bookOne", "bookOneNoPages"], "…and one with no page count isn't guessed into another book either");
 }
 
 // ── the edition search for the cover flow ────────────────────────────────────
@@ -460,9 +487,15 @@ eq(newGb.create[0], {
     "real search: Hero of Ages is its own row, not under Book One");
   ok(!search.some((b) => /Império|imperio/i.test(b.title)), "real search: no Portuguese or Spanish rows");
   const editions = volumesOf(fixture.editions);
-  eq(editionsFromVolumes([...volumesOf(fixture.search), ...editions], "dlfOfxkm1PoC").map((e) => e.googleBooksId),
+  const all = [...volumesOf(fixture.search), ...editions];
+  eq(editionsFromVolumes(all, "dlfOfxkm1PoC").map((e) => e.googleBooksId),
+    ["dlfOfxkm1PoC", "q0pF7ly_vTEC", "UEhoPgAACAAJ", "t_ZYYXZq4RgC"],
+    "real editions of The Final Empire: the Tor, the Gollancz (Book One), then the eBook — the anniversary print, titled only 'Mistborn', has no length to place it by");
+  // editionVolumes looks up a series-titled listing's page count: volumes.get gives this one 752.
+  const counted = all.map((v) => (v.id === "JlTPjwEACAAJ" ? { ...v, pages: 752 } : v));
+  eq(editionsFromVolumes(counted, "dlfOfxkm1PoC").map((e) => e.googleBooksId),
     ["dlfOfxkm1PoC", "q0pF7ly_vTEC", "UEhoPgAACAAJ", "JlTPjwEACAAJ", "t_ZYYXZq4RgC"],
-    "real editions of The Final Empire: the Tor, the Gollancz (Book One) and the anniversary print, then the eBook");
+    "…with its 752 pages it joins The Final Empire, not The Hero of Ages");
 }
 
 console.log(`${pass} passed, ${failures.length} failed`);
@@ -540,6 +573,14 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify({ error: "notfound" }));
     return;
   }
+  // As Google does: the list says 542 pages, volumes.get (and Google's own page) 541.
+  if (url.pathname === "/volumes/dlfOfxkm1PoC") {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ id: "dlfOfxkm1PoC", volumeInfo: { title: "Mistborn", subtitle: "The Final Empire",
+      authors: ["Brandon Sanderson"], publishedDate: "2006-07-25", pageCount: 541, printedPageCount: 542, language: "en",
+      industryIdentifiers: [{ type: "ISBN_13", identifier: "9780765311788" }], imageLinks: { thumbnail: "http://books.google.com/x" } } }));
+    return;
+  }
   if (url.pathname === `/volumes/${gbId}`) {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(piranesiDoc));
@@ -579,7 +620,7 @@ const server = createServer((req, res) => {
   if (q.toLowerCase().includes("piranesi") || q === `isbn:9781635575644`) items = [piranesiDoc];
   // Google answers isbn: with nothing; the plain words find two Tor editions of the book.
   if (/^mistborn/i.test(q)) {
-    items = [["mbTor2008pbk", "9780765350381", 2008, 672], ["dlfOfxkm1PoC", "9780765311788", 2006, 541],
+    items = [["mbTor2008pbk", "9780765350381", 2008, 672], ["dlfOfxkm1PoC", "9780765311788", 2006, 542],
       ["noPagesGol09", "9780575089914", 2009, 0]].map(([id, isbn, year, pageCount]) => ({
       id,
       volumeInfo: {
@@ -691,8 +732,8 @@ try {
 
   const byIsbn = await searchVolumes("978-1-63557-564-4");
   eq(byIsbn.map((v) => v.id), [gbId], "ISBN lookup");
-  eq((await searchVolumes("0-7653-1178-X")).map((v) => v.id), ["dlfOfxkm1PoC"],
-    "isbn: finds nothing: Open Library names the book, the plain search's listing with the ISBN is the answer");
+  eq((await searchVolumes("0-7653-1178-X")).map((v) => [v.id, v.pages]), [["dlfOfxkm1PoC", 541]],
+    "isbn: finds nothing: Open Library names the book, the plain search's listing with the ISBN is the answer — at volumes.get's 541 pages, not the list's 542");
   eq((await searchVolumes("978-1-63557-563-7")).map((v) => v.id), [gbId],
     "…no listing has the ISBN: the book's other listings are shown (and the isbn: probe 503ing didn't stop it)");
   eq(await searchVolumes("9780000000002"), [], "…an ISBN Open Library doesn't know finds nothing, without an error");

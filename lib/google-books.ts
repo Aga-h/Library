@@ -91,9 +91,12 @@ export function googleSearchQueryOf(query: string): { kind: "isbn" | "id" | "tex
  * Callers only pass a volume that *has* imageLinks, so we don't hotlink the generic placeholder.
  */
 export function googleCoverUrl(volumeId: string, size: "thumb" | "full" | "large" = "full"): string {
-  // zoom=5 is ~80px wide, zoom=1 128px (stored), zoom=2 300px (the edition picker, sharp on retina).
-  const zoom = size === "thumb" ? 5 : size === "large" ? 2 : 1;
-  return `https://books.google.com/books/content?id=${encodeURIComponent(volumeId)}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`;
+  // zoom=5 is ~80px wide, zoom=1 128px (stored). The edition picker's, sharp on retina, is the
+  // zoom=1 jacket that Google resizes (`fife`) to fit 400×600 — not zoom=2, which where Google has
+  // a preview is a scan of the book's first page: for the 2006 Mistborn, a plain title page.
+  const zoom = size === "thumb" ? 5 : 1;
+  const fit = size === "large" ? "&fife=w400-h600" : "";
+  return `https://books.google.com/books/content?id=${encodeURIComponent(volumeId)}&printsec=frontcover&img=1&zoom=${zoom}${fit}&source=gbs_api`;
 }
 
 export function isGoogleBooksImage(src: string | null | undefined): boolean {
@@ -374,8 +377,11 @@ function median(values: number[]): number | null {
  * The listings grouped by book, in the order each book first appears. A bare series name
  * ("Mistborn", "Mistborn: Mistborn Book One", "Mistborn: Collector's Tenth Anniversary Limited
  * Edition") joins the series' book of that number — the first, when it gives none: the one a
- * listing or Google's series number says is that number, else, for the first, the series' earliest
- * book. Not when it is half again as long as that book: that is the series in one volume.
+ * listing or Google's series number says is that number. Not when it is half again as long as
+ * that book: that is the series in one volume. With no listing naming book one, it is guessed as
+ * the series' earliest book that no listing numbers otherwise ("The Hero of Ages: Book Three of
+ * Mistborn" is not it, however early) — and only when the bare listing's length fits that book's,
+ * else it stays a row of its own: a wrong book is worse than a separate one.
  */
 export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
   const listings = listingsOf(rows);
@@ -409,7 +415,7 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
 
   // The named books of each series: which number each is, how early it came out, how long it is.
   const numbered = new Map<string, Set<number>>();
-  const books = new Map<number, { author: string; series: string; year: number; pages: number[] }>();
+  const books = new Map<number, { author: string; series: string; year: number; pages: number[]; numbers: Set<number> }>();
   listings.forEach((l, i) => {
     if (!l.words.size || l.omnibus || !l.series) return;
     const root = find(i);
@@ -418,7 +424,8 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
       const key = `${l.author}|${l.series}|${n}`;
       numbered.set(key, (numbered.get(key) ?? new Set<number>()).add(root));
     }
-    const book = books.get(root) ?? { author: l.author, series: l.series, year: Infinity, pages: [] };
+    const book = books.get(root) ?? { author: l.author, series: l.series, year: Infinity, pages: [], numbers: new Set<number>() };
+    if (n) book.numbers.add(n);
     if (l.row.year) book.year = Math.min(book.year, l.row.year);
     if (l.row.pages) book.pages.push(l.row.pages);
     books.set(root, book);
@@ -430,14 +437,18 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
     const n = l.parsed.number ?? l.googleNumber ?? 1;
     const known = numbered.get(`${l.author}|${series}|${n}`);
     let target = known?.size === 1 ? [...known][0] : undefined;
-    if (target === undefined && n === 1) {
-      const dated = [...books].filter(([, b]) => b.author === l.author && b.series === series && b.year !== Infinity)
+    const guessed = target === undefined;
+    if (guessed && n === 1) {
+      const dated = [...books].filter(([, b]) => b.author === l.author && b.series === series && b.year !== Infinity
+        && [...b.numbers].every((m) => m === 1))
         .sort(([, x], [, y]) => x.year - y.year);
       if (dated.length && (dated.length === 1 || dated[0][1].year < dated[1][1].year)) target = dated[0][0];
     }
     if (target === undefined) return;
     const usual = median(books.get(target)?.pages ?? []);
     if (l.row.pages && usual && l.row.pages > usual * 1.5) return;
+    // A guess needs a length that fits the book: being the earliest the list holds is not enough.
+    if (guessed && !(l.row.pages && usual && l.row.pages * 1.5 >= usual)) return;
     join(i, target);
     placed.add(i);
   });
@@ -460,6 +471,15 @@ export function groupEditions<T extends Row>(rows: readonly T[]): T[][] {
     groups.set(root, group);
   });
   return [...groups.values()];
+}
+
+/**
+ * Listings titled only by their series ("Mistborn: Collector's Tenth Anniversary Limited
+ * Edition"), read against the rest of the list. groupEditions places one by its length, so one
+ * without a page count is worth looking up before grouping.
+ */
+export function seriesOnly<T extends Row>(rows: readonly T[]): T[] {
+  return listingsOf(rows).filter((l) => !l.words.size && !l.omnibus && l.keys[0]).map((l) => l.row);
 }
 
 /**
@@ -567,6 +587,8 @@ export interface CatalogEdition {
   /** A 300px cover for the edition picker, where the 128px one blurs on a retina screen. */
   coverLarge: string | null;
   ebook: boolean;
+  /** Shown under the cover: Google calls every US Tor printing "Macmillan", so this tells them apart. */
+  isbn: string | null;
 }
 
 export function editionOf(volume: GbVolume): CatalogEdition {
@@ -579,6 +601,7 @@ export function editionOf(volume: GbVolume): CatalogEdition {
     coverThumb: volume.coverThumb,
     coverLarge: volume.cover ? googleCoverUrl(volume.id, "large") : null,
     ebook: volume.ebook,
+    isbn: volume.isbn,
   };
 }
 
