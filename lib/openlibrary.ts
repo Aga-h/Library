@@ -482,14 +482,14 @@ export interface BookFields {
  * rating, notes, language and publisher are never touched.
  */
 /**
- * Pages read once a book changes edition. A finished book stays finished; one under way keeps the
- * same share of the book (300 of 600 is 270 of 540) and stays under way.
+ * Pages read once a book changes edition — to the one you have, so the page you are on is a page
+ * of it and stays as entered. A finished book stays finished; one under way stays under way
+ * (capped below the new length). `newPages` is at least 2.
  */
 export function pagesReadOnNewEdition(pagesRead: number, oldPages: number, newPages: number): number {
   if (pagesRead <= 0) return 0;
-  if (oldPages <= 0) return Math.min(pagesRead, newPages);
-  if (pagesRead >= oldPages) return newPages;
-  return Math.max(1, Math.min(newPages - 1, Math.round((pagesRead * newPages) / oldPages)));
+  if (oldPages > 0 && pagesRead >= oldPages) return newPages;
+  return Math.max(1, Math.min(pagesRead, newPages - 1));
 }
 
 export function updatesFromWork(existing: BookFields, work: OlWork | CatalogBook): Partial<BookFields> {

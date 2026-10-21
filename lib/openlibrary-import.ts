@@ -5,9 +5,10 @@ import { isUniqueViolation } from "@/lib/prisma-errors";
 import { deriveStatus, bookProgress, BOOK_STATUS } from "@/lib/derive-status";
 import type { LanguageKey } from "@/lib/constants/languages";
 import {
-  BookCatalogError, hasPages, matchExisting, pagesReadOnNewEdition, planImport, updatesFromWork,
+  BookCatalogError, authorsMatch, hasPages, matchExisting, pagesReadOnNewEdition, planImport, updatesFromWork,
   type CatalogBook, type ExistingBook, type ReportLine,
 } from "@/lib/openlibrary";
+import { isSupabaseCover } from "@/lib/covers";
 import { catalogDetails, type CatalogItem } from "@/lib/book-catalog-service";
 import { fromGbVolume } from "@/lib/google-books";
 import { volumeById } from "@/lib/google-books-service";
@@ -186,10 +187,16 @@ async function linkBook(bookId: string, item: CatalogItem, seriesId: string | nu
     if (taken) throw new BookCatalogError(`"${taken.title}" in your library is already that volume.`, 409);
   }
 
-  // Another edition: its cover, length, publisher and the title it was picked under replace the
-  // old one's. What you did — read, owned, rating, notes, series — stays, progress scaled to it.
+  // Another edition of the same book: its length, publisher, cover and the title it was picked under
+  // replace the old one's. What you did stays — read, owned, rating, notes, series, a cover you
+  // uploaded, and the page you are on (a page of the edition you have).
   if (replace && row.googleBooksId) {
-    if (!hasPages(work)) throw new BookCatalogError("Google Books has no page count for that edition — pick another.", 400);
+    if (!hasPages(work) || work.pages < 2) {
+      throw new BookCatalogError("Google Books has no usable page count for that edition — pick another.", 400);
+    }
+    if (!authorsMatch(row.author, work.author)) {
+      throw new BookCatalogError(`That is ${work.author}'s book, not ${row.author}'s — add it from Add Book instead.`, 400);
+    }
     const pagesRead = pagesReadOnNewEdition(row.pagesRead, row.pages, work.pages);
     try {
       await db.book.update({
@@ -201,8 +208,8 @@ async function linkBook(bookId: string, item: CatalogItem, seriesId: string | nu
           pages: work.pages,
           pagesRead,
           status: deriveStatus(bookProgress({ pages: work.pages, pagesRead }), BOOK_STATUS),
-          ...(work.cover ? { coverImage: work.cover } : {}),
-          ...(work.publisher ? { publisher: work.publisher } : {}),
+          publisher: work.publisher,
+          ...(work.cover && !isSupabaseCover(row.coverImage) ? { coverImage: work.cover } : {}),
         },
       });
     } catch (e) {

@@ -235,8 +235,12 @@
       Book One"). Book page → "Change edition" opens the picker for that book (search, ISBN or a
       Google Books link); "Use this edition" sends `replace: true` with `bookId` to the import route.
       linkBook then swaps googleBooksId, pages, cover, publisher and the title it was picked under;
-      status/owned/Kindle/rating/notes/series stay; progress maps via `pagesReadOnNewEdition`
-      (finished stays finished, under way keeps its share). Checked in Chromium on the local app:
+      status/owned/Kindle/rating/notes/series stay, and so do an uploaded (Supabase) cover and the
+      page you're on (`pagesReadOnNewEdition`: kept, capped below the new length; finished stays
+      finished). Refused: another author's book (400), an edition with <2 pages. Publisher follows
+      the new edition even when null. (Review of ca89a3c found the cover overwrite, the rescaling
+      and the other-author case; the client half of that review never ran — checked by hand in
+      Chromium instead: in-place refresh, 409 shown, hand-added books unchanged.) Checked on the local app:
       a read, Kindle "Mistborn: Mistborn Book One" (647p Gollancz) → 2006 Tor → "Mistborn: The
       Final Empire", 541p, Macmillan, purple cover, still read (541/541), still Kindle.
       Idea, not done: stored covers are still zoom=1 (128px, soft on the book page); the picker's

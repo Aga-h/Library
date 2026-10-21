@@ -60,7 +60,7 @@ export default function OpenLibraryPanel({
       <div className="space-y-3">
         <div className="flex items-start sm:items-center justify-between gap-3">
           <p className="text-xs text-gray-500">
-            Pick the edition you have — or paste its ISBN or Google Books link. Its cover, page count and publisher replace these; what you&apos;ve read stays.
+            Pick the edition you have — or paste its ISBN or Google Books link. Its title, page count, publisher and cover replace these; a cover you uploaded and the page you&apos;re on stay.
           </p>
           <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="text-gray-400 hover:text-gray-700 flex-shrink-0 max-sm:p-2.5 max-sm:-m-2.5">
             <X className="w-4 h-4" />
