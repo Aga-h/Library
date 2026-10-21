@@ -536,7 +536,9 @@ function RowAction({ work: w, where, link, busy, onPick }: {
   onPick: (w: Work) => void;
 }) {
   if (link) {
-    if (w.place?.linked && w.place.bookId !== link.bookId) {
+    // Changing edition, a row matched to another book by its title is still choosable: only two
+    // books on one edition clash, and the server says so.
+    if (!link.replace && w.place?.linked && w.place.bookId !== link.bookId) {
       return (
         <Link href={`/library/books/${w.place.bookId}`} className={`${pillCls} bg-gray-100 text-gray-600 hover:bg-gray-200`}>
           <Check className="w-3 h-3 flex-shrink-0" /> Already {w.place.title}

@@ -240,7 +240,11 @@
       finished). Refused: another author's book (400), an edition with <2 pages. Publisher follows
       the new edition even when null. (Review of ca89a3c found the cover overwrite, the rescaling
       and the other-author case; the client half of that review never ran — checked by hand in
-      Chromium instead: in-place refresh, 409 shown, hand-added books unchanged.) Checked on the local app:
+      Chromium instead: in-place refresh, 409 shown, hand-added books unchanged.) 2026-10-21, user:
+      "change edition doesn't work" — with a second book of the same title in the library (their first
+      import), the search row holding the wanted edition said "Already <title>" and had no Choose.
+      Replace mode no longer blocks title matches (only an exact edition clash, 409 from the server).
+      Reproduced and fixed on a production build (`next build && next start`). Checked on the local app:
       a read, Kindle "Mistborn: Mistborn Book One" (647p Gollancz) → 2006 Tor → "Mistborn: The
       Final Empire", 541p, Macmillan, purple cover, still read (541/541), still Kindle.
       Idea, not done: stored covers are still zoom=1 (128px, soft on the book page); the picker's
