@@ -195,7 +195,7 @@
       SAT vocabulary and Daily review sections; Stats, At a glance and environment table corrected
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
       `lib/dates.ts`). 2026-10-02 (rev 28): TMDB movie import paragraphs under Library, and
-      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs. Rev 31: anime import paragraphs and the `MAL_CLIENT_ID` row. Rev 32: "Look" paragraph + table of the five themes under At a glance.
+      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs. Rev 31: anime import paragraphs and the `MAL_CLIENT_ID` row. Rev 32: "Look" paragraph + table of the five themes under At a glance. Rev 34: Self Care (Diet + Wardrobe).
       **Update it whenever a section's behaviour changes.**
 
 - [x] **Weekly study goals** — an overall target in hours and one per module, all set inline in
@@ -247,7 +247,7 @@
       Checked on a production build against Postgres in Chromium: five looks at 1180 and 390, no
       sideways scroll, no console errors besides Speed Insights, 0 animations under reduced
       motion; portal tile → today, next → "Tomorrow's meals", wardrobe add → edit → delete on the
-      new paths (database checked). Handbook not yet updated for Self Care.
+      new paths (database checked). Handbook rev 34: Wardrobe chapter became Self Care (Diet + Wardrobe).
 - [x] **Books: change a book's edition after importing** (user, 2026-10-20: "after you import a book
       you can't import a different edition of it"; they had imported a 544-page "Mistborn: Mistborn
       Book One"). Book page → "Change edition" opens the picker for that book (search, ISBN or a
