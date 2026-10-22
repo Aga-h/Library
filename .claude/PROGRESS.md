@@ -195,7 +195,7 @@
       SAT vocabulary and Daily review sections; Stats, At a glance and environment table corrected
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
       `lib/dates.ts`). 2026-10-02 (rev 28): TMDB movie import paragraphs under Library, and
-      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs. Rev 31: anime import paragraphs and the `MAL_CLIENT_ID` row. Rev 32: "Look" paragraph + table of the five themes under At a glance. Rev 34: Self Care (Diet + Wardrobe).
+      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs. Rev 31: anime import paragraphs and the `MAL_CLIENT_ID` row. Rev 32: "Look" paragraph + table of the five themes under At a glance. Rev 34: Self Care (Diet + Wardrobe). Rev 36: Diet ticks and water; the other looks archived.
       **Update it whenever a section's behaviour changes.**
 
 - [x] **Weekly study goals** — an overall target in hours and one per module, all set inline in
@@ -247,7 +247,7 @@
       at once (741 kcal = 368 + 373; 0.83 L = 500 + 330), survive a reload, tomorrow has no boxes,
       no sideways scroll, no console errors, 0 animations under reduced motion. Ticks are optimistic
       and roll back with a message if the save fails; a second tap waits for the first.
-      **Needs 038 run** (see Blocked).
+      Handbook rev 36. **Needs 038 run** (see Blocked).
 - [x] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
       a tab under Self Care"; plus a diet tab showing *today's* meals from their monthly plan; they
       send a new plan each month). `/self-care` is the Diet tab (as `/study` is Study): the day's
