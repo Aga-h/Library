@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { REPORT_PATH, SESSION_COOKIE, verifyReportToken, verifySessionToken, verifyWidgetToken, widgetMayCall } from "@/lib/session";
+import { REPORT_PATH, SESSION_COOKIE, verifyReportToken, verifySessionToken, verifyWidgetToken, widgetMayCall, widgetTokenRefusal } from "@/lib/session";
 
 const PUBLIC_PATHS = ["/login", "/api/auth"];
 
@@ -42,12 +42,13 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // The phone's widgets: their own token, for the few calls they make and nothing else.
-    if (
-      widgetMayCall(request.method, pathname) &&
-      (await verifyWidgetToken(request.headers.get("authorization"), process.env.WIDGET_TOKEN))
-    ) {
-      return NextResponse.next();
+    // The phone's widgets: their own token, for the few calls they make and nothing else. A
+    // refused one is told why, so the widget can say whether the phone or the site needs fixing.
+    if (widgetMayCall(request.method, pathname) && request.headers.get("authorization")?.startsWith("Bearer ")) {
+      if (await verifyWidgetToken(request.headers.get("authorization"), process.env.WIDGET_TOKEN)) {
+        return NextResponse.next();
+      }
+      return NextResponse.json({ error: widgetTokenRefusal(process.env.WIDGET_TOKEN) }, { status: 401 });
     }
 
     // API callers get JSON. Redirecting them to the HTML login page produced a 200 that

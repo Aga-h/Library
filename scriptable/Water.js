@@ -86,7 +86,9 @@ async function api(path, method = "GET", body) {
   }
   const status = req.response.statusCode;
   if (status === 401) {
-    const e = new Error("The site refused the token. Check that WIDGET_TOKEN in Vercel is the one saved here.");
+    // The site says which side is wrong; the token's ends let it be compared with Vercel's.
+    const t = savedToken() || "";
+    const e = new Error(`${(data && data.error) || "The site refused the token."} This phone's token is ${t.slice(0, 6)}…${t.slice(-4)}.`);
     e.refused = true;
     throw e;
   }
@@ -151,7 +153,8 @@ function waterWidget(day, problem) {
   text(head, ".", Font.boldSystemFont(15), LIME);
   w.addSpacer();
   if (problem) {
-    text(w, problem, Font.systemFont(11), GREY, 4);
+    const t = text(w, problem, Font.systemFont(11), GREY, 7);
+    t.minimumScaleFactor = 0.8;
     w.addSpacer();
     return w;
   }
@@ -211,7 +214,7 @@ async function logWater() {
 if (config.runsInWidget) {
   let widget;
   if (!savedToken()) {
-    widget = waterWidget(null, "Open Scriptable and run Water once to connect it to the site.");
+    widget = waterWidget(null, "Tap to connect this widget to the site.");
   } else {
     try {
       widget = waterWidget(await api("/api/self-care/day"));

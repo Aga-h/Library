@@ -2,7 +2,7 @@
 // nothing, so a missing environment variable can never become an open endpoint.
 //
 // Run: node --experimental-strip-types scripts/test-report-token.mjs
-import { verifyReportToken, verifyWidgetToken, widgetMayCall, WIDGET_ROUTES, REPORT_TOKEN_MIN_LENGTH, REPORT_PATH } from "../lib/session.ts";
+import { verifyReportToken, verifyWidgetToken, widgetMayCall, widgetTokenRefusal, WIDGET_ROUTES, REPORT_TOKEN_MIN_LENGTH, REPORT_PATH } from "../lib/session.ts";
 
 let pass = 0;
 const failures = [];
@@ -49,6 +49,12 @@ ok(!widgetMayCall("GET", "/api/self-care/dayx"), "nor a longer name sharing its 
 ok(!widgetMayCall("GET", REPORT_PATH), "not the study review");
 ok(!widgetMayCall("GET", "/self-care"), "not the pages");
 ok(!widgetMayCall("get", "/api/self-care/day"), "methods are matched exactly");
+// A refused widget is told which side to fix, never the token itself.
+ok(/no WIDGET_TOKEN/.test(widgetTokenRefusal(undefined)), "unset on the site: says the site has none");
+ok(/no WIDGET_TOKEN/.test(widgetTokenRefusal("  ")), "…as does a blank one");
+ok(/no WIDGET_TOKEN/.test(widgetTokenRefusal("short")), "…and one too short to ever match");
+ok(/doesn't match/.test(widgetTokenRefusal(TOKEN)), "set on the site: says the two differ");
+ok(!widgetTokenRefusal(TOKEN).includes(TOKEN), "the message never carries the token");
 
 if (failures.length) {
   console.error(`${pass} passed, ${failures.length} failed\n`);

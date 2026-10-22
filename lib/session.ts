@@ -140,3 +140,14 @@ export function widgetMayCall(method: string, pathname: string): boolean {
 
 /** The same fail-closed check as REPORT_TOKEN's, against WIDGET_TOKEN. */
 export const verifyWidgetToken = verifyReportToken;
+
+/**
+ * Why a widget's token was refused, said to the phone: the site has no usable WIDGET_TOKEN (unset,
+ * under 32 characters, or set without a redeploy), or the two differ. Telling them apart is what
+ * lets a widget that can't connect say which side to fix; neither reveals the token.
+ */
+export function widgetTokenRefusal(expected: string | undefined): string {
+  return (expected?.trim().length ?? 0) >= REPORT_TOKEN_MIN_LENGTH
+    ? "The token on this phone doesn't match WIDGET_TOKEN on the site."
+    : "The site has no WIDGET_TOKEN yet. Add it in Vercel (32 or more characters), then redeploy.";
+}

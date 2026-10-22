@@ -249,6 +249,12 @@
       large / medium / small widgets, a widget tap ticking a meal + a checklist tap, untick, a
       stale row, water +250 / "abc" refused / 330 (DB +580 ml), site unreachable. Every property
       used was checked against docs.scriptable.app. **Not seen on a real phone** — see Blocked.
+      2026-10-22, user: "i added the WIDGET_TOKEN but doesnt work". Found: no deploy since the last
+      push (07:47 UTC) — Vercel only gives new env vars to deployments made after them — and two
+      script gaps: a problem widget (not connected / refused) set no tap, so a tap only opened
+      Scriptable; and "refused" didn't say which side was wrong. Now a refused widget token gets
+      why (`widgetTokenRefusal`: the site has none vs. the two differ), the scripts show it with the
+      phone token's first 6 / last 4 to compare with Vercel, and a problem widget runs its script.
 - [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
       Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that

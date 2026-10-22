@@ -90,7 +90,9 @@ async function api(path, method = "GET", body) {
   }
   const status = req.response.statusCode;
   if (status === 401) {
-    const e = new Error("The site refused the token. Check that WIDGET_TOKEN in Vercel is the one saved here.");
+    // The site says which side is wrong; the token's ends let it be compared with Vercel's.
+    const t = savedToken() || "";
+    const e = new Error(`${(data && data.error) || "The site refused the token."} This phone's token is ${t.slice(0, 6)}…${t.slice(-4)}.`);
     e.refused = true;
     throw e;
   }
@@ -172,7 +174,7 @@ function heading(widget, title, label, size) {
 function message(widget, title, body) {
   heading(widget, title, null, 15);
   widget.addSpacer(6);
-  text(widget, body, Font.systemFont(12), GREY, 4);
+  text(widget, body, Font.systemFont(12), GREY, 6);
   widget.addSpacer();
 }
 
@@ -329,7 +331,7 @@ if (config.runsInWidget) {
   if (!savedToken()) {
     widget = new ListWidget();
     sky(widget);
-    message(widget, "meals", "Open Scriptable and run Diet once to connect it to the site.");
+    message(widget, "meals", "Tap to connect this widget to the site.");
   } else {
     try {
       widget = dietWidget(await api("/api/self-care/day"));
@@ -339,6 +341,8 @@ if (config.runsInWidget) {
       message(widget, "meals", e.message);
     }
   }
+  // Without this a tap on a problem only opened Scriptable; now it runs Diet, which can fix it.
+  if (!widget.url) widget.url = `scriptable:///run/${encodeURIComponent(Script.name())}`;
   Script.setWidget(widget);
 } else {
   // From the app, or a tap on the widget: tick the tapped meal, then show the day's checklist.
