@@ -252,7 +252,16 @@
       before sending; DB empty; reopened still blocked, queue intact; unblocked → DB has both ticks
       and one 500, a second sync adds nothing, a fresh load shows them; next morning still blocked,
       Thursday's cached page shows Friday's plan. Expense logger still opens offline. No page
-      errors. 12 overlay tests. **Not yet on the iPad** — see Blocked.
+      errors. 12 overlay tests.
+      2026-10-22, user (iPad, school Wi-Fi, screenshot): "it redirected me to expense logger".
+      Cause, reproduced in Chromium: the Diet app shares the Expenses app's offline helper, still
+      v1 (it can only update by reaching the site, which the school blocks), and v1 falls back to
+      `/finances/log` for any page it hasn't saved. One open on a network that reaches the site
+      installs v2, and Diet then opens on the blocked network. Found on the way: v2 deleted v1's
+      saved build files, so pages opened offline right after the update couldn't run (a tick did
+      nothing — the expense logger too). Now build files are never dropped (content-hashed; only
+      old `shell-*` caches go). Checked v1 → new and the earlier live v2 → new: offline, Diet queues
+      a tick and Expenses queues an expense.
 - [x] **Diet as phone widgets (Scriptable)** (user, 2026-10-22: "i want the diet tab to be a widget where
       can i check off and see meals and as a separate widget log water i installed scriptable").
       `scriptable/Diet.js` (large: today's meals with ticks and kcal eaten; medium: the next three

@@ -12,7 +12,10 @@ const SHELLS = { "/self-care": "/self-care", "/finances": "/finances/log" };
 const NETWORK_WAIT_MS = 4000;
 const WAITS_FOR = ["/self-care", "/finances/log"];
 const SHELL_CACHE = `shell-${VERSION}`;
-const ASSET_CACHE = `assets-${VERSION}`;
+// Not tied to VERSION, and never dropped: build files are content-hashed, so a saved one is never
+// wrong, and a page saved for offline needs its scripts. Dropping them on an update left the
+// cached pages unable to run, ticks and expenses included, until next opened online.
+const ASSET_CACHE = "assets-v1";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -30,7 +33,7 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((k) => k !== SHELL_CACHE && k !== ASSET_CACHE).map((k) => caches.delete(k))
+          keys.filter((k) => k.startsWith("shell-") && k !== SHELL_CACHE).map((k) => caches.delete(k))
         )
       )
       .then(() => self.clients.claim())
