@@ -449,7 +449,8 @@ Soft Club is softer, cooler, earthbound and urban.
    - `text-2xl font-bold` (and `text-3xl` / `text-4xl` on a `span`, `p` or the amount field) → LED figures
    - `bg-gray-900` → the roll sign
 
-   Use the same classes the other looks use, so each look keeps working.
+   The other looks are archived and no longer checked, but the shared classes keep them from
+   breaking outright.
 2. **Name the reference.** For anything signature, pick the image it comes from in §1 and
    say so in the CSS comment, as the existing rules do ("like the bands on Ambient Lounge's
    sleeve"). If no reference fits, ask the owner rather than inventing one.

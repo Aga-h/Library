@@ -63,8 +63,9 @@ the decision is the user's: product direction, or a tradeoff where either choice
 
 # Soft Club
 
-Visual work is for the **Soft Club** look only. Acid, Early Cyber, Cyberdelia and Classic stay as
-they are.
+Visual work is for the **Soft Club** look only. Acid, Early Cyber, Cyberdelia and Classic are
+**archived** (owner, 2026-10-22): they stay selectable exactly as they are, but are no longer updated,
+redesigned or checked when something new is built.
 
 Before adding or changing anything that shows on the site, read `docs/design/soft-club.md` and the
 reference images in `docs/design/references/softclub/`. Follow those rules. Where an image and the

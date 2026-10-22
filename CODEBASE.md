@@ -483,7 +483,8 @@ lowercase Lexend Exa light titles with a lime full stop, Share Tech Mono `<label
 `tracking-wide` and `tracking-wider`), DotGothic16 LED numbers at 2xl–4xl. Sign-in is left-anchored. The open menu item and the dark badges are navy roll signs, blurred. The lime target sits
 under the sidebar menu, or in the corner on pages without a sidebar, beside a row of fading orange
 dots.
-The other three looks are first drafts and are to be redone the same way, from references.
+The other four looks (Acid, Early Cyber, Cyberdelia, Classic) are archived since 2026-10-22: still
+selectable, but no longer updated or checked. New work is built and checked in Soft Club only.
 
 ## Layout
 

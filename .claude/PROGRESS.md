@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Self Care section: Wardrobe is now a tab of it, beside a Diet tab that shows the day's meals from the monthly plan (October in `lib/meal-plans/2026-10.ts`; November when the user sends it). Earlier: Books "Change edition"; Google Books daily limit is 1,000 — see Blocked. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-22 — Self Care section: Wardrobe is now a tab of it, beside a Diet tab that shows the day's meals from the monthly plan (October in `lib/meal-plans/2026-10.ts`; November when the user sends it). Earlier: Books "Change edition"; Google Books daily limit is 1,000 — see Blocked. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Every look but Soft Club is archived (no longer updated). Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -579,7 +579,8 @@
       motion, motifs, do/don't and a build checklist. The user then committed the 24 reference
       images; they are in `docs/design/references/softclub/` and indexed in the guideline's §1.
       Open for the owner (see Blocked): label and readout contrast is below AA.
-- [ ] **Then Early Cyber, then Cyberdelia**
+- [x] ~~Then Early Cyber, then Cyberdelia~~ — dropped. The owner archived every look but Soft Club
+      (2026-10-22): the others stay selectable as they are and are no longer updated or checked.
 - [x] **Anime: import a whole MyAnimeList list** (user, 2026-10-14, Turkish: log every anime in their
       list with the auto import, all watched, only complete seasons — no films, OVAs, specials,
       recaps). I can't log into the site from here, so it's a page they run once:
