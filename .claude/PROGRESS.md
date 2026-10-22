@@ -260,7 +260,10 @@
       ~1.3 s with JSON, so it's the phone side — but the scripts hid the cause: `loadJSON` failing
       for any reason became "Couldn't reach the site" with no detail. Now `loadString` (fails only
       with no answer at all) + JSON.parse, and the message carries iOS's own reason, or the status
-      and the start of a non-JSON page. Waiting on the user's exact message.
+      and the start of a non-JSON page. Then the user (iPad, 13:28 on a school day): "the site is
+      banned on school wifi" — that is the cause: the school network blocks the domain, so Scriptable
+      gets no answer there. Nothing in the script needed changing. Not built: a way round the
+      school's filter. Offered, not built: show the last day fetched when the site can't be reached.
 - [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
       Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that
@@ -798,7 +801,8 @@
 
 ## Blocked / needs the user
 
-- **Phone widgets: confirm they connect on the phone.** `WIDGET_TOKEN` is set on the live site —
+- **Phone widgets: confirm they connect off the school Wi-Fi** (it blocks the site; home Wi-Fi or
+  mobile data). `WIDGET_TOKEN` is set on the live site —
   verified 2026-10-22 07:55 UTC after the redeploy (a probe token gets "doesn't match", not "no
   WIDGET_TOKEN"). If the phone still says "doesn't match", the phone's token (its first 6 / last 4
   show in the message) differs from Vercel's: paste Vercel's value via the widget → Change token →
