@@ -82,13 +82,21 @@ async function api(path, method = "GET", body) {
   req.timeoutInterval = 20;
   req.headers = { Authorization: `Bearer ${savedToken()}`, "Content-Type": "application/json" };
   if (body !== undefined) req.body = JSON.stringify(body);
-  let data = null;
+  // As text first, then JSON: loadString only fails when no answer came back at all, so a
+  // refusal or an error page is never mistaken for the site being out of reach.
+  let raw;
   try {
-    data = await req.loadJSON();
-  } catch {
-    if (!req.response || !req.response.statusCode) throw new Error("Couldn't reach the site.");
+    raw = await req.loadString();
+  } catch (e) {
+    throw new Error(`Couldn't reach the site: ${(e && e.message) || e}`);
   }
   const status = req.response.statusCode;
+  let data = null;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    // Not JSON: an error page from somewhere on the way. Reported below with what it said.
+  }
   if (status === 401) {
     // The site says which side is wrong; the token's ends let it be compared with Vercel's.
     const t = savedToken() || "";
@@ -96,7 +104,10 @@ async function api(path, method = "GET", body) {
     e.refused = true;
     throw e;
   }
-  if (status < 200 || status >= 300) throw new Error((data && data.error) || `The site answered ${status}.`);
+  if (status < 200 || status >= 300 || data === null) {
+    const said = raw ? `: "${raw.replace(/\s+/g, " ").slice(0, 80)}"` : "";
+    throw new Error((data && data.error) || `The site answered ${status}${said}`);
+  }
   return data;
 }
 

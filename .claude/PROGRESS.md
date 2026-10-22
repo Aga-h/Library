@@ -256,6 +256,11 @@
       why (`widgetTokenRefusal`: the site has none vs. the two differ), the scripts show it with the
       phone token's first 6 / last 4 to compare with Vercel, and a problem widget runs its script.
       After the push deployed, the live site has the token (probe → "doesn't match").
+      Then the user: "it says couldnt reach site". The live site answers a Scriptable-like request in
+      ~1.3 s with JSON, so it's the phone side — but the scripts hid the cause: `loadJSON` failing
+      for any reason became "Couldn't reach the site" with no detail. Now `loadString` (fails only
+      with no answer at all) + JSON.parse, and the message carries iOS's own reason, or the status
+      and the start of a non-JSON page. Waiting on the user's exact message.
 - [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
       Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that

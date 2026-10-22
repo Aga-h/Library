@@ -28,3 +28,16 @@ The token sits in the iOS Keychain, so Water finds the one Diet saved. It opens 
 nothing else: reading the day, ticking a meal, logging water (`WIDGET_ROUTES` in `lib/session.ts`).
 Changing `WIDGET_TOKEN` in Vercel locks out a lost phone; on the next tap the scripts offer to
 change the token.
+
+## When a widget says something is wrong
+
+- **"Couldn't reach the site: …"** — no answer came back; the words after the colon are iOS's
+  reason. Check Settings › Scriptable › Mobile Data is on, and try Wi-Fi and mobile data. If the
+  site opens in Safari but not here, something on the way (a VPN, a DNS or content filter, a
+  carrier's internet filter) is stopping apps that Safari gets round, for instance through iCloud
+  Private Relay.
+- **"The site has no WIDGET_TOKEN yet"** — add it in Vercel, then redeploy: a variable only reaches
+  deployments made after it.
+- **"…doesn't match WIDGET_TOKEN on the site"** — compare the first 6 and last 4 characters shown
+  with the value in Vercel. To use Vercel's: tap the widget → Change token → Use this token.
+- **"The site answered 502: …"** — an error page; what it said follows.
