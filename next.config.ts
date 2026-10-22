@@ -37,6 +37,13 @@ const nextConfig: NextConfig = {
     // Cover art is immutable once mirrored; the 60s default re-transforms it constantly.
     minimumCacheTTL: 31_536_000,
   },
+  async redirects() {
+    return [
+      // Wardrobe became a tab of Self Care. Old bookmarks and home-screen links still land.
+      // Temporary, so browsers don't cache it if the path is ever reused.
+      { source: "/wardrobe/:path*", destination: "/self-care/wardrobe/:path*", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

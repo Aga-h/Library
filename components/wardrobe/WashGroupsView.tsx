@@ -141,7 +141,7 @@ export default function WashGroupsView({ garments }: { garments: Garment[] }) {
                 return (
                   <li key={item.id}>
                     <Link
-                      href={`/wardrobe/${item.id}`}
+                      href={`/self-care/wardrobe/${item.id}`}
                       className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 hover:bg-gray-50 transition-colors"
                     >
                       <div className="min-w-0 break-words">

@@ -20,7 +20,7 @@
   --theme-font-label: var(--theme-font-body);
 }
 
-/* Page titles: an h1 on most pages, an h2.text-2xl on the Study and Wardrobe ones. */
+/* Page titles: an h1 on most pages, an h2.text-2xl on the Study and Self Care ones. */
 h1,
 h2.text-2xl,
 .theme-brand {

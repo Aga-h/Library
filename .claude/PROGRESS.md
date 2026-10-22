@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-20 — Books: "Change edition" on a book's page; Book One no longer lands under Hero of Ages; real jackets in the Cover Flow; page counts and ISBNs match Google's page. Google Books daily limit is 1,000 — see Blocked. Earlier today: Cursor's work reviewed and fixed. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-22 — Self Care section: Wardrobe is now a tab of it, beside a Diet tab that shows the day's meals from the monthly plan (October in `lib/meal-plans/2026-10.ts`; November when the user sends it). Earlier: Books "Change edition"; Google Books daily limit is 1,000 — see Blocked. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Remaining: Early Cyber then Cyberdelia redesigns; trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,13 +230,24 @@
 
 ## Next
 
-- [ ] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
+- [x] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
       a tab under Self Care"; plus a diet tab showing *today's* meals from their monthly plan; they
-      send a new plan each month). Plan: `/self-care` = Diet (today, prev/next day), tab nav like
-      Study (`SectionNav`); `app/wardrobe` → `app/self-care/wardrobe`, `/wardrobe/*` redirects there;
-      `/api/wardrobe` unchanged. Plan data in the repo, one file per month (`lib/meal-plans/`), no
-      migration — October from "October Cut Plan: Day by Day" (22–31 Oct). Portal tile Wardrobe →
-      Self Care.
+      send a new plan each month). `/self-care` is the Diet tab (as `/study` is Study): the day's
+      kcal / protein / water, the day's note, its meals, prev / next / Today (`?date=`; a bad date
+      is today), a folded "Weekends at home" on weekends and the bank holiday, and the plan's
+      rules, folded. A day with no plan says so and links the plans there are. Wardrobe moved to
+      `/self-care/wardrobe` (`git mv`, links updated); `/wardrobe/*` 307-redirects there
+      (next.config); `/api/wardrobe` unchanged. Portal tile Wardrobe → Self Care.
+      Plans are in the repo, no migration: `lib/meal-plan.ts` + `lib/meal-plans/2026-10.ts`
+      (22–31 Oct, "October Cut Plan: Day by Day" as updated 22 Oct). **Next month:** transcribe the
+      new plan into `lib/meal-plans/YYYY-MM.ts`, add it to `MEAL_PLANS`, run
+      `scripts/test-meal-plan.mjs` — it checks each total against the meals (protein may be 1 g
+      off, as in the plan itself: Sun 25, Wed 28, home), each meal against its bracketed dishes, no
+      missing day, and October's gym days on Mon/Wed/Fri (190 checks; two planted typos caught).
+      Checked on a production build against Postgres in Chromium: five looks at 1180 and 390, no
+      sideways scroll, no console errors besides Speed Insights, 0 animations under reduced
+      motion; portal tile → today, next → "Tomorrow's meals", wardrobe add → edit → delete on the
+      new paths (database checked). Handbook not yet updated for Self Care.
 - [x] **Books: change a book's edition after importing** (user, 2026-10-20: "after you import a book
       you can't import a different edition of it"; they had imported a 544-page "Mistborn: Mistborn
       Book One"). Book page → "Change edition" opens the picker for that book (search, ISBN or a

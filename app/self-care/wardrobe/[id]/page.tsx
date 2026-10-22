@@ -48,7 +48,7 @@ export default async function GarmentDetailPage({ params }: RouteContext) {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Back */}
-      <Link href="/wardrobe" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 max-sm:-mt-2.5 max-sm:mb-3.5 max-sm:py-2.5 transition-colors">
+      <Link href="/self-care/wardrobe" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 max-sm:-mt-2.5 max-sm:mb-3.5 max-sm:py-2.5 transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Wardrobe
       </Link>
 
@@ -91,7 +91,7 @@ export default async function GarmentDetailPage({ params }: RouteContext) {
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <WardrobeActions garmentId={garment.id} wornCount={garment.wornCount} />
             <Link
-              href={`/wardrobe/${garment.id}/edit`}
+              href={`/self-care/wardrobe/${garment.id}/edit`}
               className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2 max-sm:py-2.5 rounded-lg text-xs font-semibold hover:bg-gray-50 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" /> Edit

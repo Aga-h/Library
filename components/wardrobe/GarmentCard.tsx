@@ -26,7 +26,7 @@ export default function GarmentCard({ garment }: { garment: Garment }) {
   const urgency = urgencyFromWornCount(garment.type, garment.wornCount);
 
   return (
-    <Link href={`/wardrobe/${garment.id}`}
+    <Link href={`/self-care/wardrobe/${garment.id}`}
       className={`group flex flex-col bg-white border rounded-xl overflow-hidden hover:shadow-md transition-all ${urgency.color}`}>
       <div className="relative bg-gray-100 h-40 flex items-center justify-center overflow-hidden">
         {garment.image ? (

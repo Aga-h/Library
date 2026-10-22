@@ -100,10 +100,11 @@ const ROUTES = [
   "/shopping/new",
   "/shopping/sh1",
   "/shopping/sh1/edit",
-  "/wardrobe",
-  "/wardrobe/new",
-  "/wardrobe/w1",
-  "/wardrobe/w1/edit",
+  "/self-care",
+  "/self-care/wardrobe",
+  "/self-care/wardrobe/new",
+  "/self-care/wardrobe/w1",
+  "/self-care/wardrobe/w1/edit",
 ];
 
 async function measure(page) {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookMarked, Shirt, Wallet, GraduationCap, ShoppingBag, ArrowRight } from "lucide-react";
+import { BookMarked, HeartPulse, Wallet, GraduationCap, ShoppingBag, ArrowRight } from "lucide-react";
 import ThemePicker from "@/components/ui/ThemePicker";
 
 const SECTIONS = [
@@ -13,10 +13,10 @@ const SECTIONS = [
     available: true,
   },
   {
-    href: "/wardrobe",
-    label: "Wardrobe",
-    description: "Smart washing & drying calculator",
-    icon: Shirt,
+    href: "/self-care",
+    label: "Self Care",
+    description: "Today's meal plan, and the wardrobe's washing calculator",
+    icon: HeartPulse,
     color: "from-emerald-50 to-teal-50 border-emerald-200",
     iconColor: "text-emerald-600",
     available: true,

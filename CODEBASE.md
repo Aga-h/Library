@@ -1,6 +1,6 @@
 # MyPortal — architecture
 
-A personal hub: **Library**, **Wardrobe**, **Finances**, **Study** and **Shopping**, behind one
+A personal hub: **Library**, **Self Care** (diet and wardrobe), **Finances**, **Study** and **Shopping**, behind one
 password. Next.js App Router on Vercel, Prisma against Supabase Postgres, Tailwind.
 
 This file covers how the pieces fit and the conventions that hold across them. For what is done
@@ -361,7 +361,7 @@ text-green-700` pill stays legible. `app/themes.css` adds what a palette can't: 
 radii and shadows via Tailwind's `--radius-*`/`--shadow-*` variables, and signature touches keyed off
 hook classes in the shells — `theme-sidebar`, `theme-brand`, `theme-nav`, `theme-nav-item[data-active]`,
 `theme-header`, `theme-tile`. Unlayered CSS beats Tailwind's layered utilities, so a skin can restyle
-`.bg-gray-900` without `!important`. Page titles are `h1` or `h2.text-2xl` (Study, Wardrobe).
+`.bg-gray-900` without `!important`. Page titles are `h1` or `h2.text-2xl` (Study, Self Care).
 Hardcoded colours defeat this: the dashboard donut uses `var(--color-*)` through `style`, since SVG
 presentation attributes can't read CSS variables. Classic has no rules — Tailwind's own palette.
 Inspired by the Aesthetics Wiki's pages (behind a Cloudflare challenge, so researched via web search
@@ -491,7 +491,7 @@ The other three looks are first drafts and are to be redone the same way, from r
 app/
   (portal)          app/page.tsx — the four section cards
   library/…         eight media types, each list / detail / edit / new
-  wardrobe/…        garments and wash loads
+  self-care/…       the day's meals from the diet plan (/self-care); wardrobe/… garments and wash loads
   finances/…        month view, plus /log (installable PWA)
   study/…           sessions, modules, stats, APs, SAT vocabulary
   shopping/…        shops by category (a metro map); a shop's page with its products; new / edit
@@ -531,6 +531,7 @@ scripts/                node test scripts, graph sealing
 | `stats.ts` | The fourteen stats and their presentation |
 | `shopping.ts` / `shopping-service.ts` | Shop addresses, names from domains, categories, line codes and colours / categories in use |
 | `wash-calculator.ts` | Care labels → machine settings |
+| `meal-plan.ts` / `meal-plans/*.ts` | The diet plan's shape and which plan covers a day / one file per month, transcribed from the user's plan. A new month is a new file added to `MEAL_PLANS`; `npm test` checks its sums |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
 | `fund-sources.ts` / `fund-source-client.ts` | The Base / Extra pots: carryover, balances, queued-expense adjustment / the remembered card |
 | `installments.ts` | Installment purchases: the per-month split to the kuruş, which installment a month is, paid / left |
@@ -543,7 +544,7 @@ scripts/                node test scripts, graph sealing
 `npm test` runs plain node scripts over the pure modules — status derivation, date maths, the
 XP rule, the level curve, the vocabulary parser and question builder, the daily review, the
 report token, the Comic Vine, TMDB (film and TV), MyAnimeList (anime and manga) and Google Books (books) merge rules, the shopping
-rules (addresses, categories, line codes), the finance pots (carryover per source, balances), and installment splits. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
+rules (addresses, categories, line codes), the finance pots (carryover per source, balances), installment splits, and the meal plans' sums. `scripts/alias.mjs` teaches node the `@/` import alias, so a pure module can
 import another the same way the app does. There is no browser test suite; UI and schema changes are verified by running the app
 against a throwaway Postgres and driving it, because the bugs that mattered here were only
 visible in the **database**, not on screen. The offline expense logger passed every browser

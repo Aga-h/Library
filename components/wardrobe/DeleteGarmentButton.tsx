@@ -12,7 +12,7 @@ export default function DeleteGarmentButton({ garmentId }: { garmentId: string }
   async function handleDelete() {
     setLoading(true);
     const res = await fetch(`/api/wardrobe/${garmentId}`, { method: "DELETE" });
-    if (res.ok) { router.push("/wardrobe"); }
+    if (res.ok) { router.push("/self-care/wardrobe"); }
     else { setLoading(false); setConfirming(false); }
   }
 

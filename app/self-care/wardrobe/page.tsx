@@ -52,7 +52,7 @@ export default async function WardrobePage({
           {/* View toggle */}
           <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
             <Link
-              href="/wardrobe"
+              href="/self-care/wardrobe"
               className={`whitespace-nowrap px-3 py-1.5 max-sm:py-2.5 rounded-md text-xs font-semibold transition-colors ${
                 !isGroupView ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
               }`}
@@ -60,7 +60,7 @@ export default async function WardrobePage({
               Items
             </Link>
             <Link
-              href="/wardrobe?view=groups"
+              href="/self-care/wardrobe?view=groups"
               className={`whitespace-nowrap px-3 py-1.5 max-sm:py-2.5 rounded-md text-xs font-semibold transition-colors ${
                 isGroupView ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
               }`}
@@ -69,7 +69,7 @@ export default async function WardrobePage({
             </Link>
           </div>
           <Link
-            href="/wardrobe/new"
+            href="/self-care/wardrobe/new"
             className="flex items-center gap-2 whitespace-nowrap bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Garment
@@ -100,9 +100,9 @@ export default async function WardrobePage({
         <>
           {/* Type filter tabs */}
           <div className="flex flex-wrap gap-2">
-            <FilterTab href="/wardrobe" active={!activeType} label="All" />
+            <FilterTab href="/self-care/wardrobe" active={!activeType} label="All" />
             {TYPES.map((t) => (
-              <FilterTab key={t} href={`/wardrobe?type=${t}`} active={activeType === t} label={TYPE_LABELS[t]} />
+              <FilterTab key={t} href={`/self-care/wardrobe?type=${t}`} active={activeType === t} label={TYPE_LABELS[t]} />
             ))}
           </div>
 
@@ -112,7 +112,7 @@ export default async function WardrobePage({
               <Shirt className="w-12 h-12 mx-auto mb-4 opacity-30" />
               <p className="font-medium">No garments yet</p>
               <p className="text-sm mt-1">Add your first item to get washing recommendations</p>
-              <Link href="/wardrobe/new" className="inline-block mt-4 text-sm font-semibold text-gray-900 underline underline-offset-2">
+              <Link href="/self-care/wardrobe/new" className="inline-block mt-4 text-sm font-semibold text-gray-900 underline underline-offset-2">
                 Add a garment
               </Link>
             </div>
