@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Diet: meals tick off and water is logged toward the day's goal (needs migration 038 — see Blocked). Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–038, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-22 — Diet: meals tick off and water is logged toward the day's goal (038 has run). Next: the same as two Scriptable widgets on the phone. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,6 +230,14 @@
 
 ## Next
 
+- [ ] **Diet as phone widgets (Scriptable)** (user, 2026-10-22: "i want the diet tab to be a widget where
+      can i check off and see meals and as a separate widget log water i installed scriptable").
+      Scriptable widgets can't run code on tap — a tap opens the app, and iOS decides when a widget
+      redraws (no in-script reload). So: `scriptable/Diet.js` (large: today's meals with ticks; a
+      tapped row ticks it in the app, then a checklist) and `scriptable/Water.js` (small: litres of
+      the goal; tap → +250 / +500 / other). Auth: a `WIDGET_TOKEN` bearer (like REPORT_TOKEN, not the
+      password) for exactly `GET /api/self-care/day` (new), `PUT /api/self-care/meals`,
+      `POST /api/self-care/water`. The script makes the token on first run and copies it for Vercel.
 - [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
       Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that
@@ -247,7 +255,7 @@
       at once (741 kcal = 368 + 373; 0.83 L = 500 + 330), survive a reload, tomorrow has no boxes,
       no sideways scroll, no console errors, 0 animations under reduced motion. Ticks are optimistic
       and roll back with a message if the save fails; a second tap waits for the first.
-      Handbook rev 36. **Needs 038 run** (see Blocked).
+      Handbook rev 36. 038 run by the user (2026-10-22).
 - [x] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
       a tab under Self Care"; plus a diet tab showing *today's* meals from their monthly plan; they
       send a new plan each month). `/self-care` is the Diet tab (as `/study` is Study): the day's
@@ -766,9 +774,6 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
-
-- **Diet: run `038-diet-tracking.sql`** in the Supabase SQL Editor — until then the Diet page shows
-  the plan but no tick boxes or water log. Additive, safe to re-run, nothing else depends on it.
 
 - **Google Books daily limit is 1,000 queries** (project 931263747605, the key in the cloud env).
   It ran out on 2026-10-19 during testing (resets 07:00 UTC). If Vercel uses the same key, Add Book
