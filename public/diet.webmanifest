@@ -1,0 +1,16 @@
+{
+  "name": "MyPortal — Diet",
+  "short_name": "Diet",
+  "description": "Today's meals, ticked off as you eat, and the water you drink.",
+  "start_url": "/self-care",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#111827",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/diet-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/diet-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/diet-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

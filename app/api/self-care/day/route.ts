@@ -6,8 +6,9 @@ import { dayTracking } from "@/lib/meal-plan-service";
 
 /**
  * A day of the diet plan with what has been ticked and drunk, as JSON — today in Europe/Istanbul
- * unless `?date=YYYY-MM-DD` says otherwise. For the phone widgets, which read it with
- * WIDGET_TOKEN (see proxy.ts). A day with no plan has no meals and no water goal.
+ * unless `?date=YYYY-MM-DD` says otherwise. The Diet page reads it after syncing what it queued
+ * offline; the phone widgets read it with WIDGET_TOKEN (see proxy.ts). A day with no plan has no
+ * meals and no water goal.
  */
 async function GETHandler(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get("date");
@@ -37,6 +38,7 @@ async function GETHandler(request: NextRequest) {
     total: found?.day.total ?? null,
     eaten: found ? eaten(found.day, found.plan.home, checked) : { kcal: 0, protein: 0 },
     water: {
+      entries: tracking?.water ?? [],
       ml: tracking?.water.reduce((n, w) => n + w.ml, 0) ?? 0,
       goalMl: found ? found.plan.water[found.day.kind] * 1000 : null,
     },

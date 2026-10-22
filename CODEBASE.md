@@ -499,7 +499,7 @@ selectable, but no longer updated or checked. New work is built and checked in S
 app/
   (portal)          app/page.tsx — the four section cards
   library/…         eight media types, each list / detail / edit / new
-  self-care/…       the day's meals from the diet plan (/self-care); wardrobe/… garments and wash loads
+  self-care/…       the day's meals from the diet plan (/self-care, installable as "Diet", works offline); wardrobe/… garments and wash loads
   finances/…        month view, plus /log (installable PWA)
   study/…           sessions, modules, stats, APs, SAT vocabulary
   shopping/…        shops by category (a metro map); a shop's page with its products; new / edit
@@ -545,6 +545,7 @@ scriptable/             the phone widgets (Diet, Water) for the Scriptable app, 
 | `fund-sources.ts` / `fund-source-client.ts` | The Base / Extra pots: carryover, balances, queued-expense adjustment / the remembered card |
 | `installments.ts` | Installment purchases: the per-month split to the kuruş, which installment a month is, paid / left |
 | `expense-queue.ts` | The offline logger's IndexedDB queue |
+| `diet-queue.ts` | The Diet page's offline queue (ticks and water made without the site) and each day's last word from the site, in IndexedDB; `overlay` lays the one over the other |
 
 ---
 

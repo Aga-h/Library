@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-/** Registers the service worker that makes the expense screen work offline. */
+/** Registers the service worker that makes the expense logger and the Diet page work offline. */
 export default function ServiceWorkerRegistrar() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;

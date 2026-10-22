@@ -9,6 +9,7 @@ const PUBLIC_PATHS = ["/login", "/api/auth"];
 // worker from ever registering. None of them contain user data.
 const PUBLIC_FILES = new Set([
   "/manifest.webmanifest",
+  "/diet.webmanifest",
   "/sw.js",
   "/apple-touch-icon.png",
   "/favicon.ico",

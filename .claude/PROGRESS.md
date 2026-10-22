@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Diet as two Scriptable phone widgets (`scriptable/`; needs `WIDGET_TOKEN` in Vercel — see Blocked). Diet: meals tick off and water is logged toward the day's goal (038 has run). Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-22 — Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,18 +230,29 @@
 
 ## Next
 
-- [ ] **Diet as a home-screen app, like the expense logger** (user, 2026-10-22: "i dont think
+- [x] **Diet as a home-screen app, like the expense logger** (user, 2026-10-22: "i dont think
       scriptables is the way, lets do the shortcut we did in finance"). The site is blocked on the
-      school Wi-Fi, which may be the dorm's too, so it must work offline. Plan:
-      - its own install: `public/diet.webmanifest` (start `/self-care`, "Diet") linked from the
-        Self Care layout with its own Apple title and icon; public in `proxy.ts`
-      - `sw.js` v2: precache `/self-care` too, fall back per section, and give up on the network
-        after a few seconds, since a blocked connection can hang
-      - ticks and water made without the site go to an IndexedDB queue (`lib/diet-queue.ts`) and
-        sync on the next foreground; water entries carry a client id so a replay can't duplicate
-      - a page from the cache shows the right day from the bundled plan, with the last synced
-        state plus what's queued
-      Scriptable stays until the user says to remove it.
+      school Wi-Fi (maybe the dorm's too), so it works offline:
+      - its own install: `public/diet.webmanifest` (start `/self-care`, "Diet") + `icons/diet-*.png`
+        (the salad glyph drawn like the expense wallet), linked from the Self Care layout with its own
+        Apple title; public in `proxy.ts`. The expense logger keeps its own (checked in the head).
+      - `sw.js` v2 precaches `/self-care` too, falls back per section, and gives `/self-care` and
+        `/finances/log` 4 s before showing the cached copy (only those two: they know a copy when
+        they see one; other pages keep waiting, as before)
+      - `lib/diet-queue.ts`: ticks and water made without the site go to IndexedDB and are sent on
+        the next foreground (load, focus, visible, `online`), chained like the expense queue; water
+        carries a client id (`POST /api/self-care/water` takes `id`, a replay is 200 not a second
+        row); a tick sent online drops any older queued tick of that meal
+      - `DietDay`: a page older than 5 min came from the cache, so it shows the asked day (or today)
+        from the bundled plan with the day's last confirmed state + the queue; reopening on a new
+        day reloads. Dates spelled out by hand: Node's and the browser's Intl differ by a comma,
+        which broke hydration (React #418) — caught in testing
+      Checked in Chromium (390, Soft Club) against Postgres, with the page's address hanging and
+      everything else refused: cached page in 4.0 s; 2 ticks + 500 ml queued, 330 ml taken back
+      before sending; DB empty; reopened still blocked, queue intact; unblocked → DB has both ticks
+      and one 500, a second sync adds nothing, a fresh load shows them; next morning still blocked,
+      Thursday's cached page shows Friday's plan. Expense logger still opens offline. No page
+      errors. 12 overlay tests. **Not yet on the iPad** — see Blocked.
 - [x] **Diet as phone widgets (Scriptable)** (user, 2026-10-22: "i want the diet tab to be a widget where
       can i check off and see meals and as a separate widget log water i installed scriptable").
       `scriptable/Diet.js` (large: today's meals with ticks and kcal eaten; medium: the next three
@@ -813,12 +824,12 @@
 
 ## Blocked / needs the user
 
-- **Phone widgets: confirm they connect off the school Wi-Fi** (it blocks the site; home Wi-Fi or
-  mobile data). `WIDGET_TOKEN` is set on the live site —
-  verified 2026-10-22 07:55 UTC after the redeploy (a probe token gets "doesn't match", not "no
-  WIDGET_TOKEN"). If the phone still says "doesn't match", the phone's token (its first 6 / last 4
-  show in the message) differs from Vercel's: paste Vercel's value via the widget → Change token →
-  Use this token. Setup: `scriptable/README.md`.
+- **Add Diet to the home screen** (replaces the Scriptable widgets): on a network that reaches the
+  site, open www.otuzbir.world/self-care in Safari → Share → Add to Home Screen ("Diet", salad
+  icon). Open it once there and sign in — a home-screen app has its own login, separate from
+  Safari's. From then on it opens and works on the school Wi-Fi too; ticks and water sync when it
+  next reaches the site. Scriptable: the scripts are still in `scriptable/` and `WIDGET_TOKEN` is
+  still set — the user can delete the variable in Vercel, and say if the scripts should go.
 
 - **Google Books daily limit is 1,000 queries** (project 931263747605, the key in the cloud env).
   It ran out on 2026-10-19 during testing (resets 07:00 UTC). If Vercel uses the same key, Add Book

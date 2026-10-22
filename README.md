@@ -5,7 +5,7 @@ A personal hub, deployed on Vercel and backed by Supabase Postgres. Five section
 | Section | What it is |
 |---|---|
 | **Library** | Books, anime, manga, comics, films, TV, games and articles. Series and universe hierarchies, progress tracking, derived status, Steam sync. |
-| **Self Care** | Today's meals from the monthly diet plan, ticked off as you eat them, with a water log toward the day's goal; and the wardrobe: garments with care labels, turned into real machine settings and a wash-urgency ranking. |
+| **Self Care** | Today's meals from the monthly diet plan, ticked off as you eat them, with a water log toward the day's goal — installable on the home screen as "Diet", and usable offline; and the wardrobe: garments with care labels, turned into real machine settings and a wash-urgency ranking. |
 | **Finances** | Monthly budget, expenses, additional income and carryover, in TRY. Includes an installable mobile expense logger that works offline. |
 | **Study** | Timed study sessions against named modules, levelling fourteen stats. Plus study-time totals, an AP unit tracker and a SAT vocabulary test. |
 

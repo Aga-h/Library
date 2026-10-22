@@ -1,53 +1,130 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
 import { APP_TIME_ZONE } from "@/lib/dates";
 import { eaten, mealKey, WATER_ENTRY_MAX_ML, type Meal, type MealDay, type MealPlan, type PlanNote } from "@/lib/meal-plan";
-import type { DayTracking, WaterEntry } from "@/lib/meal-plan-service";
+import type { DayTracking } from "@/lib/meal-plan-service";
+import {
+  dequeue, enqueue, listQueue, overlay, reach, saveDay, syncDiet, tickId,
+  type QueuedDiet, type ShownWater,
+} from "@/lib/diet-queue";
 import { inputCls } from "@/components/ui/form";
 
 const TIME = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: APP_TIME_ZONE });
 const kcal = (n: number) => n.toLocaleString("en-US");
 const litres = (ml: number) => (ml / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
-/** A request to the API; throws with a message to show. `goneIsFine`: a 404 counts as done. */
-async function send(url: string, method: string, body?: unknown, goneIsFine = false): Promise<Response> {
-  let res: Response;
-  try {
-    res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
-  } catch {
-    throw new Error("Couldn't reach the site. Check the connection and try again.");
-  }
-  if (!res.ok && !(goneIsFine && res.status === 404)) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(d.error ?? "Something went wrong");
-  }
-  return res;
-}
+const errorOf = async (res: Response) => ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Something went wrong";
 
 /**
  * One day of the diet plan: the figures, the water log, the meals and the plan's rules. On today
  * and earlier days the meals tick off and water is logged, and the figures count up toward the
  * day's plan. `tracking` is null on a day still ahead, or while migration 038 hasn't run
  * (`waiting`); the plan shows either way.
+ *
+ * Without the site — no signal, or a network that blocks it — a tick or a glass of water is kept
+ * in this device's queue and sent on the next chance: opening the page, coming back to it, going
+ * online. `fromCache`: the page itself came from the offline cache, so `tracking` is this
+ * device's last word from the site, not the site's.
  */
-export default function DayTracker({ date, plan, day, tracking, waiting }: {
+export default function DayTracker({ date, plan, day, tracking, waiting, fromCache }: {
   date: string;
   plan: Omit<MealPlan, "days" | "title">;
   day: MealDay;
   tracking: DayTracking | null;
   waiting: boolean;
+  fromCache: boolean;
 }) {
   const [checked, setChecked] = useState<ReadonlySet<string>>(() => new Set(tracking?.checked));
-  const [water, setWater] = useState<WaterEntry[]>(tracking?.water ?? []);
+  const [water, setWater] = useState<ShownWater[]>(tracking?.water ?? []);
   // Meals with a request in flight: a second tap waits, so two requests never race each other.
   const [saving, setSaving] = useState<ReadonlySet<string>>(new Set());
   const [adding, setAdding] = useState(false);
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // What this device is holding for the site, and why it is holding it.
+  const [pending, setPending] = useState(0);
+  const [signIn, setSignIn] = useState(false);
+  const [stale, setStale] = useState(fromCache);
+  // The site's own last word on this day, which the queue is laid over.
+  const confirmed = useRef<DayTracking>(tracking ?? { checked: [], water: [] });
+  // Known to be out of reach: queue straight away rather than wait for a request to time out.
+  const offline = useRef(fromCache);
 
   const tracked = tracking !== null;
+
+  const show = async () => {
+    const queued = await listQueue();
+    const v = overlay(confirmed.current, queued, date);
+    setChecked(v.checked);
+    setWater(v.water);
+    setPending(queued.length);
+  };
+
+  const confirm = (next: DayTracking) => {
+    confirmed.current = next;
+    saveDay(date, next).catch(() => undefined);
+  };
+
+  /** Send what is queued, then take the site's word for this day. */
+  const sync = async () => {
+    const r = await syncDiet();
+    setPending(r.remaining);
+    setSignIn(r.authRequired);
+    if (r.offline) {
+      offline.current = true;
+      return;
+    }
+    offline.current = false;
+    let res: Response;
+    try {
+      res = await reach(`/api/self-care/day?date=${date}`, "GET");
+    } catch {
+      offline.current = true;
+      return;
+    }
+    if (res.status === 401) setSignIn(true);
+    if (!res.ok) return;
+    const d = (await res.json()) as { meals: { key: string; checked: boolean }[]; water: { entries: DayTracking["water"] } };
+    confirm({ checked: d.meals.filter((m) => m.checked).map((m) => m.key), water: d.water.entries });
+    setStale(false);
+    await show();
+  };
+
+  useEffect(() => {
+    if (!tracked) return;
+    // A page fresh from the site: remember its word for when the site is out of reach.
+    if (!fromCache && tracking) saveDay(date, tracking).catch(() => undefined);
+    show().then(sync).catch(() => undefined);
+    // iOS has no Background Sync, so every return to the page is the chance to send.
+    const onSignal = () => {
+      if (document.visibilityState === "visible") sync().catch(() => undefined);
+    };
+    window.addEventListener("online", onSignal);
+    window.addEventListener("focus", onSignal);
+    document.addEventListener("visibilitychange", onSignal);
+    return () => {
+      window.removeEventListener("online", onSignal);
+      window.removeEventListener("focus", onSignal);
+      document.removeEventListener("visibilitychange", onSignal);
+    };
+    // Once per day shown: DietDay keys this component by its date.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Keep it for later. False if this browser can't (no IndexedDB), so the change is undone. */
+  const hold = async (item: QueuedDiet) => {
+    try {
+      await enqueue(item);
+      setPending((await listQueue()).length);
+      return true;
+    } catch {
+      setError("Couldn't reach the site, and this browser can't keep it for later. Try again when you're online.");
+      return false;
+    }
+  };
   const ate = eaten(day, plan.home, checked);
   const drunk = water.reduce((n, w) => n + w.ml, 0);
   const goal = plan.water[day.kind] * 1000;
@@ -62,14 +139,33 @@ export default function DayTracker({ date, plan, day, tracking, waiting }: {
   async function toggle(key: string) {
     if (saving.has(key)) return;
     const on = !checked.has(key);
+    const item: QueuedDiet = { kind: "meal", id: tickId(date, key), date, meal: key, checked: on, at: new Date().toISOString() };
+    const undo = () => setChecked((s) => withKey(s, key, !on));
     setChecked((s) => withKey(s, key, on));
-    setSaving((s) => withKey(s, key, true));
     setError(null);
+    if (offline.current) {
+      if (!(await hold(item))) undo();
+      return;
+    }
+    setSaving((s) => withKey(s, key, true));
     try {
-      await send("/api/self-care/meals", "PUT", { date, meal: key, checked: on });
-    } catch (e) {
-      setChecked((s) => withKey(s, key, !on));
-      setError((e as Error).message);
+      const res = await reach("/api/self-care/meals", "PUT", { date, meal: key, checked: on });
+      if (res.ok) {
+        // Any older tick of this meal still queued would undo this one when it syncs.
+        await dequeue(item.id).catch(() => undefined);
+        confirm({ ...confirmed.current, checked: [...withKey(new Set(confirmed.current.checked), key, on)] });
+        // A sync that answered while this was on its way showed the site's older word: say it again.
+        setChecked((s) => withKey(s, key, on));
+      } else if (res.status === 401) {
+        setSignIn(true);
+        if (!(await hold(item))) undo();
+      } else {
+        undo();
+        setError(await errorOf(res));
+      }
+    } catch {
+      offline.current = true;
+      if (!(await hold(item))) undo();
     } finally {
       setSaving((s) => withKey(s, key, false));
     }
@@ -80,29 +176,67 @@ export default function DayTracker({ date, plan, day, tracking, waiting }: {
       setError(`Enter an amount from 1 to ${WATER_ENTRY_MAX_ML} ml`);
       return;
     }
-    setAdding(true);
+    // Its id is made here, so if it is sent twice — queued, then retried — it is logged once.
+    const entry = { id: crypto.randomUUID(), ml, at: new Date().toISOString() };
+    const item: QueuedDiet = { kind: "water", ...entry, date };
+    const keep = async () => {
+      if (await hold(item)) {
+        setWater((w) => [...w, { ...entry, pending: true }]);
+        setAmount("");
+      }
+    };
     setError(null);
+    if (offline.current) return keep();
+    setAdding(true);
     try {
-      const entry: WaterEntry = await (await send("/api/self-care/water", "POST", { date, ml })).json();
-      setWater((w) => [...w, entry]);
-      setAmount("");
-    } catch (e) {
-      setError((e as Error).message);
+      const res = await reach("/api/self-care/water", "POST", { id: entry.id, date, ml });
+      if (res.ok) {
+        const saved = await res.json();
+        setWater((w) => [...w, saved]);
+        confirm({ ...confirmed.current, water: [...confirmed.current.water, saved] });
+        setAmount("");
+      } else if (res.status === 401) {
+        setSignIn(true);
+        await keep();
+      } else {
+        setError(await errorOf(res));
+      }
+    } catch {
+      offline.current = true;
+      await keep();
     } finally {
       setAdding(false);
     }
   }
 
-  async function removeWater(entry: WaterEntry) {
+  async function removeWater(entry: ShownWater) {
+    setError(null);
+    if (entry.pending) {
+      // Never sent: taking it out of the queue is all there is to it.
+      await dequeue(entry.id).catch(() => undefined);
+      setWater((w) => w.filter((x) => x.id !== entry.id));
+      setPending((await listQueue().catch(() => [])).length);
+      return;
+    }
+    const cant = "This one is on the site already, so it can only be taken back once the site can be reached.";
+    if (offline.current) return setError(cant);
     const at = water.indexOf(entry);
     setWater((w) => w.filter((x) => x.id !== entry.id));
-    setError(null);
+    const putBack = () => setWater((w) => [...w.slice(0, at), entry, ...w.slice(at)]);
     try {
+      const res = await reach(`/api/self-care/water/${entry.id}`, "DELETE");
       // A 404 means it is already gone, which is what was asked.
-      await send(`/api/self-care/water/${entry.id}`, "DELETE", undefined, true);
-    } catch (e) {
-      setWater((w) => [...w.slice(0, at), entry, ...w.slice(at)]);
-      setError((e as Error).message);
+      if (res.ok || res.status === 404) {
+        confirm({ ...confirmed.current, water: confirmed.current.water.filter((x) => x.id !== entry.id) });
+        setWater((w) => w.filter((x) => x.id !== entry.id));
+      } else {
+        putBack();
+        setError(res.status === 401 ? "Sign in again to take this back." : await errorOf(res));
+      }
+    } catch {
+      offline.current = true;
+      putBack();
+      setError(cant);
     }
   }
 
@@ -137,6 +271,21 @@ export default function DayTracker({ date, plan, day, tracking, waiting }: {
         <p role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</p>
       )}
 
+      {tracked && (signIn || pending > 0 || stale) && (
+        <p role="status" className="bg-sky-50 border border-sky-200 text-sky-800 rounded-xl px-4 py-3 text-sm">
+          {signIn ? (
+            <>
+              Sign in again to send {pending === 1 ? "the change" : `the ${pending} changes`} kept on this device.{" "}
+              <Link href="/login?from=/self-care" className="font-semibold underline underline-offset-2">Sign in</Link>
+            </>
+          ) : pending > 0 ? (
+            `${pending} change${pending === 1 ? "" : "s"} saved on this device — sent when the site can be reached.`
+          ) : (
+            "The site can't be reached, so this is what this device last heard from it. Ticks and water are kept here and sent later."
+          )}
+        </p>
+      )}
+
       {tracked && (
         <section>
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Water</h3>
@@ -161,8 +310,8 @@ export default function DayTracker({ date, plan, day, tracking, waiting }: {
           {water.length > 0 && (
             <ul className="flex flex-wrap gap-1.5 mt-3">
               {water.map((w) => (
-                <li key={w.id} className="flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-sky-50 text-sky-700 text-xs tabular-nums">
-                  {TIME.format(new Date(w.at))} · {w.ml} ml
+                <li key={w.id} className={`flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-sky-50 text-sky-700 text-xs tabular-nums ${w.pending ? "opacity-60" : ""}`}>
+                  {TIME.format(new Date(w.at))} · {w.ml} ml{w.pending && " · on this device"}
                   <button type="button" onClick={() => removeWater(w)} aria-label={`Remove ${w.ml} ml from ${TIME.format(new Date(w.at))}`}
                     className="p-1 max-sm:p-1.5 rounded-full text-sky-500 hover:text-sky-800 transition-colors">
                     <X className="w-3 h-3" />
