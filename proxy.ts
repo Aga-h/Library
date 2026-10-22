@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { REPORT_PATH, SESSION_COOKIE, verifyReportToken, verifySessionToken } from "@/lib/session";
+import { REPORT_PATH, SESSION_COOKIE, verifyReportToken, verifySessionToken, verifyWidgetToken, widgetMayCall } from "@/lib/session";
 
 const PUBLIC_PATHS = ["/login", "/api/auth"];
 
@@ -38,6 +38,14 @@ export async function proxy(request: NextRequest) {
       pathname === REPORT_PATH &&
       request.method === "GET" &&
       (await verifyReportToken(request.headers.get("authorization"), process.env.REPORT_TOKEN))
+    ) {
+      return NextResponse.next();
+    }
+
+    // The phone's widgets: their own token, for the few calls they make and nothing else.
+    if (
+      widgetMayCall(request.method, pathname) &&
+      (await verifyWidgetToken(request.headers.get("authorization"), process.env.WIDGET_TOKEN))
     ) {
       return NextResponse.next();
     }

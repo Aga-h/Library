@@ -57,6 +57,13 @@ through for **that exact path and method only** — any other path, POST, or a s
 unset or under 32 characters, nothing matches, so a missing variable cannot open the endpoint.
 It is compared over SHA-256 digests with no early exit.
 
+The second exception is the phone widgets (`scriptable/`, run by the Scriptable app), with their
+own `Authorization: Bearer <WIDGET_TOKEN>`: the same fail-closed check, for exactly the calls in
+`WIDGET_ROUTES` (`lib/session.ts`) — `GET /api/self-care/day`, `PUT /api/self-care/meals` and
+`POST /api/self-care/water` — so a widget can read the day, tick a meal and log water, and nothing
+else. A token of their own rather than the site password: Scriptable's Keychain is shared by every
+script on the phone.
+
 ---
 
 ## Data model
@@ -503,6 +510,7 @@ prisma/
   schema.prisma
   manual-migrations/    idempotent SQL, applied by hand
 scripts/                node test scripts, graph sealing
+scriptable/             the phone widgets (Diet, Water) for the Scriptable app, and how to set them up
 ```
 
 ### `lib/` worth knowing

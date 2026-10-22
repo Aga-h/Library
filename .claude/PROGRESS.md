@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Diet: meals tick off and water is logged toward the day's goal (038 has run). Next: the same as two Scriptable widgets on the phone. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-22 — Diet as two Scriptable phone widgets (`scriptable/`; needs `WIDGET_TOKEN` in Vercel — see Blocked). Diet: meals tick off and water is logged toward the day's goal (038 has run). Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,14 +230,25 @@
 
 ## Next
 
-- [ ] **Diet as phone widgets (Scriptable)** (user, 2026-10-22: "i want the diet tab to be a widget where
+- [x] **Diet as phone widgets (Scriptable)** (user, 2026-10-22: "i want the diet tab to be a widget where
       can i check off and see meals and as a separate widget log water i installed scriptable").
-      Scriptable widgets can't run code on tap — a tap opens the app, and iOS decides when a widget
-      redraws (no in-script reload). So: `scriptable/Diet.js` (large: today's meals with ticks; a
-      tapped row ticks it in the app, then a checklist) and `scriptable/Water.js` (small: litres of
-      the goal; tap → +250 / +500 / other). Auth: a `WIDGET_TOKEN` bearer (like REPORT_TOKEN, not the
-      password) for exactly `GET /api/self-care/day` (new), `PUT /api/self-care/meals`,
-      `POST /api/self-care/water`. The script makes the token on first run and copies it for Vercel.
+      `scriptable/Diet.js` (large: today's meals with ticks and kcal eaten; medium: the next three
+      still to eat; small: kcal and the next meal) and `scriptable/Water.js` (small: litres of the
+      goal, with a bar). Scriptable widgets can't run code on tap — a tap opens the app — and iOS
+      decides when they redraw (no in-script reload; `refreshAfterDate` asks for 5 min). So a tapped
+      meal is ticked in the app and the day's checklist (UITable) opens to tick more; a tap on Water
+      asks +250 / +500 / another amount until Done. Setup in `scriptable/README.md`.
+      Auth: `WIDGET_TOKEN` bearer, same fail-closed check as REPORT_TOKEN, for exactly
+      `WIDGET_ROUTES` (`lib/session.ts`): `GET /api/self-care/day` (new), `PUT /api/self-care/meals`,
+      `POST /api/self-care/water` — not the password, since Scriptable's Keychain is shared by every
+      script. The script makes the token on first run (2 UUIDs, 64 hex), copies it, and stops until
+      Vercel has it; a refused token offers to change it. Checked: the token's scope over HTTP
+      (DELETE water, other APIs, pages, wrong / no token → refused; 15 assertions in
+      test-report-token), and both scripts run end to end in Node against a stand-in for
+      Scriptable's API and the local server (`/tmp` harness, not committed): setup, refused token,
+      large / medium / small widgets, a widget tap ticking a meal + a checklist tap, untick, a
+      stale row, water +250 / "abc" refused / 330 (DB +580 ml), site unreachable. Every property
+      used was checked against docs.scriptable.app. **Not seen on a real phone** — see Blocked.
 - [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
       Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that
@@ -774,6 +785,12 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Phone widgets: set `WIDGET_TOKEN` in Vercel, then add the widgets** — follow
+  `scriptable/README.md`: put Diet.js and Water.js in Scriptable, run Diet once → "Make a new one"
+  (copies the token), add it in Vercel as `WIDGET_TOKEN` and redeploy, then add a large Scriptable
+  widget (Diet) and a small one (Water). Until the variable is set, the widgets say the site refused
+  the token. Not yet seen on a real phone: if anything looks off, the user says what.
 
 - **Google Books daily limit is 1,000 queries** (project 931263747605, the key in the cloud env).
   It ran out on 2026-10-19 during testing (resets 07:00 UTC). If Vercel uses the same key, Add Book

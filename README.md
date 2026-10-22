@@ -24,6 +24,7 @@ DATABASE_URL=postgresql://…     # Supabase Postgres
 AUTH_SECRET=…                   # signing key for the session cookie
 AUTH_PASSWORD=…                 # the password you log in with
 REPORT_TOKEN=…                  # optional: 32+ random chars; lets the nightly review read /api/study/review
+WIDGET_TOKEN=…                  # optional: 32+ random chars; the phone widgets in scriptable/ (see its README)
 COMICVINE_API_KEY=…             # optional: comicvine.gamespot.com/api — lets Add Comic import a whole run
 TMDB_API_KEY=…                  # optional: themoviedb.org API key or read token — film and TV imports
 MAL_CLIENT_ID=…                 # optional: myanimelist.net/apiconfig Client ID — anime and manga imports

@@ -119,3 +119,24 @@ export async function verifyReportToken(
   for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
   return diff === 0;
 }
+
+// ─── The phone widgets' token ────────────────────────────────────────────────
+
+/**
+ * The Scriptable widgets on the phone read the day's meals, tick them off and log water with
+ * their own token, WIDGET_TOKEN, rather than the site password: it opens these calls and nothing
+ * else, and changing it in Vercel locks out a lost phone without touching anything else.
+ */
+export const WIDGET_ROUTES = [
+  "GET /api/self-care/day",
+  "PUT /api/self-care/meals",
+  "POST /api/self-care/water",
+] as const;
+
+/** Whether the widgets' token may make this call: an exact method and path, nothing under it. */
+export function widgetMayCall(method: string, pathname: string): boolean {
+  return (WIDGET_ROUTES as readonly string[]).includes(`${method} ${pathname}`);
+}
+
+/** The same fail-closed check as REPORT_TOKEN's, against WIDGET_TOKEN. */
+export const verifyWidgetToken = verifyReportToken;

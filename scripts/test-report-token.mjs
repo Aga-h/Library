@@ -2,7 +2,7 @@
 // nothing, so a missing environment variable can never become an open endpoint.
 //
 // Run: node --experimental-strip-types scripts/test-report-token.mjs
-import { verifyReportToken, REPORT_TOKEN_MIN_LENGTH, REPORT_PATH } from "../lib/session.ts";
+import { verifyReportToken, verifyWidgetToken, widgetMayCall, WIDGET_ROUTES, REPORT_TOKEN_MIN_LENGTH, REPORT_PATH } from "../lib/session.ts";
 
 let pass = 0;
 const failures = [];
@@ -32,6 +32,23 @@ ok(!(await verifyReportToken(TOKEN, TOKEN)), "the token without the Bearer schem
 ok(!(await verifyReportToken(`Basic ${TOKEN}`, TOKEN)), "a different scheme fails");
 ok(!(await verifyReportToken(`bearer ${TOKEN}`, TOKEN)), "the scheme is matched exactly");
 ok(!(await verifyReportToken(null, TOKEN)), "no header fails");
+
+// The phone widgets' token: the same fail-closed check, and only the calls the widgets make.
+ok(await verifyWidgetToken(bearer(TOKEN), TOKEN), "the widget token passes the same check");
+ok(!(await verifyWidgetToken(bearer(TOKEN), undefined)), "unset WIDGET_TOKEN: nothing passes");
+ok(!(await verifyWidgetToken(bearer("short"), "short")), "a short WIDGET_TOKEN is refused even when it matches");
+ok(WIDGET_ROUTES.length === 3, "the widget token opens exactly three calls");
+ok(widgetMayCall("GET", "/api/self-care/day"), "it reads the day");
+ok(widgetMayCall("PUT", "/api/self-care/meals"), "it ticks a meal");
+ok(widgetMayCall("POST", "/api/self-care/water"), "it logs water");
+ok(!widgetMayCall("DELETE", "/api/self-care/water/abc"), "it cannot delete water entries");
+ok(!widgetMayCall("GET", "/api/self-care/meals"), "the right path with another method fails");
+ok(!widgetMayCall("POST", "/api/self-care/day"), "…both ways");
+ok(!widgetMayCall("GET", "/api/self-care/day/x"), "nothing under an allowed path");
+ok(!widgetMayCall("GET", "/api/self-care/dayx"), "nor a longer name sharing its start");
+ok(!widgetMayCall("GET", REPORT_PATH), "not the study review");
+ok(!widgetMayCall("GET", "/self-care"), "not the pages");
+ok(!widgetMayCall("get", "/api/self-care/day"), "methods are matched exactly");
 
 if (failures.length) {
   console.error(`${pass} passed, ${failures.length} failed\n`);
