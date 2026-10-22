@@ -532,7 +532,7 @@ scripts/                node test scripts, graph sealing
 | `stats.ts` | The fourteen stats and their presentation |
 | `shopping.ts` / `shopping-service.ts` | Shop addresses, names from domains, categories, line codes and colours / categories in use |
 | `wash-calculator.ts` | Care labels → machine settings |
-| `meal-plan.ts` / `meal-plans/*.ts` | The diet plan's shape and which plan covers a day / one file per month, transcribed from the user's plan. A new month is a new file added to `MEAL_PLANS`; `npm test` checks its sums |
+| `meal-plan.ts` / `meal-plans/*.ts` / `meal-plan-service.ts` | The diet plan's shape, which plan covers a day, how a tick names a meal and what the ticked meals add up to / one file per month, transcribed from the user's plan (a new month is a new file added to `MEAL_PLANS`; `npm test` checks its sums) / a day's ticks and water entries, null until migration 038 has run |
 | `finances.ts` / `finances-utils.ts` | Month maths and carryover |
 | `fund-sources.ts` / `fund-source-client.ts` | The Base / Extra pots: carryover, balances, queued-expense adjustment / the remembered card |
 | `installments.ts` | Installment purchases: the per-month split to the kuruş, which installment a month is, paid / left |

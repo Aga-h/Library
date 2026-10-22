@@ -502,6 +502,29 @@ enum DryMethod {
   DO_NOT_DRY
 }
 
+// ─── SELF CARE: DIET ─────────────────────────────────────────────────────────
+
+/// A meal ticked off on the diet plan. The plan itself is in the repo (lib/meal-plans/), so a tick
+/// names its meal by the row's label ("Lunch"; "home:Lunch" for the at-home day), unique in a day.
+model MealCheck {
+  /// Local calendar date, as everywhere else that counts by the day.
+  date      DateTime @db.Date
+  meal      String
+  createdAt DateTime @default(now())
+
+  @@id([date, meal])
+}
+
+/// Water drunk, one row each time some is logged. A day's total is their sum.
+model WaterIntake {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  ml        Int
+  createdAt DateTime @default(now())
+
+  @@index([date])
+}
+
 // ─── FINANCES ────────────────────────────────────────────────────────────────
 
 model FinanceConfig {

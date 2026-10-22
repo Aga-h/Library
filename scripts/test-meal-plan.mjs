@@ -3,7 +3,7 @@
 // bracketed in it, no day is missing, and the gym days fall where the plan puts them.
 //
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-meal-plan.mjs
-import { MEAL_PLANS, mealDay, planRange } from "../lib/meal-plan.ts";
+import { MEAL_PLANS, eaten, mealDay, mealKey, planRange, tickableMeals } from "../lib/meal-plan.ts";
 import { addDays, dayOfWeek, isDateKey } from "../lib/dates.ts";
 
 let pass = 0;
@@ -60,6 +60,29 @@ eq(planRange(MEAL_PLANS[0]), { first: "2026-10-22", last: "2026-10-31" }, "Octob
 // Weekends offer the at-home day, as does the bank holiday.
 for (const key of ["2026-10-24", "2026-10-25", "2026-10-29", "2026-10-31"]) ok(MEAL_PLANS[0].days[key].home, `${key}: offers the at-home day`);
 ok(!MEAL_PLANS[0].days["2026-10-22"].home, "a weekday at the cafeteria does not");
+
+// Ticks name a meal by its row label, so no two rows a day can tick may share one.
+for (const plan of MEAL_PLANS) {
+  for (const [key, day] of Object.entries(plan.days)) {
+    const keys = tickableMeals(day, plan.home).map((t) => t.key);
+    eq(new Set(keys).size, keys.length, `${key}: every meal that can be ticked has its own label`);
+  }
+}
+{
+  const plan = MEAL_PLANS[0];
+  const thu = plan.days["2026-10-22"];
+  const sat = plan.days["2026-10-24"];
+  const all = new Set(tickableMeals(thu, plan.home).map((t) => t.key));
+  eq(eaten(thu, plan.home, new Set()), { kcal: 0, protein: 0 }, "nothing ticked, nothing eaten");
+  eq(eaten(thu, plan.home, all), { kcal: 1769, protein: 113 }, "every meal ticked is the day's total");
+  eq(eaten(thu, plan.home, new Set(["Lunch", "21:00"])), { kcal: 1028, protein: 70 }, "lunch and the shake: 693 + 335 kcal");
+  eq(eaten(thu, plan.home, new Set(["16:00"])), { kcal: 0, protein: 0 }, "a row with nothing counted adds nothing");
+  eq(eaten(thu, plan.home, new Set(["home:Lunch"])), { kcal: 0, protein: 0 }, "no at-home rows on a cafeteria weekday");
+  eq(eaten(sat, plan.home, new Set(["home:Lunch", "home:21:00"])), { kcal: 870, protein: 94 }, "a weekend counts the at-home rows");
+  eq(eaten(thu, plan.home, new Set(["Dinner", "lunch"])), { kcal: 0, protein: 0 }, "a label the day doesn't have counts for nothing");
+  eq(mealKey(thu.meals[2]), "Lunch", "a meal's key is its label");
+  eq(mealKey(plan.home.meals[2], true), "home:Lunch", "…with home: for the at-home rows");
+}
 
 // Lookup
 eq(mealDay("2026-10-22")?.day.total, { kcal: 1769, protein: 113 }, "Thu 22 Oct is the first day: 1,769 kcal");

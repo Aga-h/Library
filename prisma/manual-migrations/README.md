@@ -56,6 +56,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `035-book-openlibrary.sql` | Adds `Book.openLibraryId` (unique) — on Open Library a work is the book itself, so the link is per row. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 | `036-book-google-books.sql` | Adds `Book.googleBooksId` (unique) — Google Books is edition-centric, so search collapses volumes by title + author and a row remembers at most one. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 | `037-book-owned-kindle.sql` | Adds `Book.ownedKindle` (default false). `owned` stays the physical copy. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
+| `038-diet-tracking.sql` | Creates `MealCheck` (a meal ticked off on a date, named by its row label) and `WaterIntake` (water drunk, one row per entry), RLS on both. Additive, and the Diet page shows the plan without it — only ticking meals and logging water wait for it. Verified on the local copy of the schema: re-run is a no-op, `migrate diff` empty after. |
 
 ## How 019 was verified
 

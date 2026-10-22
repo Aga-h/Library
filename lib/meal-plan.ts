@@ -63,6 +63,32 @@ export function mealDay(date: DateKey, plans: MealPlan[] = MEAL_PLANS): { plan: 
   return null;
 }
 
+/** How a tick names a meal: its row label, with "home:" in front for the at-home day's rows. */
+export const mealKey = (meal: Meal, home = false): string => (home ? `home:${meal.time}` : meal.time);
+
+/** The meals that can be ticked off on a day: its own, and the at-home day's when it offers one. */
+export function tickableMeals(day: MealDay, home: MealPlan["home"]): { key: string; meal: Meal }[] {
+  return [
+    ...day.meals.map((meal) => ({ key: mealKey(meal), meal })),
+    ...(day.home ? home.meals.map((meal) => ({ key: mealKey(meal, true), meal })) : []),
+  ];
+}
+
+/** kcal and protein of the meals ticked off. */
+export function eaten(day: MealDay, home: MealPlan["home"], checked: ReadonlySet<string>): { kcal: number; protein: number } {
+  let kcal = 0;
+  let protein = 0;
+  for (const { key, meal } of tickableMeals(day, home)) {
+    if (!checked.has(key)) continue;
+    kcal += meal.kcal ?? 0;
+    protein += meal.protein ?? 0;
+  }
+  return { kcal, protein };
+}
+
+/** The most one water entry may be, in ml: a big bottle, and a typo of 5000 for 500 is refused. */
+export const WATER_ENTRY_MAX_ML = 3000;
+
 /** First and last day a plan covers. */
 export function planRange(plan: MealPlan): { first: DateKey; last: DateKey } {
   const keys = Object.keys(plan.days).sort() as DateKey[];

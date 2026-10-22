@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Self Care section: Wardrobe is now a tab of it, beside a Diet tab that shows the day's meals from the monthly plan (October in `lib/meal-plans/2026-10.ts`; November when the user sends it). Earlier: Books "Change edition"; Google Books daily limit is 1,000 — see Blocked. Cover Flow notes are in `docs/design/how-cover-flow-works.md`. Soft Club guideline is `docs/design/soft-club.md`. Every look but Soft Club is archived (no longer updated). Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-22 — Diet: meals tick off and water is logged toward the day's goal (needs migration 038 — see Blocked). Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–038, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,13 +230,24 @@
 
 ## Next
 
-- [ ] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
+- [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
-      Plan: `MealCheck` (date + the meal's row label, `home:` for the at-home rows) and `WaterIntake`
-      (one row per drink, ml) — migration 038, RLS on; the Diet page keeps working without it and
-      says so. Tiles count up: kcal / protein from ticked meals, water toward the day's goal.
-      `PUT /api/self-care/meals`, `POST /api/self-care/water`, `DELETE /api/self-care/water/[id]`;
-      today and past days only. Rows tick like the AP tracker.
+      Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that
+      offer them); the tiles count up — kcal and protein from the ticked meals against the day's
+      plan, water against its goal (2.5 / 3 L), each with a bar. Water: +250 / +500 ml or a typed
+      amount (1–3,000 ml), each entry a chip with its time and ✕. A day ahead shows the plan only.
+      `MealCheck` (date + row label; `home:` for the at-home rows) and `WaterIntake` (one row per
+      entry): migration 038, RLS on, verified twice on the local copy + `migrate diff` empty. Before
+      038 runs the page still shows the plan, with a line saying what waits for it (P2021 caught in
+      `dayTracking`; checked by renaming the tables). `PUT /api/self-care/meals` sets a tick (repeat
+      is a no-op); `POST /api/self-care/water`, `DELETE /api/self-care/water/[id]`. Refused with 400:
+      a day ahead, a meal the day's plan lacks (incl. `home:` on a cafeteria weekday), a bad date,
+      0 / 3,001 / 1.5 / "500" ml; a gone entry is 404; no session 401 — all checked over HTTP with the
+      rows checked in Postgres. In Chromium (Soft Club, 1180 + 390): ticks and water update the tiles
+      at once (741 kcal = 368 + 373; 0.83 L = 500 + 330), survive a reload, tomorrow has no boxes,
+      no sideways scroll, no console errors, 0 animations under reduced motion. Ticks are optimistic
+      and roll back with a message if the save fails; a second tap waits for the first.
+      **Needs 038 run** (see Blocked).
 - [x] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
       a tab under Self Care"; plus a diet tab showing *today's* meals from their monthly plan; they
       send a new plan each month). `/self-care` is the Diet tab (as `/study` is Study): the day's
@@ -755,6 +766,9 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Diet: run `038-diet-tracking.sql`** in the Supabase SQL Editor — until then the Diet page shows
+  the plan but no tick boxes or water log. Additive, safe to re-run, nothing else depends on it.
 
 - **Google Books daily limit is 1,000 queries** (project 931263747605, the key in the cloud env).
   It ran out on 2026-10-19 during testing (resets 07:00 UTC). If Vercel uses the same key, Add Book

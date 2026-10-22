@@ -28,3 +28,13 @@ export function isForeignKeyViolation(e: unknown): boolean {
     (e as { code?: unknown }).code === "P2003"
   );
 }
+
+/** The table isn't there (P2021): code deployed ahead of the migration that creates it. */
+export function isMissingTable(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code?: unknown }).code === "P2021"
+  );
+}
