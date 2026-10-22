@@ -230,6 +230,13 @@
 
 ## Next
 
+- [ ] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
+      and add a water intaker where i can enter how much i drank and it count towards todays goal").
+      Plan: `MealCheck` (date + the meal's row label, `home:` for the at-home rows) and `WaterIntake`
+      (one row per drink, ml) — migration 038, RLS on; the Diet page keeps working without it and
+      says so. Tiles count up: kcal / protein from ticked meals, water toward the day's goal.
+      `PUT /api/self-care/meals`, `POST /api/self-care/water`, `DELETE /api/self-care/water/[id]`;
+      today and past days only. Rows tick like the AP tracker.
 - [x] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
       a tab under Self Care"; plus a diet tab showing *today's* meals from their monthly plan; they
       send a new plan each month). `/self-care` is the Diet tab (as `/study` is Study): the day's
