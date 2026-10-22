@@ -230,6 +230,13 @@
 
 ## Next
 
+- [ ] **Self Care section** (user, 2026-10-22: "Wardrobe isn't a standalone section from now on, it is
+      a tab under Self Care"; plus a diet tab showing *today's* meals from their monthly plan; they
+      send a new plan each month). Plan: `/self-care` = Diet (today, prev/next day), tab nav like
+      Study (`SectionNav`); `app/wardrobe` → `app/self-care/wardrobe`, `/wardrobe/*` redirects there;
+      `/api/wardrobe` unchanged. Plan data in the repo, one file per month (`lib/meal-plans/`), no
+      migration — October from "October Cut Plan: Day by Day" (22–31 Oct). Portal tile Wardrobe →
+      Self Care.
 - [x] **Books: change a book's edition after importing** (user, 2026-10-20: "after you import a book
       you can't import a different edition of it"; they had imported a 544-page "Mistborn: Mistborn
       Book One"). Book page → "Change edition" opens the picker for that book (search, ISBN or a
