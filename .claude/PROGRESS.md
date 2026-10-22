@@ -230,6 +230,18 @@
 
 ## Next
 
+- [ ] **Diet as a home-screen app, like the expense logger** (user, 2026-10-22: "i dont think
+      scriptables is the way, lets do the shortcut we did in finance"). The site is blocked on the
+      school Wi-Fi, which may be the dorm's too, so it must work offline. Plan:
+      - its own install: `public/diet.webmanifest` (start `/self-care`, "Diet") linked from the
+        Self Care layout with its own Apple title and icon; public in `proxy.ts`
+      - `sw.js` v2: precache `/self-care` too, fall back per section, and give up on the network
+        after a few seconds, since a blocked connection can hang
+      - ticks and water made without the site go to an IndexedDB queue (`lib/diet-queue.ts`) and
+        sync on the next foreground; water entries carry a client id so a replay can't duplicate
+      - a page from the cache shows the right day from the bundled plan, with the last synced
+        state plus what's queued
+      Scriptable stays until the user says to remove it.
 - [x] **Diet as phone widgets (Scriptable)** (user, 2026-10-22: "i want the diet tab to be a widget where
       can i check off and see meals and as a separate widget log water i installed scriptable").
       `scriptable/Diet.js` (large: today's meals with ticks and kcal eaten; medium: the next three
