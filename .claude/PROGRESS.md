@@ -195,7 +195,7 @@
       SAT vocabulary and Daily review sections; Stats, At a glance and environment table corrected
       (it listed `NEXT_PUBLIC_APP_TIMEZONE`, which no code reads — the zone is fixed in
       `lib/dates.ts`). 2026-10-02 (rev 28): TMDB movie import paragraphs under Library, and
-      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs. Rev 31: anime import paragraphs and the `MAL_CLIENT_ID` row. Rev 32: "Look" paragraph + table of the five themes under At a glance. Rev 34: Self Care (Diet + Wardrobe). Rev 36: Diet ticks and water; the other looks archived. Rev 37: the phone widgets.
+      `COMICVINE_API_KEY` / `TMDB_API_KEY` rows in the environment table. Rev 30: TV import, episode buttons and time-watched paragraphs. Rev 31: anime import paragraphs and the `MAL_CLIENT_ID` row. Rev 32: "Look" paragraph + table of the five themes under At a glance. Rev 34: Self Care (Diet + Wardrobe). Rev 36: Diet ticks and water; the other looks archived. Rev 37: the phone widgets. Rev 38: "On the home screen" (the Diet app) replaces them.
       **Update it whenever a section's behaviour changes.**
 
 - [x] **Weekly study goals** — an overall target in hours and one per module, all set inline in
