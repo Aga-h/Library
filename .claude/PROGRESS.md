@@ -255,6 +255,7 @@
       Scriptable; and "refused" didn't say which side was wrong. Now a refused widget token gets
       why (`widgetTokenRefusal`: the site has none vs. the two differ), the scripts show it with the
       phone token's first 6 / last 4 to compare with Vercel, and a problem widget runs its script.
+      After the push deployed, the live site has the token (probe → "doesn't match").
 - [x] **Diet: tick meals off, log water** (user, 2026-10-22: "add checkboxes to meals so i keep track
       and add a water intaker where i can enter how much i drank and it count towards todays goal").
       Every meal row on today and earlier days is a checkbox (the at-home rows too, on the days that
@@ -792,11 +793,11 @@
 
 ## Blocked / needs the user
 
-- **Phone widgets: set `WIDGET_TOKEN` in Vercel, then add the widgets** — follow
-  `scriptable/README.md`: put Diet.js and Water.js in Scriptable, run Diet once → "Make a new one"
-  (copies the token), add it in Vercel as `WIDGET_TOKEN` and redeploy, then add a large Scriptable
-  widget (Diet) and a small one (Water). Until the variable is set, the widgets say the site refused
-  the token. Not yet seen on a real phone: if anything looks off, the user says what.
+- **Phone widgets: confirm they connect on the phone.** `WIDGET_TOKEN` is set on the live site —
+  verified 2026-10-22 07:55 UTC after the redeploy (a probe token gets "doesn't match", not "no
+  WIDGET_TOKEN"). If the phone still says "doesn't match", the phone's token (its first 6 / last 4
+  show in the message) differs from Vercel's: paste Vercel's value via the widget → Change token →
+  Use this token. Setup: `scriptable/README.md`.
 
 - **Google Books daily limit is 1,000 queries** (project 931263747605, the key in the cloud env).
   It ran out on 2026-10-19 during testing (resets 07:00 UTC). If Vercel uses the same key, Add Book
