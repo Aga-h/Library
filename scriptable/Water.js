@@ -9,7 +9,7 @@
 //
 // Setup is in scriptable/README.md. The token is kept in the Keychain, shared with Diet.js.
 
-const SITE = "https://www.otuzbir.world";
+const SITE = "https://www.sadwankel.site";
 const TOKEN_KEY = "myportal.widgetToken";
 const MAX_ML = 3000; // the site refuses more in one go: a typo of 5000 for 500
 

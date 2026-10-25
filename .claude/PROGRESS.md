@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-25 — Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running, another module is left untouched and the page says so. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-25 — Domain moving from otuzbir.world to sadwankel.site: code points at the new one, the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running, another module is left untouched and the page says so. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -850,6 +850,24 @@
 
 ## Blocked / needs the user
 
+- **Move the site to sadwankel.site** (user, 2026-10-25). Code already uses `www.sadwankel.site`
+  (Scriptable scripts, Open Library User-Agent). On 2026-10-25 DNS still pointed at Namecheap's
+  parking page. In this order:
+  1. Vercel → project → Settings → Domains: add `sadwankel.site` and `www.sadwankel.site`, apex
+     redirecting to www (as otuzbir.world does). Copy the DNS records it shows.
+  2. Namecheap → sadwankel.site → Advanced DNS: delete the parking/URL-redirect records, add the
+     records Vercel shows (`A @` and `CNAME www`). Wait until Vercel says Valid Configuration.
+  3. Vercel: change `otuzbir.world` / `www.otuzbir.world` to 308-redirect to `www.sadwankel.site`.
+     Keep them (and the registration) for a while — old bookmarks and home-screen apps use them.
+  4. Claude environment Default (claude.ai/code → Default → gear): `PORTAL_URL` =
+     `https://www.sadwankel.site`; Network secrets → the review token's Allowed websites: add
+     `sadwankel.site` and `www.sadwankel.site` (else the nightly review gets 401); if Network
+     access is Custom, add both there too. The routine prompt reads `PORTAL_URL` — no change.
+  5. Devices: sign in again on the new domain (cookies are per host). Open the old Diet and
+     expense apps once online so queued entries sync, then delete them and re-add from
+     `www.sadwankel.site/self-care` and `/finances/log`. Theme choice is per domain too.
+  Supabase needs nothing (no Supabase Auth; storage is server-side). No env var holds the domain.
+
 - **Study planner: run `prisma/manual-migrations/039-study-tasks.sql`** in the Supabase SQL Editor.
   Additive, RLS on, safe to re-run. It creates subjects, categories, tasks and steps, and loads
   Homework, Exam Preparation, Revision, Assignments, Reading, Projects and Other only while the
@@ -858,7 +876,7 @@
   exist. Then merge this to `main` — Vercel deploys `main` only.
 
 - **Add Diet to the home screen** (replaces the Scriptable widgets): on a network that reaches the
-  site, open www.otuzbir.world/self-care in Safari → Share → Add to Home Screen ("Diet", salad
+  site, open www.sadwankel.site/self-care in Safari → Share → Add to Home Screen ("Diet", salad
   icon). Open it once there and sign in — a home-screen app has its own login, separate from
   Safari's. From then on it opens and works on the school Wi-Fi too; ticks and water sync when it
   next reaches the site. Scriptable: the scripts are still in `scriptable/` and `WIDGET_TOKEN` is
@@ -999,7 +1017,7 @@
   `.env` with `DATABASE_URL`/`AUTH_PASSWORD`/`AUTH_SECRET`, `npx prisma db push`, then
   `node scripts/phone-seed.mjs`. Google Books' anonymous quota is usually spent, so point
   `GOOGLE_BOOKS_BASE_URL` at a local stand-in. Chromium is at `/opt/pw-browsers`; install
-  `playwright-core` in the scratchpad, not the repo. The live site (www.otuzbir.world) serves
+  `playwright-core` in the scratchpad, not the repo. The live site (www.sadwankel.site) serves
   `/login` without a session, so the sign-in page can be checked after a deploy.
 
 - **Always merge finished work into `main`.** Vercel production is `main` only — other branches

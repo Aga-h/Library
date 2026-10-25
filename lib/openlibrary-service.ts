@@ -10,7 +10,7 @@ function baseUrl(): string {
 type Raw = Record<string, unknown>;
 
 /** Open Library asks clients to say who they are; unnamed ones get one request a second. */
-const HEADERS = { Accept: "application/json", "User-Agent": "Library (https://www.otuzbir.world)" };
+const HEADERS = { Accept: "application/json", "User-Agent": "Library (https://www.sadwankel.site)" };
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
