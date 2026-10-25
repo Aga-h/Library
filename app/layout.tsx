@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import {
   Archivo, Audiowide, DotGothic16, Exo_2, IBM_Plex_Sans, Lexend_Exa, Pirata_One, Pixelify_Sans,
   Share_Tech_Mono, Space_Grotesk, Space_Mono, Unbounded,
 } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import FloatingBackButton from "@/components/layout/FloatingBackButton";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ThemeFilters from "@/components/ThemeFilters";
 import { THEME_COOKIE, themeColorOf, themeFrom } from "@/lib/themes";
@@ -62,6 +64,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-screen bg-gray-50">
         <ThemeFilters />
         {children}
+        {/* Follows the query string, so it suspends on its own instead of the whole page. */}
+        <Suspense fallback={null}>
+          <FloatingBackButton />
+        </Suspense>
         <ServiceWorkerRegistrar />
         <SpeedInsights />
       </body>

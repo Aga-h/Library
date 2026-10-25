@@ -11,6 +11,44 @@ body {
   font-family: var(--theme-font-body);
 }
 
+/* The floating back button sits in the corner, above the home indicator, and the page can
+ * scroll its last lines clear of it. The looks restyle the button itself. */
+.floating-back {
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+.floating-back-tip {
+  position: absolute;
+  right: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-gray-600);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.08);
+  transition: opacity 120ms linear;
+}
+@media (hover: hover) and (pointer: fine) {
+  .floating-back:hover .floating-back-tip { opacity: 1; }
+}
+.floating-back:focus-visible .floating-back-tip { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .floating-back-tip { transition: none; }
+}
+body:has(.floating-back) {
+  scroll-padding-bottom: calc(3.25rem + max(1rem, env(safe-area-inset-bottom, 0px)));
+}
+body:has(.floating-back) main {
+  padding-bottom: calc(3.25rem + max(1rem, env(safe-area-inset-bottom, 0px)));
+}
+
 /* Phones: no text field is set under 16px. iOS Safari zooms the whole page into a field smaller
  * than that the moment it is focused, and leaves it zoomed after — and almost every field here is
  * text-sm (inputCls) or text-xs. Tablets and desktop keep their sizes.
