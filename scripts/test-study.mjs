@@ -4,7 +4,7 @@
 // Run: node --experimental-strip-types scripts/test-study.mjs
 import {
   xpForSeconds, secondsBetween, runningSeconds, formatDuration, formatStopwatch,
-  MIN_XP_MINUTES, XP_PER_MINUTE, FREE_STUDY_STATS,
+  satVocabModuleRank, MIN_XP_MINUTES, XP_PER_MINUTE, FREE_STUDY_STATS,
 } from "../lib/study.ts";
 
 let pass = 0;
@@ -63,6 +63,22 @@ eq(formatStopwatch(0), "00:00", "stopwatch starts at zero");
 eq(formatStopwatch(59), "00:59", "under a minute");
 eq(formatStopwatch(605), "10:05", "minutes and seconds are padded");
 eq(formatStopwatch(3661), "01:01:01", "past an hour it grows a field");
+
+// ── which module title is SAT vocabulary ─────────────────────────────────────
+eq(satVocabModuleRank("SAT vocabulary"), 0, "the name the study pages use");
+eq(satVocabModuleRank("SAT Vocabulary"), 0, "the heading's capitalisation is the same name");
+eq(satVocabModuleRank("  sat   vocabulary "), 0, "spacing does not make it a different module");
+eq(satVocabModuleRank("SAT-vocabulary"), 0, "a hyphen is a space");
+eq(satVocabModuleRank("SAT vocab"), 1, "the short name is the next best");
+eq(satVocabModuleRank("Sat vocab study"), 3, "the old calendar name still counts");
+eq(satVocabModuleRank("SAT vocabulary (2)"), 4, "a disambiguated duplicate ranks after the plain name");
+eq(satVocabModuleRank("Math"), null, "another subject is not this one");
+eq(satVocabModuleRank("Advanced SAT vocabulary"), null, "a longer title is not a match");
+ok(satVocabModuleRank("SAT vocabulary") < satVocabModuleRank("SAT vocab"), "the full name beats the short one");
+ok(
+  satVocabModuleRank("SAT vocabulary") < satVocabModuleRank("SAT vocabulary (2)"),
+  "the plain name beats its disambiguated twin",
+);
 
 if (failures.length) {
   console.error(`${pass} passed, ${failures.length} failed\n`);
