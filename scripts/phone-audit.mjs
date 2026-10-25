@@ -86,6 +86,7 @@ const ROUTES = [
   "/library/articles/ar1",
   "/library/articles/ar1/edit",
   "/study",
+  "/study/tasks",
   "/study/modules",
   "/study/review",
   "/study/stats",

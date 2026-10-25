@@ -57,6 +57,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `036-book-google-books.sql` | Adds `Book.googleBooksId` (unique) — Google Books is edition-centric, so search collapses volumes by title + author and a row remembers at most one. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 | `037-book-owned-kindle.sql` | Adds `Book.ownedKindle` (default false). `owned` stays the physical copy. Additive — run **before** (or right as) the deploy; the book pages error until it has run. |
 | `038-diet-tracking.sql` | Creates `MealCheck` (a meal ticked off on a date, named by its row label) and `WaterIntake` (water drunk, one row per entry), RLS on both. Additive, and the Diet page shows the plan without it — only ticking meals and logging water wait for it. Verified on the local copy of the schema: re-run is a no-op, `migrate diff` empty after. |
+| `039-study-tasks.sql` | Creates the study planner: `StudySubject`, `StudyCategory`, `StudyTask`, `StudySubtask`, and the priority and status enums. Seeds the seven default categories only while the category table is empty, so a re-run does not undo a rename. Deleting a subject or category sets the task's link to null; deleting a task deletes its steps. Additive, RLS on — run **before** (or right as) the deploy. The Planner page says so until it has run; the rest of Study does not read these tables. |
 
 ## How 019 was verified
 

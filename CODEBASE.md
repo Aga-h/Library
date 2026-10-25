@@ -313,6 +313,17 @@ figure counts today as a day left and rounds up, so it never asks for less than 
 
 `ApCourse`/`ApUnit` hold the College Board unit lists; ticking a unit sets `completedAt`.
 
+**Planner.** `/study/tasks` is a list of study tasks (`StudyTask`), separate from sessions: a
+session is time you spent, a task is work that is due. A subject is the course and a category is
+the kind of work (Homework, Exam Preparation, …); the seven categories are seeded by migration
+039 while the table is empty. A task may have no due date. Dates are Istanbul keys on a Postgres
+`date`; a due time is `HH:MM` and only exists with a date. Overdue means still open and the
+deadline has passed — a bare date lasts the whole day, a time passes at that minute. Completing
+a task stamps `completedAt` once; leaving Completed clears it. Steps (`StudySubtask`) are deleted
+with the task; deleting a subject or category unfiles the task (`SET NULL`) rather than deleting
+it. The rules (views, filters, sort, progress, what a save may say) are pure in `lib/study-tasks.ts`.
+The Study page shows how many are due today once 039 has run, and nothing about it before that.
+
 **Daily review.** `/study/review` (and the same thing as JSON at `/api/study/review`) adds up one
 day: time per module, XP and level-ups per stat, the study streak, AP units ticked and SAT
 questions answered. It has no table of its own — it is assembled from the rows above. The rule

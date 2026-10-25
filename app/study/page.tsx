@@ -13,6 +13,7 @@ import {
   weekSecondsByModule,
   weeklyGoalMinutes,
 } from "@/lib/study-service";
+import PlannerGlance from "@/components/study/PlannerGlance";
 import SessionBoard from "@/components/study/SessionBoard";
 import WeeklyGoals from "@/components/study/WeeklyGoals";
 
@@ -60,6 +61,8 @@ export default async function StudyPage() {
           <p className="text-[11px] text-gray-400 font-semibold tracking-wide mt-1">TOTAL LEVEL</p>
         </div>
       </div>
+
+      <PlannerGlance />
 
       <WeeklyGoals
         today={today}
