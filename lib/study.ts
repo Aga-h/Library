@@ -68,6 +68,30 @@ export function runningSeconds(session: RunningSessionView, nowMs: number): numb
   return Math.max(0, Math.round((nowMs - Date.parse(session.startedAt)) / 1000));
 }
 
+// ─── SAT vocabulary module ───────────────────────────────────────────────────
+// A session can name a module and nothing else. The vocabulary pages are not a module, so they
+// recognise the one that means this work by its title. Best match first.
+
+const SAT_VOCAB_MODULE_NAMES = [
+  "sat vocabulary",
+  "sat vocab",
+  "sat vocabulary study",
+  "sat vocab study",
+] as const;
+
+/**
+ * How well `title` names the SAT vocabulary module. Lower is a closer name; null means it is
+ * some other module. A trailing " (2)" is the disambiguator from the calendar migration, and
+ * it ranks after the plain name so "SAT vocabulary" wins over "SAT vocabulary (2)".
+ */
+export function satVocabModuleRank(title: string): number | null {
+  const trimmed = title.trim().toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
+  const bare = trimmed.replace(/ \(\d+\)$/, "");
+  const index = (SAT_VOCAB_MODULE_NAMES as readonly string[]).indexOf(bare);
+  if (index === -1) return null;
+  return trimmed === bare ? index : index + SAT_VOCAB_MODULE_NAMES.length;
+}
+
 // ─── Duration formatting ─────────────────────────────────────────────────────
 
 /** "2h 30m" / "45m" / "20s" / "0m" — nothing at all reads as minutes, not a stray "0s". */
