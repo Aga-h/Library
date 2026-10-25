@@ -9,8 +9,9 @@
 - [x] **SAT Vocabulary quick start** (`/study/sat-vocab`). A "Start SAT Vocabulary" button on that
       page starts the existing study session for the module named SAT vocabulary (then SAT vocab,
       then the older "sat vocab study" names). Same start and stop as Study, so hours, XP and the
-      one-open-session rule are unchanged. Already running that module: the timer and "Stop and
-      bank it", no second session. Another module running: left as it is, with a link back to
+      one-open-session rule are unchanged. Two starts at once take a lock, so both cannot insert.
+      Already running that module: the timer and "Stop and bank it", no second session. Another
+      module running: left as it is, with a link back to
       Study. No such module, or one with no stats: the page says how to fix it and does not start
       a free session. It does not rebuild the test — "Start the test" still owns that.
 - [x] Finances section — budget, expenses (10 categories), additional income, carryover, TRY currency

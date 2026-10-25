@@ -75,31 +75,42 @@ export function rollStats(count = FREE_STUDY_STATS): Stat[] {
  *
  * Starting while something is already running returns the running session untouched — one
  * thing at a time, and the alternative silently discards the time already on the clock.
+ * The check and the insert share a lock, so two clicks at once cannot both insert.
  */
 export async function startSession(
   date: DateKey,
   moduleId: string | null,
   now: Date = new Date(),
 ): Promise<StartResult> {
-  const already = await openSession();
-  if (already) return { ok: true, session: already };
+  // Same shape as the import locks. Transaction-scoped, so it releases when the start commits.
+  const LOCK_NAMESPACE = 7_302_433;
+  return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(${LOCK_NAMESPACE}::int, ${1}::int)`;
 
-  let stats: Stat[];
-  let title: string | null = null;
-  if (moduleId) {
-    const mod = await db.module.findUnique({ where: { id: moduleId } });
-    if (!mod) return { ok: false, reason: "unknown-module" };
-    if (mod.stats.length === 0) return { ok: false, reason: "module-has-no-stats" };
-    stats = mod.stats;
-    title = mod.title;
-  } else {
-    stats = rollStats();
-  }
+    const already = await tx.studySession.findFirst({
+      where: { endedAt: null },
+      orderBy: { startedAt: "desc" },
+      include: { module: true },
+    });
+    if (already) return { ok: true as const, session: already };
 
-  const session = await db.studySession.create({
-    data: { date: fromKey(date), moduleId, moduleTitle: title, stats, startedAt: now },
+    let stats: Stat[];
+    let title: string | null = null;
+    if (moduleId) {
+      const mod = await tx.module.findUnique({ where: { id: moduleId } });
+      if (!mod) return { ok: false as const, reason: "unknown-module" as const };
+      if (mod.stats.length === 0) return { ok: false as const, reason: "module-has-no-stats" as const };
+      stats = mod.stats;
+      title = mod.title;
+    } else {
+      stats = rollStats();
+    }
+
+    const session = await tx.studySession.create({
+      data: { date: fromKey(date), moduleId, moduleTitle: title, stats, startedAt: now },
+    });
+    return { ok: true as const, session };
   });
-  return { ok: true, session };
 }
 
 /**
