@@ -68,3 +68,20 @@ export function weekStartOf(key: DateKey): DateKey {
 export function daysLeftInWeek(key: DateKey): number {
   return 7 - ((dayOfWeek(key) + 6) % 7);
 }
+
+/**
+ * "HH:MM" in the user's timezone, 24-hour and zero-padded. A deadline's clock is compared to
+ * this, never to the server's zone: the deploy region is hours ahead of Istanbul.
+ */
+export function clockKey(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: APP_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const pick = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "00";
+  // Some engines report midnight as 24:00.
+  const hour = pick("hour") === "24" ? "00" : pick("hour");
+  return `${hour.padStart(2, "0")}:${pick("minute").padStart(2, "0")}`;
+}

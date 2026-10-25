@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-25 — Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. Merge to `main` for Vercel. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
@@ -230,6 +230,7 @@
 
 ## Next
 
+- [x] **Study planner** (2026-10-25) — `/study/tasks`, linked from the Study menu, with a due-today line on the Study page once the tables exist. Quick add is a title and a date; Details adds the description, subject, category, time, priority, status, tags and steps. Subjects and categories are separate (a course vs homework / exam / revision); the seven defaults are seeded only while no category exists. Views: Today, the next 7 days, Overdue, All, No date, Done, plus a week strip that opens one day. Open vs finished, and filters for subject, category, priority, status and tag, combine. Search is the title and the description. Sort is deadline, priority, newest or A to Z. The four figures and the bar are counted from the tasks. Finishing a task stamps `completedAt` once; leaving Completed clears it. A date with no time lasts the Istanbul day; a time is overdue the minute after it. No reminder is scheduled — overdue and today are highlighted. Deleting a subject or category unfiles the task. Checked: 111 unit assertions, migration 039 twice against Postgres (`migrate diff` empty, a rename survived the re-run, RLS on all four tables), the API over HTTP (auth, validation, stamp, steps, unfile), and Chromium on Soft Club at 1180 and 390 (create, edit, tick, filter, delete, reload, no sideways scroll, 0 animations under reduced motion). Handbook not updated — it lives outside the repo.
 - [x] **Diet as a home-screen app, like the expense logger** (user, 2026-10-22: "i dont think
       scriptables is the way, lets do the shortcut we did in finance"). The site is blocked on the
       school Wi-Fi (maybe the dorm's too), so it works offline:
@@ -832,6 +833,13 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Study planner: run `prisma/manual-migrations/039-study-tasks.sql`** in the Supabase SQL Editor.
+  Additive, RLS on, safe to re-run. It creates subjects, categories, tasks and steps, and loads
+  Homework, Exam Preparation, Revision, Assignments, Reading, Projects and Other only while the
+  category table is empty — a re-run will not undo a rename. `/study` still loads before it runs.
+  Planner says what is waiting; the due-today line on the Study page stays hidden until the tables
+  exist. Then merge this to `main` — Vercel deploys `main` only.
 
 - **Add Diet to the home screen** (replaces the Scriptable widgets): on a network that reaches the
   site, open www.otuzbir.world/self-care in Safari → Share → Add to Home Screen ("Diet", salad

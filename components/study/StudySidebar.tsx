@@ -1,12 +1,13 @@
 "use client";
 
-import { BookA, ClipboardList, GalleryHorizontalEnd, GraduationCap, Layers, ListChecks, Timer, TrendingUp, Zap } from "lucide-react";
+import { BookA, ClipboardList, GalleryHorizontalEnd, GraduationCap, Layers, ListChecks, ListTodo, Timer, TrendingUp, Zap } from "lucide-react";
 import SectionNav, { type NavGroup } from "@/components/layout/SectionNav";
 
 const GROUPS: NavGroup[] = [
   {
     items: [
       { href: "/study", label: "Study", icon: Timer, exact: true },
+      { href: "/study/tasks", label: "Planner", icon: ListTodo },
       { href: "/study/modules", label: "Modules", icon: Layers },
       { href: "/study/review", label: "Review", icon: ClipboardList },
       { href: "/study/stats", label: "Stats", icon: TrendingUp },

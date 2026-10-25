@@ -852,6 +852,85 @@ model ApUnit {
   @@index([courseId])
 }
 
+// ─── STUDY: PLANNER ──────────────────────────────────────────────────────────
+
+/// A course or study area. Separate from the category: Mathematics can be Exam Preparation.
+model StudySubject {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  /// A palette key from lib/study-tasks.ts (sky, cyan, …). Null draws the neutral chip.
+  color     String?
+  position  Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  tasks     StudyTask[]
+}
+
+/// The kind of work — Homework, Exam Preparation — not the course. Defaults are seeded by
+/// migration 039; ones you add are the same shape and can be renamed or removed.
+model StudyCategory {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  color     String?
+  position  Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  tasks     StudyTask[]
+}
+
+/// One thing to study. A missing due date is a real task, not an unfinished form: it lives in
+/// No date and is never overdue. Dates are Istanbul calendar days, stored as Postgres `date`.
+model StudyTask {
+  id          String            @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String?
+  subject     StudySubject?     @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  categoryId  String?
+  category    StudyCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  dueDate     DateTime?         @db.Date
+  /// "HH:MM", 24-hour, only meaningful with a due date. Compared to Europe/Istanbul.
+  dueTime     String?
+  priority    StudyTaskPriority @default(MEDIUM)
+  status      StudyTaskStatus   @default(NOT_STARTED)
+  tags        String[]          @default([])
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  /// Set when the status becomes Completed, cleared when it leaves. Not chosen by hand.
+  completedAt DateTime?
+  subtasks    StudySubtask[]
+
+  @@index([dueDate])
+  @@index([status])
+  @@index([subjectId])
+  @@index([categoryId])
+}
+
+model StudySubtask {
+  id        String    @id @default(cuid())
+  taskId    String
+  task      StudyTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title     String
+  done      Boolean   @default(false)
+  position  Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  @@index([taskId])
+}
+
+enum StudyTaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum StudyTaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
 // ─── STUDY: SAT VOCABULARY ───────────────────────────────────────────────────
 
 model VocabWord {

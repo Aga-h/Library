@@ -2,7 +2,7 @@
 // six hours puts an evening's work on the wrong day, silently.
 //
 // Run: node --experimental-strip-types scripts/test-dates.mjs
-import { toKey, fromKey, addDays, dayOfWeek, isDateKey, todayKey, weekStartOf, daysLeftInWeek } from "../lib/dates.ts";
+import { toKey, fromKey, addDays, dayOfWeek, isDateKey, todayKey, weekStartOf, daysLeftInWeek, clockKey } from "../lib/dates.ts";
 
 let pass = 0;
 const failures = [];
@@ -41,6 +41,11 @@ eq(todayKey(new Date("2026-08-19T21:30:00Z")), "2026-08-20",
    "00:30 in Istanbul is already the 20th, though it is still the 19th in UTC");
 eq(todayKey(new Date("2026-08-19T20:59:59Z")), "2026-08-19",
    "…and 23:59:59 there is still the 19th");
+
+// The clock is Istanbul too. A deadline at 09:00 is 09:00 there, not 09:00 in the deploy region.
+eq(clockKey(new Date("2026-08-19T21:30:00Z")), "00:30", "00:30 in Istanbul is 21:30 UTC");
+eq(clockKey(new Date("2026-08-19T20:59:00Z")), "23:59", "23:59 there is still the same evening");
+eq(clockKey(new Date("2026-08-19T05:00:00Z")), "08:00", "08:00 there is 05:00 UTC");
 
 if (failures.length) {
   console.error(`${pass} passed, ${failures.length} failed\n`);
