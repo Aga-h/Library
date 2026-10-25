@@ -2,10 +2,18 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-22 — Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Updated:** 2026-10-25 — SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running, another module is left untouched and the page says so. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
 
 ## Done
 
+- [x] **SAT Vocabulary quick start** (`/study/sat-vocab`). A "Start SAT Vocabulary" button on that
+      page starts the existing study session for the module named SAT vocabulary (then SAT vocab,
+      then the older "sat vocab study" names). Same start and stop as Study, so hours, XP and the
+      one-open-session rule are unchanged. Two starts at once take a lock, so both cannot insert.
+      Already running that module: the timer and "Stop and bank it", no second session. Another
+      module running: left as it is, with a link back to
+      Study. No such module, or one with no stats: the page says how to fix it and does not start
+      a free session. It does not rebuild the test — "Start the test" still owns that.
 - [x] Finances section — budget, expenses (10 categories), additional income, carryover, TRY currency
 - [x] Recurring subscriptions — per-issue billing, cancel-from-next-month
 - [x] Comics restructured into Publisher → Universe → Title → Issue (real FKs, cascade deletes)

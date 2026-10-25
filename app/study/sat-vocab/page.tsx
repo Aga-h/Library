@@ -3,7 +3,9 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { GalleryHorizontalEnd, ListChecks, Zap } from "lucide-react";
 import { db } from "@/lib/db";
+import { openSession, satVocabModule, toRunningView } from "@/lib/study-service";
 import { currentRun } from "@/lib/vocab-service";
+import SatVocabQuickStart from "@/components/study/SatVocabQuickStart";
 import VocabTest, {
   type Categories,
   type CategoryEntry,
@@ -11,10 +13,13 @@ import VocabTest, {
 } from "@/components/study/VocabTest";
 
 export default async function SatVocabPage() {
-  const [wordCount, meaningCount, run] = await Promise.all([
+  const now = new Date();
+  const [wordCount, meaningCount, run, vocabModule, running] = await Promise.all([
     db.vocabWord.count(),
     db.vocabMeaning.count(),
     currentRun(),
+    satVocabModule(),
+    openSession(),
   ]);
 
   const questions = run?.questions ?? [];
@@ -86,6 +91,16 @@ export default async function SatVocabPage() {
         </Link>
         </div>
       </div>
+
+      <SatVocabQuickStart
+        module={vocabModule}
+        running={
+          running
+            ? { same: Boolean(vocabModule && running.moduleId === vocabModule.id), session: toRunningView(running) }
+            : null
+        }
+        serverNow={now.getTime()}
+      />
 
       {wordCount === 0 ? (
         <div className="border border-dashed border-gray-300 rounded-xl p-10 text-center">
