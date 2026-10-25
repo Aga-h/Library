@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -34,45 +34,66 @@ export default function FloatingBackButton() {
   const [ready, setReady] = useState(false);
   const [show, setShow] = useState(false);
 
-  const lengthRef = useRef(0);
-  const popRef = useRef(false);
+  // "push" | "replace" | "pop" — history.length does not grow when a push discards a
+  // forward entry (back, then open that page again), so the history methods say which it was.
+  const navKind = useRef<"push" | "replace" | "pop" | null>(null);
   const fallbackHref = useRef<string | null>(null);
   const locked = useRef(false);
   const booted = useRef(false);
 
   useEffect(() => {
+    const push = history.pushState.bind(history);
+    const replace = history.replaceState.bind(history);
+    history.pushState = (...args: Parameters<History["pushState"]>) => {
+      navKind.current = "push";
+      return push(...args);
+    };
+    history.replaceState = (...args: Parameters<History["replaceState"]>) => {
+      if (navKind.current !== "push") navKind.current = "replace";
+      return replace(...args);
+    };
     const onPop = () => {
-      popRef.current = true;
+      navKind.current = "pop";
+      const here = currentHref(location.pathname, location.search);
+      setTrail((prev) => {
+        const next = applyNavigation(prev, here, "pop");
+        writeTrail(next);
+        return next;
+      });
     };
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    return () => {
+      history.pushState = push;
+      history.replaceState = replace;
+      window.removeEventListener("popstate", onPop);
+    };
   }, []);
 
-  useEffect(() => {
+  // A frame later, so a back/forward recorded above is not stored a second time.
+  useLayoutEffect(() => {
     if (!booted.current) {
       booted.current = true;
       const next = restoreTrail(readTrail(), href, document.referrer, location.origin);
-      lengthRef.current = history.length;
       writeTrail(next);
       setTrail(next);
       setReady(true);
       return;
     }
 
-    const popped = popRef.current;
-    const expected = fallbackHref.current;
-    popRef.current = false;
-    fallbackHref.current = null;
-    const grew = history.length > lengthRef.current;
-    lengthRef.current = history.length;
-
-    setTrail((prev) => {
-      const next = expected && sameDestination(expected, href)
-        ? applyNavigation(prev, href, "fallback")
-        : applyNavigation(prev, href, popped ? "pop" : grew ? "push" : "replace");
-      writeTrail(next);
-      return next;
+    const frame = requestAnimationFrame(() => {
+      const kind = navKind.current;
+      navKind.current = null;
+      if (kind === "pop") return;
+      const expected = fallbackHref.current;
+      fallbackHref.current = null;
+      const event = expected && sameDestination(expected, href) ? "fallback" : kind === "push" ? "push" : "replace";
+      setTrail((prev) => {
+        const next = applyNavigation(prev, href, event);
+        writeTrail(next);
+        return next;
+      });
     });
+    return () => cancelAnimationFrame(frame);
   }, [href]);
 
   useEffect(() => {
