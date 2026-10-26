@@ -1,8 +1,8 @@
 # Current state
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
-**Branch:** `main` — the only branch, the GitHub default and what Vercel deploys.
-**Updated:** 2026-10-26 — Site address is configurable: `SITE_URL`, else Vercel's production domain (Open Library User-Agent); the Scriptable widgets keep a `SITE` constant to edit on a copy. `prisma/fresh-install.sql` builds the whole schema on a new, empty database (for a copy of the site; regenerate it after schema changes). Domain moving from otuzbir.world to sadwankel.site: the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running, another module is left untouched and the page says so. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–037, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run.
+**Branch:** `main` — the only branch, the GitHub default and what Vercel deploys. `cursor/floating-back-button-ba9e`, `cursor/sat-vocab-quick-start-7565` and `cursor/study-planner-d637` were already on it and are deleted. `cursor/gpa-calculator-1369` was not; its GPA calculator is on `main` now.
+**Updated:** 2026-10-26 — GPA calculator at `/study/gpa` (needs `040-gpa.sql`; 039 is the study planner). `prisma/fresh-install.sql` includes `GpaLesson` (45 tables). Site address is configurable: `SITE_URL`, else Vercel's production domain (Open Library User-Agent); the Scriptable widgets keep a `SITE` constant to edit on a copy. `prisma/fresh-install.sql` builds the whole schema on a new, empty database (for a copy of the site; regenerate it after schema changes). Domain moving from otuzbir.world to sadwankel.site: the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running, another module is left untouched and the page says so. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October plan in `lib/meal-plans/2026-10.ts`; November when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–040, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run, the planner until 039, saving GPA grades until 040.
 
 ## Done
 
@@ -10,8 +10,14 @@
       `SITE_URL`, then `VERCEL_PROJECT_PRODUCTION_URL`, else no address. No env var needed on the
       live deploy. Documented in README and `scriptable/README.md`, so a copy can use its own domain.
 - [x] **Fresh-install SQL** (2026-10-26). `prisma/fresh-install.sql`: `prisma migrate diff --from-empty`
-      plus RLS on all 44 tables. Checked on a blank Postgres 16: applies cleanly, Prisma sees no
-      difference from `schema.prisma`. Must be regenerated when the schema changes.
+      plus RLS on every table. The first 44 were checked on a blank Postgres 16. `GpaLesson` was
+      added in the same shape when the GPA calculator landed (45 tables). Must be regenerated
+      when the schema changes.
+- [x] **GPA calculator** on `main` (`/study/gpa`), from `cursor/gpa-calculator-1369`. A lesson, its
+      weekly hours, and the exams, performances and project for each half of the year. A blank
+      mark is skipped. Each half is weighted by hours; the year is the average of the two halves.
+      Migration is `040-gpa.sql` — 039 was already the study planner. The page still opens before
+      040 and says saving waits for it. **Needs 040 run** (see Blocked).
 - [x] **SAT Vocabulary quick start** (`/study/sat-vocab`). A "Start SAT Vocabulary" button on that
       page starts the existing study session for the module named SAT vocabulary (then SAT vocab,
       then the older "sat vocab study" names). Same start and stop as Study, so hours, XP and the
@@ -879,7 +885,10 @@
   Homework, Exam Preparation, Revision, Assignments, Reading, Projects and Other only while the
   category table is empty — a re-run will not undo a rename. `/study` still loads before it runs.
   Planner says what is waiting; the due-today line on the Study page stays hidden until the tables
-  exist. Then merge this to `main` — Vercel deploys `main` only.
+  exist.
+
+- **GPA calculator: run `prisma/manual-migrations/040-gpa.sql`** in the Supabase SQL Editor.
+  Additive, RLS on, safe to re-run. Saving grades waits for it. The GPA page still opens and says so.
 
 - **Add Diet to the home screen** (replaces the Scriptable widgets): on a network that reaches the
   site, open www.sadwankel.site/self-care in Safari → Share → Add to Home Screen ("Diet", salad

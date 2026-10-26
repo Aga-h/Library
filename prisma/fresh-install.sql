@@ -734,6 +734,28 @@ CREATE TABLE "VocabReview" (
     CONSTRAINT "VocabReview_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "GpaLesson" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "hours" DOUBLE PRECISION NOT NULL,
+    "position" INTEGER NOT NULL,
+    "h1Exam1" DOUBLE PRECISION,
+    "h1Perf1" DOUBLE PRECISION,
+    "h1Exam2" DOUBLE PRECISION,
+    "h1Perf2" DOUBLE PRECISION,
+    "h1Project" DOUBLE PRECISION,
+    "h2Exam1" DOUBLE PRECISION,
+    "h2Perf1" DOUBLE PRECISION,
+    "h2Exam2" DOUBLE PRECISION,
+    "h2Perf2" DOUBLE PRECISION,
+    "h2Project" DOUBLE PRECISION,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "GpaLesson_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Book_openLibraryId_key" ON "Book"("openLibraryId");
 
@@ -989,6 +1011,9 @@ CREATE INDEX "VocabReview_reviewedAt_idx" ON "VocabReview"("reviewedAt");
 -- CreateIndex
 CREATE INDEX "VocabReview_cardId_idx" ON "VocabReview"("cardId");
 
+-- CreateIndex
+CREATE INDEX "GpaLesson_position_idx" ON "GpaLesson"("position");
+
 -- AddForeignKey
 ALTER TABLE "Book" ADD CONSTRAINT "Book_seriesId_fkey" FOREIGN KEY ("seriesId") REFERENCES "BookSeries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -1101,3 +1126,4 @@ ALTER TABLE "VocabRun" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "VocabQuestion" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "VocabCard" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "VocabReview" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "GpaLesson" ENABLE ROW LEVEL SECURITY;

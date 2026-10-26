@@ -1061,3 +1061,31 @@ model VocabReview {
   @@index([reviewedAt])
   @@index([cardId])
 }
+
+// ─── STUDY: GPA ──────────────────────────────────────────────────────────────
+
+/// One lesson on the GPA sheet. Weekly hours weight it in each half that has a mark.
+/// Averages are not stored — lib/gpa.ts works them out from the marks.
+model GpaLesson {
+  id       String @id @default(cuid())
+  name     String
+  /// Weekly hours of the lesson.
+  hours    Float
+  position Int
+  /// First half of the year. Null is an empty cell, not a zero.
+  h1Exam1   Float?
+  h1Perf1   Float?
+  h1Exam2   Float?
+  h1Perf2   Float?
+  h1Project Float?
+  /// Second half of the year.
+  h2Exam1   Float?
+  h2Perf1   Float?
+  h2Exam2   Float?
+  h2Perf2   Float?
+  h2Project Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([position])
+}

@@ -357,6 +357,12 @@ answer carries the card's `reps`, so a double tap is refused (counted once).
 (Physics C) render as one continuously-numbered sequence. Ticking a unit stores a timestamp, so
 it doubles as "finished on".
 
+**GPA** (`/study/gpa`). A `GpaLesson` is a lesson's weekly hours plus, for each half of the year,
+two exams, two performances and a project. Averages are not stored. A half's lesson average is
+the mean of the marks filled in (a blank is skipped, not a zero); the half weights those lessons
+by hours; the year is the average of the two halves. One half with no marks yet leaves the year
+as the other half.
+
 ---
 
 ## Looks (themes)

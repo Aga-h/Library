@@ -91,6 +91,7 @@ const ROUTES = [
   "/study/review",
   "/study/stats",
   "/study/ap",
+  "/study/gpa",
   "/study/sat-vocab",
   "/study/sat-vocab/flashcards",
   "/study/sat-vocab/quick",
