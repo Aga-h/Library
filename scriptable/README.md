@@ -15,7 +15,7 @@ not instantly. The site shows it straight away.
 
 1. **Add the scripts.** Save `Diet.js` and `Water.js` into iCloud Drive › Scriptable (they appear
    in Scriptable as Diet and Water), or make two new scripts in Scriptable named Diet and Water and
-   paste each file in.
+   paste each file in. On a copy of the site, change `SITE` near the top of both to its address.
 2. **Connect them.** Run Diet in Scriptable and tap **Make a new one**. The token is copied.
 3. **Give the site the token.** In Vercel, open the project → Settings → Environment Variables, add
    `WIDGET_TOKEN` with the copied value, and redeploy. (Already have one? Choose **Use this token**

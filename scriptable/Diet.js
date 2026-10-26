@@ -11,7 +11,7 @@
 //
 // Setup is in scriptable/README.md. The token is kept in the Keychain, shared with Water.js.
 
-const SITE = "https://www.sadwankel.site";
+const SITE = "https://www.sadwankel.site"; // your site's address — change it on a copy
 const TOKEN_KEY = "myportal.widgetToken";
 
 // Soft Club, as on the site: navy ink, the brand blue for small text (cyan fails as text), cyan

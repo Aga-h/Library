@@ -36,7 +36,8 @@ search has nothing else to fall back on.
 
 Optional, per feature: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (cover uploads),
 `STEAM_API_KEY` / `STEAM_USER_ID` / `STEAMGRIDDB_API_KEY` (Steam sync),
-`NEXT_PUBLIC_APP_TIMEZONE` (defaults to `Europe/Istanbul` — this is what "today" means for the
+`SITE_URL` (the site's address, e.g. `https://example.com` — on Vercel the production domain is
+used when it is unset), `NEXT_PUBLIC_APP_TIMEZONE` (defaults to `Europe/Istanbul` — this is what "today" means for the
 study sessions, and the server runs in a different zone).
 
 ## Checks

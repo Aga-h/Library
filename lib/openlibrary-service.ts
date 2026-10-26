@@ -9,8 +9,19 @@ function baseUrl(): string {
 
 type Raw = Record<string, unknown>;
 
+/**
+ * The site's own address, for saying who is asking: SITE_URL if set, else the production domain
+ * Vercel provides on its own. Neither (local dev) leaves the name without an address.
+ */
+function siteUrl(): string | null {
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, "");
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return vercel ? `https://${vercel}` : null;
+}
+
 /** Open Library asks clients to say who they are; unnamed ones get one request a second. */
-const HEADERS = { Accept: "application/json", "User-Agent": "Library (https://www.sadwankel.site)" };
+const site = siteUrl();
+const HEADERS = { Accept: "application/json", "User-Agent": site ? `Library (${site})` : "Library" };
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
