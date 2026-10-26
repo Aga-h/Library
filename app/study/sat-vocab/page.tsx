@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { GalleryHorizontalEnd, ListChecks, Zap } from "lucide-react";
 import { db } from "@/lib/db";
-import { openSession, satVocabModule, toRunningView } from "@/lib/study-service";
+import { listModules, openSession, toRunningView } from "@/lib/study-service";
 import { currentRun } from "@/lib/vocab-service";
 import SatVocabQuickStart from "@/components/study/SatVocabQuickStart";
 import VocabTest, {
@@ -14,11 +14,11 @@ import VocabTest, {
 
 export default async function SatVocabPage() {
   const now = new Date();
-  const [wordCount, meaningCount, run, vocabModule, running] = await Promise.all([
+  const [wordCount, meaningCount, run, modules, running] = await Promise.all([
     db.vocabWord.count(),
     db.vocabMeaning.count(),
     currentRun(),
-    satVocabModule(),
+    listModules(),
     openSession(),
   ]);
 
@@ -93,14 +93,9 @@ export default async function SatVocabPage() {
       </div>
 
       <SatVocabQuickStart
-        module={vocabModule}
-        running={
-          running
-            ? { same: Boolean(vocabModule && running.moduleId === vocabModule.id), session: toRunningView(running) }
-            : null
-        }
+        modules={modules.map((m) => ({ id: m.id, title: m.title, stats: m.stats }))}
+        running={running ? { ...toRunningView(running), moduleId: running.moduleId } : null}
         serverNow={now.getTime()}
-        startTest={wordCount > 0 && questions.length === 0}
       />
 
       {wordCount === 0 ? (

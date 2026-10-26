@@ -7,7 +7,6 @@ import { STATS } from "@/lib/stats";
 import { fromKey, toKey, weekStartOf, type DateKey } from "@/lib/dates";
 import {
   FREE_STUDY_STATS,
-  satVocabModuleRank,
   secondsBetween,
   xpForSeconds,
   type RunningSessionView,
@@ -21,27 +20,6 @@ export function listModules() {
 }
 
 // ─── The running session ─────────────────────────────────────────────────────
-
-/**
- * The module the SAT vocabulary pages start. A session has no link to the word list, so this is
- * the module whose title names that work — "SAT vocabulary", then the shorter and older names.
- * Null when none does: the page says so rather than starting a free session under the wrong name.
- */
-export async function satVocabModule() {
-  const modules = await db.module.findMany({
-    select: { id: true, title: true, stats: true },
-    orderBy: { title: "asc" },
-  });
-  let best: (typeof modules)[number] | null = null;
-  let bestRank = Number.POSITIVE_INFINITY;
-  for (const mod of modules) {
-    const rank = satVocabModuleRank(mod.title);
-    if (rank === null || rank >= bestRank) continue;
-    best = mod;
-    bestRank = rank;
-  }
-  return best;
-}
 
 /** The session currently running, if any. Only ever one. */
 export function openSession() {

@@ -3,10 +3,18 @@ export const dynamic = "force-dynamic";
 import { db } from "@/lib/db";
 import { QUICK_POOLS, QUICK_POOL_LABELS } from "@/lib/vocab";
 import { currentQuickRun, poolMeaningIds } from "@/lib/vocab-service";
+import { listModules, openSession, toRunningView } from "@/lib/study-service";
 import QuickTest, { type QuickQuestion, type QuickResult } from "@/components/study/QuickTest";
+import SatVocabQuickStart from "@/components/study/SatVocabQuickStart";
 
 export default async function QuickTestPage() {
-  const [run, meaningCount] = await Promise.all([currentQuickRun(), db.vocabMeaning.count()]);
+  const now = new Date();
+  const [run, meaningCount, modules, runningSession] = await Promise.all([
+    currentQuickRun(),
+    db.vocabMeaning.count(),
+    listModules(),
+    openSession(),
+  ]);
   const pools = await Promise.all(QUICK_POOLS.map(async (pool) => {
     const ids = await poolMeaningIds(pool);
     return { pool, label: QUICK_POOL_LABELS[pool], count: ids ? ids.size : meaningCount };
@@ -44,6 +52,11 @@ export default async function QuickTestPage() {
           its Done / Ambiguous / To Review lists stay exactly as they are.
         </p>
       </div>
+      <SatVocabQuickStart
+        modules={modules.map((m) => ({ id: m.id, title: m.title, stats: m.stats }))}
+        running={runningSession ? { ...toRunningView(runningSession), moduleId: runningSession.moduleId } : null}
+        serverNow={now.getTime()}
+      />
       <QuickTest
         question={question}
         progress={{ answered: answered.length, total: questions.length }}

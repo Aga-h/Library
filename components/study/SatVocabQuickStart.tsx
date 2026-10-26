@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Play, Square } from "lucide-react";
+import { inputCls } from "@/components/ui/form";
 import {
   formatStopwatch,
   runningSeconds,
@@ -12,33 +13,37 @@ import {
 } from "@/lib/study";
 import StatBadges from "@/components/study/StatBadges";
 
-export interface SatVocabModule {
+export interface StudyModuleChoice {
   id: string;
   title: string;
   stats: RunningSessionView["stats"];
 }
 
 /**
- * Starts the one study session — the same `/api/study/start` the Study page uses — for the SAT
- * vocabulary module, and stops it the same way. It does not build a test run: "Start the test"
- * already does that, and a second start would wipe the one in progress.
+ * Starts the one study session — the same `/api/study/start` the Study page uses — for a module
+ * the person picks from their own list. It does not build a test run: "Start the test" already
+ * does that, and a second start would wipe the one in progress.
  */
 export default function SatVocabQuickStart({
-  module,
+  modules,
   running,
   serverNow,
-  startTest,
 }: {
-  /** The SAT vocabulary module, or null when nothing is named that. */
-  module: SatVocabModule | null;
-  /** The open session, and whether it is `module`. Null when nothing is running. */
-  running: { same: boolean; session: RunningSessionView } | null;
+  modules: StudyModuleChoice[];
+  /** The open session, if any. `moduleId` is null for a free session. */
+  running: (RunningSessionView & { moduleId: string | null }) | null;
   /** The server's clock at render, so the first frame matches and the tick can take over. */
   serverNow: number;
-  /** There are words and no test in progress. Starting should build one, not only the timer. */
-  startTest: boolean;
 }) {
   const router = useRouter();
+  const usable = modules.filter((m) => m.stats.length > 0);
+  const [picked, setPicked] = useState(() => {
+    if (running?.moduleId && usable.some((m) => m.id === running.moduleId)) return running.moduleId;
+    return usable[0]?.id ?? "";
+  });
+  const selected = usable.find((m) => m.id === picked) ?? usable[0] ?? null;
+  const same = Boolean(running && selected && running.moduleId === selected.id);
+
   const [now, setNow] = useState(serverNow);
   // A refresh (starting, stopping, answering a question) brings a new server clock. Pick it up
   // during render so the stopwatch matches that response instead of the clock from first load.
@@ -74,7 +79,6 @@ export default function SatVocabQuickStart({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(typeof data.error === "string" ? data.error : "Something went wrong");
-        // The clock may already have moved (stopped elsewhere). Catch the panel up.
         router.refresh();
         return null;
       }
@@ -90,24 +94,14 @@ export default function SatVocabQuickStart({
   }
 
   async function begin() {
-    if (!module || module.stats.length === 0) return;
-    const data = await post("/api/study/start", { moduleId: module.id });
+    if (!selected) return;
+    const data = await post("/api/study/start", { moduleId: selected.id });
     if (!data) return;
-    // A different id means something else was already open and was left running. The refresh
-    // above shows that session. Starting the test on top of it would be the wrong activity.
-    if (data.moduleId && data.moduleId !== module.id) {
+    // Something else was already open and was left running. The refresh shows it.
+    if (data.moduleId && data.moduleId !== selected.id) {
       const name = data.moduleTitle ?? "Free study";
-      setError(`${name} is already running. Stop it, then start SAT Vocabulary here.`);
-      return;
+      setError(`${name} is already running. Stop it, then start ${selected.title}.`);
     }
-    // No test yet: build the whole list. A test already in progress is left as it is —
-    // a new run would throw away its questions and its three lists.
-    if (startTest) await post("/api/study/vocab/run", {});
-  }
-
-  async function start() {
-    if (!module || module.stats.length === 0 || running) return;
-    await begin();
   }
 
   async function stopAndStart() {
@@ -116,28 +110,43 @@ export default function SatVocabQuickStart({
     await begin();
   }
 
-  const elapsed = running ? runningSeconds(running.session, now) : 0;
+  const elapsed = running ? runningSeconds(running, now) : 0;
+
+  const picker = usable.length > 0 && (
+    <label className="flex flex-col gap-1 min-w-0 flex-1">
+      <span className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Module</span>
+      <select
+        value={selected?.id ?? ""}
+        onChange={(e) => setPicked(e.target.value)}
+        disabled={busy}
+        className={inputCls}
+      >
+        {usable.map((m) => (
+          <option key={m.id} value={m.id}>{m.title}</option>
+        ))}
+      </select>
+    </label>
+  );
 
   let body: ReactNode;
-  if (running?.same) {
-    const session = running.session;
+  if (same && running && selected) {
     body = (
       <section className="bg-gray-900 text-white rounded-2xl px-5 py-4 sm:px-6 sm:py-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Studying</p>
             <h3 className="text-2xl font-bold mt-1 break-words sm:truncate">
-              {session.moduleTitle ?? module?.title ?? "SAT vocabulary"}
+              {running.moduleTitle ?? selected.title}
             </h3>
             <div className="mt-3">
-              <StatBadges stats={session.stats} size="xs" />
+              <StatBadges stats={running.stats} size="xs" />
             </div>
           </div>
           <div className="text-right max-sm:text-left">
             <p className="text-4xl font-bold tabular-nums leading-none">{formatStopwatch(elapsed)}</p>
             <p className="text-xs text-gray-400 mt-1.5">
               +{xpForSeconds(elapsed).toLocaleString()} XP
-              {session.stats.length > 1 && <span className="text-gray-500"> each</span>} so far
+              {running.stats.length > 1 && <span className="text-gray-500"> each</span>} so far
             </p>
           </div>
         </div>
@@ -155,72 +164,56 @@ export default function SatVocabQuickStart({
       </section>
     );
   } else if (running) {
-    const name = running.session.moduleTitle ?? "Free study";
+    const name = running.moduleTitle ?? "Free study";
     body = (
       <section className="bg-white border border-gray-200 rounded-2xl px-4 py-4 sm:px-5">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Study session</p>
-            <p className="text-sm font-semibold text-gray-900 mt-1 break-words">{name} is already running</p>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {module && module.stats.length > 0
-                ? "One session at a time. Stopping it banks whatever it has earned, then SAT Vocabulary starts."
-                : "One session at a time. Stop it here, or open Study."}
-            </p>
-          </div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Study session</p>
+        <p className="text-sm font-semibold text-gray-900 mt-1 break-words">{name} is already running</p>
+        <p className="text-xs text-gray-500 mt-0.5">
+          One session at a time. Stopping it banks whatever it has earned, then the module you pick starts.
+        </p>
+        <div className="flex items-end gap-2 flex-wrap mt-3">
+          {picker}
           <button
             type="button"
             onClick={stopAndStart}
-            disabled={busy}
+            disabled={busy || !selected}
             className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
-            <Square className="w-4 h-4" /> {busy ? "Switching…" : module && module.stats.length > 0 ? "Stop it and start" : "Stop it"}
+            <Square className="w-4 h-4" /> {busy ? "Switching…" : "Stop it and start"}
           </button>
         </div>
       </section>
     );
-  } else if (!module) {
+  } else if (!selected) {
     body = (
       <section className="border border-dashed border-gray-300 rounded-xl px-4 py-4 text-sm text-gray-600">
         Study hours are kept on a module.{" "}
         <Link href="/study/modules" className="font-semibold text-gray-900 underline">
-          Name one SAT vocabulary
+          Make one
         </Link>{" "}
         and it can be started from here.
       </section>
     );
-  } else if (module.stats.length === 0) {
-    body = (
-      <Link
-        href="/study/modules"
-        className="block border border-dashed border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors"
-      >
-        <span className="block font-semibold text-gray-400 text-sm break-words">{module.title}</span>
-        <span className="block text-xs text-amber-600 mt-1">No stats yet — give it one to study it</span>
-      </Link>
-    );
   } else {
     body = (
       <section className="bg-white border border-gray-200 rounded-2xl px-4 py-4 sm:px-5">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Study session</p>
-            <p className="text-sm text-gray-500 mt-1">
-              {startTest
-                ? `Starts the test and the study timer. It pays ${module.title}'s stats.`
-                : `The same timer as Study. It pays ${module.title}'s stats.`}
-            </p>
-            <div className="mt-2">
-              <StatBadges stats={module.stats} size="xs" />
-            </div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Study session</p>
+        <p className="text-sm text-gray-500 mt-1">The same timer as Study. It pays the module you pick.</p>
+        {selected.stats.length > 0 && (
+          <div className="mt-2">
+            <StatBadges stats={selected.stats} size="xs" />
           </div>
+        )}
+        <div className="flex items-end gap-2 flex-wrap mt-3">
+          {picker}
           <button
             type="button"
-            onClick={start}
+            onClick={begin}
             disabled={busy}
             className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
-            <Play className="w-4 h-4" /> {busy ? "Starting…" : "Start SAT Vocabulary"}
+            <Play className="w-4 h-4" /> {busy ? "Starting…" : "Start"}
           </button>
         </div>
       </section>
