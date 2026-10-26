@@ -100,6 +100,7 @@ export default async function SatVocabPage() {
             : null
         }
         serverNow={now.getTime()}
+        startTest={wordCount > 0 && questions.length === 0}
       />
 
       {wordCount === 0 ? (

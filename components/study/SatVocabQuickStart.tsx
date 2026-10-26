@@ -27,6 +27,7 @@ export default function SatVocabQuickStart({
   module,
   running,
   serverNow,
+  startTest,
 }: {
   /** The SAT vocabulary module, or null when nothing is named that. */
   module: SatVocabModule | null;
@@ -34,6 +35,8 @@ export default function SatVocabQuickStart({
   running: { same: boolean; session: RunningSessionView } | null;
   /** The server's clock at render, so the first frame matches and the tick can take over. */
   serverNow: number;
+  /** There are words and no test in progress. Starting should build one, not only the timer. */
+  startTest: boolean;
 }) {
   const router = useRouter();
   const [now, setNow] = useState(serverNow);
@@ -86,25 +89,31 @@ export default function SatVocabQuickStart({
     }
   }
 
-  async function start() {
-    if (!module || module.stats.length === 0 || running) return;
+  async function begin() {
+    if (!module || module.stats.length === 0) return;
     const data = await post("/api/study/start", { moduleId: module.id });
     if (!data) return;
-    // Starting while something else is open returns that session untouched. Say so — a refresh
-    // then shows it, and no second timer was created.
-    // A successful start of this module has no moduleId only when the response couldn't carry
-    // it; the refresh above is what shows the timer. A different id means something else was
-    // already open and was left running.
+    // A different id means something else was already open and was left running. The refresh
+    // above shows that session. Starting the test on top of it would be the wrong activity.
     if (data.moduleId && data.moduleId !== module.id) {
       const name = data.moduleTitle ?? "Free study";
       setError(`${name} is already running. Stop it, then start SAT Vocabulary here.`);
+      return;
     }
+    // No test yet: build the whole list. A test already in progress is left as it is —
+    // a new run would throw away its questions and its three lists.
+    if (startTest) await post("/api/study/vocab/run", {});
+  }
+
+  async function start() {
+    if (!module || module.stats.length === 0 || running) return;
+    await begin();
   }
 
   async function stopAndStart() {
     const stopped = await post("/api/study/stop", {});
-    if (!stopped || !module || module.stats.length === 0) return;
-    await post("/api/study/start", { moduleId: module.id });
+    if (!stopped) return;
+    await begin();
   }
 
   const elapsed = running ? runningSeconds(running.session, now) : 0;
@@ -197,7 +206,9 @@ export default function SatVocabQuickStart({
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Study session</p>
             <p className="text-sm text-gray-500 mt-1">
-              The same timer as Study. It pays {module.title}&apos;s stats.
+              {startTest
+                ? `Starts the test and the study timer. It pays ${module.title}'s stats.`
+                : `The same timer as Study. It pays ${module.title}'s stats.`}
             </p>
             <div className="mt-2">
               <StatBadges stats={module.stats} size="xs" />

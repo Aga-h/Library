@@ -60,10 +60,14 @@ export default function FloatingBackButton() {
     // then had no previous page to return to.
     const record = (event: "push" | "replace" | "fallback") => {
       const here = currentHref(location.pathname, location.search);
-      setTrail((prev) => {
-        const next = applyNavigation(prev, here, event);
-        writeTrail(next);
-        return next;
+      // Next writes the history entry from useInsertionEffect. Setting state in that call
+      // is rejected, so the note waits until the effect has finished.
+      queueMicrotask(() => {
+        setTrail((prev) => {
+          const next = applyNavigation(prev, here, event);
+          writeTrail(next);
+          return next;
+        });
       });
     };
     history.pushState = (...args: Parameters<History["pushState"]>) => {
