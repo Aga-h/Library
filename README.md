@@ -59,6 +59,10 @@ idempotent SQL in [`prisma/manual-migrations/`](prisma/manual-migrations/) and p
 Supabase SQL editor. **Additive migrations run before the deploy; removals run after it.** See
 that directory's README for the run order and the reasoning.
 
+**A new, empty database** (a copy of this site) skips all that: paste
+[`prisma/fresh-install.sql`](prisma/fresh-install.sql) into the SQL editor once. It is the whole
+schema, row level security on, and can be done entirely in the browser.
+
 Every new table needs `ENABLE ROW LEVEL SECURITY` — Supabase exposes `public` over its REST API,
 and a new table does not inherit RLS from its neighbours.
 
