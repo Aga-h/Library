@@ -92,10 +92,19 @@ export default function SatVocabQuickStart({
     if (!data) return;
     // Starting while something else is open returns that session untouched. Say so — a refresh
     // then shows it, and no second timer was created.
-    if (data.moduleId !== module.id) {
+    // A successful start of this module has no moduleId only when the response couldn't carry
+    // it; the refresh above is what shows the timer. A different id means something else was
+    // already open and was left running.
+    if (data.moduleId && data.moduleId !== module.id) {
       const name = data.moduleTitle ?? "Free study";
-      setError(`${name} is already running. Stop it on Study, then start SAT Vocabulary here.`);
+      setError(`${name} is already running. Stop it, then start SAT Vocabulary here.`);
     }
+  }
+
+  async function stopAndStart() {
+    const stopped = await post("/api/study/stop", {});
+    if (!stopped || !module || module.stats.length === 0) return;
+    await post("/api/study/start", { moduleId: module.id });
   }
 
   const elapsed = running ? runningSeconds(running.session, now) : 0;
@@ -124,6 +133,7 @@ export default function SatVocabQuickStart({
           </div>
         </div>
         <button
+          type="button"
           onClick={() => post("/api/study/stop", {})}
           disabled={busy}
           className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2.5 max-sm:w-full max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-200 disabled:opacity-50 transition-colors mt-5"
@@ -144,15 +154,19 @@ export default function SatVocabQuickStart({
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Study session</p>
             <p className="text-sm font-semibold text-gray-900 mt-1 break-words">{name} is already running</p>
             <p className="text-xs text-gray-500 mt-0.5">
-              One session at a time. Stop that one on Study, then start SAT Vocabulary here.
+              {module && module.stats.length > 0
+                ? "One session at a time. Stopping it banks whatever it has earned, then SAT Vocabulary starts."
+                : "One session at a time. Stop it here, or open Study."}
             </p>
           </div>
-          <Link
-            href="/study"
-            className="flex items-center gap-2 border border-gray-200 text-gray-700 px-3 py-2 max-sm:py-2.5 max-sm:w-full max-sm:justify-center rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+          <button
+            type="button"
+            onClick={stopAndStart}
+            disabled={busy}
+            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
-            Open Study
-          </Link>
+            <Square className="w-4 h-4" /> {busy ? "Switching…" : module && module.stats.length > 0 ? "Stop it and start" : "Stop it"}
+          </button>
         </div>
       </section>
     );
@@ -190,6 +204,7 @@ export default function SatVocabQuickStart({
             </div>
           </div>
           <button
+            type="button"
             onClick={start}
             disabled={busy}
             className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 max-sm:w-full max-sm:justify-center max-sm:py-3 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors"

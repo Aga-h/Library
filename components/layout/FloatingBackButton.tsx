@@ -34,26 +34,52 @@ export default function FloatingBackButton() {
   const [ready, setReady] = useState(false);
   const [show, setShow] = useState(false);
 
-  // "push" | "replace" | "pop" — history.length does not grow when a push discards a
-  // forward entry (back, then open that page again), so the history methods say which it was.
-  const navKind = useRef<"push" | "replace" | "pop" | null>(null);
+  // Set just before climbing to a parent. That push must not become a history step, or the
+  // next press would return to the page just left instead of climbing again.
   const fallbackHref = useRef<string | null>(null);
   const locked = useRef(false);
   const booted = useRef(false);
+  // Scroll that happened on some element other than the window or <main>.
+  const extraScroll = useRef(0);
+
+  useLayoutEffect(() => {
+    if (booted.current) return;
+    booted.current = true;
+    const next = restoreTrail(readTrail(), href, document.referrer, location.origin);
+    writeTrail(next);
+    setTrail(next);
+    setReady(true);
+  }, [href]);
 
   useEffect(() => {
     const push = history.pushState.bind(history);
     const replace = history.replaceState.bind(history);
+    // Recorded here, not when the address React knows about changes. Next writes the history
+    // entry in an effect that runs after this component's effects, so a note taken on the
+    // render always saw "nothing was pushed" and stored the visit as a replace — the button
+    // then had no previous page to return to.
+    const record = (event: "push" | "replace" | "fallback") => {
+      const here = currentHref(location.pathname, location.search);
+      setTrail((prev) => {
+        const next = applyNavigation(prev, here, event);
+        writeTrail(next);
+        return next;
+      });
+    };
     history.pushState = (...args: Parameters<History["pushState"]>) => {
-      navKind.current = "push";
-      return push(...args);
+      const result = push(...args);
+      const here = currentHref(location.pathname, location.search);
+      const climbing = fallbackHref.current !== null && sameDestination(fallbackHref.current, here);
+      fallbackHref.current = null;
+      record(climbing ? "fallback" : "push");
+      return result;
     };
     history.replaceState = (...args: Parameters<History["replaceState"]>) => {
-      if (navKind.current !== "push") navKind.current = "replace";
-      return replace(...args);
+      const result = replace(...args);
+      record("replace");
+      return result;
     };
     const onPop = () => {
-      navKind.current = "pop";
       const here = currentHref(location.pathname, location.search);
       setTrail((prev) => {
         const next = applyNavigation(prev, here, "pop");
@@ -69,44 +95,20 @@ export default function FloatingBackButton() {
     };
   }, []);
 
-  // A frame later, so a back/forward recorded above is not stored a second time.
-  useLayoutEffect(() => {
-    if (!booted.current) {
-      booted.current = true;
-      const next = restoreTrail(readTrail(), href, document.referrer, location.origin);
-      writeTrail(next);
-      setTrail(next);
-      setReady(true);
-      return;
-    }
-
-    const frame = requestAnimationFrame(() => {
-      const kind = navKind.current;
-      navKind.current = null;
-      if (kind === "pop") return;
-      const expected = fallbackHref.current;
-      fallbackHref.current = null;
-      const event = expected && sameDestination(expected, href) ? "fallback" : kind === "push" ? "push" : "replace";
-      setTrail((prev) => {
-        const next = applyNavigation(prev, href, event);
-        writeTrail(next);
-        return next;
-      });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [href]);
-
   useEffect(() => {
     if (!ready) return;
     const measure = () => {
-      const { scrolled, overflow } = pageScroll();
+      const { scrolled, overflow } = pageScroll(extraScroll.current);
       const decision = decideBack(trail, href);
       const next = shouldShowFloatingBack(scrolled, overflow, decision.type !== "none", overlayOpen());
       setShow((prev) => (prev === next ? prev : next));
     };
 
+    extraScroll.current = 0;
     let frame = 0;
-    const schedule = () => {
+    const schedule = (event?: Event) => {
+      const target = event?.target;
+      if (target instanceof Element) extraScroll.current = Math.max(extraScroll.current, target.scrollTop);
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         frame = 0;
@@ -157,7 +159,7 @@ export default function FloatingBackButton() {
       data-floating-back
       onClick={goBack}
       aria-label="Go back"
-      className="floating-back fixed z-[45] flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-md transition-colors hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400 motion-reduce:transition-none"
+      className="floating-back fixed z-[75] flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md transition-colors hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400 motion-reduce:transition-none"
     >
       <ArrowLeft className="h-4 w-4" aria-hidden />
       <span className="floating-back-tip" aria-hidden>Go back</span>
@@ -165,9 +167,9 @@ export default function FloatingBackButton() {
   );
 }
 
-function pageScroll(): { scrolled: number; overflow: number } {
+function pageScroll(extra: number): { scrolled: number; overflow: number } {
   const doc = document.scrollingElement;
-  let scrolled = window.scrollY || 0;
+  let scrolled = Math.max(window.scrollY || 0, extra);
   let overflow = 0;
   if (doc) {
     scrolled = Math.max(scrolled, doc.scrollTop);
@@ -186,6 +188,8 @@ function pageScroll(): { scrolled: number; overflow: number } {
 function overlayOpen(): boolean {
   for (const node of document.querySelectorAll<HTMLElement>("[aria-modal='true']")) {
     if (node.closest("[inert], .invisible")) continue;
+    const style = getComputedStyle(node);
+    if (style.display === "none" || style.visibility === "hidden") continue;
     const box = node.getBoundingClientRect();
     if (box.width < 2 || box.height < 2) continue;
     return true;
