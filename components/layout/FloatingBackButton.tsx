@@ -106,18 +106,21 @@ export default function FloatingBackButton() {
 
     extraScroll.current = 0;
     let frame = 0;
-    const schedule = (event?: Event) => {
-      const target = event?.target;
-      if (target instanceof Element) extraScroll.current = Math.max(extraScroll.current, target.scrollTop);
+    const schedule = () => {
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         frame = 0;
         measure();
       });
     };
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Element) extraScroll.current = Math.max(extraScroll.current, target.scrollTop);
+      schedule();
+    };
 
     measure();
-    window.addEventListener("scroll", schedule, true);
+    window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", schedule);
     const observer = new MutationObserver(schedule);
     observer.observe(document.body, {
@@ -127,7 +130,7 @@ export default function FloatingBackButton() {
       attributeFilter: ["inert", "aria-modal", "aria-expanded", "hidden"],
     });
     return () => {
-      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", schedule);
       observer.disconnect();
       if (frame) window.cancelAnimationFrame(frame);

@@ -8,7 +8,8 @@
 
 - [x] **Floating back button and SAT Vocabulary quick start** (2026-10-26). The back button was
       noting the visit before the browser had added it, so it had no previous page and did
-      nothing useful. It now notes the visit when the history entry is written. On SAT Vocabulary,
+      nothing useful. It now notes the visit when the history entry is written. The menu watcher
+      has its own callback, so the production type check passes. On SAT Vocabulary,
       a session that is already running can be stopped and this one started from the same button.
 - [x] **Configurable site address** (2026-10-26). `lib/openlibrary-service.ts` names the site from
       `SITE_URL`, then `VERCEL_PROJECT_PRODUCTION_URL`, else no address. No env var needed on the
