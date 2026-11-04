@@ -17,7 +17,8 @@ function ok(cond, label) { if (cond) pass++; else failures.push(label); }
 const sum = (meals, field) => meals.reduce((n, m) => n + (m[field] ?? 0), 0);
 
 // Mains, soups, sides and salad carry their menu kcal in brackets: "Mantı (322)". Where a meal
-// lists them, they add up to the meal. Estimates like "(~150 g cooked)" are not brackets of kcal.
+// lists them, they add up to the meal, as does a dish the plan estimates: "Nohut (~280, no kcal on
+// the menu)". Portions like "(~150 g cooked)" are not brackets of kcal.
 function checkMeals(meals, total, where) {
   eq(sum(meals, "kcal"), total.kcal, `${where}: kcal total is the sum of the meals`);
   // Protein is an estimate per meal, rounded, so the plan's total can be a gram off the sum.
@@ -25,7 +26,7 @@ function checkMeals(meals, total, where) {
   ok(Math.abs(protein - total.protein) <= 1, `${where}: protein total ${total.protein} g is within 1 g of the meals' ${protein} g`);
   for (const m of meals) {
     ok(m.time.trim() !== "" && m.what.trim() !== "", `${where} ${m.time}: has a time and something to eat`);
-    const dishes = [...m.what.matchAll(/\((\d+)\)/g)].map((x) => Number(x[1]));
+    const dishes = [...m.what.matchAll(/\(~?(\d+)[,)]/g)].map((x) => Number(x[1]));
     if (dishes.length) eq(dishes.reduce((a, b) => a + b, 0), m.kcal, `${where} ${m.time}: dishes add up to the meal`);
   }
 }
@@ -61,6 +62,21 @@ eq(planRange(MEAL_PLANS[0]), { first: "2026-10-22", last: "2026-10-31" }, "Octob
 for (const key of ["2026-10-24", "2026-10-25", "2026-10-29", "2026-10-31"]) ok(MEAL_PLANS[0].days[key].home, `${key}: offers the at-home day`);
 ok(!MEAL_PLANS[0].days["2026-10-22"].home, "a weekday at the cafeteria does not");
 
+// November: 5–30, gym on Mon, Wed and Fri through the break too (its gym-day version).
+const NOV = MEAL_PLANS[1];
+eq(planRange(NOV), { first: "2026-11-05", last: "2026-11-30" }, "November runs 5–30");
+for (const [key, day] of Object.entries(NOV.days)) {
+  eq(day.kind, [1, 3, 5].includes(dayOfWeek(key)) ? "gym" : "rest", `${key}: gym days are Mon, Wed, Fri`);
+}
+// The break is the at-home day itself, so it doesn't offer it a second time; weekends do.
+for (let k = "2026-11-14"; k <= "2026-11-21"; k = addDays(k, 1)) {
+  ok(!NOV.days[k].home && NOV.days[k].note?.startsWith("Mid-term break"), `${k}: a break day`);
+  if (NOV.days[k].kind === "rest") eq(NOV.days[k].total, NOV.home.total, `${k}: the rest-day version is the at-home day`);
+}
+eq(NOV.days["2026-11-16"].total, { kcal: 2030, protein: 158 }, "a gym day at home adds the rice and the fruit: 1,810 + 150 + 70");
+for (const key of ["2026-11-07", "2026-11-08", "2026-11-22", "2026-11-28", "2026-11-29"]) ok(NOV.days[key].home, `${key}: offers the at-home day`);
+ok(!NOV.days["2026-11-05"].home, "a November weekday at the cafeteria does not");
+
 // Ticks name a meal by its row label, so no two rows a day can tick may share one.
 for (const plan of MEAL_PLANS) {
   for (const [key, day] of Object.entries(plan.days)) {
@@ -90,6 +106,11 @@ eq(mealDay("2026-10-22")?.plan.title, "October Cut Plan", "…from the October p
 eq(mealDay("2026-10-29")?.day.occasion, "Cumhuriyet Bayramı", "Thu 29 is the bank holiday");
 eq(mealDay("2026-10-21"), null, "the day before the plan starts has none");
 eq(mealDay("2026-11-01"), null, "neither has the day after it ends");
+eq(mealDay("2026-11-04"), null, "nor the days before November's starts");
+eq(mealDay("2026-11-05")?.plan.title, "November Cut Plan", "Thu 5 Nov is November's first day");
+eq(mealDay("2026-11-05")?.day.total, { kcal: 1818, protein: 108 }, "…at 1,818 kcal");
+eq(mealDay("2026-11-26")?.day.total.protein, 99, "Thu 26 is the lowest-protein day");
+eq(mealDay("2026-12-01"), null, "December has no plan yet");
 eq(mealDay("2026-10-22", []), null, "no plans, no day");
 
 if (failures.length) {

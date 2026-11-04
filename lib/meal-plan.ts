@@ -11,6 +11,7 @@
  */
 import type { DateKey } from "@/lib/dates";
 import { OCTOBER_2026 } from "@/lib/meal-plans/2026-10";
+import { NOVEMBER_2026 } from "@/lib/meal-plans/2026-11";
 
 export type Meal = {
   /** The row's label in the plan: "07:30–08:40", "Lunch", "18:30 dinner". */
@@ -52,7 +53,7 @@ export type MealPlan = {
 };
 
 /** Every plan, oldest first. A new month's plan is added here. */
-export const MEAL_PLANS: MealPlan[] = [OCTOBER_2026];
+export const MEAL_PLANS: MealPlan[] = [OCTOBER_2026, NOVEMBER_2026];
 
 /** The plan covering `date`, with that day, or null when no plan has it. */
 export function mealDay(date: DateKey, plans: MealPlan[] = MEAL_PLANS): { plan: MealPlan; day: MealDay } | null {
