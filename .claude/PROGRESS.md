@@ -263,6 +263,15 @@
 
 ## Next
 
+- [ ] **Diet: "didn't / won't eat it" and "ate more", with the rest of today rebalancing** (user,
+      2026-11-05: "select it like i did this / i didnt do this / wont do this … the diet should
+      update itself to include more/less"; picked: skip + ate more/extra; rest of today only).
+      Plan: `lib/meal-adjust.ts` (pure: per-meal add-ons and trims, allocation over the open meals,
+      protein first, never trims protein, 1,700 floor note, skipped gym → rest-day goal);
+      `MealCheck` gains status / changes / extras (migration 041, plain ticks keep working before it);
+      PUT accepts `{status, changes, extras}` and the old `{checked}`; queue + saved days carry the
+      states; DayTracker rows get a ⋯ panel. Then handbook.
+
 - [x] **Floating back button** (asked 2026-10-25). One control in the root layout
       (`components/layout/FloatingBackButton.tsx`), fixed bottom-right, shown once a long page
       has scrolled past the arrow at the top. `lib/back-nav.ts` steps back through this tab's
