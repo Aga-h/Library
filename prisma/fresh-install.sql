@@ -371,6 +371,9 @@ CREATE TABLE "Garment" (
 CREATE TABLE "MealCheck" (
     "date" DATE NOT NULL,
     "meal" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'ate',
+    "changes" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "extras" JSONB NOT NULL DEFAULT '[]',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "MealCheck_pkey" PRIMARY KEY ("date","meal")

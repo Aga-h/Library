@@ -1,14 +1,21 @@
-// Offline queue for the Diet page: meals ticked and water logged while the site can't be reached —
+// Offline queue for the Diet page: meals marked and water logged while the site can't be reached —
 // no signal, or a network that blocks the site (the school Wi-Fi does). Browser-only, IndexedDB,
 // for the same reason as the expense queue: nothing in it may be evicted with script storage.
 //
 // It also keeps the last state the site confirmed for each day, so the page opened from the
-// offline cache still shows what is already ticked, with the queue on top.
+// offline cache still shows what is already marked, with the queue on top.
 
 import type { DayTracking, WaterEntry } from "@/lib/meal-plan-service";
+import { statesFromChecked, type MealState, type MealStates } from "@/lib/meal-adjust";
 import { decideFromStatus } from "@/lib/expense-queue";
 
-export type QueuedTick = { kind: "meal"; id: string; date: string; meal: string; checked: boolean; at: string };
+/**
+ * A meal marked: `state` is what was done with it, null to take the mark off. Ticks queued before
+ * there were choices carry `checked` instead, and are still sent as they were.
+ */
+export type QueuedTick =
+  | { kind: "meal"; id: string; date: string; meal: string; state: MealState | null; at: string }
+  | { kind: "meal"; id: string; date: string; meal: string; checked: boolean; at: string };
 export type QueuedWater = { kind: "water"; id: string; date: string; ml: number; at: string };
 export type QueuedDiet = QueuedTick | QueuedWater;
 
@@ -24,27 +31,32 @@ export interface DietSyncResult {
   offline: boolean;
 }
 
-/** A tick's queue id: one per meal and day, so a later tick replaces an earlier one. */
+/** A mark's queue id: one per meal and day, so a later mark replaces an earlier one. */
 export const tickId = (date: string, meal: string) => `meal:${date}:${meal}`;
 
 // ─── Pure: the day with the queue on top ─────────────────────────────────────
 
+/** What a queued mark sets the meal to. */
+export const queuedState = (item: QueuedTick): MealState | null =>
+  "state" in item ? item.state : item.checked ? { status: "ate", changes: [], extras: [] } : null;
+
 /** What a day looks like: the last state the site confirmed, then everything queued for it. */
-export function overlay(base: DayTracking, queued: QueuedDiet[], date: string): { checked: Set<string>; water: ShownWater[] } {
-  const checked = new Set(base.checked);
+export function overlay(base: DayTracking, queued: QueuedDiet[], date: string): { meals: MealStates; water: ShownWater[] } {
+  const meals: MealStates = { ...base.meals };
   const water: ShownWater[] = [...base.water];
   const known = new Set(water.map((w) => w.id));
   for (const item of [...queued].sort((a, b) => a.at.localeCompare(b.at))) {
     if (item.date !== date) continue;
     if (item.kind === "meal") {
-      if (item.checked) checked.add(item.meal);
-      else checked.delete(item.meal);
+      const state = queuedState(item);
+      if (state) meals[item.meal] = state;
+      else delete meals[item.meal];
     } else if (!known.has(item.id)) {
       // An entry the site already has (sent, answer lost) shows once, as the site's.
       water.push({ id: item.id, ml: item.ml, at: item.at, pending: true });
     }
   }
-  return { checked, water };
+  return { meals, water };
 }
 
 // ─── IndexedDB plumbing ──────────────────────────────────────────────────────
@@ -81,17 +93,20 @@ function run<T>(store: string, mode: IDBTransactionMode, fn: (s: IDBObjectStore)
 }
 
 export const listQueue = () => run<QueuedDiet[]>(QUEUE, "readonly", (s) => s.getAll() as IDBRequest<QueuedDiet[]>);
-/** Adds an item, or replaces the one with its id: a meal's later tick replaces its earlier one. */
+/** Adds an item, or replaces the one with its id: a meal's later mark replaces its earlier one. */
 export const enqueue = (item: QueuedDiet) => run(QUEUE, "readwrite", (s) => s.put(item)).then(() => undefined);
 export const dequeue = (id: string) => run(QUEUE, "readwrite", (s) => s.delete(id)).then(() => undefined);
 
+/** A day as saved: since the choices came in, its meals; before, the meals ticked. */
+type SavedDay = { date: string; meals?: MealStates; checked?: string[]; water: WaterEntry[]; choices?: boolean };
+
 /** The last state the site confirmed for a day, or null if this device has never seen it. */
 export const loadDay = (date: string) =>
-  run<(DayTracking & { date: string }) | undefined>(DAYS, "readonly", (s) => s.get(date)).then((d) =>
-    d ? { checked: d.checked, water: d.water } : null
+  run<SavedDay | undefined>(DAYS, "readonly", (s) => s.get(date)).then((d): DayTracking | null =>
+    d ? { meals: d.meals ?? statesFromChecked(d.checked ?? []), water: d.water, choices: d.choices } : null
   );
 export const saveDay = (date: string, day: DayTracking) =>
-  run(DAYS, "readwrite", (s) => s.put({ date, checked: day.checked, water: day.water })).then(() => undefined);
+  run(DAYS, "readwrite", (s) => s.put({ date, meals: day.meals, water: day.water, choices: day.choices })).then(() => undefined);
 
 // ─── Sync ────────────────────────────────────────────────────────────────────
 
@@ -113,10 +128,14 @@ export async function reach(url: string, method: string, body?: unknown): Promis
 }
 
 function send(item: QueuedDiet): Promise<Response> {
-  return item.kind === "meal"
-    ? reach("/api/self-care/meals", "PUT", { date: item.date, meal: item.meal, checked: item.checked })
-    : // The queue id is the entry's id, so a second send is the same entry, not another.
-      reach("/api/self-care/water", "POST", { id: item.id, date: item.date, ml: item.ml });
+  if (item.kind === "meal") {
+    const body = "state" in item
+      ? { date: item.date, meal: item.meal, status: item.state?.status ?? null, changes: item.state?.changes ?? [], extras: item.state?.extras ?? [] }
+      : { date: item.date, meal: item.meal, checked: item.checked };
+    return reach("/api/self-care/meals", "PUT", body);
+  }
+  // The queue id is the entry's id, so a second send is the same entry, not another.
+  return reach("/api/self-care/water", "POST", { id: item.id, date: item.date, ml: item.ml });
 }
 
 // Foreground signals overlap — `online`, focus, a page load — so passes are chained, never

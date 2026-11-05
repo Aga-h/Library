@@ -3,7 +3,8 @@
 // bracketed in it, no day is missing, and the gym days fall where the plan puts them.
 //
 // Run: node --experimental-strip-types --import ./scripts/alias.mjs scripts/test-meal-plan.mjs
-import { MEAL_PLANS, eaten, mealDay, mealKey, planRange, tickableMeals } from "../lib/meal-plan.ts";
+import { MEAL_PLANS, mealDay, mealKey, planRange, tickableMeals } from "../lib/meal-plan.ts";
+import { eaten as eatenOf, statesFromChecked } from "../lib/meal-adjust.ts";
 import { addDays, dayOfWeek, isDateKey } from "../lib/dates.ts";
 
 let pass = 0;
@@ -88,7 +89,8 @@ for (const plan of MEAL_PLANS) {
   const plan = MEAL_PLANS[0];
   const thu = plan.days["2026-10-22"];
   const sat = plan.days["2026-10-24"];
-  const all = new Set(tickableMeals(thu, plan.home).map((t) => t.key));
+  const all = tickableMeals(thu, plan.home).map((t) => t.key).filter((k) => !k.startsWith("home:"));
+  const eaten = (day, _home, keys) => eatenOf(day, plan, statesFromChecked([...keys]));
   eq(eaten(thu, plan.home, new Set()), { kcal: 0, protein: 0 }, "nothing ticked, nothing eaten");
   eq(eaten(thu, plan.home, all), { kcal: 1769, protein: 113 }, "every meal ticked is the day's total");
   eq(eaten(thu, plan.home, new Set(["Lunch", "21:00"])), { kcal: 1028, protein: 70 }, "lunch and the shake: 693 + 335 kcal");

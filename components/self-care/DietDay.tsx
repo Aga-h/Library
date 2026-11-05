@@ -54,7 +54,7 @@ export default function DietDay({ date, today, tracking, renderedAt }: {
     const shown = askedDate() ?? now;
     const ahead = shown > now;
     (ahead ? Promise.resolve(null) : loadDay(shown).catch(() => null)).then((saved) =>
-      setView({ date: shown, today: now, tracking: ahead ? null : saved ?? { checked: [], water: [] }, fromCache: true })
+      setView({ date: shown, today: now, tracking: ahead ? null : saved ?? { meals: {}, water: [] }, fromCache: true })
     );
   }, [renderedAt]);
 

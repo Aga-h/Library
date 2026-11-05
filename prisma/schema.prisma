@@ -504,12 +504,19 @@ enum DryMethod {
 
 // ─── SELF CARE: DIET ─────────────────────────────────────────────────────────
 
-/// A meal ticked off on the diet plan. The plan itself is in the repo (lib/meal-plans/), so a tick
-/// names its meal by the row's label ("Lunch"; "home:Lunch" for the at-home day), unique in a day.
+/// What was done with a meal of the diet plan: eaten or skipped. The plan itself is in the repo
+/// (lib/meal-plans/), so a row names its meal by the row's label ("Lunch"; "home:Lunch" for the
+/// at-home day), unique in a day. A meal with no row is still open.
 model MealCheck {
   /// Local calendar date, as everywhere else that counts by the day.
   date      DateTime @db.Date
   meal      String
+  /// "ate", or "skipped" (didn't or won't eat it).
+  status    String   @default("ate")
+  /// The rebalancing add-ons and trims eaten with it (ids from mealOptions in lib/meal-adjust.ts).
+  changes   String[] @default([])
+  /// Eaten on top of it: [{ label, kcal, protein }].
+  extras    Json     @default("[]")
   createdAt DateTime @default(now())
 
   @@id([date, meal])

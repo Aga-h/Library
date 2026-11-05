@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys. `cursor/floating-back-button-ba9e`, `cursor/sat-vocab-quick-start-7565` and `cursor/study-planner-d637` were already on it and are deleted. `cursor/gpa-calculator-1369` was not; its GPA calculator is on `main` now.
-**Updated:** 2026-11-04 — November diet plan is in (`lib/meal-plans/2026-11.ts`, 5–30 Nov; the 14–21 break shows the at-home day, gym version Mon/Wed/Fri). Floating back button records the visit when the browser history entry is written, so it returns to the previous page. SAT Vocabulary can stop whatever is already running and start itself. GPA calculator at `/study/gpa` (needs `040-gpa.sql`; 039 is the study planner). `prisma/fresh-install.sql` includes `GpaLesson` (45 tables). Site address is configurable: `SITE_URL`, else Vercel's production domain (Open Library User-Agent); the Scriptable widgets keep a `SITE` constant to edit on a copy. `prisma/fresh-install.sql` builds the whole schema on a new, empty database (for a copy of the site; regenerate it after schema changes). Domain moving from otuzbir.world to sadwankel.site: the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running; another module can be stopped from this page, which then starts SAT Vocabulary. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October and November plans in `lib/meal-plans/`; December when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–040, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run, the planner until 039, saving GPA grades until 040.
+**Updated:** 2026-11-05 — Diet meals can be skipped or eaten with more, and the rest of the day rebalances (needs `041-meal-choices.sql` — see Blocked). November diet plan is in (`lib/meal-plans/2026-11.ts`, 5–30 Nov; the 14–21 break shows the at-home day, gym version Mon/Wed/Fri). Floating back button records the visit when the browser history entry is written, so it returns to the previous page. SAT Vocabulary can stop whatever is already running and start itself. GPA calculator at `/study/gpa` (needs `040-gpa.sql`; 039 is the study planner). `prisma/fresh-install.sql` includes `GpaLesson` (45 tables). Site address is configurable: `SITE_URL`, else Vercel's production domain (Open Library User-Agent); the Scriptable widgets keep a `SITE` constant to edit on a copy. `prisma/fresh-install.sql` builds the whole schema on a new, empty database (for a copy of the site; regenerate it after schema changes). Domain moving from otuzbir.world to sadwankel.site: the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running; another module can be stopped from this page, which then starts SAT Vocabulary. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October and November plans in `lib/meal-plans/`; December when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–040, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run, the planner until 039, saving GPA grades until 040.
 
 ## Done
 
@@ -263,14 +263,30 @@
 
 ## Next
 
-- [ ] **Diet: "didn't / won't eat it" and "ate more", with the rest of today rebalancing** (user,
+- [x] **Diet: "didn't / won't eat it" and "ate more", with the rest of today rebalancing** (user,
       2026-11-05: "select it like i did this / i didnt do this / wont do this … the diet should
       update itself to include more/less"; picked: skip + ate more/extra; rest of today only).
-      Plan: `lib/meal-adjust.ts` (pure: per-meal add-ons and trims, allocation over the open meals,
-      protein first, never trims protein, 1,700 floor note, skipped gym → rest-day goal);
-      `MealCheck` gains status / changes / extras (migration 041, plain ticks keep working before it);
-      PUT accepts `{status, changes, extras}` and the old `{checked}`; queue + saved days carry the
-      states; DayTracker rows get a ⋯ panel. Then handbook.
+      The tick is still "ate it"; ⋯ on a meal opens "Didn't / won't eat it" and "Ate more" (bread,
+      sütlaç, dessert, pastry, seconds of the main at its menu kcal, or any kcal). `lib/meal-adjust.ts`
+      (pure): each meal's add-ons (½/1 scoop whey, a yoğurt, ½/1 portion of rice, the day's soup, a
+      snack-table yoğurt + fruit, a slice of peynir) and trims (shake without the 3ü1, no salad oil,
+      fruit, a rice/pasta side, ayran, soup — never the main, the yogurt or the whey), read from the
+      row text. When the day is >50 kcal off, every combination of the open meals' changes is tried
+      (a few thousand at most) and the best kept: within ±50, then protein (made up / least lost),
+      fewest changes, cheapest trims; never carries the day >50 past the plan. Skipping the gym row
+      on a gym day makes the goal the rest day's (−200). Marking an at-home row follows the at-home
+      day. An eaten meal keeps the changes it was eaten with. Note on the page: what moved, and
+      where the day ends if it can't be evened out (amber under 1,700). Tomorrow is untouched.
+      `MealCheck` gains `status` / `changes` / `extras` (041); before 041, reads fall back and plain
+      ticks still work (raw insert — Prisma writes every defaulted column), skip/extras answer 503.
+      PUT takes `{status, changes, extras}` (changes checked against the meal's own options) and
+      the old `{checked}` (widgets, ticks already queued on phones). Queue and saved days carry
+      states; old saved days/ticks are read as eaten. Checked: 3,115 assertions in
+      `test-meal-adjust.mjs` (every day × every meal skipped / +400), queue tests, local Postgres
+      16 before and after 041 (twice; `migrate diff` empty; old rows → ate), the API over HTTP
+      (validation, auth, future day, unknown meal), Chromium at 390/1180 on Soft Club (skip, tick
+      with add-ons, extras, reload, offline queue then sync; no console errors, no sideways
+      scroll), lint, typecheck, `npm test`, `next build`.
 
 - [x] **Floating back button** (asked 2026-10-25). One control in the root layout
       (`components/layout/FloatingBackButton.tsx`), fixed bottom-right, shown once a long page
@@ -883,6 +899,11 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Diet choices: run `prisma/manual-migrations/041-meal-choices.sql`** in the Supabase SQL Editor.
+  Additive (three columns on `MealCheck`, existing ticks become "ate"), safe to re-run. Until it
+  runs, ticks work as before and the ⋯ choices are hidden with a note; a skip queued offline before
+  then waits on the phone and is sent once it has run.
 
 - **Move the site to sadwankel.site** (user, 2026-10-25). Code already uses `www.sadwankel.site`
   (Scriptable scripts, Open Library User-Agent). On 2026-10-25 DNS still pointed at Namecheap's

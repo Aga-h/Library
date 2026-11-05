@@ -75,18 +75,6 @@ export function tickableMeals(day: MealDay, home: MealPlan["home"]): { key: stri
   ];
 }
 
-/** kcal and protein of the meals ticked off. */
-export function eaten(day: MealDay, home: MealPlan["home"], checked: ReadonlySet<string>): { kcal: number; protein: number } {
-  let kcal = 0;
-  let protein = 0;
-  for (const { key, meal } of tickableMeals(day, home)) {
-    if (!checked.has(key)) continue;
-    kcal += meal.kcal ?? 0;
-    protein += meal.protein ?? 0;
-  }
-  return { kcal, protein };
-}
-
 /** The most one water entry may be, in ml: a big bottle, and a typo of 5000 for 500 is refused. */
 export const WATER_ENTRY_MAX_ML = 3000;
 

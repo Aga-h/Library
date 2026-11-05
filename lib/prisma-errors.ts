@@ -38,3 +38,13 @@ export function isMissingTable(e: unknown): boolean {
     (e as { code?: unknown }).code === "P2021"
   );
 }
+
+/** A column isn't there (P2022): code deployed ahead of the migration that adds it. */
+export function isMissingColumn(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    (e as { code?: unknown }).code === "P2022"
+  );
+}
