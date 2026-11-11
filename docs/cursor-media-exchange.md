@@ -6,6 +6,24 @@
 > "What the owner does by hand" bölümünde. En önemlisi: `EXCHANGE_TOKEN` iki sitede **birebir aynı**
 > olmalı. Onu Aga ile WhatsApp vb. özelden paylaşın, kodun içine ya da Cursor chat'ine yazmayın.
 
+> **Güncelleme (11 Kasım):** Kurallar değişti. Artık aynı anda istediğin kadar gönderebiliyorsun,
+> gelenler sıraya giriyor, hepsinin sayacı aynı anda çalışıyor ve en yenisi en üstte görünüyor.
+> Süreler de 3 katına çıktı. Önceki sürümü zaten kurduysan bu dosyanın tamamını yine Cursor'a ver
+> ve "update the existing media exchange to this version" de. Değişenler hemen aşağıda.
+
+## Changes since the first version (if it is already built)
+
+1. **No more one-at-a-time.** Remove the "previous item still open → 409" rule from the inbox
+   endpoint and the "last sent not finished → refuse" rule from sending. Items queue. The only
+   limit is a guard of 50 unfinished each way (409 past that).
+2. **Deadline ×3:** `days = clamp(ceil(lengthMinutes / 60) × 3, 6, 180)`, `21` when unknown. Items
+   already stored keep their deadline.
+3. **Portal lists everything open, newest first,** each with its own countdown and its own
+   "Finished it"; "Send something" is always available, with everything waiting at the friend
+   listed under it, and the last three they finished.
+
+Until the friend's site has (1), every second item sent to it is refused with a 409.
+
 ---
 
 ## Prompt for Cursor
@@ -21,34 +39,38 @@ the two sites cannot talk.
 
 ### What the user sees (on the home / portal page, near the top)
 
-1. **"from {FRIEND_NAME}"** — the item the friend sent, if one is open: cover image, title, alt
-   title, kind · year · length label, creator · facts, a link to its catalogue page, the friend's
-   note, when it was sent, and a **live countdown** to its deadline ("1d 4h left", under a day
-   "3h 20m left", past it "2d 1h late" in a warning colour) with a thin progress bar. A
-   **"Finished it"** button marks it finished and tells the friend's site.
-   - If finishing was saved but the friend's site couldn't be reached: say so and show a
-     **"Tell them again"** button (it re-calls the same finish action).
-   - If nothing is open: "Nothing from {friend} right now." (+ the last one finished and when.)
-2. **"to {FRIEND_NAME}"** — while the last item sent is not finished by the friend: its title and
-   the friend's countdown ("{friend} has until …"), and "You can send the next one once they mark it
-   finished." Otherwise: "{friend} finished X on <date>" (or "Nothing sent yet") and a
-   **"Send something"** button that opens an inline picker:
+1. **"from {FRIEND_NAME}"** — **every** item the friend sent that isn't finished yet, **newest
+   first** ("3 waiting — the newest first."), each with: cover image (bigger for the newest), title,
+   alt title, kind · year · length label, creator · facts, a link to its catalogue page, the
+   friend's note, when it was sent, and its **own live countdown** to its deadline ("1d 4h left",
+   under a day "3h 20m left", past it "2d 1h late" in a warning colour) with a thin progress bar.
+   All the timers run at the same time. Each item has its own **"Finished it"** button, which marks
+   that one finished and tells the friend's site.
+   - If finishing was saved but the friend's site couldn't be reached: that item stays in the list
+     saying so, with a **"Tell them again"** button (it re-calls the same finish action).
+   - If nothing is open: "Nothing from {friend} right now." Under the list: "Last finished: X, <date>".
+2. **"to {FRIEND_NAME}"** — a **"Send something"** button that is **always** available (any number
+   can be sent; they queue on the friend's side), then **every** item sent and not finished yet,
+   newest first, each with its title and the friend's countdown ("{friend} has until …"). Under the
+   list: "{friend} finished X (<date>), Y (<date>)" for the last three they finished.
+   "Send something" opens an inline picker:
    - type chips: Movie, TV, Anime, Manga, Book
    - a search box for that type's catalogue: **TMDB** (movie, tv), **MyAnimeList** (anime, manga —
      needs ≥ 3 letters), **Google Books** (book)
    - a result list (thumbnail, title, alt title, year, short meta) → pick one
    - optional note (max 500 chars) → **"Send to {friend}"**
 3. If the database table isn't there yet, or the env vars aren't set, show a one-line explanation
-   instead of the panels.
+   instead of the panels (say which variable is missing or wrong, never its value).
 
-**One item is open each way at a time.** You can't send a new one until the friend finished the
-last one you sent, and the server refuses (409) an incoming item while the previous one from the
-friend is still open here.
+**Items queue.** Any number can be sent each way; each one's timer starts when it arrives and runs
+on its own. The only limit is a guard: **50 open (unfinished) items each way** — past that, sending
+and the inbox answer 409.
 
 ### The deadline rule (computed by the RECEIVING site when the item arrives)
 
-`days = clamp(ceil(lengthMinutes / 60), 2, 60)`; `7` if the length is unknown (null/0).
-`dueAt = arrival time + days × 24h`. (A 2 h film → 2 days, 28 × 24 min anime → 12 days.)
+`days = clamp(ceil(lengthMinutes / 60) × 3, 6, 180)`; `21` if the length is unknown (null/0).
+`dueAt = arrival time + days × 24h`. (A 2 h film → 6 days, a 2 h 5 min film → 9 days,
+28 × 24 min anime → 36 days, a 541-page book → 42 days.)
 
 How `lengthMinutes` is computed by the SENDER from the catalogue:
 
@@ -117,7 +139,8 @@ Validation (reject with `400 {"error": "...", "issues": [...]}` if it doesn't fi
 Behaviour:
 - Same `id` already stored as received → `201 {"dueAt": <the stored dueAt>}` (idempotent retry).
 - Same `id` stored as something we *sent* → `409 {"error": "That id is already in use here."}`
-- Another received item still open (not finished) → `409 {"error": "Still on <title> — it can be sent once that's finished."}`
+- 50 or more received items still open (not finished) → `409 {"error": "50 are already waiting here — finish some first."}`
+  (Earlier items being open is **not** a reason to refuse: items queue.)
 - Otherwise store it (direction `received`; `sentAt` = their value unless invalid or in the future,
   then now; `dueAt` = now + allowance) → **`201 {"dueAt": "<ISO>"}`**.
 - Bad/missing token → `401 {"error": "Unauthorized"}`.
@@ -170,17 +193,18 @@ Adapt it to this project's ORM/migrations. The portal reads the newest `sent` ro
 ### Endpoints for this site's own UI (session-protected, names are up to you)
 
 - search a catalogue: `kind` + `q` → `[{sourceId, title, altTitle, year, image, meta}]`
-- send: `{kind, sourceId, note}` → the stored item (409 if the last sent is still open)
+- send: `{kind, sourceId, note}` → the stored item (409 only if 50 sent items are still open)
 - finish: `{id}` of a received item → the item with `finishedAt` / `notifiedAt`
 
 ### Done when
 
 - [ ] the table exists; the two friend endpoints behave exactly as above (test with curl: no token →
       401, wrong token → 401, token on any other path → still 401, bad body → 400, good body →
-      201 + `dueAt`, same body again → same 201, a second different id while open → 409)
-- [ ] sending from here shows up on the friend's portal with its timer, and the "Send something"
-      button stays blocked until the friend presses "Finished it"
-- [ ] an item from the friend shows here with the countdown; "Finished it" unblocks them
+      201 + `dueAt`, same body again → same 201, a second and third different id → 201 each)
+- [ ] sending three things from here shows all three on the friend's portal, newest first, each
+      with its own timer; "Send something" is never blocked
+- [ ] items from the friend show here newest first, each with its countdown; "Finished it" on one
+      removes only that one, and it moves to the friend's "finished" line
 - [ ] the friend's site being down: sending fails cleanly with no row left behind; finishing is
       saved and "Tell them again" appears
 - [ ] works on a phone width (≈ 390 px) without sideways scrolling
@@ -214,8 +238,8 @@ here.
 // for it, and the checks on what the other site sends. Pure — the network and the database are in
 // lib/media-share-service.ts, and the wire format is written up in docs/media-exchange.md.
 //
-// One item is open each way at a time: you send something, and can send the next once they mark
-// it finished. The receiver's deadline is worked out on the receiving site, from the item's length.
+// Any number can be sent; they queue on the receiver's side, each with its own deadline running from
+// when it arrived. The deadline is worked out on the receiving site, from the item's length.
 
 import { z } from "zod";
 import type { TmdbDetails } from "@/lib/tmdb";
@@ -281,18 +305,22 @@ export const VOLUME_MINUTES = 45;
 export const PAGE_MINUTES = 1.5;
 
 /**
- * Days the receiver gets: an hour of it a day, rounded up, so a two-hour film is two days. Never
- * under two (a short film still needs an evening that suits), never over 60 (a 1,000-episode run
- * isn't a deadline anyone keeps), and a week when the length isn't known.
+ * Days the receiver gets: three days per hour of it, rounded up by the hour, so a two-hour film is
+ * six days (asked for 2026-11-11: three times the first rule, an hour a day). Never under 6 (a
+ * short film still needs evenings that suit), never over 180 (a 1,000-episode run isn't a
+ * deadline anyone keeps), and three weeks when the length isn't known.
  */
-export const MIN_DAYS = 2;
-export const MAX_DAYS = 60;
-export const UNKNOWN_DAYS = 7;
-export const MINUTES_PER_DAY = 60;
+export const DAYS_PER_HOUR = 3;
+export const MIN_DAYS = 6;
+export const MAX_DAYS = 180;
+export const UNKNOWN_DAYS = 21;
+
+/** More open than this each way is refused — a guard against a runaway sender, not a rule. */
+export const MAX_OPEN = 50;
 
 export function allowanceDays(lengthMinutes: number | null): number {
   if (lengthMinutes === null || !Number.isFinite(lengthMinutes) || lengthMinutes <= 0) return UNKNOWN_DAYS;
-  return Math.min(MAX_DAYS, Math.max(MIN_DAYS, Math.ceil(lengthMinutes / MINUTES_PER_DAY)));
+  return Math.min(MAX_DAYS, Math.max(MIN_DAYS, Math.ceil(lengthMinutes / 60) * DAYS_PER_HOUR));
 }
 
 /** When the receiver should be done by, counted from when it arrived. */
@@ -544,7 +572,7 @@ import { MalError, entryDetails, mangaEntry, searchAnime, searchManga } from "@/
 import { BookCatalogError } from "@/lib/openlibrary";
 import { catalogDetails, searchCatalog } from "@/lib/book-catalog-service";
 import {
-  dueFrom, fromAnime, fromBook, fromFilm, fromManga, fromShow, friendBaseUrl, isSourceId, shareMediaSchema,
+  MAX_OPEN, dueFrom, fromAnime, fromBook, fromFilm, fromManga, fromShow, friendBaseUrl, isSourceId, shareMediaSchema,
   type ShareKind, type ShareMedia,
 } from "@/lib/media-share";
 
@@ -664,6 +692,21 @@ export function friendConfig(): FriendConfig | null {
   return { url, name, token };
 }
 
+/**
+ * What's wrong with the setup, said on the portal without showing any value — so "I set them"
+ * can be told apart from "this deployment doesn't have them". Null when friendConfig() works.
+ */
+export function friendSetupIssue(): string | null {
+  const url = process.env.FRIEND_SITE_URL?.trim();
+  const token = process.env.EXCHANGE_TOKEN?.trim();
+  if (!url && !token) return "This deployment has neither FRIEND_SITE_URL nor EXCHANGE_TOKEN. Set them for Production in Vercel, then redeploy.";
+  if (!url) return "This deployment has no FRIEND_SITE_URL. Set it for Production in Vercel, then redeploy.";
+  if (!friendBaseUrl(url)) return "FRIEND_SITE_URL has to be a full https address, like https://www.their.site.";
+  if (!token) return "This deployment has no EXCHANGE_TOKEN. Set it for Production in Vercel, then redeploy.";
+  if (token.length < 32) return `EXCHANGE_TOKEN is ${token.length} characters; it needs 32 or more (and the same value on both sites).`;
+  return null;
+}
+
 const FRIEND_TIMEOUT_MS = 10_000;
 
 /** POST to the friend's site. Throws ShareError with what to tell the person when it fails. */
@@ -726,28 +769,45 @@ function toItem(row: Row): ShareItem | null {
   };
 }
 
-async function latest(direction: "sent" | "received"): Promise<ShareItem | null> {
-  const row = await db.mediaShare.findFirst({ where: { direction }, orderBy: { sentAt: "desc" } });
-  return row ? toItem(row) : null;
-}
+const items = (rows: Row[]) => rows.map(toItem).filter((i): i is ShareItem => i !== null);
 
-async function openOne(direction: "sent" | "received") {
-  return db.mediaShare.findFirst({ where: { direction, finishedAt: null }, orderBy: { sentAt: "desc" } });
+async function openCount(direction: "sent" | "received"): Promise<number> {
+  return db.mediaShare.count({ where: { direction, finishedAt: null } });
 }
 
 export interface ExchangeState {
   friend: { name: string } | null;
-  /** The newest thing sent to the friend, and the newest from them. */
-  sent: ShareItem | null;
-  received: ShareItem | null;
+  /** Why `friend` is null: what to fix in the environment. */
+  setupIssue: string | null;
+  /** Sent to the friend and not finished yet, newest first. */
+  sent: ShareItem[];
+  /** The last few the friend finished, most recently finished first. */
+  sentDone: ShareItem[];
+  /** From the friend: not finished yet, or finished but their site not told yet. Newest first. */
+  received: ShareItem[];
+  /** The last one finished here and told to their site. */
+  receivedDone: ShareItem | null;
 }
 
 /** What the portal shows. Null until migration 042 has run. */
 export async function exchangeState(): Promise<ExchangeState | null> {
   const friend = friendConfig();
+  const newest = { sentAt: "desc" } as const;
   try {
-    const [sent, received] = await Promise.all([latest("sent"), latest("received")]);
-    return { friend: friend ? { name: friend.name } : null, sent, received };
+    const [sent, sentDone, received, receivedDone] = await Promise.all([
+      db.mediaShare.findMany({ where: { direction: "sent", finishedAt: null }, orderBy: newest, take: MAX_OPEN }),
+      db.mediaShare.findMany({ where: { direction: "sent", finishedAt: { not: null } }, orderBy: { finishedAt: "desc" }, take: 3 }),
+      db.mediaShare.findMany({ where: { direction: "received", notifiedAt: null }, orderBy: newest, take: MAX_OPEN }),
+      db.mediaShare.findFirst({ where: { direction: "received", notifiedAt: { not: null } }, orderBy: { finishedAt: "desc" } }),
+    ]);
+    return {
+      friend: friend ? { name: friend.name } : null,
+      setupIssue: friendSetupIssue(),
+      sent: items(sent),
+      sentDone: items(sentDone),
+      received: items(received),
+      receivedDone: receivedDone ? toItem(receivedDone) : null,
+    };
   } catch (e) {
     if (isMissingTable(e)) return null;
     throw e;
@@ -762,8 +822,9 @@ export async function sendToFriend(kind: ShareKind, sourceId: string, note: stri
   const friend = friendConfig();
   if (!friend) throw new ShareError("Set FRIEND_SITE_URL and EXCHANGE_TOKEN first.", 503);
 
-  const open = await openOne("sent");
-  if (open) throw new ShareError(`${friend.name} hasn't finished ${open.title} yet.`, 409);
+  if ((await openCount("sent")) >= MAX_OPEN) {
+    throw new ShareError(`${MAX_OPEN} are already waiting for ${friend.name} — let them catch up first.`, 409);
+  }
 
   const media = await mediaDetails(kind, sourceId);
   const id = crypto.randomUUID();
@@ -796,8 +857,8 @@ export type InboxOutcome =
   | { ok: false; status: number; error: string };
 
 /**
- * Something sent from the friend's site. The same id again is answered the same way (a retry);
- * something new while their last is still open here is refused.
+ * Something sent from the friend's site, queued behind whatever is still open here. The same id
+ * again is answered the same way (a retry). Past MAX_OPEN open items, more are refused.
  */
 export async function receive(body: {
   id: string; sentAt: string; note: string | null; media: ShareMedia;
@@ -808,8 +869,9 @@ export async function receive(body: {
       ? { ok: true, dueAt: existing.dueAt.toISOString() }
       : { ok: false, status: 409, error: "That id is already in use here." };
   }
-  const open = await openOne("received");
-  if (open) return { ok: false, status: 409, error: `Still on ${open.title} — it can be sent once that's finished.` };
+  if ((await openCount("received")) >= MAX_OPEN) {
+    return { ok: false, status: 409, error: `${MAX_OPEN} are already waiting here — finish some first.` };
+  }
 
   // The deadline counts from when it arrived here, not the sender's clock.
   const now = new Date();
@@ -1045,7 +1107,7 @@ import { Check, ExternalLink, Loader2, Search, Send, X } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { APP_TIME_ZONE } from "@/lib/dates";
 import {
-  KIND_LABEL, KIND_SOURCE, MAX_DAYS, MIN_DAYS, NOTE_MAX, UNKNOWN_DAYS, SHARE_KINDS, SHARE_NOT_READY, allowanceDays, elapsedShare, sourceLink, timeLeft,
+  DAYS_PER_HOUR, KIND_LABEL, KIND_SOURCE, MAX_DAYS, MIN_DAYS, NOTE_MAX, UNKNOWN_DAYS, SHARE_KINDS, SHARE_NOT_READY, allowanceDays, elapsedShare, sourceLink, timeLeft,
   type ShareKind, type ShareMedia,
 } from "@/lib/media-share";
 import type { ExchangeState, ShareHit, ShareItem } from "@/lib/media-share-service";
@@ -1134,15 +1196,17 @@ function ErrorLine({ error }: { error: string | null }) {
 
 // ─── What came from the friend ───────────────────────────────────────────────
 
-function Received({ item, friend, now }: { item: ShareItem | null; friend: string; now: Date }) {
+/** One thing from the friend: its card, timer and Finished button — or, finished but their site not
+ *  told yet, the retry. Each keeps its own busy state, so finishing one leaves the others alone. */
+function ReceivedItem({ item, friend, now, first }: { item: ShareItem; friend: string; now: Date; first: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function finish(id: string) {
+  async function finish() {
     setBusy(true);
     setError(null);
-    const res = await fetch(`/api/exchange/${id}/finish`, { method: "POST" }).catch(() => null);
+    const res = await fetch(`/api/exchange/${item.id}/finish`, { method: "POST" }).catch(() => null);
     const data = await res?.json().catch(() => ({}));
     setBusy(false);
     if (!res?.ok) return setError(data?.error ?? "Couldn't save that — try again.");
@@ -1150,34 +1214,25 @@ function Received({ item, friend, now }: { item: ShareItem | null; friend: strin
     router.refresh();
   }
 
-  if (!item || (item.finishedAt && item.notifiedAt)) {
-    return (
-      <div className="space-y-1">
-        <p className="text-sm text-gray-700">Nothing from {friend} right now.</p>
-        {item && <p className="text-xs text-gray-500">You finished {item.media.title} on {day(item.finishedAt!)}.</p>}
-      </div>
-    );
-  }
-
   if (item.finishedAt) {
     return (
-      <div className="space-y-3">
+      <li className="py-4 first:pt-0 last:pb-0 space-y-3">
         <p className="text-sm text-gray-700">
-          You finished {item.media.title}, but {friend}&apos;s site hasn&apos;t heard yet — so they can&apos;t send the next one.
+          You finished {item.media.title}, but {friend}&apos;s site hasn&apos;t heard yet.
         </p>
         <ErrorLine error={error} />
-        <button type="button" onClick={() => finish(item.id)} disabled={busy}
+        <button type="button" onClick={finish} disabled={busy}
           className="inline-flex items-center gap-2 border border-gray-200 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Tell them again
         </button>
-      </div>
+      </li>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <li className="py-4 first:pt-0 last:pb-0 space-y-3">
       <div className="flex gap-4">
-        <Cover media={item.media} size="lg" />
+        <Cover media={item.media} size={first ? "lg" : "sm"} />
         <div className="min-w-0 space-y-2">
           <MediaLines media={item.media} />
           {item.note && <p className="text-sm text-gray-700 break-words">&ldquo;{item.note}&rdquo;</p>}
@@ -1186,10 +1241,32 @@ function Received({ item, friend, now }: { item: ShareItem | null; friend: strin
       </div>
       <Timer item={item} now={now} whose="due" />
       <ErrorLine error={error} />
-      <button type="button" onClick={() => finish(item.id)} disabled={busy}
+      <button type="button" onClick={finish} disabled={busy}
         className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Finished it
       </button>
+    </li>
+  );
+}
+
+/** Everything from the friend still open, newest first, every timer running at once. */
+function Received({ items, done, friend, now }: {
+  items: ShareItem[]; done: ShareItem | null; friend: string; now: Date;
+}) {
+  const open = items.filter((i) => !i.finishedAt).length;
+  return (
+    <div className="space-y-3">
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-700">Nothing from {friend} right now.</p>
+      ) : (
+        open > 1 && <p className="text-xs text-gray-500">{open} waiting — the newest first.</p>
+      )}
+      {items.length > 0 && (
+        <ul className="divide-y divide-gray-100">
+          {items.map((item, i) => <ReceivedItem key={item.id} item={item} friend={friend} now={now} first={i === 0} />)}
+        </ul>
+      )}
+      {done && <p className="text-xs text-gray-500">Last finished: {done.media.title}, {day(done.finishedAt!)}.</p>}
     </div>
   );
 }
@@ -1332,44 +1409,54 @@ function hitMedia(kind: ShareKind, hit: ShareHit): ShareMedia {
   };
 }
 
-function Sent({ item, friend, now }: { item: ShareItem | null; friend: string; now: Date }) {
+/** What's waiting with the friend, newest first, with their timers; sending more is always open. */
+function Sent({ items, done, friend, now }: { items: ShareItem[]; done: ShareItem[]; friend: string; now: Date }) {
   const [open, setOpen] = useState(false);
 
-  if (item && !item.finishedAt) {
-    return (
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <Cover media={item.media} size="sm" />
-          <div className="min-w-0">
-            <p className="font-semibold text-gray-900 break-words">{item.media.title}</p>
-            <p className="text-xs text-gray-500">
-              {[KIND_LABEL[item.media.kind], item.media.lengthLabel].filter(Boolean).join(" · ")} · sent {day(item.sentAt)}
-            </p>
-          </div>
-        </div>
-        <Timer item={item} now={now} whose={`${friend} has until`} />
-        <p className="text-xs text-gray-500">You can send the next one once they mark it finished.</p>
-      </div>
-    );
-  }
-
-  if (open) return <SendForm friend={friend} onClose={() => setOpen(false)} />;
-
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-gray-700">
-        {item
-          ? `${friend} finished ${item.media.title} on ${day(item.finishedAt!)}.`
-          : `Nothing sent to ${friend} yet.`}
-      </p>
-      <button type="button" onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-        <Send className="w-4 h-4" /> Send something
-      </button>
-      <p className="text-xs text-gray-500">
-        A movie, show, anime, manga or book. {friend} gets about a day per hour of it — a two-hour film is
-        {" "}{allowanceDays(120)} days — at least {MIN_DAYS}, at most {MAX_DAYS}, and {UNKNOWN_DAYS} when its length isn&apos;t known.
-      </p>
+    <div className="space-y-4">
+      {open ? (
+        <SendForm friend={friend} onClose={() => setOpen(false)} />
+      ) : (
+        <div className="space-y-2">
+          <button type="button" onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Send className="w-4 h-4" /> Send something
+          </button>
+          <p className="text-xs text-gray-500">
+            A movie, show, anime, manga or book — as many as you like; they queue. {friend} gets {DAYS_PER_HOUR} days
+            per hour of each — a two-hour film is {allowanceDays(120)} days — at least {MIN_DAYS}, at most {MAX_DAYS},
+            and {UNKNOWN_DAYS} when its length isn&apos;t known.
+          </p>
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-700">Nothing waiting with {friend}.</p>
+      ) : (
+        <ul className="divide-y divide-gray-100">
+          {items.map((item) => (
+            <li key={item.id} className="py-4 first:pt-0 last:pb-0 space-y-3">
+              <div className="flex gap-3">
+                <Cover media={item.media} size="sm" />
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 break-words">{item.media.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {[KIND_LABEL[item.media.kind], item.media.lengthLabel].filter(Boolean).join(" · ")} · sent {day(item.sentAt)}
+                  </p>
+                </div>
+              </div>
+              <Timer item={item} now={now} whose={`${friend} has until`} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {done.length > 0 && (
+        <p className="text-xs text-gray-500">
+          {friend} finished {done.map((d) => `${d.media.title} (${day(d.finishedAt!)})`).join(", ")}.
+        </p>
+      )}
     </div>
   );
 }
@@ -1387,7 +1474,8 @@ export default function MediaExchange({ state, now: initialNow }: Props) {
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-1">
         <p className="text-sm text-gray-700">Connect a friend&apos;s site to send each other movies, shows, anime, manga and books.</p>
         <p className="text-xs text-gray-500">
-          Set FRIEND_SITE_URL, FRIEND_NAME and EXCHANGE_TOKEN (the same 32+ characters on both sites) in Vercel, then redeploy.
+          {state.setupIssue ??
+            "Set FRIEND_SITE_URL, FRIEND_NAME and EXCHANGE_TOKEN (the same 32+ characters on both sites) in Vercel, then redeploy."}
         </p>
       </div>
     );
@@ -1398,11 +1486,11 @@ export default function MediaExchange({ state, now: initialNow }: Props) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">from {friend}</p>
-        <Received item={state.received} friend={friend} now={now} />
+        <Received items={state.received} done={state.receivedDone} friend={friend} now={now} />
       </div>
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">to {friend}</p>
-        <Sent item={state.sent} friend={friend} now={now} />
+        <Sent items={state.sent} done={state.sentDone} friend={friend} now={now} />
       </div>
     </div>
   );
@@ -1414,7 +1502,7 @@ export default function MediaExchange({ state, now: initialNow }: Props) {
 ```ts
 // REPORT_TOKEN_MIN_LENGTH = 32; encoder = new TextEncoder()
 /**
- * Checks an `Authorization: Bearer …` header against the expected token.
+ * Checks an `Authorization: Bearer …` header against REPORT_TOKEN.
  *
  * Fails closed: with the token unset or too short nothing matches, so a blank variable can never
  * turn into `"" === ""`. The comparison is over SHA-256 digests — always 32 bytes — with no early

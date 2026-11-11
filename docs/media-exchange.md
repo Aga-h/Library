@@ -3,20 +3,23 @@
 Two copies of this site send each other a movie, show, anime, manga or book. Everything happens on
 the portal (`/`), under **exchange**:
 
-- **from {friend}**: what they sent, with its details, their note, and a timer counting down to
-  when you should be done. **Finished it** marks it done and tells their site.
+- **from {friend}**: everything they sent that you haven't finished, newest first, each with its
+  details, their note, and its own timer counting down to when you should be done. **Finished it**
+  on one marks it done and tells their site.
 - **to {friend}**: **Send something** opens a picker. Choose the type, search its catalogue (TMDB
   for movies and TV, MyAnimeList for anime and manga, Google Books for books), pick one, add a note
-  if you like, and send it. While they haven't finished it, you see their timer instead of the
-  button. You can send the next one once they mark it finished.
+  if you like, and send it. Below it, everything waiting with them, newest first, with their timers.
 
-One item is open each way at a time.
+Any number can be sent; they queue, and every timer runs at once from when its item arrived. 50
+unfinished each way is a guard against a runaway sender, not a rule anyone should meet.
 
 ## The deadline
 
-The receiving site works it out when the item arrives, from the item's length: **an hour of it per
-day, rounded up**. A two-hour film gets 2 days, a 28 × 24-minute anime 12, a 541-page book 14. It is
-never less than 2 days or more than 60, and it is 7 when the catalogue doesn't give a length.
+The receiving site works it out when the item arrives, from the item's length: **three days per
+hour of it, the hours rounded up** (three times the first rule, at the owner's ask on 2026-11-11). A
+two-hour film gets 6 days, a 28 × 24-minute anime 36, a 541-page book 42. It is never less than 6
+days or more than 180, and it is 21 when the catalogue doesn't give a length. An item keeps the
+deadline it arrived with: the change did not move ones already sent.
 
 How long things are taken to be (`lib/media-share.ts`):
 
@@ -82,7 +85,7 @@ Answers:
 
 - `201 { "dueAt": "…" }`: the receiver's deadline.
 - The same `id` again gets the same answer, so a retry is safe.
-- `409` if something from you is still open there.
+- `409` if 50 from you are still open there (earlier ones being open is fine: they queue).
 - `400` for a body that doesn't fit, and `401` for a bad token.
 
 ### `POST /api/exchange/inbox/{id}/finished` — the receiver finished it

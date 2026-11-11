@@ -2,8 +2,8 @@
 // for it, and the checks on what the other site sends. Pure — the network and the database are in
 // lib/media-share-service.ts, and the wire format is written up in docs/media-exchange.md.
 //
-// One item is open each way at a time: you send something, and can send the next once they mark
-// it finished. The receiver's deadline is worked out on the receiving site, from the item's length.
+// Any number can be sent; they queue on the receiver's side, each with its own deadline running from
+// when it arrived. The deadline is worked out on the receiving site, from the item's length.
 
 import { z } from "zod";
 import type { TmdbDetails } from "@/lib/tmdb";

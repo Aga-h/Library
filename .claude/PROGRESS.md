@@ -263,12 +263,17 @@
 
 ## Next
 
-- [ ] **Media exchange: a queue, and three times the time** (user, 2026-11-11: "birden fazla
+- [x] **Media exchange: a queue, and three times the time** (user, 2026-11-11: "birden fazla
       gonderebilelim, siraya girsin; timer 3 katı her şey için; ekranda en son gönderilen ilk;
-      hepsinin süresi aynı anda çalışsın"). Drop the one-open rule both ways (send and inbox);
-      allowance ×3 (min 6, max 180, unknown 21 days); portal lists every open item newest first,
-      each with its own timer. Friend's Cursor handoff must be regenerated (their inbox 409s a
-      second item until they update). In progress.
+      hepsinin süresi aynı anda çalışsın"). One-open rule gone from send and inbox (50 unfinished
+      each way is only a guard). Allowance ×3: 3 days per hour rounded up, 6–180, 21 unknown;
+      items already stored keep their deadline. Portal: every open item newest first, each its own
+      timer and Finished button; Send something always there; last three the friend finished.
+      `docs/cursor-media-exchange.md` regenerated with a "changes since the first version" section
+      for the friend. Checked: 5,236 assertions (incl. ×3 of the old rule at every length), two
+      production builds over HTTP (three sends in a row → three queued on the other side at 9 / 36
+      / 9 days, finishing the middle one marks only it), Chromium at 1180/390 on Soft Club (no
+      sideways scroll, no page errors), lint, typecheck, `npm test`, `next build`.
 
 - [x] **Media exchange with a friend's site** (user, 2026-11-11: send each other media from the
       portal, a timer by length as a reminder, "finished" goes back so the next can be sent). On the
@@ -927,7 +932,8 @@
 
 ## Blocked / needs the user
 
-- **Media exchange: the friend's side.** On this site 042 has run and `FRIEND_SITE_URL`,
+- **Media exchange: the friend's side** (now the queue version — until their inbox drops the
+  one-open 409, every second item sent to them is refused). On this site 042 has run and `FRIEND_SITE_URL`,
   `FRIEND_NAME`, `EXCHANGE_TOKEN` are set (user, 2026-11-11). Waiting on the friend to build their
   side with Cursor from `docs/cursor-media-exchange.md`, set the same token, and send one each way
   to test. Not verified live from here (the session's credentials don't open the portal). 2026-11-11: the
