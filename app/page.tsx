@@ -1,6 +1,10 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { BookMarked, HeartPulse, Wallet, GraduationCap, ShoppingBag, ArrowRight } from "lucide-react";
 import ThemePicker from "@/components/ui/ThemePicker";
+import MediaExchange from "@/components/exchange/MediaExchange";
+import { exchangeState } from "@/lib/media-share-service";
 
 const SECTIONS = [
   {
@@ -59,7 +63,9 @@ const SECTIONS = [
   },
 ];
 
-export default function PortalPage() {
+export default async function PortalPage() {
+  const exchange = await exchangeState();
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="theme-header px-4 sm:px-8 py-6 border-b border-gray-200 bg-white">
@@ -68,6 +74,12 @@ export default function PortalPage() {
       </header>
 
       <main className="flex-1 p-4 sm:p-8">
+        {/* First, so what a friend sent and its timer are the reminder every visit opens on. */}
+        <section className="max-w-4xl mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Exchange</h2>
+          <MediaExchange state={exchange} now={new Date().toISOString()} />
+        </section>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
           {SECTIONS.map((section) => {
             const Icon = section.icon;
