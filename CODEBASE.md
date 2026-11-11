@@ -64,6 +64,11 @@ own `Authorization: Bearer <WIDGET_TOKEN>`: the same fail-closed check, for exac
 else. A token of their own rather than the site password: Scriptable's Keychain is shared by every
 script on the phone.
 
+The third is a friend's site (`docs/media-exchange.md`), with `Authorization: Bearer
+<EXCHANGE_TOKEN>` — the same value set on both sites — for exactly `POST /api/exchange/inbox` and
+`POST /api/exchange/inbox/{uuid}/finished` (`friendMayCall` in `lib/session.ts`). Those two
+handlers check the token again themselves, so the site's own session can't pose as the friend.
+
 ---
 
 ## Data model

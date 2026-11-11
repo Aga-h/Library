@@ -2,7 +2,7 @@
 
 **Goal:** Media library app — feature work plus the repo-wide audit fixes.
 **Branch:** `main` — the only branch, the GitHub default and what Vercel deploys. `cursor/floating-back-button-ba9e`, `cursor/sat-vocab-quick-start-7565` and `cursor/study-planner-d637` were already on it and are deleted. `cursor/gpa-calculator-1369` was not; its GPA calculator is on `main` now.
-**Updated:** 2026-11-05 — Diet meals can be skipped or eaten with more, and the rest of the day rebalances (needs `041-meal-choices.sql` — see Blocked). November diet plan is in (`lib/meal-plans/2026-11.ts`, 5–30 Nov; the 14–21 break shows the at-home day, gym version Mon/Wed/Fri). Floating back button records the visit when the browser history entry is written, so it returns to the previous page. SAT Vocabulary can stop whatever is already running and start itself. GPA calculator at `/study/gpa` (needs `040-gpa.sql`; 039 is the study planner). `prisma/fresh-install.sql` includes `GpaLesson` (45 tables). Site address is configurable: `SITE_URL`, else Vercel's production domain (Open Library User-Agent); the Scriptable widgets keep a `SITE` constant to edit on a copy. `prisma/fresh-install.sql` builds the whole schema on a new, empty database (for a copy of the site; regenerate it after schema changes). Domain moving from otuzbir.world to sadwankel.site: the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running; another module can be stopped from this page, which then starts SAT Vocabulary. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October and November plans in `lib/meal-plans/`; December when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–040, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run, the planner until 039, saving GPA grades until 040.
+**Updated:** 2026-11-11 — Media exchange with a friend's site on the portal (needs `042-media-shares.sql` and three env vars on both sites — see Blocked; `docs/media-exchange.md`). Diet meals can be skipped or eaten with more, and the rest of the day rebalances (needs `041-meal-choices.sql` — see Blocked). November diet plan is in (`lib/meal-plans/2026-11.ts`, 5–30 Nov; the 14–21 break shows the at-home day, gym version Mon/Wed/Fri). Floating back button records the visit when the browser history entry is written, so it returns to the previous page. SAT Vocabulary can stop whatever is already running and start itself. GPA calculator at `/study/gpa` (needs `040-gpa.sql`; 039 is the study planner). `prisma/fresh-install.sql` includes `GpaLesson` (45 tables). Site address is configurable: `SITE_URL`, else Vercel's production domain (Open Library User-Agent); the Scriptable widgets keep a `SITE` constant to edit on a copy. `prisma/fresh-install.sql` builds the whole schema on a new, empty database (for a copy of the site; regenerate it after schema changes). Domain moving from otuzbir.world to sadwankel.site: the DNS/Vercel/Claude-environment steps are the user's — see Blocked. Floating back button on long pages (bottom-right, in-site history, parent fallback). Study planner at `/study/tasks` (subjects, categories, deadlines, steps, filters). Needs `039-study-tasks.sql` before it stores anything — see Blocked. SAT Vocabulary (`/study/sat-vocab`) has a Start SAT Vocabulary button. It starts the existing study timer for the module named SAT vocabulary (same `/api/study/start` and stop), and leaves the test, flashcards and quick test alone. A session is already one-at-a-time: the same module keeps running; another module can be stopped from this page, which then starts SAT Vocabulary. No module by that name: the page points at Modules. Diet is a home-screen app like the expense logger ("Diet", works offline: the site is blocked on the school Wi-Fi) — see Blocked to install it. The Scriptable widgets it replaces are still in `scriptable/`. Diet: meals tick off and water is logged toward the day's goal. Every look but Soft Club is archived (no longer updated). Self Care section: Wardrobe is a tab of it beside Diet (October and November plans in `lib/meal-plans/`; December when the user sends it). Google Books daily limit is 1,000 — see Blocked. Soft Club guideline is `docs/design/soft-club.md`. Remaining: trigram search indexes; `next/image` on 8 detail pages; `aria-label`s on icon-only controls. Migrations 029–040, `MAL_CLIENT_ID`, and `GOOGLE_BOOKS_API_KEY` still need the user — the live books pages error until 035–037 run, the planner until 039, saving GPA grades until 040.
 
 ## Done
 
@@ -263,13 +263,25 @@
 
 ## Next
 
-- [ ] **Media exchange with a friend's site** (user, 2026-11-11). From the portal: pick a type
-      (movie, TV, anime, manga, book), search its catalogue (TMDB / MyAnimeList / Google Books),
-      send it with its details to the friend's site. What the friend sent sits on the portal with
-      a deadline worked out from its length (about an hour a day, 2–60 days, 7 when unknown) and a
-      Finished button that tells their site. One open item each way: a new one can be sent once
-      the last is finished. Plan: `MediaShare` table (042), `/api/exchange/*`, the friend's calls
-      authorised by a shared `EXCHANGE_TOKEN`, `FRIEND_SITE_URL`, `FRIEND_NAME`. In progress.
+- [x] **Media exchange with a friend's site** (user, 2026-11-11: send each other media from the
+      portal, a timer by length as a reminder, "finished" goes back so the next can be sent). On the
+      portal, above the sections: **from {friend}** (cover, details, note, LED countdown + bar,
+      Finished it) and **to {friend}** (their countdown while open; else Send something → type,
+      search TMDB / MyAnimeList / Google Books, pick, note, send). One open each way. Deadline =
+      1 h/day rounded up, 2–60 days, 7 unknown; worked out by the receiving site. Details are read
+      fresh from the catalogue on the server, never from the browser. `MediaShare` (042), routes
+      under `/api/exchange/*`; the friend's two calls (`inbox`, `inbox/{id}/finished`) pass the
+      proxy on `EXCHANGE_TOKEN` and re-check it in the handler. Unreached friend: a send is rolled
+      back (502, no row left); a finish is saved and the portal offers "Tell them again". Protocol
+      and setup: `docs/media-exchange.md`. Checked: 1,804 assertions in `test-media-share.mjs`;
+      042 twice on Postgres 16 (+ `fresh-install.sql` on blank DBs, `migrate diff` empty, RLS on);
+      two production builds talking to each other over HTTP with stubbed TMDB/MAL (send, the
+      one-open block, both directions, finish → sender unblocked, friend down on finish then retry,
+      friend down on send, token on any other path, session cookie on inbox, before-042 503);
+      Chromium on Soft Club at 1180/390 (no sideways scroll; only console errors are Vercel
+      speed-insights, local only); lint, typecheck, `npm test`, `next build`. Not checked: the
+      "no friend set" text in a browser, Google Books search (quota), real TMDB/MAL. No synopsis
+      is sent (the parsers don't read one); the item links to its catalogue page.
 
 - [x] **Diet: "didn't / won't eat it" and "ate more", with the rest of today rebalancing** (user,
       2026-11-05: "select it like i did this / i didnt do this / wont do this … the diet should
@@ -907,6 +919,13 @@
       name. Sweep `components/` for buttons and links whose only child is an icon.
 
 ## Blocked / needs the user
+
+- **Media exchange: run `prisma/manual-migrations/042-media-shares.sql`** in the Supabase SQL Editor
+  (additive, RLS on, safe to re-run), then in Vercel set `FRIEND_SITE_URL` (the friend's address),
+  `FRIEND_NAME`, and `EXCHANGE_TOKEN` (32+ random characters, the **same** value on the friend's
+  site), and redeploy. The friend's site needs this code (or the protocol in
+  `docs/media-exchange.md`), its own 042, and the mirror-image variables. Not merged to `main` yet:
+  it is on `claude/upbeat-cori-a90yg2`.
 
 - **Diet choices: run `prisma/manual-migrations/041-meal-choices.sql`** in the Supabase SQL Editor.
   Additive (three columns on `MealCheck`, existing ticks become "ate"), safe to re-run. Until it
