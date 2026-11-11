@@ -263,6 +263,13 @@
 
 ## Next
 
+- [ ] **Media exchange: a queue, and three times the time** (user, 2026-11-11: "birden fazla
+      gonderebilelim, siraya girsin; timer 3 katı her şey için; ekranda en son gönderilen ilk;
+      hepsinin süresi aynı anda çalışsın"). Drop the one-open rule both ways (send and inbox);
+      allowance ×3 (min 6, max 180, unknown 21 days); portal lists every open item newest first,
+      each with its own timer. Friend's Cursor handoff must be regenerated (their inbox 409s a
+      second item until they update). In progress.
+
 - [x] **Media exchange with a friend's site** (user, 2026-11-11: send each other media from the
       portal, a timer by length as a reminder, "finished" goes back so the next can be sent). On the
       portal, above the sections: **from {friend}** (cover, details, note, LED countdown + bar,
