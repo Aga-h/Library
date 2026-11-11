@@ -69,18 +69,22 @@ export const VOLUME_MINUTES = 45;
 export const PAGE_MINUTES = 1.5;
 
 /**
- * Days the receiver gets: an hour of it a day, rounded up, so a two-hour film is two days. Never
- * under two (a short film still needs an evening that suits), never over 60 (a 1,000-episode run
- * isn't a deadline anyone keeps), and a week when the length isn't known.
+ * Days the receiver gets: three days per hour of it, rounded up by the hour, so a two-hour film is
+ * six days (asked for 2026-11-11: three times the first rule, an hour a day). Never under 6 (a
+ * short film still needs evenings that suit), never over 180 (a 1,000-episode run isn't a
+ * deadline anyone keeps), and three weeks when the length isn't known.
  */
-export const MIN_DAYS = 2;
-export const MAX_DAYS = 60;
-export const UNKNOWN_DAYS = 7;
-export const MINUTES_PER_DAY = 60;
+export const DAYS_PER_HOUR = 3;
+export const MIN_DAYS = 6;
+export const MAX_DAYS = 180;
+export const UNKNOWN_DAYS = 21;
+
+/** More open than this each way is refused — a guard against a runaway sender, not a rule. */
+export const MAX_OPEN = 50;
 
 export function allowanceDays(lengthMinutes: number | null): number {
   if (lengthMinutes === null || !Number.isFinite(lengthMinutes) || lengthMinutes <= 0) return UNKNOWN_DAYS;
-  return Math.min(MAX_DAYS, Math.max(MIN_DAYS, Math.ceil(lengthMinutes / MINUTES_PER_DAY)));
+  return Math.min(MAX_DAYS, Math.max(MIN_DAYS, Math.ceil(lengthMinutes / 60) * DAYS_PER_HOUR));
 }
 
 /** When the receiver should be done by, counted from when it arrived. */

@@ -6,7 +6,7 @@ import { Check, ExternalLink, Loader2, Search, Send, X } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import { APP_TIME_ZONE } from "@/lib/dates";
 import {
-  KIND_LABEL, KIND_SOURCE, MAX_DAYS, MIN_DAYS, NOTE_MAX, UNKNOWN_DAYS, SHARE_KINDS, SHARE_NOT_READY, allowanceDays, elapsedShare, sourceLink, timeLeft,
+  DAYS_PER_HOUR, KIND_LABEL, KIND_SOURCE, MAX_DAYS, MIN_DAYS, NOTE_MAX, UNKNOWN_DAYS, SHARE_KINDS, SHARE_NOT_READY, allowanceDays, elapsedShare, sourceLink, timeLeft,
   type ShareKind, type ShareMedia,
 } from "@/lib/media-share";
 import type { ExchangeState, ShareHit, ShareItem } from "@/lib/media-share-service";
@@ -95,15 +95,17 @@ function ErrorLine({ error }: { error: string | null }) {
 
 // ─── What came from the friend ───────────────────────────────────────────────
 
-function Received({ item, friend, now }: { item: ShareItem | null; friend: string; now: Date }) {
+/** One thing from the friend: its card, timer and Finished button — or, finished but their site not
+ *  told yet, the retry. Each keeps its own busy state, so finishing one leaves the others alone. */
+function ReceivedItem({ item, friend, now, first }: { item: ShareItem; friend: string; now: Date; first: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function finish(id: string) {
+  async function finish() {
     setBusy(true);
     setError(null);
-    const res = await fetch(`/api/exchange/${id}/finish`, { method: "POST" }).catch(() => null);
+    const res = await fetch(`/api/exchange/${item.id}/finish`, { method: "POST" }).catch(() => null);
     const data = await res?.json().catch(() => ({}));
     setBusy(false);
     if (!res?.ok) return setError(data?.error ?? "Couldn't save that — try again.");
@@ -111,34 +113,25 @@ function Received({ item, friend, now }: { item: ShareItem | null; friend: strin
     router.refresh();
   }
 
-  if (!item || (item.finishedAt && item.notifiedAt)) {
-    return (
-      <div className="space-y-1">
-        <p className="text-sm text-gray-700">Nothing from {friend} right now.</p>
-        {item && <p className="text-xs text-gray-500">You finished {item.media.title} on {day(item.finishedAt!)}.</p>}
-      </div>
-    );
-  }
-
   if (item.finishedAt) {
     return (
-      <div className="space-y-3">
+      <li className="py-4 first:pt-0 last:pb-0 space-y-3">
         <p className="text-sm text-gray-700">
-          You finished {item.media.title}, but {friend}&apos;s site hasn&apos;t heard yet — so they can&apos;t send the next one.
+          You finished {item.media.title}, but {friend}&apos;s site hasn&apos;t heard yet.
         </p>
         <ErrorLine error={error} />
-        <button type="button" onClick={() => finish(item.id)} disabled={busy}
+        <button type="button" onClick={finish} disabled={busy}
           className="inline-flex items-center gap-2 border border-gray-200 bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Tell them again
         </button>
-      </div>
+      </li>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <li className="py-4 first:pt-0 last:pb-0 space-y-3">
       <div className="flex gap-4">
-        <Cover media={item.media} size="lg" />
+        <Cover media={item.media} size={first ? "lg" : "sm"} />
         <div className="min-w-0 space-y-2">
           <MediaLines media={item.media} />
           {item.note && <p className="text-sm text-gray-700 break-words">&ldquo;{item.note}&rdquo;</p>}
@@ -147,10 +140,32 @@ function Received({ item, friend, now }: { item: ShareItem | null; friend: strin
       </div>
       <Timer item={item} now={now} whose="due" />
       <ErrorLine error={error} />
-      <button type="button" onClick={() => finish(item.id)} disabled={busy}
+      <button type="button" onClick={finish} disabled={busy}
         className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition-colors">
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Finished it
       </button>
+    </li>
+  );
+}
+
+/** Everything from the friend still open, newest first, every timer running at once. */
+function Received({ items, done, friend, now }: {
+  items: ShareItem[]; done: ShareItem | null; friend: string; now: Date;
+}) {
+  const open = items.filter((i) => !i.finishedAt).length;
+  return (
+    <div className="space-y-3">
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-700">Nothing from {friend} right now.</p>
+      ) : (
+        open > 1 && <p className="text-xs text-gray-500">{open} waiting — the newest first.</p>
+      )}
+      {items.length > 0 && (
+        <ul className="divide-y divide-gray-100">
+          {items.map((item, i) => <ReceivedItem key={item.id} item={item} friend={friend} now={now} first={i === 0} />)}
+        </ul>
+      )}
+      {done && <p className="text-xs text-gray-500">Last finished: {done.media.title}, {day(done.finishedAt!)}.</p>}
     </div>
   );
 }
@@ -293,44 +308,54 @@ function hitMedia(kind: ShareKind, hit: ShareHit): ShareMedia {
   };
 }
 
-function Sent({ item, friend, now }: { item: ShareItem | null; friend: string; now: Date }) {
+/** What's waiting with the friend, newest first, with their timers; sending more is always open. */
+function Sent({ items, done, friend, now }: { items: ShareItem[]; done: ShareItem[]; friend: string; now: Date }) {
   const [open, setOpen] = useState(false);
 
-  if (item && !item.finishedAt) {
-    return (
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <Cover media={item.media} size="sm" />
-          <div className="min-w-0">
-            <p className="font-semibold text-gray-900 break-words">{item.media.title}</p>
-            <p className="text-xs text-gray-500">
-              {[KIND_LABEL[item.media.kind], item.media.lengthLabel].filter(Boolean).join(" · ")} · sent {day(item.sentAt)}
-            </p>
-          </div>
-        </div>
-        <Timer item={item} now={now} whose={`${friend} has until`} />
-        <p className="text-xs text-gray-500">You can send the next one once they mark it finished.</p>
-      </div>
-    );
-  }
-
-  if (open) return <SendForm friend={friend} onClose={() => setOpen(false)} />;
-
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-gray-700">
-        {item
-          ? `${friend} finished ${item.media.title} on ${day(item.finishedAt!)}.`
-          : `Nothing sent to ${friend} yet.`}
-      </p>
-      <button type="button" onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
-        <Send className="w-4 h-4" /> Send something
-      </button>
-      <p className="text-xs text-gray-500">
-        A movie, show, anime, manga or book. {friend} gets about a day per hour of it — a two-hour film is
-        {" "}{allowanceDays(120)} days — at least {MIN_DAYS}, at most {MAX_DAYS}, and {UNKNOWN_DAYS} when its length isn&apos;t known.
-      </p>
+    <div className="space-y-4">
+      {open ? (
+        <SendForm friend={friend} onClose={() => setOpen(false)} />
+      ) : (
+        <div className="space-y-2">
+          <button type="button" onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors">
+            <Send className="w-4 h-4" /> Send something
+          </button>
+          <p className="text-xs text-gray-500">
+            A movie, show, anime, manga or book — as many as you like; they queue. {friend} gets {DAYS_PER_HOUR} days
+            per hour of each — a two-hour film is {allowanceDays(120)} days — at least {MIN_DAYS}, at most {MAX_DAYS},
+            and {UNKNOWN_DAYS} when its length isn&apos;t known.
+          </p>
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-700">Nothing waiting with {friend}.</p>
+      ) : (
+        <ul className="divide-y divide-gray-100">
+          {items.map((item) => (
+            <li key={item.id} className="py-4 first:pt-0 last:pb-0 space-y-3">
+              <div className="flex gap-3">
+                <Cover media={item.media} size="sm" />
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 break-words">{item.media.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {[KIND_LABEL[item.media.kind], item.media.lengthLabel].filter(Boolean).join(" · ")} · sent {day(item.sentAt)}
+                  </p>
+                </div>
+              </div>
+              <Timer item={item} now={now} whose={`${friend} has until`} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {done.length > 0 && (
+        <p className="text-xs text-gray-500">
+          {friend} finished {done.map((d) => `${d.media.title} (${day(d.finishedAt!)})`).join(", ")}.
+        </p>
+      )}
     </div>
   );
 }
@@ -360,11 +385,11 @@ export default function MediaExchange({ state, now: initialNow }: Props) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">from {friend}</p>
-        <Received item={state.received} friend={friend} now={now} />
+        <Received items={state.received} done={state.receivedDone} friend={friend} now={now} />
       </div>
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">to {friend}</p>
-        <Sent item={state.sent} friend={friend} now={now} />
+        <Sent items={state.sent} done={state.sentDone} friend={friend} now={now} />
       </div>
     </div>
   );

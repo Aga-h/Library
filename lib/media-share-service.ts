@@ -9,7 +9,7 @@ import { MalError, entryDetails, mangaEntry, searchAnime, searchManga } from "@/
 import { BookCatalogError } from "@/lib/openlibrary";
 import { catalogDetails, searchCatalog } from "@/lib/book-catalog-service";
 import {
-  dueFrom, fromAnime, fromBook, fromFilm, fromManga, fromShow, friendBaseUrl, isSourceId, shareMediaSchema,
+  MAX_OPEN, dueFrom, fromAnime, fromBook, fromFilm, fromManga, fromShow, friendBaseUrl, isSourceId, shareMediaSchema,
   type ShareKind, type ShareMedia,
 } from "@/lib/media-share";
 
@@ -206,30 +206,45 @@ function toItem(row: Row): ShareItem | null {
   };
 }
 
-async function latest(direction: "sent" | "received"): Promise<ShareItem | null> {
-  const row = await db.mediaShare.findFirst({ where: { direction }, orderBy: { sentAt: "desc" } });
-  return row ? toItem(row) : null;
-}
+const items = (rows: Row[]) => rows.map(toItem).filter((i): i is ShareItem => i !== null);
 
-async function openOne(direction: "sent" | "received") {
-  return db.mediaShare.findFirst({ where: { direction, finishedAt: null }, orderBy: { sentAt: "desc" } });
+async function openCount(direction: "sent" | "received"): Promise<number> {
+  return db.mediaShare.count({ where: { direction, finishedAt: null } });
 }
 
 export interface ExchangeState {
   friend: { name: string } | null;
   /** Why `friend` is null: what to fix in the environment. */
   setupIssue: string | null;
-  /** The newest thing sent to the friend, and the newest from them. */
-  sent: ShareItem | null;
-  received: ShareItem | null;
+  /** Sent to the friend and not finished yet, newest first. */
+  sent: ShareItem[];
+  /** The last few the friend finished, most recently finished first. */
+  sentDone: ShareItem[];
+  /** From the friend: not finished yet, or finished but their site not told yet. Newest first. */
+  received: ShareItem[];
+  /** The last one finished here and told to their site. */
+  receivedDone: ShareItem | null;
 }
 
 /** What the portal shows. Null until migration 042 has run. */
 export async function exchangeState(): Promise<ExchangeState | null> {
   const friend = friendConfig();
+  const newest = { sentAt: "desc" } as const;
   try {
-    const [sent, received] = await Promise.all([latest("sent"), latest("received")]);
-    return { friend: friend ? { name: friend.name } : null, setupIssue: friendSetupIssue(), sent, received };
+    const [sent, sentDone, received, receivedDone] = await Promise.all([
+      db.mediaShare.findMany({ where: { direction: "sent", finishedAt: null }, orderBy: newest, take: MAX_OPEN }),
+      db.mediaShare.findMany({ where: { direction: "sent", finishedAt: { not: null } }, orderBy: { finishedAt: "desc" }, take: 3 }),
+      db.mediaShare.findMany({ where: { direction: "received", notifiedAt: null }, orderBy: newest, take: MAX_OPEN }),
+      db.mediaShare.findFirst({ where: { direction: "received", notifiedAt: { not: null } }, orderBy: { finishedAt: "desc" } }),
+    ]);
+    return {
+      friend: friend ? { name: friend.name } : null,
+      setupIssue: friendSetupIssue(),
+      sent: items(sent),
+      sentDone: items(sentDone),
+      received: items(received),
+      receivedDone: receivedDone ? toItem(receivedDone) : null,
+    };
   } catch (e) {
     if (isMissingTable(e)) return null;
     throw e;
@@ -244,8 +259,9 @@ export async function sendToFriend(kind: ShareKind, sourceId: string, note: stri
   const friend = friendConfig();
   if (!friend) throw new ShareError("Set FRIEND_SITE_URL and EXCHANGE_TOKEN first.", 503);
 
-  const open = await openOne("sent");
-  if (open) throw new ShareError(`${friend.name} hasn't finished ${open.title} yet.`, 409);
+  if ((await openCount("sent")) >= MAX_OPEN) {
+    throw new ShareError(`${MAX_OPEN} are already waiting for ${friend.name} — let them catch up first.`, 409);
+  }
 
   const media = await mediaDetails(kind, sourceId);
   const id = crypto.randomUUID();
@@ -278,8 +294,8 @@ export type InboxOutcome =
   | { ok: false; status: number; error: string };
 
 /**
- * Something sent from the friend's site. The same id again is answered the same way (a retry);
- * something new while their last is still open here is refused.
+ * Something sent from the friend's site, queued behind whatever is still open here. The same id
+ * again is answered the same way (a retry). Past MAX_OPEN open items, more are refused.
  */
 export async function receive(body: {
   id: string; sentAt: string; note: string | null; media: ShareMedia;
@@ -290,8 +306,9 @@ export async function receive(body: {
       ? { ok: true, dueAt: existing.dueAt.toISOString() }
       : { ok: false, status: 409, error: "That id is already in use here." };
   }
-  const open = await openOne("received");
-  if (open) return { ok: false, status: 409, error: `Still on ${open.title} — it can be sent once that's finished.` };
+  if ((await openCount("received")) >= MAX_OPEN) {
+    return { ok: false, status: 409, error: `${MAX_OPEN} are already waiting here — finish some first.` };
+  }
 
   // The deadline counts from when it arrived here, not the sender's clock.
   const now = new Date();

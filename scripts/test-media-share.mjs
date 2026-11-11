@@ -16,29 +16,32 @@ function eq(actual, expected, label) {
 }
 function ok(cond, label) { if (cond) pass++; else failures.push(label); }
 
-// ─── Allowance ───────────────────────────────────────────────────────────────
-eq(allowanceDays(120), 2, "a two-hour film is two days");
-eq(allowanceDays(90), 2, "a 90-minute film is the two-day floor");
-eq(allowanceDays(10), 2, "a short is the floor");
-eq(allowanceDays(121), 3, "a minute over two hours rounds up");
-eq(allowanceDays(180), 3, "three hours, three days");
-eq(allowanceDays(24 * 24), 10, "a 24×24 cour: 9.6h → 10 days");
-eq(allowanceDays(60 * 59), 59, "under the cap");
-eq(allowanceDays(60 * 61), 60, "capped at 60");
-eq(allowanceDays(1_000 * 24), 60, "One Piece is capped");
-eq(allowanceDays(null), 7, "unknown is a week");
-eq(allowanceDays(0), 7, "zero is unknown");
-eq(allowanceDays(-5), 7, "negative is unknown");
-eq(allowanceDays(NaN), 7, "NaN is unknown");
-for (let m = 1; m < 6000; m += 7) {
+// ─── Allowance: three days per hour, 6–180, 21 unknown ──────────────────────
+eq(allowanceDays(120), 6, "a two-hour film is six days");
+eq(allowanceDays(90), 6, "a 90-minute film: 2 hours × 3");
+eq(allowanceDays(10), 6, "a short is the floor");
+eq(allowanceDays(121), 9, "a minute over two hours is a third hour");
+eq(allowanceDays(180), 9, "three hours, nine days");
+eq(allowanceDays(24 * 24), 30, "a 24×24 cour: 9.6h → 10h → 30 days");
+eq(allowanceDays(60 * 59), 177, "under the cap");
+eq(allowanceDays(60 * 60), 180, "at the cap");
+eq(allowanceDays(60 * 61), 180, "capped at 180");
+eq(allowanceDays(1_000 * 24), 180, "One Piece is capped");
+eq(allowanceDays(null), 21, "unknown is three weeks");
+eq(allowanceDays(0), 21, "zero is unknown");
+eq(allowanceDays(-5), 21, "negative is unknown");
+eq(allowanceDays(NaN), 21, "NaN is unknown");
+for (let m = 1; m < 12000; m += 7) {
   const d = allowanceDays(m);
-  ok(d >= 2 && d <= 60 && Number.isInteger(d), `allowance in range for ${m}`);
+  ok(d >= 6 && d <= 180 && Number.isInteger(d), `allowance in range for ${m}`);
   ok(allowanceDays(m + 7) >= d, `allowance never shrinks as length grows (${m})`);
+  // Three times the first rule (an hour a day, 2–60), everywhere.
+  ok(d === 3 * Math.min(60, Math.max(2, Math.ceil(m / 60))), `three times the old allowance (${m})`);
 }
 
 const t0 = new Date("2026-11-11T10:00:00Z");
-eq(dueFrom(t0, 120).toISOString(), "2026-11-13T10:00:00.000Z", "due two days after arrival");
-eq(dueFrom(t0, null).toISOString(), "2026-11-18T10:00:00.000Z", "unknown: a week");
+eq(dueFrom(t0, 120).toISOString(), "2026-11-17T10:00:00.000Z", "due six days after arrival");
+eq(dueFrom(t0, null).toISOString(), "2026-12-02T10:00:00.000Z", "unknown: three weeks");
 
 // ─── Timer text ──────────────────────────────────────────────────────────────
 const due = new Date("2026-11-13T10:00:00Z");
@@ -112,7 +115,7 @@ const book = fromBook({
   publisher: "Tor", openLibraryId: null, googleBooksId: "t_ZYYXZq4RgC",
 });
 eq([book.sourceId, book.lengthMinutes, book.lengthLabel, book.creator], ["t_ZYYXZq4RgC", 812, "541 pages", "Brandon Sanderson"], "book");
-eq(allowanceDays(book.lengthMinutes), 14, "a 541-page book: 14 days");
+eq(allowanceDays(book.lengthMinutes), 42, "a 541-page book: 14 hours → 42 days");
 
 // ─── Ids, links, images ──────────────────────────────────────────────────────
 ok(isSourceId("movie", "129"), "numeric id");
