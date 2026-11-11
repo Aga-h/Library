@@ -129,6 +129,21 @@ export function friendConfig(): FriendConfig | null {
   return { url, name, token };
 }
 
+/**
+ * What's wrong with the setup, said on the portal without showing any value — so "I set them"
+ * can be told apart from "this deployment doesn't have them". Null when friendConfig() works.
+ */
+export function friendSetupIssue(): string | null {
+  const url = process.env.FRIEND_SITE_URL?.trim();
+  const token = process.env.EXCHANGE_TOKEN?.trim();
+  if (!url && !token) return "This deployment has neither FRIEND_SITE_URL nor EXCHANGE_TOKEN. Set them for Production in Vercel, then redeploy.";
+  if (!url) return "This deployment has no FRIEND_SITE_URL. Set it for Production in Vercel, then redeploy.";
+  if (!friendBaseUrl(url)) return "FRIEND_SITE_URL has to be a full https address, like https://www.their.site.";
+  if (!token) return "This deployment has no EXCHANGE_TOKEN. Set it for Production in Vercel, then redeploy.";
+  if (token.length < 32) return `EXCHANGE_TOKEN is ${token.length} characters; it needs 32 or more (and the same value on both sites).`;
+  return null;
+}
+
 const FRIEND_TIMEOUT_MS = 10_000;
 
 /** POST to the friend's site. Throws ShareError with what to tell the person when it fails. */
@@ -202,6 +217,8 @@ async function openOne(direction: "sent" | "received") {
 
 export interface ExchangeState {
   friend: { name: string } | null;
+  /** Why `friend` is null: what to fix in the environment. */
+  setupIssue: string | null;
   /** The newest thing sent to the friend, and the newest from them. */
   sent: ShareItem | null;
   received: ShareItem | null;
@@ -212,7 +229,7 @@ export async function exchangeState(): Promise<ExchangeState | null> {
   const friend = friendConfig();
   try {
     const [sent, received] = await Promise.all([latest("sent"), latest("received")]);
-    return { friend: friend ? { name: friend.name } : null, sent, received };
+    return { friend: friend ? { name: friend.name } : null, setupIssue: friendSetupIssue(), sent, received };
   } catch (e) {
     if (isMissingTable(e)) return null;
     throw e;

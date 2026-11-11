@@ -348,7 +348,8 @@ export default function MediaExchange({ state, now: initialNow }: Props) {
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-1">
         <p className="text-sm text-gray-700">Connect a friend&apos;s site to send each other movies, shows, anime, manga and books.</p>
         <p className="text-xs text-gray-500">
-          Set FRIEND_SITE_URL, FRIEND_NAME and EXCHANGE_TOKEN (the same 32+ characters on both sites) in Vercel, then redeploy.
+          {state.setupIssue ??
+            "Set FRIEND_SITE_URL, FRIEND_NAME and EXCHANGE_TOKEN (the same 32+ characters on both sites) in Vercel, then redeploy."}
         </p>
       </div>
     );

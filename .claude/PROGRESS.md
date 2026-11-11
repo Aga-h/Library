@@ -923,7 +923,9 @@
 - **Media exchange: the friend's side.** On this site 042 has run and `FRIEND_SITE_URL`,
   `FRIEND_NAME`, `EXCHANGE_TOKEN` are set (user, 2026-11-11). Waiting on the friend to build their
   side with Cursor from `docs/cursor-media-exchange.md`, set the same token, and send one each way
-  to test. Not verified live from here (the session's credentials don't open the portal).
+  to test. Not verified live from here (the session's credentials don't open the portal). 2026-11-11: the
+  live portal still said "Connect a friend's site" after the vars were added; it now names what is
+  missing (unset on this deployment, not https, token under 32) to tell a missing redeploy apart.
 
 - **Diet choices: run `prisma/manual-migrations/041-meal-choices.sql`** in the Supabase SQL Editor.
   Additive (three columns on `MealCheck`, existing ticks become "ate"), safe to re-run. Until it
