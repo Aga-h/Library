@@ -263,6 +263,14 @@
 
 ## Next
 
+- [ ] **Media exchange with a friend's site** (user, 2026-11-11). From the portal: pick a type
+      (movie, TV, anime, manga, book), search its catalogue (TMDB / MyAnimeList / Google Books),
+      send it with its details to the friend's site. What the friend sent sits on the portal with
+      a deadline worked out from its length (about an hour a day, 2–60 days, 7 when unknown) and a
+      Finished button that tells their site. One open item each way: a new one can be sent once
+      the last is finished. Plan: `MediaShare` table (042), `/api/exchange/*`, the friend's calls
+      authorised by a shared `EXCHANGE_TOKEN`, `FRIEND_SITE_URL`, `FRIEND_NAME`. In progress.
+
 - [x] **Diet: "didn't / won't eat it" and "ate more", with the rest of today rebalancing** (user,
       2026-11-05: "select it like i did this / i didnt do this / wont do this … the diet should
       update itself to include more/less"; picked: skip + ate more/extra; rest of today only).
