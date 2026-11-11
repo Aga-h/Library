@@ -270,7 +270,7 @@
       items already stored keep their deadline. Portal: every open item newest first, each its own
       timer and Finished button; Send something always there; last three the friend finished.
       `docs/cursor-media-exchange.md` regenerated with a "changes since the first version" section
-      for the friend. Checked: 5,236 assertions (incl. ×3 of the old rule at every length), two
+      for the friend; `docs/cursor-media-exchange-update.md` is the update alone (user asked for it). Checked: 5,236 assertions (incl. ×3 of the old rule at every length), two
       production builds over HTTP (three sends in a row → three queued on the other side at 9 / 36
       / 9 days, finishing the middle one marks only it), Chromium at 1180/390 on Soft Club (no
       sideways scroll, no page errors), lint, typecheck, `npm test`, `next build`.
