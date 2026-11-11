@@ -924,8 +924,8 @@
   (additive, RLS on, safe to re-run), then in Vercel set `FRIEND_SITE_URL` (the friend's address),
   `FRIEND_NAME`, and `EXCHANGE_TOKEN` (32+ random characters, the **same** value on the friend's
   site), and redeploy. The friend's site needs this code (or the protocol in
-  `docs/media-exchange.md`), its own 042, and the mirror-image variables. Not merged to `main` yet:
-  it is on `claude/upbeat-cori-a90yg2`.
+  `docs/media-exchange.md`), its own 042, and the mirror-image variables. On `main` (2026-11-11).
+  The friend edits their site with Cursor: `docs/cursor-media-exchange.md` is the handoff to give it.
 
 - **Diet choices: run `prisma/manual-migrations/041-meal-choices.sql`** in the Supabase SQL Editor.
   Additive (three columns on `MealCheck`, existing ticks become "ate"), safe to re-run. Until it
