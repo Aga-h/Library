@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { REPORT_PATH, SESSION_COOKIE, verifyReportToken, verifySessionToken, verifyWidgetToken, widgetMayCall, widgetTokenRefusal } from "@/lib/session";
+import {
+  REPORT_PATH, SESSION_COOKIE, friendMayCall, verifyFriendToken, verifyReportToken, verifySessionToken, verifyWidgetToken,
+  widgetMayCall, widgetTokenRefusal,
+} from "@/lib/session";
 
 const PUBLIC_PATHS = ["/login", "/api/auth"];
 
@@ -50,6 +53,14 @@ export async function proxy(request: NextRequest) {
         return NextResponse.next();
       }
       return NextResponse.json({ error: widgetTokenRefusal(process.env.WIDGET_TOKEN) }, { status: 401 });
+    }
+
+    // The friend's site: EXCHANGE_TOKEN, for sending media here and saying it finished ours.
+    if (
+      friendMayCall(request.method, pathname) &&
+      (await verifyFriendToken(request.headers.get("authorization"), process.env.EXCHANGE_TOKEN))
+    ) {
+      return NextResponse.next();
     }
 
     // API callers get JSON. Redirecting them to the HTML login page produced a 200 that

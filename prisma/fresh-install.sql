@@ -759,6 +759,23 @@ CREATE TABLE "GpaLesson" (
     CONSTRAINT "GpaLesson_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "MediaShare" (
+    "id" TEXT NOT NULL,
+    "direction" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "media" JSONB NOT NULL,
+    "note" TEXT,
+    "sentAt" TIMESTAMP(3) NOT NULL,
+    "dueAt" TIMESTAMP(3) NOT NULL,
+    "finishedAt" TIMESTAMP(3),
+    "notifiedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MediaShare_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Book_openLibraryId_key" ON "Book"("openLibraryId");
 
@@ -1017,6 +1034,9 @@ CREATE INDEX "VocabReview_cardId_idx" ON "VocabReview"("cardId");
 -- CreateIndex
 CREATE INDEX "GpaLesson_position_idx" ON "GpaLesson"("position");
 
+-- CreateIndex
+CREATE INDEX "MediaShare_direction_sentAt_idx" ON "MediaShare"("direction", "sentAt");
+
 -- AddForeignKey
 ALTER TABLE "Book" ADD CONSTRAINT "Book_seriesId_fkey" FOREIGN KEY ("seriesId") REFERENCES "BookSeries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -1130,3 +1150,4 @@ ALTER TABLE "VocabQuestion" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "VocabCard" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "VocabReview" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "GpaLesson" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "MediaShare" ENABLE ROW LEVEL SECURITY;

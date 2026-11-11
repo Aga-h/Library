@@ -1096,3 +1096,26 @@ model GpaLesson {
 
   @@index([position])
 }
+
+/// Media sent to, or received from, the friend's site (lib/media-share.ts). The id is made by the
+/// sending site, so both sites hold the same item under the same id. One is open each way at a time.
+model MediaShare {
+  id         String    @id
+  /// "sent" (to the friend) or "received" (from them).
+  direction  String
+  /// "movie", "tv", "anime", "manga" or "book".
+  kind       String
+  title      String
+  /// Everything on the card: ShareMedia in lib/media-share.ts.
+  media      Json
+  note       String?
+  sentAt     DateTime
+  /// When the receiver should be done by — worked out by the receiving site from the length.
+  dueAt      DateTime
+  finishedAt DateTime?
+  /// Received items: when the friend's site was told it's finished. Null until it answered.
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([direction, sentAt])
+}

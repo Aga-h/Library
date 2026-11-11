@@ -151,3 +151,24 @@ export function widgetTokenRefusal(expected: string | undefined): string {
     ? "The token on this phone doesn't match WIDGET_TOKEN on the site."
     : "The site has no WIDGET_TOKEN yet. Add it in Vercel (32 or more characters), then redeploy.";
 }
+
+// ─── The friend's site ───────────────────────────────────────────────────────
+
+/**
+ * The friend's site sends media here, and says when it's finished what was sent from here, with
+ * EXCHANGE_TOKEN — the same value set on both sites. It opens these two calls and nothing else.
+ * See docs/media-exchange.md.
+ */
+const FRIEND_ROUTES = [
+  /^POST \/api\/exchange\/inbox$/,
+  /^POST \/api\/exchange\/inbox\/[0-9a-f-]{36}\/finished$/,
+];
+
+/** Whether the friend's token may make this call: an exact method and path. */
+export function friendMayCall(method: string, pathname: string): boolean {
+  const call = `${method} ${pathname}`;
+  return FRIEND_ROUTES.some((r) => r.test(call));
+}
+
+/** The same fail-closed check as REPORT_TOKEN's, against EXCHANGE_TOKEN. */
+export const verifyFriendToken = verifyReportToken;
