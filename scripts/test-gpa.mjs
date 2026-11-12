@@ -182,6 +182,17 @@ eq(readLessonBody({ name: " ", hours: 4, ...blankMarks() }).error, "Name the les
 eq(readLessonBody({ name: "Tarih", hours: "4", ...blankMarks() }).ok, false, "hours arrive as a number");
 eq(readLessonBody({ name: "x".repeat(81), hours: 4, ...blankMarks() }).ok, false, "80 characters is the name");
 
+// ── announced marks ──────────────────────────────────────────────────────────
+const marked = lessonBodyFromTexts("IELTS", "4", { ...blankMarkText(), h1Exam1: "90", h2Exam1: "85" }, null, ["h2Exam1", "h1Exam1", "h1Exam1"]);
+eq(marked.announced, ["h1Exam1", "h2Exam1"], "announced marks, once each, in sheet order");
+const dropped = lessonBodyFromTexts("IELTS", "4", { ...blankMarkText(), h1Exam1: "90" }, null, ["h1Exam1", "h1Perf1"]);
+eq(dropped.announced, ["h1Exam1"], "a blank can't be announced");
+eq(lessonBodyFromTexts("IELTS", "4", blankMarkText(), null).announced, [], "nothing announced by default");
+const flagged = readLessonBody({ name: "Tarih", hours: 2, ...blankMarks(), h1Exam1: 80, announced: ["h1Exam1", "h2Exam1"] });
+eq(flagged.ok && flagged.body.announced, ["h1Exam1"], "the API drops a flag on a blank");
+eq(readLessonBody({ name: "Tarih", hours: 2, ...blankMarks() }).body?.announced, [], "an older client sends no flags");
+eq(readLessonBody({ name: "Tarih", hours: 2, ...blankMarks(), announced: ["h3Exam1"] }).ok, false, "only mark keys");
+
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);

@@ -1281,6 +1281,19 @@ h2.text-2xl,
   background-size: 100% 2px;
 }
 
+/* GPA: an announced mark is lit, a prediction is not. The field takes the fluorescent subway
+ * green of Tresor's tunnel and Ruxpin's station (2522, 2524) in place of the cyan tint, and its
+ * underline is the lime "on" light. A prediction keeps the plain cyan field. */
+[data-theme="softclub"] input.gpa-announced {
+  background-color: color-mix(in srgb, var(--color-green-200) 85%, transparent);
+  background-image: linear-gradient(var(--sc-lime), var(--sc-lime));
+  box-shadow: inset 0 -2px 3px -2px var(--sc-lime), 0 0 10px 1px color-mix(in srgb, var(--color-green-200) 70%, transparent);
+}
+[data-theme="softclub"] input.gpa-announced:focus {
+  background-color: color-mix(in srgb, var(--color-green-100) 80%, transparent);
+  box-shadow: inset 0 -2px 4px -2px var(--sc-lime), 0 0 18px 4px color-mix(in srgb, var(--color-green-200) 80%, transparent);
+}
+
 /* A disabled control loses the glow. The glow rules are more specific than a plain
  * :disabled, so this has to win outright; the markup already dims it with opacity. */
 [data-theme="softclub"] :is(button, a, input):disabled {

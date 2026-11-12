@@ -11,6 +11,13 @@ body {
   font-family: var(--theme-font-body);
 }
 
+/* GPA: a mark ticked as announced is tinted green, so it isn't taken for a prediction. Soft Club
+ * draws its own version (app/themes.css). */
+.gpa-announced {
+  background-color: var(--color-green-50);
+  border-color: var(--color-green-400);
+}
+
 /* The floating back button sits in the corner, above the home indicator, and the page can
  * scroll its last lines clear of it. The looks restyle the button itself. */
 .floating-back {

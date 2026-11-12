@@ -1091,6 +1091,10 @@ model GpaLesson {
   h2Exam2   Float?
   h2Perf2   Float?
   h2Project Float?
+  /// The marks above that are the announced result, not a prediction (keys like "h1Exam1").
+  /// No @default on purpose: Prisma would write it on every create, which fails until 043 has
+  /// run. The column's own DEFAULT (an empty list) fills it in.
+  announced String[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

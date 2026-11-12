@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   MARK_ERROR,
   MARK_KEYS,
+  announcedKeys,
   NAME_ERROR,
   NAME_MAX,
   HOURS_ERROR,
@@ -27,6 +28,8 @@ const lessonBodySchema = z.object({
   h2Exam2: z.number().nullable(),
   h2Perf2: z.number().nullable(),
   h2Project: z.number().nullable(),
+  // Optional, so a client from before announced marks still saves.
+  announced: z.array(z.enum(MARK_KEYS)).max(MARK_KEYS.length).optional(),
 });
 
 export function readLessonBody(value: unknown): { ok: true; body: LessonBody } | { ok: false; error: string } {
@@ -46,5 +49,7 @@ export function readLessonBody(value: unknown): { ok: true; body: LessonBody } |
     if (mark === undefined) return { ok: false, error: MARK_ERROR };
     marks[key] = mark;
   }
-  return { ok: true, body: { name, hours, ...marks } };
+  // A blank can't be announced: the flag goes with the mark.
+  const announced = announcedKeys(parsed.data.announced ?? [], marks);
+  return { ok: true, body: { name, hours, announced, ...marks } };
 }

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { readJson, withErrors } from "@/lib/api-errors";
-import { GPA_NOT_READY } from "@/lib/gpa";
+import { ANNOUNCED_NOT_READY, GPA_NOT_READY } from "@/lib/gpa";
 import { readLessonBody } from "@/lib/gpa-schema";
 import { deleteGpaLesson, updateGpaLesson } from "@/lib/gpa-service";
-import { isMissingTable } from "@/lib/prisma-errors";
+import { isMissingColumn, isMissingTable } from "@/lib/prisma-errors";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -17,6 +17,8 @@ async function PATCHHandler(request: Request, { params }: RouteContext) {
     return NextResponse.json(lesson);
   } catch (e) {
     if (isMissingTable(e)) return NextResponse.json({ error: GPA_NOT_READY }, { status: 503 });
+    // Only a save that announces a mark gets here before 043.
+    if (isMissingColumn(e)) return NextResponse.json({ error: ANNOUNCED_NOT_READY }, { status: 503 });
     throw e;
   }
 }

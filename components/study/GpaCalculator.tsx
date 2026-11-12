@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import { inputCls } from "@/components/ui/form";
 import {
+  ANNOUNCED_NOT_READY,
   GPA_NOT_READY,
   HOURS_ERROR,
   MARK_ERROR,
@@ -33,6 +34,8 @@ type Draft = {
   name: string;
   hours: string;
   marks: Record<MarkKey, string>;
+  /** Marks ticked as the announced result; the rest are predictions. */
+  announced: MarkKey[];
   error: string | null;
 };
 
@@ -42,12 +45,13 @@ function draftFrom(lesson: GpaLesson): Draft {
     name: lesson.name,
     hours: formatMark(lesson.hours),
     marks: marksToText(lesson),
+    announced: lesson.announced,
     error: null,
   };
 }
 
 function snapshot(lesson: GpaLesson): string | null {
-  const body = lessonBodyFromTexts(lesson.name, formatMark(lesson.hours), marksToText(lesson), null);
+  const body = lessonBodyFromTexts(lesson.name, formatMark(lesson.hours), marksToText(lesson), null, lesson.announced);
   return body ? JSON.stringify(body) : null;
 }
 
@@ -111,7 +115,7 @@ async function readError(res: Response): Promise<string> {
   return data.error ?? "Couldn't save";
 }
 
-export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson[] }) {
+export default function GpaCalculator({ lessons: initial, announcing }: { lessons: GpaLesson[]; announcing: boolean }) {
   const [lessons, setLessons] = useState(() => initial.map(draftFrom));
   const lessonsRef = useRef(lessons);
   const saved = useRef(new Map(initial.flatMap((lesson) => {
@@ -157,8 +161,22 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
     replaceLesson(id, (lesson) => {
       if (field === "name") return { ...lesson, name: lesson.name.trim() };
       if (field === "hours") return { ...lesson, hours: normalizeHours(lesson.hours) };
-      return { ...lesson, marks: { ...lesson.marks, [field]: normalizeMark(lesson.marks[field]) } };
+      const mark = normalizeMark(lesson.marks[field]);
+      // A blank can't be announced, so clearing a mark drops its tick.
+      const announced = mark === "" ? lesson.announced.filter((key) => key !== field) : lesson.announced;
+      return { ...lesson, marks: { ...lesson.marks, [field]: mark }, announced };
     });
+    persist(id);
+  }
+
+  function toggleAnnounced(id: string, key: MarkKey) {
+    replaceLesson(id, (lesson) => ({
+      ...lesson,
+      announced: lesson.announced.includes(key)
+        ? lesson.announced.filter((k) => k !== key)
+        : [...lesson.announced, key],
+      error: null,
+    }));
     persist(id);
   }
 
@@ -177,7 +195,7 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
   async function write(id: string) {
     const draft = lessonsRef.current.find((lesson) => lesson.id === id);
     if (!draft) return;
-    const body = lessonBodyFromTexts(draft.name, draft.hours, draft.marks, savedBody(id));
+    const body = lessonBodyFromTexts(draft.name, draft.hours, draft.marks, savedBody(id), draft.announced);
     if (!body) return;
     const json = JSON.stringify(body);
     if (saved.current.get(id) === json) return;
@@ -209,7 +227,7 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
     if (canonical) saved.current.set(id, canonical);
     const current = lessonsRef.current.find((lesson) => lesson.id === id);
     if (!current?.error) return;
-    const now = lessonBodyFromTexts(current.name, current.hours, current.marks, stored);
+    const now = lessonBodyFromTexts(current.name, current.hours, current.marks, stored, current.announced);
     if (now && canonical && JSON.stringify(now) === canonical) {
       replaceLesson(id, (lesson) => ({ ...lesson, error: null }));
     }
@@ -282,6 +300,15 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
   const second = halfScore(inputs, "second");
   const year = yearScore(first.average, second.average);
   const entered = inputs.reduce((sum, lesson) => sum + (lesson.hours > 0 ? lesson.hours : 0), 0);
+  let marksIn = 0;
+  let marksAnnounced = 0;
+  for (const { lesson, input } of rows) {
+    for (const key of MARK_FIELDS.flatMap((field) => [field.h1, field.h2])) {
+      if (input.marks[key] === null) continue;
+      marksIn++;
+      if (lesson.announced.includes(key)) marksAnnounced++;
+    }
+  }
   const addNameError = addTried ? nameError(name, true) : null;
   const addHoursError = addTried ? hoursError(hours, true) : null;
 
@@ -291,6 +318,13 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
         <div>
           <p className="text-4xl font-bold leading-none">{figure(year)}</p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-1">Year</p>
+          {announcing && marksIn > 0 && (
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {marksAnnounced === marksIn
+                ? `all ${marksIn} ${marksIn === 1 ? "mark" : "marks"} announced`
+                : `${marksAnnounced} of ${marksIn} ${marksIn === 1 ? "mark" : "marks"} announced`}
+            </p>
+          )}
         </div>
         <div className="flex gap-8">
           <HalfReadout label="First half" score={first} entered={entered} />
@@ -304,6 +338,8 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
       {first.average === null && second.average !== null && (
         <p className="text-sm text-gray-500">The year is the second half until the first half has a mark.</p>
       )}
+
+      {!announcing && lessons.length > 0 && <p className="text-sm text-gray-500">{ANNOUNCED_NOT_READY}</p>}
 
       {lessons.length === 0 && (
         <p className="text-sm text-gray-500">Add a lesson, then its hours and its marks.</p>
@@ -387,8 +423,10 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
                   weighted={score.firstWeighted}
                   keys={MARK_FIELDS.map((field) => field.h1)}
                   lesson={lesson}
+                  announcing={announcing}
                   onChange={(key, value) => edit(lesson.id, key, value)}
                   onBlur={(key) => commit(lesson.id, key)}
+                  onToggle={(key) => toggleAnnounced(lesson.id, key)}
                 />
               </div>
               <div className="pt-4">
@@ -398,8 +436,10 @@ export default function GpaCalculator({ lessons: initial }: { lessons: GpaLesson
                   weighted={score.secondWeighted}
                   keys={MARK_FIELDS.map((field) => field.h2)}
                   lesson={lesson}
+                  announcing={announcing}
                   onChange={(key, value) => edit(lesson.id, key, value)}
                   onBlur={(key) => commit(lesson.id, key)}
+                  onToggle={(key) => toggleAnnounced(lesson.id, key)}
                 />
               </div>
             </div>
@@ -460,15 +500,17 @@ function HalfReadout({ label, score, entered }: { label: string; score: HalfScor
 }
 
 function HalfFields({
-  title, average, weighted, keys, lesson, onChange, onBlur,
+  title, average, weighted, keys, lesson, announcing, onChange, onBlur, onToggle,
 }: {
   title: string;
   average: number | null;
   weighted: number | null;
   keys: readonly MarkKey[];
   lesson: Draft;
+  announcing: boolean;
   onChange: (key: MarkKey, value: string) => void;
   onBlur: (key: MarkKey) => void;
+  onToggle: (key: MarkKey) => void;
 }) {
   return (
     <div>
@@ -482,17 +524,34 @@ function HalfFields({
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {keys.map((key) => {
           const label = MARK_FIELDS.find((field) => field.h1 === key || field.h2 === key)?.label ?? key;
+          const state = parseMarkText(lesson.marks[key]).state;
+          const hasMark = state === "ok" || state === "partial";
+          const announced = announcing && hasMark && lesson.announced.includes(key);
           return (
-            <Field
-              key={key}
-              id={`${lesson.id}-${key}`}
-              label={label}
-              value={lesson.marks[key]}
-              error={parseMarkText(lesson.marks[key]).state === "bad" ? MARK_ERROR : null}
-              onChange={(value) => onChange(key, value)}
-              onBlur={() => onBlur(key)}
-              numeric
-            />
+            <div key={key} className="flex flex-col gap-1 min-w-0">
+              <Field
+                id={`${lesson.id}-${key}`}
+                label={label}
+                value={lesson.marks[key]}
+                error={state === "bad" ? MARK_ERROR : null}
+                onChange={(value) => onChange(key, value)}
+                onBlur={() => onBlur(key)}
+                numeric
+                announced={announced}
+              />
+              {announcing && (
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 py-0.5 max-sm:py-1.5 cursor-pointer has-[:disabled]:cursor-default has-[:disabled]:opacity-50">
+                  <input
+                    type="checkbox"
+                    checked={announced}
+                    disabled={!hasMark}
+                    onChange={() => onToggle(key)}
+                    className="w-4 h-4 shrink-0"
+                  />
+                  announced
+                </label>
+              )}
+            </div>
           );
         })}
       </div>
@@ -501,7 +560,7 @@ function HalfFields({
 }
 
 function Field({
-  id, label, value, error, onChange, onBlur, numeric, maxLength,
+  id, label, value, error, onChange, onBlur, numeric, maxLength, announced,
 }: {
   id: string;
   label: string;
@@ -511,6 +570,8 @@ function Field({
   onBlur: () => void;
   numeric?: boolean;
   maxLength?: number;
+  /** An announced mark is tinted green (gpa-announced); a prediction keeps the plain field. */
+  announced?: boolean;
 }) {
   const errorId = `${id}-error`;
   return (
@@ -528,7 +589,7 @@ function Field({
         maxLength={maxLength}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className={inputCls}
+        className={announced ? `${inputCls} gpa-announced` : inputCls}
       />
       {error && <span id={errorId} className="text-xs text-red-600">{error}</span>}
     </label>

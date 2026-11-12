@@ -61,6 +61,7 @@ declares. Getting this backwards is what broke books and manga once already.
 | `040-gpa.sql` | Creates `GpaLesson` for the GPA calculator: weekly hours and the marks for each half of the year. Averages are computed, not stored. Additive, RLS on — run **before** (or right as) the deploy. The GPA page still opens without it and says saving waits for it. |
 | `041-meal-choices.sql` | Adds `status` (`ate` / `skipped`), `changes` (the add-ons and trims an eaten meal was eaten with) and `extras` (what was eaten on top) to `MealCheck`, so a meal can be skipped and the rest of the day rebalances. Existing rows default to eaten as planned. Additive — plain ticks keep working before it runs; skipping and extras wait for it. |
 | `042-media-shares.sql` | Creates `MediaShare`: media sent to a friend's site and received from it, with the receiver's deadline and when it was finished (`docs/media-exchange.md`). Additive, RLS on — run **before** (or right as) the deploy. The portal still opens without it and says the exchange is waiting for it. |
+| `043-gpa-announced.sql` | Adds `announced` to `GpaLesson`: the marks that are the announced result rather than a prediction. Empty by default, so existing marks stay predictions. Additive — the GPA page keeps working before it runs; the announced checkboxes wait for it. |
 
 ## How 019 was verified
 

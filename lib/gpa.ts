@@ -36,8 +36,14 @@ export const HOURS_ERROR = "Weekly hours, up to 20.";
 export const NAME_ERROR = "Name the lesson.";
 /** The page and the API say this until migration 040 has run. */
 export const GPA_NOT_READY = "Saving grades starts once 040-gpa.sql has run in Supabase.";
+/** Until migration 043 has run, every mark is a prediction and the checkboxes are hidden. */
+export const ANNOUNCED_NOT_READY = "Marking a grade as announced starts once 043-gpa-announced.sql has run in Supabase.";
 
-export type LessonBody = { name: string; hours: number } & Record<MarkKey, number | null>;
+/**
+ * `announced` lists the marks that are the teacher's result rather than a prediction, in
+ * MARK_KEYS order. Only a filled-in mark can be announced.
+ */
+export type LessonBody = { name: string; hours: number; announced: MarkKey[] } & Record<MarkKey, number | null>;
 
 export type GpaLesson = LessonBody & { id: string; position: number };
 
@@ -45,6 +51,15 @@ export type GpaLessonInput = { hours: number; marks: Record<MarkKey, number | nu
 
 export function blankMarks(): Record<MarkKey, number | null> {
   return Object.fromEntries(MARK_KEYS.map((key) => [key, null])) as Record<MarkKey, number | null>;
+}
+
+/** The announced keys that have a mark, once each, in MARK_KEYS order. */
+export function announcedKeys(
+  keys: readonly MarkKey[],
+  marks: Record<MarkKey, number | null>,
+): MarkKey[] {
+  const set = new Set(keys);
+  return MARK_KEYS.filter((key) => set.has(key) && marks[key] !== null);
 }
 
 export function blankMarkText(): Record<MarkKey, string> {
@@ -197,13 +212,14 @@ export function yearScore(first: number | null, second: number | null): number |
 /**
  * What a save would store from the boxes. A box that isn't a mark yet keeps the last stored
  * mark when there is one, so a half-typed "150" does not wipe the 90 already saved. Null when
- * there is no name and no hours to save at all.
+ * there is no name and no hours to save at all. An announced box that ends up blank is dropped.
  */
 export function lessonBodyFromTexts(
   nameText: string,
   hoursText: string,
   markTexts: Record<MarkKey, string>,
   saved: LessonBody | null,
+  announced: readonly MarkKey[] = [],
 ): LessonBody | null {
   const trimmed = nameText.trim();
   const name = trimmed.length > 0 && trimmed.length <= NAME_MAX ? trimmed : saved?.name ?? null;
@@ -226,7 +242,7 @@ export function lessonBodyFromTexts(
     } else if (saved) marks[key] = saved[key];
     else return null;
   }
-  return { name, hours, ...marks };
+  return { name, hours, announced: announcedKeys(announced, marks), ...marks };
 }
 
 /** The marks on screen. A box that isn't a mark is skipped, the way a blank is. */
